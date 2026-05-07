@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bigi Awasaana — Afghani & Halal</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --orange: #E8A020;
+  --orange-dark: #c48010;
+  --white: #ffffff;
+  --black: #111010;
+}
+html, body { height: 100%; font-family: 'Barlow', sans-serif; background: var(--black); color: var(--white); }
+
+/* ── PAGES ── */
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+
+/* ══════════════════════════════
+   HOME HERO
+══════════════════════════════ */
+.hero {
+  position: relative; width: 100%; height: 100vh; min-height: 640px;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.hero-photo {
+  position: absolute; inset: 0;
+  background-image: url('https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=1800&q=85');
+  background-size: cover; background-position: center 40%;
+  filter: brightness(0.6) saturate(1.1);
+  z-index: 1;
+}
+.hero-overlay {
+  position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.05) 35%, rgba(0,0,0,0.55) 100%);
+}
+
+/* NAV */
+nav {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28px 52px;
+}
+.nav-brand-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px; font-weight: 900; letter-spacing: 5px; text-transform: uppercase;
+}
+.nav-brand-sub {
+  font-size: 10px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.55); margin-top: 3px;
+}
+.nav-links { display: flex; align-items: center; gap: 4px; }
+.nav-link {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--white); text-decoration: none;
+  padding: 10px 22px; transition: color 0.2s;
+  background: none; border: none; cursor: pointer;
+}
+.nav-link:hover { color: var(--orange); }
+.nav-link.cta {
+  background: var(--orange); color: var(--black);
+  transition: background 0.2s;
+}
+.nav-link.cta:hover { background: var(--orange-dark); color: var(--black); }
+
+/* HERO CONTENT */
+.hero-content {
+  position: relative; z-index: 10; flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 0 24px 80px;
+}
+.hero-eyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 18px;
+}
+.hero-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(80px, 13vw, 168px);
+  font-weight: 900; letter-spacing: 4px; text-transform: uppercase;
+  line-height: 0.9; color: var(--white);
+  text-shadow: 0 2px 40px rgba(0,0,0,0.4);
+  margin-bottom: 28px;
+}
+.hero-sub {
+  font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.6); margin-bottom: 48px;
+}
+.hero-ctas { display: flex; align-items: center; gap: 14px; }
+.hero-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  padding: 0; width: 210px; height: 70px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; border: 2px solid rgba(255,255,255,0.85);
+  background: transparent; color: var(--white);
+  cursor: pointer; transition: all 0.2s; text-decoration: none;
+}
+.hero-btn-sub { font-size: 10px; font-weight: 600; letter-spacing: 2px; color: rgba(255,255,255,0.5); }
+.hero-btn:hover { background: rgba(255,255,255,0.1); }
+.hero-btn.orange { background: var(--orange); border-color: var(--orange); color: var(--black); }
+.hero-btn.orange .hero-btn-sub { color: rgba(0,0,0,0.5); }
+.hero-btn.orange:hover { background: var(--orange-dark); border-color: var(--orange-dark); }
+
+/* BOTTOM BAR */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  display: flex;
+  background: rgba(10,9,8,0.97); backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.bb-btn {
+  flex: 1; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.45); background: none; border: none;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 20px 10px; cursor: pointer; transition: all 0.2s;
+}
+.bb-btn:last-child { border-right: none; }
+.bb-btn:hover { color: var(--white); background: rgba(255,255,255,0.04); }
+.bb-btn.primary { background: var(--orange); color: var(--black); }
+.bb-btn.primary:hover { background: var(--orange-dark); }
+.bb-gift { flex: none; width: 60px; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-left: 1px solid rgba(255,255,255,0.06); background: none; border-top: none; border-right: none; border-bottom: none; transition: background 0.2s; }
+.bb-gift:hover { background: rgba(255,255,255,0.05); }
+
+/* ══════════════════════════════
+   MENU PAGE
+══════════════════════════════ */
+#menuPage { background: var(--black); padding-bottom: 80px; }
+
+.menu-topnav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 52px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(10,9,8,0.97); backdrop-filter: blur(20px);
+}
+.menu-topnav-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px; font-weight: 900; letter-spacing: 5px; text-transform: uppercase;
+}
+.menu-topnav-brand span { color: var(--orange); }
+.menu-back-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); background: none; border: none; cursor: pointer; transition: color 0.2s;
+}
+.menu-back-btn:hover { color: var(--white); }
+.menu-halal-badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--orange); border: 1px solid rgba(232,160,32,0.35); padding: 7px 16px;
+}
+
+/* BANNER */
+.menu-banner {
+  position: relative; height: 300px; overflow: hidden;
+  display: flex; align-items: flex-end;
+}
+.menu-banner-img {
+  position: absolute; inset: 0;
+  background-image: url('https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=1400&q=80');
+  background-size: cover; background-position: center;
+  filter: brightness(0.4) saturate(1.2);
+}
+.menu-banner-fade {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, var(--black) 0%, transparent 60%);
+}
+.menu-banner-text { position: relative; z-index: 2; padding: 0 52px 36px; }
+.menu-banner-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 72px; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; line-height: 1;
+}
+.menu-banner-sub {
+  font-size: 12px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); margin-top: 8px;
+}
+
+/* TABS */
+.menu-tabs {
+  display: flex; border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 0 52px; overflow-x: auto; scrollbar-width: none;
+}
+.menu-tabs::-webkit-scrollbar { display: none; }
+.menu-tab {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.35); background: none; border: none;
+  border-bottom: 2px solid transparent; padding: 18px 24px;
+  cursor: pointer; white-space: nowrap; transition: all 0.2s;
+}
+.menu-tab:hover { color: rgba(255,255,255,0.8); }
+.menu-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+/* MENU ITEMS */
+.menu-content { max-width: 880px; margin: 0 auto; padding: 44px 52px; }
+
+.menu-group { margin-bottom: 52px; }
+.menu-group-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase;
+  color: var(--orange); padding-bottom: 14px;
+  border-bottom: 1px solid rgba(232,160,32,0.2); margin-bottom: 4px;
+}
+
+.menu-row {
+  display: flex; align-items: center; gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer; transition: background 0.15s;
+}
+.menu-row:last-child { border-bottom: none; }
+.menu-row:hover { background: rgba(255,255,255,0.025); margin: 0 -16px; padding: 22px 16px; border-radius: 2px; }
+
+.menu-row-icon {
+  width: 58px; height: 58px; flex-shrink: 0;
+  background: rgba(255,255,255,0.04); border-radius: 3px;
+  display: flex; align-items: center; justify-content: center; font-size: 30px;
+}
+.menu-row-info { flex: 1; }
+.menu-row-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 21px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 5px;
+}
+.badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 2px 8px; background: var(--orange); color: var(--black);
+}
+.badge.green { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+.menu-row-desc { font-size: 13px; color: rgba(255,255,255,0.38); line-height: 1.55; max-width: 500px; }
+.menu-row-right { text-align: right; flex-shrink: 0; }
+.menu-row-price {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px; font-weight: 700; color: var(--white); margin-bottom: 8px;
+}
+.menu-row-add {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  background: var(--orange); color: var(--black); border: none;
+  padding: 8px 18px; cursor: pointer; transition: background 0.2s;
+}
+.menu-row-add:hover { background: var(--orange-dark); }
+
+/* ── SPECIALS STRIP ── */
+.specials {
+  background: var(--orange); overflow: hidden; padding: 14px 0;
+  display: flex; white-space: nowrap;
+}
+.specials-track {
+  display: flex; animation: marquee 22s linear infinite;
+  width: max-content;
+}
+.specials-item {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--black); padding: 0 32px; display: flex; align-items: center; gap: 16px;
+}
+.specials-item::after { content: '◆'; font-size: 9px; opacity: 0.5; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--black); border: 1px solid var(--orange);
+  padding: 13px 28px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  white-space: nowrap; z-index: 999;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast span { color: var(--orange); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav, .menu-topnav { padding: 18px 20px; }
+  .nav-links .nav-link:not(.cta) { display: none; }
+  .hero-title { font-size: 72px; }
+  .hero-btn { width: 155px; height: 62px; font-size: 13px; }
+  .menu-banner { height: 200px; }
+  .menu-banner-title { font-size: 48px; }
+  .menu-banner-text { padding: 0 20px 24px; }
+  .menu-tabs { padding: 0 20px; }
+  .menu-content { padding: 32px 20px; }
+  .menu-row-desc { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     HOME
+════════════════════════════════ -->
+<div id="homePage" class="page active">
+  <section class="hero">
+    <div class="hero-photo"></div>
+    <div class="hero-overlay"></div>
+
+    <nav>
+      <div>
+        <div class="nav-brand-name">Bigi Awasaana</div>
+        <div class="nav-brand-sub">Afghani &amp; Halal Street Food</div>
+      </div>
+      <div class="nav-links">
+        <button class="nav-link" onclick="showToast('📍 Follow @bigiawasaana for daily location drops')">Find Us</button>
+        <button class="nav-link cta" onclick="showPage('menuPage')">Order Online</button>
+        <button class="nav-link" onclick="showToast('📞 DM us on Instagram or WhatsApp')">Contact</button>
+      </div>
+    </nav>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow">🔥 Now Open &nbsp;·&nbsp; ☪ 100% Halal Certified</div>
+      <h1 class="hero-title">AFGHANI<br>STREET<br>FOOD</h1>
+      <div class="hero-sub">Shawarma &nbsp;·&nbsp; Kebab &nbsp;·&nbsp; Mantu &nbsp;·&nbsp; Bolani &nbsp;·&nbsp; Fresh Daily</div>
+      <div class="hero-ctas">
+        <button class="hero-btn" onclick="showPage('menuPage')">
+          View Menu
+          <span class="hero-btn-sub">See What We Serve</span>
+        </button>
+        <button class="hero-btn orange" onclick="showPage('menuPage')">
+          Order Now
+          <span class="hero-btn-sub">DM / WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="bottom-bar">
+    <button class="bb-btn" onclick="showPage('menuPage')">Menu</button>
+    <button class="bb-btn primary" onclick="showPage('menuPage')">Order Online</button>
+    <button class="bb-btn" onclick="showToast('📍 Follow @bigiawasaana for daily location')">Find Us</button>
+    <button class="bb-gift" onclick="showToast('🎁 Show this page for a FREE Bolani on your first order!')">🎁</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MENU
+════════════════════════════════ -->
+<div id="menuPage" class="page">
+
+  <div class="menu-topnav">
+    <button class="menu-back-btn" onclick="showPage('homePage')">← Back</button>
+    <div class="menu-topnav-brand">Bigi <span>Awasaana</span></div>
+    <div class="menu-halal-badge">☪ 100% Halal</div>
+  </div>
+
+  <div class="menu-banner">
+    <div class="menu-banner-img"></div>
+    <div class="menu-banner-fade"></div>
+    <div class="menu-banner-text">
+      <div class="menu-banner-title">Our Menu</div>
+      <div class="menu-banner-sub">Fresh · Afghani · Halal Certified</div>
+    </div>
+  </div>
+
+  <!-- SPECIALS STRIP -->
+  <div class="specials">
+    <div class="specials-track">
+      <div class="specials-item">Lunch Deal: Shawarma + Doogh — $14.99</div>
+      <div class="specials-item">Family Platter — Feeds 4 — $49.99</div>
+      <div class="specials-item">NEW: Lamb Seekh Kebab</div>
+      <div class="specials-item">Friday Special: Free Bolani on orders over $30</div>
+      <div class="specials-item">Lunch Deal: Shawarma + Doogh — $14.99</div>
+      <div class="specials-item">Family Platter — Feeds 4 — $49.99</div>
+      <div class="specials-item">NEW: Lamb Seekh Kebab</div>
+      <div class="specials-item">Friday Special: Free Bolani on orders over $30</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="menu-tabs">
+    <button class="menu-tab active" onclick="filterTab(this,'all')">All</button>
+    <button class="menu-tab" onclick="filterTab(this,'wraps')">Wraps</button>
+    <button class="menu-tab" onclick="filterTab(this,'platters')">Platters</button>
+    <button class="menu-tab" onclick="filterTab(this,'sides')">Sides</button>
+    <button class="menu-tab" onclick="filterTab(this,'drinks')">Drinks</button>
+  </div>
+
+  <div class="menu-content">
+
+    <!-- WRAPS -->
+    <div class="menu-group" data-group="wraps">
+      <div class="menu-group-title">Wraps &amp; Sandwiches</div>
+
+      <div class="menu-row" data-cat="wraps" onclick="addItem('Chicken Shawarma Wrap','$12.99')">
+        <div class="menu-row-icon">🥙</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Chicken Shawarma Wrap <span class="badge">Best Seller</span></div>
+          <div class="menu-row-desc">Marinated chicken, house garlic sauce, pickled turnips, tomato, fries — wrapped in warm flatbread.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$12.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Chicken Shawarma Wrap','$12.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="wraps" onclick="addItem('Lamb Shawarma Wrap','$13.99')">
+        <div class="menu-row-icon">🥙</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Lamb Shawarma Wrap</div>
+          <div class="menu-row-desc">Slow-roasted spiced lamb, tahini, fresh herbs, house pickles in toasted flatbread.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$13.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Lamb Shawarma Wrap','$13.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="wraps" onclick="addItem('Kebab Wrap','$11.99')">
+        <div class="menu-row-icon">🌯</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Kebab Wrap</div>
+          <div class="menu-row-desc">Grilled seekh kebab, caramelised onions, mint chutney and crisp lettuce in naan bread.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$11.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Kebab Wrap','$11.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="wraps" onclick="addItem('Falafel Wrap','$10.99')">
+        <div class="menu-row-icon">🧆</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Falafel Wrap <span class="badge green">Veg</span></div>
+          <div class="menu-row-desc">Crispy falafel, hummus, roasted peppers, fresh salad in flatbread.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$10.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Falafel Wrap','$10.99')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLATTERS -->
+    <div class="menu-group" data-group="platters">
+      <div class="menu-group-title">Platters</div>
+
+      <div class="menu-row" data-cat="platters" onclick="addItem('Mixed Kebab Platter','$16.99')">
+        <div class="menu-row-icon">🍢</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Mixed Kebab Platter <span class="badge">Popular</span></div>
+          <div class="menu-row-desc">Chapli + seekh kebab, saffron basmati, fresh naan, mint chutney, house salad.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$16.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Mixed Kebab Platter','$16.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="platters" onclick="addItem('Afghani Qorma Rice','$13.99')">
+        <div class="menu-row-icon">🍛</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Afghani Qorma Rice</div>
+          <div class="menu-row-desc">Slow-cooked chicken qorma on fragrant basmati with fried raisins and almonds.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$13.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Afghani Qorma Rice','$13.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="platters" onclick="addItem('Lamb Seekh Kebab Plate','$14.99')">
+        <div class="menu-row-icon">🫕</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Lamb Seekh Kebab Plate <span class="badge">New</span></div>
+          <div class="menu-row-desc">Chargrilled spiced minced lamb on skewers with naan, yogurt dip and salad.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$14.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Lamb Seekh Kebab Plate','$14.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="platters" onclick="addItem('Family Platter','$49.99')">
+        <div class="menu-row-icon">🥘</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Family Platter <span class="badge">Feeds 4</span></div>
+          <div class="menu-row-desc">4 kebabs, large rice, 4 naan, 2 sides, 4 drinks. Best value for groups.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$49.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Family Platter','$49.99')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDES -->
+    <div class="menu-group" data-group="sides">
+      <div class="menu-group-title">Sides &amp; Extras</div>
+
+      <div class="menu-row" data-cat="sides" onclick="addItem('Mantu Dumplings','$9.99')">
+        <div class="menu-row-icon">🥟</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Mantu Dumplings</div>
+          <div class="menu-row-desc">Steamed beef dumplings topped with yogurt, tomato sauce and dried mint.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$9.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Mantu Dumplings','$9.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="sides" onclick="addItem('Bolani','$7.99')">
+        <div class="menu-row-icon">🫓</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Bolani <span class="badge green">Veg</span></div>
+          <div class="menu-row-desc">Crispy flatbread stuffed with spiced potato and spring onion. Served with yogurt dip.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$7.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Bolani','$7.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="sides" onclick="addItem('Fresh Naan','$3.99')">
+        <div class="menu-row-icon">🍞</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Fresh Naan</div>
+          <div class="menu-row-desc">Baked fresh. Plain or garlic with butter and nigella seeds.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$3.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Fresh Naan','$3.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="sides" onclick="addItem('House Salad','$4.99')">
+        <div class="menu-row-icon">🥗</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">House Salad <span class="badge green">Veg</span></div>
+          <div class="menu-row-desc">Fresh cucumber, tomato, onion, herbs with lemon and olive oil dressing.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$4.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('House Salad','$4.99')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRINKS -->
+    <div class="menu-group" data-group="drinks">
+      <div class="menu-group-title">Drinks</div>
+
+      <div class="menu-row" data-cat="drinks" onclick="addItem('Doogh (Afghan Yogurt Drink)','$4.50')">
+        <div class="menu-row-icon">🥛</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Doogh</div>
+          <div class="menu-row-desc">Traditional Afghani yogurt drink with mint and sea salt. Cold and refreshing.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$4.50</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Doogh','$4.50')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="drinks" onclick="addItem('Sheer Chai (Pink Tea)','$3.99')">
+        <div class="menu-row-icon">🍵</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Sheer Chai — Pink Tea</div>
+          <div class="menu-row-desc">Traditional Afghani pink tea with milk, cardamom and crushed pistachios.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$3.99</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Sheer Chai','$3.99')">Add</button>
+        </div>
+      </div>
+
+      <div class="menu-row" data-cat="drinks" onclick="addItem('Cold Drink','$2.50')">
+        <div class="menu-row-icon">🥤</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Cold Drink</div>
+          <div class="menu-row-desc">Canned soda or still water.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$2.50</div>
+          <button class="menu-row-add" onclick="event.stopPropagation();addItem('Cold Drink','$2.50')">Add</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end menu-content -->
+
+  <div class="bottom-bar">
+    <button class="bb-btn" onclick="showPage('homePage')">← Home</button>
+    <button class="bb-btn primary" onclick="showToast('💬 DM us on Instagram or WhatsApp to place your order!')">Place Order</button>
+    <button class="bb-btn" onclick="showToast('📍 Follow @bigiawasaana for daily location')">Find Us</button>
+    <button class="bb-gift" onclick="showToast('🎁 First order? Show this page for a FREE Bolani!')">🎁</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+let toastTimer;
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  document.getElementById('toastMsg').innerHTML = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function addItem(name, price) {
+  showToast('<span>' + name + '</span> — ' + price + ' · DM us on Instagram to order!');
+}
+
+function filterTab(btn, cat) {
+  document.querySelectorAll('.menu-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  document.querySelectorAll('.menu-row').forEach(row => {
+    row.style.display = (cat === 'all' || row.dataset.cat === cat) ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.menu-group').forEach(g => {
+    const anyVisible = cat === 'all' || [...g.querySelectorAll('.menu-row')].some(r => r.dataset.cat === cat);
+    g.style.display = anyVisible ? 'block' : 'none';
+  });
+}
+</script>
+</body>
+</html>
