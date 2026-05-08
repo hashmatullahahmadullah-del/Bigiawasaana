@@ -144,7 +144,7 @@ nav {
 }
 .nav-brand-sub {
   font-size: 10px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
-  color: rgba(255,255,255,0.55); margin-top: 3px;
+  color: rgba(255,255,255,0.55); margin-top: 3px; white-space: nowrap;
 }
 .nav-links { display: flex; align-items: center; gap: 4px; }
 .nav-link {
@@ -217,14 +217,7 @@ nav {
 .bb-btn:hover { color: var(--white); background: rgba(255,255,255,0.04); }
 .bb-btn.primary { background: var(--orange); color: var(--black); }
 .bb-btn.primary:hover { background: var(--orange-dark); }
-.bb-gift {
-  flex: none; width: 60px; font-size: 20px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; border-left: 1px solid rgba(255,255,255,0.06);
-  background: none; border-top: none; border-right: none; border-bottom: none;
-  transition: background 0.2s;
-}
-.bb-gift:hover { background: rgba(255,255,255,0.05); }
+
 
 #menuPage { background: var(--black); padding-bottom: 80px; }
 
@@ -402,7 +395,7 @@ nav {
     <nav aria-label="Main navigation">
       <div>
         <div class="nav-brand-name" aria-label="Bigi Awasaana">Bigi Awasaana</div>
-        <div class="nav-brand-sub">Afghani &amp; Halal · Reseda, Los Angeles</div>
+        <div class="nav-brand-sub">Afghani &amp; Halal · Reseda, LA</div>
       </div>
       <div class="nav-links">
         <button class="nav-link" onclick="showToast('📍 Follow @bigiawasaana for daily location drops')">Find Us</button>
@@ -431,9 +424,8 @@ nav {
 
   <div class="bottom-bar" role="navigation" aria-label="Quick actions">
     <button class="bb-btn" onclick="showPage('menuPage')">Menu</button>
-    <button class="bb-btn primary" onclick="showPage('menuPage')">Order Online</button>
+    <button class="bb-btn primary" onclick="showPage('menuPage')">Order Now</button>
     <button class="bb-btn" onclick="showToast('📍 Follow @bigiawasaana for daily location')">Find Us</button>
-    <button class="bb-gift" onclick="showToast('🎁 First order? Show this page for a FREE Bolani!')" aria-label="Gift offer">🎁</button>
   </div>
 </div>
 
@@ -443,4 +435,13 @@ nav {
 <div id="menuPage" class="page" role="main">
 
   <div class="menu-topnav">
-    <button class="menu-back-btn" onclick="showPage
+    <button class="menu-back-btn" onclick="showPage('homePage')">← Back</button>
+    <div class="menu-topnav-brand" aria-label="Bigi Awasaana">Bigi <span>Awasaana</span></div>
+    <div class="menu-halal-badge" aria-label="100% Halal Certified">☪ 100% Halal</div>
+  </div>
+
+  <div class="menu-banner" aria-label="Our Menu">
+    <div class="menu-banner-img" role="img" aria-label="Afghani halal food from Bigi Awasaana Reseda"></div>
+    <div class="menu-banner-fade"></div>
+    <div class="menu-banner-text">
+      <h2 class="menu
