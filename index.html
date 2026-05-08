@@ -444,4 +444,261 @@ nav {
     <div class="menu-banner-img" role="img" aria-label="Afghani halal food from Bigi Awasaana Reseda"></div>
     <div class="menu-banner-fade"></div>
     <div class="menu-banner-text">
-      <h2 class="menu
+      <h2 class="menu-banner-title">Our Menu</h2>
+      <p class="menu-banner-sub">Fresh · Afghani · Halal Certified · Reseda LA</p>
+    </div>
+  </div>
+
+  <div class="specials" aria-label="Today's specials">
+    <div class="specials-track">
+      <div class="specials-item">Lunch Deal: Shawarma + Doogh — $14.99</div>
+      <div class="specials-item">Family Platter — Feeds 4 — $49.99</div>
+      <div class="specials-item">NEW: Lamb Seekh Kebab</div>
+      <div class="specials-item">Friday Special: Free Bolani on orders over $30</div>
+      <div class="specials-item">Lunch Deal: Shawarma + Doogh — $14.99</div>
+      <div class="specials-item">Family Platter — Feeds 4 — $49.99</div>
+      <div class="specials-item">NEW: Lamb Seekh Kebab</div>
+      <div class="specials-item">Friday Special: Free Bolani on orders over $30</div>
+    </div>
+  </div>
+
+  <div class="menu-tabs" role="tablist" aria-label="Menu categories">
+    <button class="menu-tab active" role="tab" aria-selected="true" onclick="filterTab(this,'all')">All</button>
+    <button class="menu-tab" role="tab" aria-selected="false" onclick="filterTab(this,'wraps')">Wraps</button>
+    <button class="menu-tab" role="tab" aria-selected="false" onclick="filterTab(this,'platters')">Platters</button>
+    <button class="menu-tab" role="tab" aria-selected="false" onclick="filterTab(this,'sides')">Sides</button>
+    <button class="menu-tab" role="tab" aria-selected="false" onclick="filterTab(this,'drinks')">Drinks</button>
+  </div>
+
+  <div class="menu-content">
+
+    <div class="menu-group" data-group="wraps">
+      <h3 class="menu-group-title">Wraps &amp; Sandwiches</h3>
+      <div class="menu-row" data-cat="wraps" onclick="addItem('Chicken Shawarma Wrap','$12.99')">
+        <div class="menu-row-icon" aria-hidden="true">🥙</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Chicken Shawarma Wrap <span class="badge">Best Seller</span></div>
+          <div class="menu-row-desc">Marinated chicken, house garlic sauce, pickled turnips, tomato, fries — wrapped in warm flatbread.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$12.99</div>
+          <button class="menu-row-add" aria-label="Add Chicken Shawarma Wrap to order" onclick="event.stopPropagation();addItem('Chicken Shawarma Wrap','$12.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="wraps" onclick="addItem('Lamb Shawarma Wrap','$13.99')">
+        <div class="menu-row-icon" aria-hidden="true">🥙</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Lamb Shawarma Wrap</div>
+          <div class="menu-row-desc">Slow-roasted spiced lamb, tahini, fresh herbs, house pickles in toasted flatbread.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$13.99</div>
+          <button class="menu-row-add" aria-label="Add Lamb Shawarma Wrap to order" onclick="event.stopPropagation();addItem('Lamb Shawarma Wrap','$13.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="wraps" onclick="addItem('Kebab Wrap','$11.99')">
+        <div class="menu-row-icon" aria-hidden="true">🌯</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Kebab Wrap</div>
+          <div class="menu-row-desc">Grilled seekh kebab, caramelised onions, mint chutney and crisp lettuce in naan bread.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$11.99</div>
+          <button class="menu-row-add" aria-label="Add Kebab Wrap to order" onclick="event.stopPropagation();addItem('Kebab Wrap','$11.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="wraps" onclick="addItem('Falafel Wrap','$10.99')">
+        <div class="menu-row-icon" aria-hidden="true">🧆</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Falafel Wrap <span class="badge green">Veg</span></div>
+          <div class="menu-row-desc">Crispy falafel, hummus, roasted peppers, fresh salad in flatbread.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$10.99</div>
+          <button class="menu-row-add" aria-label="Add Falafel Wrap to order" onclick="event.stopPropagation();addItem('Falafel Wrap','$10.99')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-group" data-group="platters">
+      <h3 class="menu-group-title">Platters</h3>
+      <div class="menu-row" data-cat="platters" onclick="addItem('Mixed Kebab Platter','$16.99')">
+        <div class="menu-row-icon" aria-hidden="true">🍢</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Mixed Kebab Platter <span class="badge">Popular</span></div>
+          <div class="menu-row-desc">Chapli + seekh kebab, saffron basmati, fresh naan, mint chutney, house salad.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$16.99</div>
+          <button class="menu-row-add" aria-label="Add Mixed Kebab Platter to order" onclick="event.stopPropagation();addItem('Mixed Kebab Platter','$16.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="platters" onclick="addItem('Afghani Qorma Rice','$13.99')">
+        <div class="menu-row-icon" aria-hidden="true">🍛</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Afghani Qorma Rice</div>
+          <div class="menu-row-desc">Slow-cooked chicken qorma on fragrant basmati with fried raisins and almonds.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$13.99</div>
+          <button class="menu-row-add" aria-label="Add Afghani Qorma Rice to order" onclick="event.stopPropagation();addItem('Afghani Qorma Rice','$13.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="platters" onclick="addItem('Lamb Seekh Kebab Plate','$14.99')">
+        <div class="menu-row-icon" aria-hidden="true">🫕</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Lamb Seekh Kebab Plate <span class="badge">New</span></div>
+          <div class="menu-row-desc">Chargrilled spiced minced lamb on skewers with naan, yogurt dip and salad.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$14.99</div>
+          <button class="menu-row-add" aria-label="Add Lamb Seekh Kebab Plate to order" onclick="event.stopPropagation();addItem('Lamb Seekh Kebab Plate','$14.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="platters" onclick="addItem('Family Platter','$49.99')">
+        <div class="menu-row-icon" aria-hidden="true">🥘</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Family Platter <span class="badge">Feeds 4</span></div>
+          <div class="menu-row-desc">4 kebabs, large rice, 4 naan, 2 sides, 4 drinks. Best value for groups.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$49.99</div>
+          <button class="menu-row-add" aria-label="Add Family Platter to order" onclick="event.stopPropagation();addItem('Family Platter','$49.99')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-group" data-group="sides">
+      <h3 class="menu-group-title">Sides &amp; Extras</h3>
+      <div class="menu-row" data-cat="sides" onclick="addItem('Mantu Dumplings','$9.99')">
+        <div class="menu-row-icon" aria-hidden="true">🥟</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Mantu Dumplings</div>
+          <div class="menu-row-desc">Steamed beef dumplings topped with yogurt, tomato sauce and dried mint.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$9.99</div>
+          <button class="menu-row-add" aria-label="Add Mantu Dumplings to order" onclick="event.stopPropagation();addItem('Mantu Dumplings','$9.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="sides" onclick="addItem('Bolani','$7.99')">
+        <div class="menu-row-icon" aria-hidden="true">🫓</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Bolani <span class="badge green">Veg</span></div>
+          <div class="menu-row-desc">Crispy flatbread stuffed with spiced potato and spring onion. Served with yogurt dip.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$7.99</div>
+          <button class="menu-row-add" aria-label="Add Bolani to order" onclick="event.stopPropagation();addItem('Bolani','$7.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="sides" onclick="addItem('Fresh Naan','$3.99')">
+        <div class="menu-row-icon" aria-hidden="true">🍞</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Fresh Naan</div>
+          <div class="menu-row-desc">Baked fresh. Plain or garlic with butter and nigella seeds.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$3.99</div>
+          <button class="menu-row-add" aria-label="Add Fresh Naan to order" onclick="event.stopPropagation();addItem('Fresh Naan','$3.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="sides" onclick="addItem('House Salad','$4.99')">
+        <div class="menu-row-icon" aria-hidden="true">🥗</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">House Salad <span class="badge green">Veg</span></div>
+          <div class="menu-row-desc">Fresh cucumber, tomato, onion, herbs with lemon and olive oil dressing.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$4.99</div>
+          <button class="menu-row-add" aria-label="Add House Salad to order" onclick="event.stopPropagation();addItem('House Salad','$4.99')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-group" data-group="drinks">
+      <h3 class="menu-group-title">Drinks</h3>
+      <div class="menu-row" data-cat="drinks" onclick="addItem('Doogh','$4.50')">
+        <div class="menu-row-icon" aria-hidden="true">🥛</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Doogh</div>
+          <div class="menu-row-desc">Traditional Afghani yogurt drink with mint and sea salt. Cold and refreshing.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$4.50</div>
+          <button class="menu-row-add" aria-label="Add Doogh to order" onclick="event.stopPropagation();addItem('Doogh','$4.50')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="drinks" onclick="addItem('Sheer Chai','$3.99')">
+        <div class="menu-row-icon" aria-hidden="true">🍵</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Sheer Chai — Pink Tea</div>
+          <div class="menu-row-desc">Traditional Afghani pink tea with milk, cardamom and crushed pistachios.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$3.99</div>
+          <button class="menu-row-add" aria-label="Add Sheer Chai to order" onclick="event.stopPropagation();addItem('Sheer Chai','$3.99')">Add</button>
+        </div>
+      </div>
+      <div class="menu-row" data-cat="drinks" onclick="addItem('Cold Drink','$2.50')">
+        <div class="menu-row-icon" aria-hidden="true">🥤</div>
+        <div class="menu-row-info">
+          <div class="menu-row-name">Cold Drink</div>
+          <div class="menu-row-desc">Canned soda or still water.</div>
+        </div>
+        <div class="menu-row-right">
+          <div class="menu-row-price">$2.50</div>
+          <button class="menu-row-add" aria-label="Add Cold Drink to order" onclick="event.stopPropagation();addItem('Cold Drink','$2.50')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEO TEXT BLOCK — readable by Google, subtle to users -->
+    <div class="seo-text">
+      <h2>Afghani &amp; Halal Food Truck — Reseda, Los Angeles CA</h2>
+      <p>Bigi Awasaana is Reseda's premier Afghani and Halal food truck, serving the Los Angeles area including Reseda, Canoga Park, Winnetka, Northridge and the San Fernando Valley. Our menu features authentic Afghani dishes including chicken shawarma, lamb shawarma, mixed kebab platters, seekh kebab, chapli kebab, mantu dumplings, bolani, and fresh tandoor naan.</p>
+      <p>All our food is 100% Halal certified. We use fresh ingredients daily with no preservatives. Find us in Reseda, CA 91335 and follow us on Instagram for daily location updates.</p>
+    </div>
+
+  </div>
+
+  <div class="bottom-bar" role="navigation" aria-label="Menu actions">
+    <button class="bb-btn" onclick="showPage('homePage')">← Home</button>
+    <button class="bb-btn primary" onclick="showToast('💬 DM us on Instagram or WhatsApp to place your order!')">Place Order</button>
+    <button class="bb-btn" onclick="showToast('📍 Follow @bigiawasaana for daily location')">Find Us</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+let toastTimer;
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  document.getElementById('toastMsg').innerHTML = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+function addItem(name, price) {
+  showToast('<span>' + name + '</span> — ' + price + ' · DM us on Instagram to order!');
+}
+function filterTab(btn, cat) {
+  document.querySelectorAll('.menu-tab').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+  document.querySelectorAll('.menu-row').forEach(row => {
+    row.style.display = (cat === 'all' || row.dataset.cat === cat) ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.menu-group').forEach(g => {
+    const anyVisible = cat === 'all' || [...g.querySelectorAll('.menu-row')].some(r => r.dataset.cat === cat);
+    g.style.display = anyVisible ? 'block' : 'none';
+  });
+}
+</script>
+</body>
+</html>
