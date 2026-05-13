@@ -1,0 +1,17 @@
+
+import { defineConfig } from 'vite';
+import { resolve } from 'path';
+
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        admin: resolve(__dirname, 'admin.html'),
+        display: resolve(__dirname, 'display.html'),
+        login: resolve(__dirname, 'login.html'),
+        order: resolve(__dirname, 'order.html'),
+      },
+    },
+  },
+});
