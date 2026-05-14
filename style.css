@@ -15,6 +15,13 @@
   --green: #4ade80;
   --red: #f87171;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  
+  /* Fluid Spacing & Type */
+  --space-xs: clamp(0.75rem, 0.7rem + 0.25vw, 1rem);
+  --space-s: clamp(1rem, 0.9rem + 0.5vw, 1.5rem);
+  --space-m: clamp(1.5rem, 1.4rem + 0.75vw, 2.25rem);
+  --space-l: clamp(2rem, 1.8rem + 1vw, 3rem);
+  --space-xl: clamp(3rem, 2.7rem + 1.5vw, 4.5rem);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -26,19 +33,29 @@ body {
   overflow-x: hidden;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  font-size: 15px; /* Base mobile size */
+}
+
+@media (min-width: 768px) {
+  body { font-size: 16px; }
 }
 
 h1, h2, h3, .brand {
   font-family: 'Barlow Condensed', sans-serif;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.05em;
   font-weight: 700;
 }
 
 .font-lalezar { font-family: 'Lalezar', cursive; letter-spacing: 0; }
 
 /* ─── LAYOUT ─── */
-.container { width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+.container { 
+  width: 100%; 
+  max-width: 1200px; 
+  margin: 0 auto; 
+  padding: 0 var(--space-s); 
+}
 
 /* ─── GLASS ─── */
 .glass {
@@ -51,12 +68,12 @@ h1, h2, h3, .brand {
   background: var(--accent);
   color: #fff;
   border: none;
-  padding: 14px 32px;
+  padding: 12px 28px;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 0.15em;
   cursor: pointer;
   transition: all 0.3s var(--ease);
   display: inline-flex;
@@ -64,6 +81,7 @@ h1, h2, h3, .brand {
   justify-content: center;
   gap: 10px;
   border-radius: 2px;
+  min-height: 48px; /* Better tap target */
 }
 
 .btn-primary:hover {
@@ -77,18 +95,19 @@ h1, h2, h3, .brand {
   background: transparent;
   color: var(--white);
   border: 1px solid var(--border);
-  padding: 14px 32px;
+  padding: 12px 28px;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 0.15em;
   cursor: pointer;
   transition: all 0.3s var(--ease);
   border-radius: 2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 48px; /* Better tap target */
 }
 
 .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
@@ -118,11 +137,16 @@ h1, h2, h3, .brand {
 /* ─── MENU GRID ─── */
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-s);
 }
 
-@media (max-width: 700px) { .menu-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .menu-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
 
 /* ─── SKELETON ─── */
 @keyframes shimmer {
@@ -260,4 +284,19 @@ table th {
   letter-spacing: 1.5px;
   color: var(--gray);
   font-weight: 500;
+}
+
+/* ─── UTILITIES ─── */
+.py-s { padding-top: var(--space-s); padding-bottom: var(--space-s); }
+.py-m { padding-top: var(--space-m); padding-bottom: var(--space-m); }
+.py-l { padding-top: var(--space-l); padding-bottom: var(--space-l); }
+.py-xl { padding-top: var(--space-xl); padding-bottom: var(--space-xl); }
+
+.mb-s { margin-bottom: var(--space-s); }
+.mb-m { margin-bottom: var(--space-m); }
+.mb-l { margin-bottom: var(--space-l); }
+
+@media (max-width: 640px) {
+  .hide-mobile { display: none !important; }
+  .text-center-mobile { text-align: center !important; }
 }
