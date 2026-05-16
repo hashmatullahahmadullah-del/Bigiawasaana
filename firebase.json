@@ -21,6 +21,7 @@
     ],
     "rewrites": [
       { "source": "/menu", "destination": "/menu.html" },
+      { "source": "/review", "destination": "/review.html" },
       { "source": "**", "destination": "/index.html" }
     ]
   }
