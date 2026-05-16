@@ -86,9 +86,12 @@ function updateStatus(order) {
     }
   });
 
+  const reviewPrompt = document.getElementById('review-prompt');
+
   if (status === 'ready') {
     if (readyBanner) readyBanner.style.display = 'block';
     if (countdownSection) countdownSection.style.display = 'none';
+    if (reviewPrompt) reviewPrompt.style.display = 'block';
   } else if (status === 'completed') {
     if (readyBanner) {
       readyBanner.style.display = 'block';
@@ -97,10 +100,13 @@ function updateStatus(order) {
       readyBanner.style.color = 'var(--gray)';
     }
     if (countdownSection) countdownSection.style.display = 'none';
+    if (reviewPrompt) reviewPrompt.style.display = 'block';
   } else {
     if (readyBanner) readyBanner.style.display = 'none';
     if (countdownSection) countdownSection.style.display = 'block';
+    if (reviewPrompt) reviewPrompt.style.display = 'none';
   }
+
 }
 
 function renderItems(order) {
