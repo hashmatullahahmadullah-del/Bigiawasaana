@@ -4,8 +4,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bigi Awasaana — Authentic Afghan Street Food</title>
-  <meta name="description" content="Handcrafted Afghan cuisine. Coal-fired kabobs, golden bolani, and the spice of heritage. Order online for pickup.">
+  <title>Bigi Awasaana — Afghan Street Food in Reseda, Los Angeles</title>
+  <meta name="description" content="Authentic Afghan street food in Reseda, LA. Coal-fired kabobs, bolani, and saffron rice platters. 100% Zabiha Halal. Open every night 6PM–2AM. Order online for pickup.">
+  <meta name="keywords" content="Afghan food Reseda, halal food Reseda, Afghan street food Los Angeles, kabob Reseda, bolani LA, Afghan restaurant San Fernando Valley, halal late night food LA, Afghan food near me, Zabiha Halal Reseda">
+
+  <!-- Open Graph (for social sharing) -->
+  <meta property="og:title" content="Bigi Awasaana — Authentic Afghan Street Food, Reseda LA">
+  <meta property="og:description" content="Coal-fired kabobs and golden bolani from a family recipe rooted in Kabul. Open every night 6PM–2AM in Reseda, Los Angeles.">
+  <meta property="og:type" content="restaurant">
+  <meta property="og:url" content="https://bigiawasaana.com">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Local Business Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FoodEstablishment",
+    "name": "Bigi Awasaana",
+    "description": "Authentic Afghan street food. Coal-fired kabobs, bolani, and saffron rice platters. 100% Zabiha Halal.",
+    "url": "https://bigiawasaana.com",
+    "telephone": "+13237986120",
+    "servesCuisine": "Afghan",
+    "priceRange": "$$",
+    "hasMenu": "https://bigiawasaana.com/#menu",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Reseda",
+      "addressRegion": "CA",
+      "addressCountry": "US"
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+      "opens": "18:00",
+      "closes": "02:00"
+    },
+    "founder": {
+      "@type": "Person",
+      "name": "Ahmadullah Hashmatullah"
+    }
+  }
+  </script>
   <link rel="stylesheet" href="/style.css">
   <style>
     .hero {
@@ -185,7 +224,7 @@
         AFGHAN<br>STREET<br><span style="color: var(--accent);">FLAVOR.</span>
       </h1>
       <p class="reveal mb-m" style="font-size: 15px; color: var(--gray); max-width: 420px; opacity: 0.9;">
-        The heart of Kabul's night markets, brought to your streets. Sizzling skewers, golden bolani, and the warmth of heritage.
+        A family recipe. A lifetime of resilience. Now on the streets of Reseda — every night from 6PM to 2AM.
       </p>
       <div class="reveal">
         <button class="btn-primary" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Explore The Menu</button>
@@ -199,23 +238,31 @@
     <div class="container">
       <div class="heritage-grid">
         <div class="reveal text-center-mobile">
-          <h2 style="font-size: clamp(32px, 5vw, 42px); margin-bottom: var(--space-s);">Our Heritage</h2>
+          <div style="font-family: 'Barlow Condensed'; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 600;">OUR STORY</div>
+          <h2 style="font-size: clamp(32px, 5vw, 42px); margin-bottom: var(--space-s);">From Kabul's Night Markets to Reseda</h2>
+          <p style="color: var(--gray); line-height: 1.8; font-size: 15px; margin-bottom: var(--space-s);">
+            Bigi Awasaana was born from a family that never stopped cooking — even when the world asked them to stop everything else. Ahmadullah Hashmatullah and his family fled Afghanistan and rebuilt their lives in India, where they ran a restaurant from 2012, keeping the flavors of Kabul alive through every hardship.
+          </p>
           <p style="color: var(--gray); line-height: 1.8; font-size: 15px; margin-bottom: var(--space-m);">
-            "Awasaana" isn't just a name — it's a promise of hospitality. Our recipes have traveled across generations, from the aromatic kitchens of Herat to the bustling street corners of today.
+            In 2025, they brought those same recipes — perfected over generations by chef Hashmatullah Mirza Mohammad — to the streets of Reseda, Los Angeles. Every skewer, every bolani, every plate of saffron rice carries the memory of a Kabul night market and the love of a family that never let go of home.
           </p>
           <div class="stat-row" style="justify-content: center; gap: 32px;">
             <div class="stat">
-              <div class="stat-val">30+</div>
-              <div class="stat-label">Secret Spices</div>
+              <div class="stat-val">2012</div>
+              <div class="stat-label">Est. in India</div>
             </div>
             <div class="stat">
-              <div class="stat-val">100%</div>
-              <div class="stat-label">Wood Fire</div>
+              <div class="stat-val">2025</div>
+              <div class="stat-label">Arrived in LA</div>
+            </div>
+            <div class="stat">
+              <div class="stat-val">3</div>
+              <div class="stat-label">Generations of Flavor</div>
             </div>
           </div>
         </div>
         <div class="reveal hide-mobile" style="font-family: 'Barlow Condensed'; font-weight: 900; font-size: 80px; line-height: 0.9; color: var(--gray-light); text-align: right;">
-          KABUL<br>HERAT<br>MAZAR
+          KABUL<br>INDIA<br>LOS ANGELES
         </div>
       </div>
     </div>
@@ -251,7 +298,7 @@
         </div>
         <div class="text-center-mobile">
           <div class="footer-label">Location</div>
-          <p style="font-size: 13px; color: var(--gray);">Street Market Square<br>Every Night 6PM–2AM</p>
+          <p style="font-size: 13px; color: var(--gray);">Reseda, Los Angeles, CA<br>Every Night 6PM–2AM</p>
         </div>
         <div class="text-center-mobile">
           <div class="footer-label">Contact</div>
