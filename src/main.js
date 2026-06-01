@@ -203,16 +203,21 @@ window.placeOrder = async (method) => {
   }
   
   const nameInput = document.getElementById('customer-name');
+  const phoneInput = document.getElementById('customer-phone');
   const customerName = nameInput.value.trim();
-  if (!customerName) {
-    showToast('Please enter your name for the order.');
-    nameInput.focus();
+  const customerPhone = phoneInput.value.trim();
+  
+  if (!customerName || !customerPhone) {
+    showToast('Please enter your name and phone number for the order.');
+    if (!customerName) nameInput.focus();
+    else phoneInput.focus();
     return;
   }
   
   const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const orderData = {
     customerName,
+    customerPhone,
     items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
     total: `$${total.toFixed(2)}`,
     status: 'pending',
@@ -226,6 +231,7 @@ window.placeOrder = async (method) => {
     
     cart = [];
     nameInput.value = '';
+    phoneInput.value = '';
     updateCartUI();
     window.toggleCart(false);
     showToast('Order placed successfully! We will prepare it right away.');

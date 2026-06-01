@@ -58,7 +58,7 @@
           </button>
           <button class="crm-nav-item" data-target="orders-view">
             <span class="icon">🧾</span>
-            <span class="label">Mock History</span>
+            <span class="label">All Orders</span>
           </button>
           <button class="crm-nav-item" data-target="reviews-view">
             <span class="icon">⭐</span>
@@ -167,9 +167,9 @@
           </div>
         </section>
 
-        <!-- Mock Orders View -->
+        <!-- All Orders View -->
         <section id="orders-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Mock History</h1>
+          <h1 class="crm-view-title">All Orders</h1>
           <div class="crm-panel mt-m">
             <div class="crm-filters">
               <input type="text" id="order-search" class="crm-input" placeholder="Search orders...">
@@ -199,7 +199,27 @@
 
         <!-- Reviews View -->
         <section id="reviews-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Reviews</h1>
+          <div class="crm-header-action">
+            <h1 class="crm-view-title">Reviews</h1>
+          </div>
+          
+          <div class="crm-panel mt-m" style="margin-bottom: 24px;">
+            <h2 class="crm-panel-title">Add Manual Review</h2>
+            <form id="add-review-form" style="display: flex; flex-direction: column; gap: 12px;">
+              <input type="text" id="review-customer" placeholder="Customer Name" required class="crm-input">
+              <select id="review-stars" class="crm-select">
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+              </select>
+              <input type="text" id="review-platform" placeholder="Platform (e.g. Google, Yelp)" value="Google" required class="crm-input">
+              <textarea id="review-text" placeholder="Review Text" rows="3" required class="crm-input" style="resize: vertical;"></textarea>
+              <button type="submit" class="btn-primary btn-small" style="align-self: flex-start;">Save Review</button>
+            </form>
+          </div>
+
           <div class="crm-panel mt-m">
             <div class="crm-filters">
               <select id="review-status-filter" class="crm-select">

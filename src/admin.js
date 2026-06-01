@@ -1,6 +1,6 @@
 import { auth, db } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
@@ -9,19 +9,34 @@ const logoutBtn = document.getElementById('logout-btn');
 const errorEl = document.getElementById('login-error');
 const ordersList = document.getElementById('orders-list');
 
+let state = {
+  customers: [],
+  orders: [],
+  reviews: [],
+  tiers: { silver: 100, gold: 300 }
+};
+
+let ordersUnsub = null;
+let reviewsUnsub = null;
+let settingsUnsub = null;
+
 // Auth State Observer
 onAuthStateChanged(auth, (user) => {
   if (user) {
     loginSection.style.display = 'none';
     dashboardSection.style.display = 'block';
     logoutBtn.style.display = 'block';
-    loadOrders();
-    generateMockData();
-    renderDashboard();
+    
+    initCRMData();
+    loadMenuAdmin();
   } else {
     loginSection.style.display = 'block';
     dashboardSection.style.display = 'none';
     logoutBtn.style.display = 'none';
+    
+    if (ordersUnsub) ordersUnsub();
+    if (reviewsUnsub) reviewsUnsub();
+    if (settingsUnsub) settingsUnsub();
   }
 });
 
@@ -45,70 +60,156 @@ logoutBtn.addEventListener('click', () => {
   signOut(auth);
 });
 
+
 // ==========================================
-// FIREBASE LIVE ORDERS
+// DATA INITIALIZATION & LISTENERS
 // ==========================================
 
-function loadOrders() {
-  const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-  
-  onSnapshot(q, (snapshot) => {
-    ordersList.innerHTML = '';
-    if (snapshot.empty) {
-      ordersList.innerHTML = '<p style="color: var(--gray);">No orders found.</p>';
-      return;
+function initCRMData() {
+  // 1. Listen to Settings
+  settingsUnsub = onSnapshot(doc(db, 'settings', 'loyalty'), (docSnap) => {
+    if (docSnap.exists()) {
+      state.tiers = docSnap.data();
+      document.getElementById('tier-silver').value = state.tiers.silver || 100;
+      document.getElementById('tier-gold').value = state.tiers.gold || 300;
     }
-    
-    snapshot.forEach((docSnap) => {
-      const order = docSnap.data();
-      const orderId = docSnap.id;
-      const date = order.createdAt ? order.createdAt.toDate().toLocaleString() : 'Just now';
-      
-      const card = document.createElement('div');
-      card.className = 'order-card';
-      
-      const statusClass = order.status === 'completed' ? 'status-completed' : 'status-pending';
-      
-      const itemsHtml = order.items.map(item => `
-        <div style="display: flex; justify-content: space-between;">
-          <span>${item.qty}x ${item.name}</span>
-          <span>$${(item.price * item.qty).toFixed(2)}</span>
-        </div>
-      `).join('');
-      
-      card.innerHTML = `
-        <div class="order-header">
-          <div>
-            <div class="order-title">${order.customerName}</div>
-            <div class="order-meta">${date} &middot; via ${order.method || 'Web'}</div>
-          </div>
-          <div class="status-badge ${statusClass}">${order.status}</div>
-        </div>
-        <div class="order-items">
-          ${itemsHtml}
-        </div>
-        <div class="order-total">
-          Total: ${typeof order.total === 'number' ? '$' + order.total.toFixed(2) : order.total}
-        </div>
-        <div class="order-actions">
-          ${order.status === 'pending' ? `<button class="btn-outline btn-small" onclick="markCompleted('${orderId}')">Mark Completed</button>` : ''}
-        </div>
-      `;
-      ordersList.appendChild(card);
+    renderLoyalty();
+    renderCustomers();
+  });
+
+  // 2. Listen to Reviews
+  const rq = query(collection(db, 'reviews'), orderBy('date', 'desc'));
+  reviewsUnsub = onSnapshot(rq, (snapshot) => {
+    state.reviews = [];
+    snapshot.forEach(d => {
+      state.reviews.push({ id: d.id, ...d.data(), date: d.data().date?.toDate() || new Date() });
     });
+    renderReviews();
+  });
+
+  // 3. Listen to Orders (builds state.orders and state.customers)
+  const oq = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+  ordersUnsub = onSnapshot(oq, (snapshot) => {
+    state.orders = [];
+    const custMap = {};
+
+    snapshot.forEach(d => {
+      const o = d.data();
+      const oDate = o.createdAt?.toDate() || new Date();
+      
+      let parsedTotal = typeof o.total === 'string' ? parseFloat(o.total.replace('$', '')) : o.total;
+      
+      const order = {
+        id: d.id,
+        ...o,
+        total: parsedTotal,
+        date: oDate
+      };
+      
+      state.orders.push(order);
+
+      const phone = o.customerPhone || 'Unknown';
+      if (!custMap[phone]) {
+        custMap[phone] = {
+          id: phone,
+          name: o.customerName || 'Unknown',
+          phone: phone,
+          totalSpent: 0,
+          totalOrders: 0,
+          lastVisit: null,
+          loyaltyPoints: 0,
+          notes: ""
+        };
+      }
+      
+      // We take the most recent name if there are multiple orders for the same phone
+      if (!custMap[phone].lastVisit || oDate > custMap[phone].lastVisit) {
+        custMap[phone].name = o.customerName || custMap[phone].name;
+      }
+
+      if (o.status === 'completed') {
+        custMap[phone].totalSpent += parsedTotal;
+        custMap[phone].totalOrders += 1;
+        if (!custMap[phone].lastVisit || oDate > custMap[phone].lastVisit) {
+          custMap[phone].lastVisit = oDate;
+        }
+      }
+    });
+
+    state.customers = Object.values(custMap).sort((a,b) => b.totalSpent - a.totalSpent);
+    
+    // Render everything dependent on Orders
+    renderLiveOrders(snapshot);
+    renderDashboard();
+    renderCustomers();
+    renderAllOrders();
+    renderLoyalty();
   });
 }
 
-window.markCompleted = async (id) => {
+// ==========================================
+// FIREBASE LIVE ORDERS TAB
+// ==========================================
+
+function renderLiveOrders(snapshot) {
+  ordersList.innerHTML = '';
+  if (snapshot.empty) {
+    ordersList.innerHTML = '<p style="color: var(--gray);">No orders found.</p>';
+    return;
+  }
+  
+  snapshot.forEach((docSnap) => {
+    const order = docSnap.data();
+    const orderId = docSnap.id;
+    const date = order.createdAt ? order.createdAt.toDate().toLocaleString() : 'Just now';
+    
+    const card = document.createElement('div');
+    card.className = 'order-card';
+    
+    const statusClass = order.status === 'completed' ? 'status-completed' : (order.status === 'cancelled' ? 'status-cancelled' : 'status-pending');
+    
+    const itemsHtml = (order.items || []).map(item => `
+      <div style="display: flex; justify-content: space-between;">
+        <span>${item.qty}x ${item.name}</span>
+        <span>$${(item.price * item.qty).toFixed(2)}</span>
+      </div>
+    `).join('');
+    
+    card.innerHTML = `
+      <div class="order-header">
+        <div>
+          <div class="order-title">${order.customerName} <span style="font-size: 12px; color: var(--gray); font-weight: normal; margin-left: 8px;">${order.customerPhone || ''}</span></div>
+          <div class="order-meta">${date} &middot; via ${order.method || 'Web'}</div>
+        </div>
+        <div class="status-badge ${statusClass}">${order.status}</div>
+      </div>
+      <div class="order-items">
+        ${itemsHtml}
+      </div>
+      <div class="order-total">
+        Total: ${typeof order.total === 'number' ? '$' + order.total.toFixed(2) : order.total}
+      </div>
+      <div class="order-actions">
+        ${order.status === 'pending' ? `<button class="btn-outline btn-small" onclick="updateOrderStatus('${orderId}', 'completed')">Mark Completed</button>
+                                        <button class="btn-outline btn-small" onclick="updateOrderStatus('${orderId}', 'cancelled')" style="border-color: var(--accent); color: var(--accent);">Cancel</button>` : ''}
+      </div>
+    `;
+    ordersList.appendChild(card);
+  });
+}
+
+window.updateOrderStatus = async (id, newStatus) => {
   try {
     await updateDoc(doc(db, 'orders', id), {
-      status: 'completed'
+      status: newStatus
     });
+    showToast(`Order marked as ${newStatus}`);
   } catch (error) {
     console.error("Error updating order:", error);
     alert('Failed to update order status.');
   }
 };
+
 
 // ==========================================
 // FIREBASE MENU MANAGEMENT
@@ -120,7 +221,6 @@ const adminMenuList = document.getElementById("admin-menu-list");
 if (addMenuForm) {
   addMenuForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
     const name = document.getElementById("menu-name").value;
     const price = parseFloat(document.getElementById("menu-price").value);
     const desc = document.getElementById("menu-desc").value;
@@ -128,21 +228,10 @@ if (addMenuForm) {
     const img = document.getElementById("menu-img").value;
     
     try {
-      await addDoc(collection(db, "menu"), {
-        name,
-        price,
-        desc,
-        category,
-        img
-      });
-      
+      await addDoc(collection(db, "menu"), { name, price, desc, category, img });
       document.getElementById("menu-status").style.display = "block";
       addMenuForm.reset();
-      
-      setTimeout(() => {
-        document.getElementById("menu-status").style.display = "none";
-      }, 3000);
-      
+      setTimeout(() => { document.getElementById("menu-status").style.display = "none"; }, 3000);
       loadMenuAdmin();
     } catch (err) {
       console.error("Error adding menu item: ", err);
@@ -154,14 +243,12 @@ if (addMenuForm) {
 async function loadMenuAdmin() {
   if (!adminMenuList) return;
   adminMenuList.innerHTML = "<p style=\"color: var(--gray);\">Loading...</p>";
-  
   try {
     const snapshot = await getDocs(collection(db, "menu"));
     if (snapshot.empty) {
       adminMenuList.innerHTML = "<p style=\"color: var(--gray);\">No menu items found.</p>";
       return;
     }
-    
     let html = "";
     snapshot.forEach(doc => {
       const data = doc.data();
@@ -182,117 +269,8 @@ async function loadMenuAdmin() {
 }
 
 // ==========================================
-// CRM MOCK DATA & LOGIC
+// CRM UI RENDERS & HELPERS
 // ==========================================
-
-const MENU_ITEMS = [
-  { name: 'Chapli Kabob Wrap', price: 14.99 },
-  { name: 'Chicken Tikka Kabob', price: 15.99 },
-  { name: 'Bolani (Potato & Leek)', price: 12.00 },
-  { name: 'Kabuli Pulao', price: 19.99 },
-  { name: 'Afghan Green Tea', price: 3.00 }
-];
-
-const CUSTOMER_NAMES = [
-  "Ahmad R.", "Sara K.", "David M.", "Layla Q.", "Omar F.",
-  "Zahra N.", "Michael T.", "Sofia B.", "Ali H.", "Yasmin W.",
-  "John D.", "Mariam A.", "James L.", "Nadia G.", "Kevin C.",
-  "Zoya P.", "William S.", "Leila E.", "Daniel R.", "Farah J."
-];
-
-let state = {
-  customers: [],
-  orders: [],
-  reviews: [],
-  tiers: { silver: 100, gold: 300 }
-};
-
-function generateMockData() {
-  if (state.customers.length > 0) return; // Only generate once
-
-  // Generate Customers
-  state.customers = CUSTOMER_NAMES.map((name, i) => {
-    return {
-      id: `CUST-${1000 + i}`,
-      name: name,
-      phone: `(323) 555-${(1000 + i).toString().padStart(4, '0')}`,
-      totalSpent: 0,
-      totalOrders: 0,
-      lastVisit: null,
-      loyaltyPoints: Math.floor(Math.random() * 500),
-      notes: ""
-    };
-  });
-
-  // Generate Orders
-  const now = new Date();
-  for (let i = 0; i < 60; i++) {
-    const cust = state.customers[Math.floor(Math.random() * state.customers.length)];
-    const itemCount = Math.floor(Math.random() * 3) + 1;
-    const items = [];
-    let orderTotal = 0;
-    
-    for(let j=0; j<itemCount; j++){
-      const menuItem = MENU_ITEMS[Math.floor(Math.random() * MENU_ITEMS.length)];
-      const qty = Math.floor(Math.random() * 2) + 1;
-      items.push({ name: menuItem.name, qty, price: menuItem.price });
-      orderTotal += menuItem.price * qty;
-    }
-
-    const daysAgo = Math.floor(Math.random() * 30);
-    const orderDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
-    const statuses = ['completed', 'completed', 'completed', 'pending', 'cancelled'];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-    const order = {
-      id: `ORD-${2000 + i}`,
-      customerId: cust.id,
-      customerName: cust.name,
-      items,
-      total: orderTotal,
-      date: orderDate,
-      status
-    };
-
-    state.orders.push(order);
-
-    if (status === 'completed') {
-      cust.totalSpent += orderTotal;
-      cust.totalOrders += 1;
-      if (!cust.lastVisit || orderDate > cust.lastVisit) {
-        cust.lastVisit = orderDate;
-      }
-    }
-  }
-
-  // Generate Reviews
-  for (let i = 0; i < 15; i++) {
-    const cust = state.customers[Math.floor(Math.random() * state.customers.length)];
-    const stars = Math.random() > 0.3 ? 5 : (Math.random() > 0.5 ? 4 : Math.floor(Math.random() * 3) + 1);
-    const daysAgo = Math.floor(Math.random() * 30);
-    const reviewDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
-    
-    let text = "";
-    if (stars === 5) text = "Absolutely amazing! Best Bolani in Reseda.";
-    else if (stars === 4) text = "Great food, but the wait was a bit long.";
-    else text = "Food was okay, missed the green sauce.";
-
-    state.reviews.push({
-      id: `REV-${3000 + i}`,
-      customerId: cust.id,
-      customerName: cust.name,
-      stars,
-      platform: Math.random() > 0.5 ? 'Google' : 'Direct',
-      text,
-      date: reviewDate,
-      responded: Math.random() > 0.7
-    });
-  }
-
-  // Sort initially
-  state.orders.sort((a, b) => b.date - a.date);
-  state.reviews.sort((a, b) => b.date - a.date);
-}
 
 function getTier(spent) {
   if (spent >= state.tiers.gold) return 'Gold';
@@ -306,7 +284,6 @@ function getTierColor(tier) {
   return '#CD7F32';
 }
 
-// CRM UI Renders
 function renderDashboard() {
   const completedOrders = state.orders.filter(o => o.status === 'completed');
   const totalRevenue = completedOrders.reduce((sum, o) => sum + o.total, 0);
@@ -325,13 +302,13 @@ function renderDashboard() {
   recentOrders.forEach(o => {
     const d = document.createElement('div');
     d.className = 'crm-feed-item';
-    d.innerHTML = `<strong>${o.customerName}</strong> placed an order for $${o.total.toFixed(2)}`;
+    d.innerHTML = `<strong>${o.customerName || 'Unknown'}</strong> placed an order for $${o.total.toFixed(2)}`;
     feedEl.appendChild(d);
   });
 
   const spendersEl = document.getElementById('dash-top-spenders');
   spendersEl.innerHTML = '';
-  const topSpenders = [...state.customers].sort((a, b) => b.totalSpent - a.totalSpent).slice(0, 5);
+  const topSpenders = state.customers.slice(0, 5);
   topSpenders.forEach(c => {
     const d = document.createElement('div');
     d.className = 'crm-list-item';
@@ -345,6 +322,7 @@ function renderDashboard() {
 
 function renderCustomers() {
   const tbody = document.getElementById('customers-table-body');
+  if(!tbody) return;
   const term = document.getElementById('customer-search').value.toLowerCase();
   
   tbody.innerHTML = '';
@@ -381,14 +359,8 @@ window.openCustomerDetail = (cust) => {
       <h3 style="margin-bottom: 12px;">Details</h3>
       <p><strong>Phone:</strong> ${cust.phone}</p>
       <p><strong>Total Spent:</strong> $${cust.totalSpent.toFixed(2)}</p>
-      <p><strong>Loyalty Points:</strong> ${cust.loyaltyPoints} (${tier} Tier)</p>
+      <p><strong>Tier:</strong> ${tier}</p>
       <p><strong>Last Visit:</strong> ${cust.lastVisit ? cust.lastVisit.toLocaleDateString() : 'N/A'}</p>
-    </div>
-    
-    <div class="crm-panel">
-      <h3 style="margin-bottom: 12px;">Notes</h3>
-      <textarea id="cust-notes-${cust.id}" class="crm-input" rows="3" style="width: 100%; resize: vertical;">${cust.notes}</textarea>
-      <button class="btn-outline btn-small mt-s" onclick="saveCustNote('${cust.id}')">Save Note</button>
     </div>
   `;
   document.getElementById('customer-slide-over').classList.add('open');
@@ -398,22 +370,15 @@ window.closeCustomerSlideOver = () => {
   document.getElementById('customer-slide-over').classList.remove('open');
 };
 
-window.saveCustNote = (id) => {
-  const cust = state.customers.find(c => c.id === id);
-  if(cust){
-    cust.notes = document.getElementById(`cust-notes-${id}`).value;
-    showToast('Note saved!');
-  }
-};
-
-function renderMockOrders() {
+function renderAllOrders() {
   const tbody = document.getElementById('orders-table-body');
+  if(!tbody) return;
   const term = document.getElementById('order-search').value.toLowerCase();
   const statusFilter = document.getElementById('order-status-filter').value;
 
   tbody.innerHTML = '';
   state.orders
-    .filter(o => o.id.toLowerCase().includes(term) || o.customerName.toLowerCase().includes(term))
+    .filter(o => o.id.toLowerCase().includes(term) || (o.customerName && o.customerName.toLowerCase().includes(term)))
     .filter(o => statusFilter === 'all' || o.status === statusFilter)
     .forEach(o => {
       let statusClass = 'status-pending';
@@ -423,7 +388,7 @@ function renderMockOrders() {
       const tr = document.createElement('tr');
       tr.style.cursor = 'pointer';
       tr.innerHTML = `
-        <td>${o.id}</td>
+        <td>${o.id.substring(0,8)}</td>
         <td><strong>${o.customerName}</strong></td>
         <td>${o.date.toLocaleDateString()}</td>
         <td>$${o.total.toFixed(2)}</td>
@@ -438,7 +403,7 @@ window.openMockOrderDetail = (order) => {
   document.getElementById('modal-order-title').textContent = `Order ${order.id}`;
   const content = document.getElementById('modal-order-content');
   
-  const itemsHtml = order.items.map(i => `
+  const itemsHtml = (order.items || []).map(i => `
     <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 8px 0;">
       <span>${i.qty}x ${i.name}</span>
       <span>$${(i.price * i.qty).toFixed(2)}</span>
@@ -464,6 +429,7 @@ window.closeOrderModal = () => {
 
 function renderReviews() {
   const container = document.getElementById('reviews-container');
+  if(!container) return;
   const statusFilter = document.getElementById('review-status-filter').value;
   
   container.innerHTML = '';
@@ -471,6 +437,11 @@ function renderReviews() {
   let sortedReviews = [...state.reviews];
   if(statusFilter === 'unresponded') {
     sortedReviews.sort((a,b) => (a.responded === b.responded ? 0 : a.responded ? 1 : -1));
+  }
+  
+  if (sortedReviews.length === 0) {
+    container.innerHTML = '<p style="color: var(--gray);">No reviews added yet.</p>';
+    return;
   }
   
   sortedReviews.forEach(r => {
@@ -484,7 +455,7 @@ function renderReviews() {
           <strong style="font-size: 16px;">${r.customerName}</strong>
           <span style="color: var(--gray); font-size: 12px; margin-left: 8px;">via ${r.platform}</span>
         </div>
-        <div style="color: #FFD700; letter-spacing: 2px;">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
+        <div style="color: #FFD700; letter-spacing: 2px;">${'★'.repeat(parseInt(r.stars))}${'☆'.repeat(5-parseInt(r.stars))}</div>
       </div>
       <p style="margin-bottom: 16px; font-style: italic;">"${r.text}"</p>
       <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
@@ -496,16 +467,47 @@ function renderReviews() {
   });
 }
 
-window.toggleReviewResponse = (id, isResponded) => {
-  const rev = state.reviews.find(r => r.id === id);
-  if(rev) {
-    rev.responded = isResponded;
-    renderReviews();
+// Add Review Manual Submit
+const addReviewForm = document.getElementById('add-review-form');
+if (addReviewForm) {
+  addReviewForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const customerName = document.getElementById('review-customer').value;
+    const stars = parseInt(document.getElementById('review-stars').value);
+    const platform = document.getElementById('review-platform').value;
+    const text = document.getElementById('review-text').value;
+
+    try {
+      await addDoc(collection(db, 'reviews'), {
+        customerName,
+        stars,
+        platform,
+        text,
+        responded: false,
+        date: serverTimestamp()
+      });
+      addReviewForm.reset();
+      showToast('Review added successfully!');
+    } catch (error) {
+      console.error("Error adding review:", error);
+      alert('Failed to add review');
+    }
+  });
+}
+
+window.toggleReviewResponse = async (id, isResponded) => {
+  try {
+    await updateDoc(doc(db, 'reviews', id), {
+      responded: isResponded
+    });
+  } catch (error) {
+    console.error("Error updating review:", error);
   }
 };
 
 function renderLoyalty() {
   const grid = document.getElementById('loyalty-tiers-grid');
+  if(!grid) return;
   let bronze = 0, silver = 0, gold = 0;
   state.customers.forEach(c => {
     const tier = getTier(c.totalSpent);
@@ -530,30 +532,38 @@ function renderLoyalty() {
   `;
 }
 
-// Event Listeners for Filters/Saves
+const saveTiersBtn = document.getElementById('btn-save-tiers');
+if (saveTiersBtn) {
+  saveTiersBtn.addEventListener('click', async () => {
+    const s = parseInt(document.getElementById('tier-silver').value) || 100;
+    const g = parseInt(document.getElementById('tier-gold').value) || 300;
+    
+    try {
+      await setDoc(doc(db, 'settings', 'loyalty'), {
+        silver: s,
+        gold: g
+      });
+      showToast('Loyalty thresholds updated!');
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      alert('Failed to save settings');
+    }
+  });
+}
+
+// Event Listeners for Filters
 const customerSearch = document.getElementById('customer-search');
 if (customerSearch) customerSearch.addEventListener('input', renderCustomers);
 
 const orderSearch = document.getElementById('order-search');
-if (orderSearch) orderSearch.addEventListener('input', renderMockOrders);
+if (orderSearch) orderSearch.addEventListener('input', renderAllOrders);
 
 const orderStatusFilter = document.getElementById('order-status-filter');
-if (orderStatusFilter) orderStatusFilter.addEventListener('change', renderMockOrders);
+if (orderStatusFilter) orderStatusFilter.addEventListener('change', renderAllOrders);
 
 const reviewStatusFilter = document.getElementById('review-status-filter');
 if (reviewStatusFilter) reviewStatusFilter.addEventListener('change', renderReviews);
 
-const saveTiersBtn = document.getElementById('btn-save-tiers');
-if (saveTiersBtn) {
-  saveTiersBtn.addEventListener('click', () => {
-    const s = parseInt(document.getElementById('tier-silver').value) || 100;
-    const g = parseInt(document.getElementById('tier-gold').value) || 300;
-    state.tiers.silver = s;
-    state.tiers.gold = g;
-    showToast('Loyalty thresholds updated!');
-    renderLoyalty();
-  });
-}
 
 function showToast(message) {
   const container = document.getElementById('crm-toast-container');
@@ -580,14 +590,5 @@ document.querySelectorAll('.crm-nav-item').forEach(btn => {
     const targetId = btn.dataset.target;
     btn.classList.add('active');
     document.getElementById(targetId).style.display = 'block';
-    
-    // Render the specific view if it requires JS rendering
-    if (targetId === 'dashboard-view') renderDashboard();
-    if (targetId === 'live-orders-view') loadOrders();
-    if (targetId === 'menu-manage-view') loadMenuAdmin();
-    if (targetId === 'customers-view') renderCustomers();
-    if (targetId === 'orders-view') renderMockOrders();
-    if (targetId === 'reviews-view') renderReviews();
-    if (targetId === 'loyalty-view') renderLoyalty();
   });
 });
