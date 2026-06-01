@@ -234,7 +234,7 @@ window.placeOrder = async (method) => {
       const text = `Hi Bigi Awasaana! I'm ${customerName}. I'd like to order:\n` + 
                    orderData.items.map(i => `${i.qty}x ${i.name}`).join('\n') +
                    `\nTotal: $${total.toFixed(2)}`;
-      window.open(`https://wa.me/13237986120?text=${encodeURIComponent(text)}`, '_blank');
+      window.open(`https://wa.me/13234211646?text=${encodeURIComponent(text)}`, '_blank');
     }
   } catch (error) {
     console.error("Error placing order: ", error);
