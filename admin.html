@@ -54,8 +54,25 @@
 
       <!-- Menu Management View -->
       <div id="menu-view" class="view-panel" style="display: none;">
-        <h2 class="font-lalezar mb-m">Menu Items (Coming Soon)</h2>
-        <p style="color: var(--gray);">This section will allow you to edit prices, toggle item availability, and upload new photos.</p>
+        <h2 class="font-lalezar mb-m">Menu Management</h2>
+        
+        <div style="background: var(--surface); padding: 24px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 24px;">
+          <h3 style="margin-bottom: 16px; font-family: 'Barlow Condensed'; font-size: 20px;">Add New Menu Item</h3>
+          <form id="add-menu-form" style="display: flex; flex-direction: column; gap: 12px;">
+            <input type="text" id="menu-name" placeholder="Item Name (e.g. Bolani)" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+            <input type="number" id="menu-price" placeholder="Price (e.g. 12.00)" step="0.01" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+            <textarea id="menu-desc" placeholder="Description" rows="3" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
+            <input type="text" id="menu-category" placeholder="Category (e.g. platters, wraps, drinks)" value="platters" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+            <input type="url" id="menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+            <button type="submit" class="btn-primary" style="align-self: flex-start; margin-top: 8px;">Add to Menu</button>
+          </form>
+          <div id="menu-status" style="color: #00c853; font-size: 13px; margin-top: 12px; display: none;">Item added successfully!</div>
+        </div>
+
+        <h3 style="margin-bottom: 16px; font-family: 'Barlow Condensed'; font-size: 20px;">Current Menu Items</h3>
+        <div id="admin-menu-list" style="display: grid; gap: 12px;">
+          <!-- Menu items loaded here -->
+        </div>
       </div>
 
     </section>
