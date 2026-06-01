@@ -1,33 +1,110 @@
 import './style.css';
 import { db } from './firebase.js';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 
-// Fallback Mock Data if Firestore is empty
-const defaultMenu = [
-  { id: '1', name: 'Chapli Kabob Wrap', desc: 'Spiced ground beef patties with herbs, wrapped in fresh naan.', price: 14.99, category: 'wraps', img: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&h=400&fit=crop' },
-  { id: '2', name: 'Chicken Tikka Kabob', desc: 'Saffron-marinated chicken breast charred over coals.', price: 15.99, category: 'platters', img: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?w=600&h=400&fit=crop' },
-  { id: '3', name: 'Bolani (Potato & Leek)', desc: 'Crispy Afghan flatbread stuffed with potatoes, leeks, and cilantro. Served with yogurt.', price: 12.00, category: 'sides', img: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&h=400&fit=crop' },
-  { id: '4', name: 'Kabuli Pulao', desc: 'Tender lamb shank hidden under steamed rice with sweet carrots and raisins.', price: 19.99, category: 'platters', img: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&h=400&fit=crop' },
-  { id: '5', name: 'Afghan Green Tea', desc: 'Cardamom-infused green tea.', price: 3.00, category: 'drinks', img: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&h=400&fit=crop' },
-];
-
+// Menu data loaded from Firestore
+let menuItems = [];
 let cart = [];
 
-// Initialize Menu
+// Fetch menu from Firestore
+async function loadMenuFromFirestore() {
+  const grid = document.getElementById('menu-grid');
+  if (grid) {
+    grid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px 0;">Loading menu...</p>';
+  }
+
+  try {
+    const snapshot = await getDocs(collection(db, 'menu'));
+    if (!snapshot.empty) {
+      menuItems = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || 'Untitled',
+          desc: data.desc || data.description || '',
+          price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
+          category: (data.category || 'platters').toLowerCase(),
+          img: data.img || data.image || data.imageUrl || ''
+        };
+      });
+
+      // Build category pills dynamically from Firestore data
+      buildCategoryPills();
+    }
+  } catch (error) {
+    console.error('Error loading menu from Firestore:', error);
+  }
+
+  if (menuItems.length === 0) {
+    if (grid) {
+      grid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px 0;">Menu coming soon! Check back later.</p>';
+    }
+    return;
+  }
+
+  renderMenu('all');
+}
+
+// Build category pills from actual Firestore data
+function buildCategoryPills() {
+  const scrollContainer = document.querySelector('.cat-scroll');
+  if (!scrollContainer) return;
+
+  // Get unique categories
+  const categories = [...new Set(menuItems.map(item => item.category))];
+
+  scrollContainer.innerHTML = '';
+
+  // Add "All" pill
+  const allPill = document.createElement('div');
+  allPill.className = 'category-pill active';
+  allPill.dataset.cat = 'all';
+  allPill.textContent = 'All';
+  allPill.addEventListener('click', handlePillClick);
+  scrollContainer.appendChild(allPill);
+
+  // Add a pill for each category
+  categories.forEach(cat => {
+    const pill = document.createElement('div');
+    pill.className = 'category-pill';
+    pill.dataset.cat = cat;
+    pill.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+    pill.addEventListener('click', handlePillClick);
+    scrollContainer.appendChild(pill);
+  });
+}
+
+function handlePillClick(e) {
+  document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  renderMenu(e.target.dataset.cat);
+}
+
+// Render Menu
 function renderMenu(category = 'all') {
   const grid = document.getElementById('menu-grid');
   if (!grid) return;
   grid.innerHTML = '';
   
   const itemsToRender = category === 'all' 
-    ? defaultMenu 
-    : defaultMenu.filter(item => item.category === category);
+    ? menuItems 
+    : menuItems.filter(item => item.category === category);
+
+  if (itemsToRender.length === 0) {
+    grid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px 0;">No items in this category.</p>';
+    return;
+  }
     
   itemsToRender.forEach(item => {
     const card = document.createElement('div');
     card.className = 'menu-card';
+    
+    const imgHtml = item.img 
+      ? `<img src="${item.img}" alt="${item.name}" class="menu-card-img" loading="lazy">`
+      : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">No Image</div>`;
+    
     card.innerHTML = `
-      <img src="${item.img}" alt="${item.name}" class="menu-card-img" loading="lazy">
+      ${imgHtml}
       <div class="menu-card-content">
         <h3 class="menu-card-title">${item.name}</h3>
         <p class="menu-card-desc">${item.desc}</p>
@@ -43,7 +120,7 @@ function renderMenu(category = 'all') {
 
 // Cart Logic
 window.addToCart = (id) => {
-  const item = defaultMenu.find(i => i.id === id);
+  const item = menuItems.find(i => i.id === id);
   if (!item) return;
   
   const existing = cart.find(i => i.id === id);
@@ -87,8 +164,13 @@ function updateCartUI() {
       count += item.qty;
       const el = document.createElement('div');
       el.className = 'cart-item';
+
+      const imgHtml = item.img 
+        ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img">`
+        : `<div class="cart-item-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gray);">🍽</div>`;
+
       el.innerHTML = `
-        <img src="${item.img}" alt="${item.name}" class="cart-item-img">
+        ${imgHtml}
         <div class="cart-item-details">
           <div class="cart-item-title">${item.name}</div>
           <div class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</div>
@@ -140,17 +222,14 @@ window.placeOrder = async (method) => {
   };
 
   try {
-    // Save to Firestore
     await addDoc(collection(db, 'orders'), orderData);
     
-    // Clear Cart
     cart = [];
     nameInput.value = '';
     updateCartUI();
     window.toggleCart(false);
     showToast('Order placed successfully! We will prepare it right away.');
     
-    // If WhatsApp, redirect
     if (method === 'whatsapp') {
       const text = `Hi Bigi Awasaana! I'm ${customerName}. I'd like to order:\n` + 
                    orderData.items.map(i => `${i.qty}x ${i.name}`).join('\n') +
@@ -177,17 +256,8 @@ function showToast(message) {
   }, 3000);
 }
 
-// Category Filtering
-document.querySelectorAll('.category-pill').forEach(pill => {
-  pill.addEventListener('click', (e) => {
-    document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
-    e.target.classList.add('active');
-    renderMenu(e.target.dataset.cat);
-  });
-});
-
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-  renderMenu();
+  loadMenuFromFirestore();
   updateCartUI();
 });
