@@ -70,18 +70,51 @@
   <!-- Hero -->
   <header class="hero">
     <div class="hero-content text-center-mobile">
-      <div class="tag reveal" style="border-color: var(--accent); color: var(--accent);">Halal Kitchen & Catering</div>
+      <div class="tag reveal" style="border-color: var(--accent); color: var(--accent);">Grand Opening — June 10, 2026</div>
       <h1 class="font-lalezar reveal" style="font-size: clamp(48px, 9vw, 100px); line-height: 0.85; margin-bottom: var(--space-s);">
         SILK ROAD<br>FLAVOR,<br><span style="color: var(--accent);">HALAL FIRE.</span>
       </h1>
-      <p class="reveal mb-m" style="font-size: 15px; color: var(--gray); max-width: 420px; opacity: 0.9;">
-        Authentic flavors, halal always. Find our food truck in Reseda or book us for catering, corporate events, and private parties.
+      <p class="reveal mb-m" style="font-size: 15px; color: var(--gray); max-width: 460px; opacity: 0.9;">
+        We're firing up the grill soon! Preview our menu below and get ready for authentic Silk Road flavors in Reseda.
       </p>
       <div class="reveal">
-        <button class="btn-primary" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Explore The Menu</button>
+        <button class="btn-primary" onclick="document.getElementById('countdown-section').scrollIntoView({behavior:'smooth'})">See The Countdown</button>
       </div>
     </div>
   </header>
+
+  <!-- Countdown -->
+  <section id="countdown-section" class="countdown-section">
+    <div class="container" style="text-align: center;">
+      <div style="font-family: 'Barlow Condensed'; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; font-weight: 600;">COMING SOON</div>
+      <h2 style="font-size: clamp(28px, 5vw, 42px); font-weight: 700; margin-bottom: 8px;">Grand Opening Countdown</h2>
+      <p style="color: var(--gray); font-size: 14px; margin-bottom: 40px;">June 10, 2026 &middot; Reseda Park, Victory Blvd</p>
+      <div id="countdown" class="countdown-grid">
+        <div class="countdown-box">
+          <span id="cd-days" class="countdown-value">00</span>
+          <span class="countdown-label">Days</span>
+        </div>
+        <div class="countdown-box">
+          <span id="cd-hours" class="countdown-value">00</span>
+          <span class="countdown-label">Hours</span>
+        </div>
+        <div class="countdown-box">
+          <span id="cd-mins" class="countdown-value">00</span>
+          <span class="countdown-label">Minutes</span>
+        </div>
+        <div class="countdown-box">
+          <span id="cd-secs" class="countdown-value">00</span>
+          <span class="countdown-label">Seconds</span>
+        </div>
+      </div>
+      <p style="color: var(--gray); font-size: 13px; margin-top: 32px; max-width: 400px; margin-left: auto; margin-right: auto;">Follow us on social media for updates, sneak peeks, and opening day specials!</p>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 16px; flex-wrap: wrap;">
+        <a href="https://www.instagram.com/bigiawasaana" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none; font-family: 'Barlow Condensed'; font-weight: 600; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;">Instagram</a>
+        <a href="https://www.tiktok.com/@bigiawasaana" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none; font-family: 'Barlow Condensed'; font-weight: 600; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;">TikTok</a>
+        <a href="https://www.facebook.com/bigiawasaana" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none; font-family: 'Barlow Condensed'; font-weight: 600; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;">Facebook</a>
+      </div>
+    </div>
+  </section>
 
   <!-- Heritage -->
   <section id="heritage" class="heritage py-xl">
@@ -124,6 +157,7 @@
       <div class="section-header reveal">
         <h2>The Menu</h2>
         <p>Handcrafted &middot; Coal-fired &middot; Made to order</p>
+        <div style="margin-top: 12px; display: inline-block; padding: 6px 18px; border: 1px solid var(--accent); color: var(--accent); font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; border-radius: 2px;">Preview Only — Ordering Opens June 10</div>
       </div>
 
       <div class="cat-scroll reveal"></div>
@@ -163,13 +197,13 @@
     </div>
   </footer>
 
-  <!-- Cart FAB -->
-  <button class="btn-primary cart-fab" onclick="toggleCart(true)">
+  <!-- Cart FAB (hidden until launch) -->
+  <button class="btn-primary cart-fab" onclick="toggleCart(true)" id="cart-fab" style="display: none;">
     <span style="font-size: 16px;">BAG</span>
     <span id="cart-count-badge" class="cart-badge">0</span>
   </button>
 
-  <!-- Cart Drawer -->
+  <!-- Cart Drawer (hidden until launch) -->
   <div id="cart-drawer" style="position: fixed; top: 0; bottom: 0; right: -100%; width: 100%; max-width: 460px; height: 100%; z-index: 2000; transition: right 0.4s var(--ease); display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,0.5);">
     <div style="padding: var(--space-m); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
       <h2 style="font-size: 18px; letter-spacing: 2px;">YOUR ORDER</h2>

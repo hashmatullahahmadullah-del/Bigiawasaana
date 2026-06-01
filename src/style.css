@@ -11,6 +11,7 @@
   --gray-light: #444444;
   --accent: #ff4500; /* vibrant flame orange for Afghan grill */
   --accent-hover: #ff571a;
+  --accent-border: rgba(255, 69, 0, 0.3);
   
   --space-s: 16px;
   --space-m: 32px;
@@ -19,6 +20,50 @@
   
   --ease: cubic-bezier(0.25, 1, 0.5, 1);
 }
+
+/* ─── COUNTDOWN SECTION ─── */
+.countdown-section {
+  padding: clamp(48px, 8vw, 100px) 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.countdown-grid {
+  display: flex;
+  justify-content: center;
+  gap: clamp(12px, 3vw, 24px);
+  flex-wrap: wrap;
+}
+.countdown-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: clamp(16px, 3vw, 28px) clamp(20px, 4vw, 36px);
+  text-align: center;
+  min-width: 80px;
+  transition: border-color 0.3s;
+}
+.countdown-box:hover {
+  border-color: var(--accent);
+}
+.countdown-value {
+  font-family: 'Lalezar', cursive;
+  font-size: clamp(36px, 6vw, 56px);
+  color: var(--accent);
+  display: block;
+  line-height: 1;
+}
+.countdown-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-top: 8px;
+  font-weight: 600;
+  display: block;
+}
+
 
 * {
   box-sizing: border-box;
