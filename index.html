@@ -67,6 +67,7 @@
 
   <!-- Hero -->
   <header class="hero">
+    <div class="hero-image reveal hide-mobile"></div>
     <div class="hero-content text-center-mobile">
       <div class="tag reveal" style="border-color: var(--accent); color: var(--accent);">Halal Kitchen & Catering</div>
       <h1 class="font-lalezar reveal" style="font-size: clamp(48px, 9vw, 100px); line-height: 0.85; margin-bottom: var(--space-s);">
@@ -79,7 +80,6 @@
         <button class="btn-primary" onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Explore The Menu</button>
       </div>
     </div>
-    <div class="hero-image reveal hide-mobile"></div>
   </header>
 
   <!-- Heritage -->
@@ -164,7 +164,7 @@
   </button>
 
   <!-- Cart Drawer -->
-  <div id="cart-drawer" style="position: fixed; top: 0; right: -100%; width: 100%; max-width: 460px; height: 100vh; z-index: 2000; transition: right 0.4s var(--ease); display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,0.5);">
+  <div id="cart-drawer" style="position: fixed; top: 0; bottom: 0; right: -100%; width: 100%; max-width: 460px; height: 100%; z-index: 2000; transition: right 0.4s var(--ease); display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,0.5);">
     <div style="padding: var(--space-m); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
       <h2 style="font-size: 18px; letter-spacing: 2px;">YOUR ORDER</h2>
       <button onclick="toggleCart(false)" style="background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; padding: 10px;">&times;</button>
