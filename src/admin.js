@@ -83,7 +83,7 @@ function loadOrders() {
           ${itemsHtml}
         </div>
         <div class="order-total">
-          Total: $${order.total.toFixed(2)}
+          Total: ${typeof order.total === 'number' ? '$' + order.total.toFixed(2) : order.total}
         </div>
         <div class="order-actions">
           ${order.status === 'pending' ? `<button class="btn-outline btn-small" onclick="markCompleted('${orderId}')">Mark Completed</button>` : ''}

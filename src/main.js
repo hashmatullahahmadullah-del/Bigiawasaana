@@ -128,13 +128,15 @@ window.placeOrder = async (method) => {
     return;
   }
   
+  const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const orderData = {
     customerName,
     items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
-    total: cart.reduce((sum, item) => sum + (item.price * item.qty), 0),
+    total: `$${total.toFixed(2)}`,
     status: 'pending',
     createdAt: serverTimestamp(),
-    method
+    method,
+    prepTime: 15
   };
 
   try {
@@ -152,7 +154,7 @@ window.placeOrder = async (method) => {
     if (method === 'whatsapp') {
       const text = `Hi Bigi Awasaana! I'm ${customerName}. I'd like to order:\n` + 
                    orderData.items.map(i => `${i.qty}x ${i.name}`).join('\n') +
-                   `\nTotal: $${orderData.total.toFixed(2)}`;
+                   `\nTotal: $${total.toFixed(2)}`;
       window.open(`https://wa.me/13237986120?text=${encodeURIComponent(text)}`, '_blank');
     }
   } catch (error) {
