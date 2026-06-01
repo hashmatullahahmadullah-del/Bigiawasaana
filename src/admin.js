@@ -176,7 +176,7 @@ async function loadMenuAdmin() {
         <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
           <div>
             <strong style="font-size: 16px;">${data.name}</strong>
-            <div style="color: var(--gray); font-size: 12px;">$${typeof data.price === "number" ? data.price.toFixed(2) : data.price} • ${data.category}</div>
+            <div style="color: var(--gray); font-size: 12px;">$${typeof data.price === "number" ? data.price.toFixed(2) : data.price} ï¿½ ${data.category}</div>
           </div>
         </div>
       `;
