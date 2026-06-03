@@ -13,12 +13,14 @@ let state = {
   customers: [],
   orders: [],
   reviews: [],
+  catering: [],
   tiers: { silver: 100, gold: 300 }
 };
 
 let ordersUnsub = null;
 let reviewsUnsub = null;
 let settingsUnsub = null;
+let cateringUnsub = null;
 
 // Auth State Observer
 onAuthStateChanged(auth, (user) => {
@@ -37,6 +39,7 @@ onAuthStateChanged(auth, (user) => {
     if (ordersUnsub) ordersUnsub();
     if (reviewsUnsub) reviewsUnsub();
     if (settingsUnsub) settingsUnsub();
+    if (cateringUnsub) cateringUnsub();
   }
 });
 
@@ -144,6 +147,16 @@ function initCRMData() {
     renderCustomers();
     renderAllOrders();
     renderLoyalty();
+  });
+
+  // 4. Listen to Catering Inquiries
+  const cq = query(collection(db, 'catering_inquiries'), orderBy('createdAt', 'desc'));
+  cateringUnsub = onSnapshot(cq, (snapshot) => {
+    state.catering = [];
+    snapshot.forEach(d => {
+      state.catering.push({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate() || new Date() });
+    });
+    renderCatering();
   });
 }
 
@@ -564,6 +577,89 @@ if (orderStatusFilter) orderStatusFilter.addEventListener('change', renderAllOrd
 const reviewStatusFilter = document.getElementById('review-status-filter');
 if (reviewStatusFilter) reviewStatusFilter.addEventListener('change', renderReviews);
 
+// ==========================================
+// CATERING
+// ==========================================
+function renderCatering() {
+  const tbody = document.getElementById('catering-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  
+  if (state.catering.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--gray);">No catering inquiries yet.</td></tr>';
+    return;
+  }
+  
+  state.catering.forEach(inquiry => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => showCateringDetails(inquiry);
+    
+    tr.innerHTML = `
+      <td>${inquiry.createdAt.toLocaleDateString()}</td>
+      <td><strong>${inquiry.name}</strong><br><small style="color: var(--gray);">${inquiry.phone}</small></td>
+      <td>${inquiry.date}</td>
+      <td>${inquiry.guests}</td>
+      <td><span class="status-badge ${inquiry.status === 'new' ? 'status-pending' : 'status-completed'}">${inquiry.status.toUpperCase()}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.showCateringDetails = (inquiry) => {
+  const modal = document.getElementById('catering-modal');
+  const title = document.getElementById('modal-catering-title');
+  const content = document.getElementById('modal-catering-content');
+  
+  if (!modal || !title || !content) return;
+  
+  title.textContent = `Inquiry: ${inquiry.name}`;
+  content.innerHTML = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+      <div>
+        <div style="font-size: 11px; color: var(--gray); text-transform: uppercase;">Event Date</div>
+        <div>${inquiry.date}</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--gray); text-transform: uppercase;">Guests</div>
+        <div>${inquiry.guests}</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--gray); text-transform: uppercase;">Email</div>
+        <div><a href="mailto:${inquiry.email}" style="color: var(--accent);">${inquiry.email}</a></div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--gray); text-transform: uppercase;">Phone</div>
+        <div><a href="tel:${inquiry.phone}" style="color: var(--accent);">${inquiry.phone}</a></div>
+      </div>
+    </div>
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 11px; color: var(--gray); text-transform: uppercase; margin-bottom: 4px;">Details</div>
+      <div style="background: var(--surface); padding: 12px; border-radius: 4px;">${inquiry.details}</div>
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px;">
+      <button class="btn-primary" onclick="updateCateringStatus('${inquiry.id}', 'contacted')">Mark as Contacted</button>
+      <button class="btn-outline" onclick="updateCateringStatus('${inquiry.id}', 'resolved')">Mark as Resolved</button>
+    </div>
+  `;
+  modal.style.display = 'flex';
+};
+
+window.closeCateringModal = () => {
+  const modal = document.getElementById('catering-modal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.updateCateringStatus = async (id, status) => {
+  try {
+    await updateDoc(doc(db, 'catering_inquiries', id), { status });
+    showToast('Inquiry status updated.');
+    closeCateringModal();
+  } catch (error) {
+    console.error("Error updating catering status", error);
+    showToast('Failed to update status.');
+  }
+};
 
 function showToast(message) {
   const container = document.getElementById('crm-toast-container');

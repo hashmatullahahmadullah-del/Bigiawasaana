@@ -9,6 +9,8 @@
   <meta name="description" content="Authentic Afghan street food in Reseda, LA. Coal-fired kabobs, bolani, and saffron rice platters. 100% Zabiha Halal. Open every night 6PM–2AM. Order online for pickup.">
   <meta name="keywords" content="Afghan food Reseda, halal food Reseda, Afghan street food Los Angeles, kabob Reseda, bolani LA, Afghan restaurant San Fernando Valley, halal late night food LA, Afghan food near me, Zabiha Halal Reseda">
 
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+
   <!-- Open Graph (for social sharing) -->
   <meta property="og:title" content="Bigi Awasaana — Authentic Afghan Street Food, Reseda LA">
   <meta property="og:description" content="Coal-fired kabobs and golden bolani from a family recipe rooted in Kabul. Open every night 6PM–2AM in Reseda, Los Angeles.">
@@ -60,8 +62,10 @@
         <img src="/logo.png" alt="Bigi Awasaana Logo" style="height: 64px; width: auto; object-fit: contain;">
       </a>
       <div style="display: flex; gap: var(--space-s); font-family: 'Barlow Condensed'; font-weight: 600; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;">
-        <a href="#menu" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Menu</a>
-        <a href="#heritage" class="hide-mobile" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Heritage</a>
+        <a href="/menu.html" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Menu</a>
+        <a href="/specials.html" class="hide-mobile" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Specials</a>
+        <a href="/locations.html" class="hide-mobile" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Location</a>
+        <a href="/catering.html" class="hide-mobile" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Catering</a>
         <a href="tel:+13234211646" style="color: var(--accent); text-decoration: none; transition: color 0.2s; font-weight: 700;">(323) 421-1646</a>
       </div>
     </div>
@@ -75,10 +79,10 @@
         SILK ROAD<br>FLAVOR,<br><span style="color: var(--accent);">HALAL FIRE.</span>
       </h1>
       <p class="reveal mb-m" style="font-size: 15px; color: var(--gray); max-width: 460px; opacity: 0.9;">
-        We're firing up the grill soon! Preview our menu below and get ready for authentic Silk Road flavors in Reseda.
+        We're firing up the grill soon! Preview our menu and get ready for authentic Silk Road flavors in Reseda.
       </p>
       <div class="reveal">
-        <button class="btn-primary" onclick="document.getElementById('countdown-section').scrollIntoView({behavior:'smooth'})">See The Countdown</button>
+        <a href="/menu.html" class="btn-primary" style="text-decoration: none; display: inline-block;">View Full Menu</a>
       </div>
     </div>
   </header>
@@ -151,18 +155,41 @@
     </div>
   </section>
 
-  <!-- Menu -->
-  <section id="menu" class="menu-section" style="border-top: 1px solid var(--border);">
-    <div class="container">
-      <div class="section-header reveal">
-        <h2>The Menu</h2>
-        <p>Handcrafted &middot; Coal-fired &middot; Made to order</p>
-        <div style="margin-top: 12px; display: inline-block; padding: 6px 18px; border: 1px solid var(--accent); color: var(--accent); font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; border-radius: 2px;">Preview Only — Ordering Opens June 10</div>
+  <!-- Featured Menu -->
+  <section id="menu" class="menu-section py-xl" style="border-top: 1px solid var(--border);">
+    <div class="container text-center-mobile">
+      <div class="section-header reveal text-center-mobile">
+        <h2>Featured Items</h2>
+        <p>A taste of our handcrafted, coal-fired menu.</p>
       </div>
 
-      <div class="cat-scroll reveal"></div>
+      <div class="menu-grid reveal">
+        <div class="menu-card" style="border-color: var(--accent);">
+          <div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>
+          <div class="menu-card-content">
+            <h3 class="menu-card-title">Chapli Kabob Wrap</h3>
+            <p class="menu-card-desc">Spiced minced meat patty cooked on a flat grill, served in fresh Afghan bread.</p>
+          </div>
+        </div>
+        <div class="menu-card" style="border-color: var(--accent);">
+          <div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>
+          <div class="menu-card-content">
+            <h3 class="menu-card-title">Bolani</h3>
+            <p class="menu-card-desc">Crispy Afghan flatbread stuffed with potato and leek, served with chutney.</p>
+          </div>
+        </div>
+        <div class="menu-card" style="border-color: var(--accent);">
+          <div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>
+          <div class="menu-card-content">
+            <h3 class="menu-card-title">Chicken Tikka Kabob</h3>
+            <p class="menu-card-desc">Marinated chicken breast skewers grilled over hot coals.</p>
+          </div>
+        </div>
+      </div>
 
-      <div id="menu-grid" class="menu-grid reveal"></div>
+      <div class="reveal" style="text-align: center; margin-top: 40px;">
+        <a href="/menu.html" class="btn-primary" style="text-decoration: none; display: inline-block;">View Full Menu to Order</a>
+      </div>
     </div>
   </section>
 
@@ -171,8 +198,17 @@
     <div class="container">
       <div class="footer-grid">
         <div class="text-center-mobile" style="margin-bottom: 24px;">
-          <img src="/logo.png" alt="Bigi Awasaana Logo" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;">
+          <a href="/"><img src="/logo.png" alt="Bigi Awasaana Logo" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
           <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Real food. Real flavor. Bigi Awasaana.</p>
+        </div>
+        <div class="text-center-mobile">
+          <div class="footer-label">Navigation</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="/menu.html" style="font-size: 13px; color: var(--gray); text-decoration: none;">Menu</a>
+            <a href="/specials.html" style="font-size: 13px; color: var(--gray); text-decoration: none;">Specials</a>
+            <a href="/locations.html" style="font-size: 13px; color: var(--gray); text-decoration: none;">Location & Hours</a>
+            <a href="/catering.html" style="font-size: 13px; color: var(--gray); text-decoration: none;">Catering</a>
+          </div>
         </div>
         <div class="text-center-mobile">
           <div class="footer-label">Location</div>
@@ -182,16 +218,6 @@
           <div class="footer-label">Contact</div>
           <p style="font-size: 13px; margin-bottom: 6px;"><a href="tel:+13234211646" style="color: var(--white); text-decoration: none; font-weight: 600;">(323) 421-1646</a></p>
           <p style="font-size: 13px;"><a href="mailto:bigiawasaana@gmail.com" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">bigiawasaana@gmail.com</a></p>
-        </div>
-        <div class="text-center-mobile">
-          <div class="footer-label">Follow Us</div>
-          <div class="social-links">
-            <a href="https://www.instagram.com/bigiawasaana" target="_blank" rel="noopener">Instagram</a>
-            <a href="https://www.tiktok.com/@bigiawasaana" target="_blank" rel="noopener">TikTok</a>
-            <a href="https://www.facebook.com/bigiawasaana" target="_blank" rel="noopener">Facebook</a>
-            <a href="https://www.youtube.com/@bigiawasaana" target="_blank" rel="noopener">YouTube</a>
-            <a href="https://www.snapchat.com/add/bigiawasaana" target="_blank" rel="noopener">Snapchat</a>
-          </div>
         </div>
       </div>
     </div>

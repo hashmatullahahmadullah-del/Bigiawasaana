@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin & CRM Dashboard — Bigi Awasaana</title>
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/admin.css">
 </head>
@@ -67,6 +68,10 @@
           <button class="crm-nav-item" data-target="loyalty-view">
             <span class="icon">🏆</span>
             <span class="label">Loyalty</span>
+          </button>
+          <button class="crm-nav-item" data-target="catering-view">
+            <span class="icon">📅</span>
+            <span class="label">Catering</span>
           </button>
         </div>
       </nav>
@@ -257,6 +262,29 @@
           </div>
         </section>
 
+        <!-- Catering View -->
+        <section id="catering-view" class="crm-view" style="display: none;">
+          <h1 class="crm-view-title">Catering Inquiries</h1>
+          <div class="crm-panel mt-m">
+            <div class="crm-table-container">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Event Date</th>
+                    <th>Guests</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="catering-table-body">
+                  <tr><td colspan="5" style="text-align: center; color: var(--gray);">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
       </main>
     </div>
   </section>
@@ -280,6 +308,19 @@
         <button class="crm-btn-icon" onclick="closeOrderModal()">×</button>
       </div>
       <div class="crm-modal-content" id="modal-order-content">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Catering Modal -->
+  <div class="crm-modal" id="catering-modal">
+    <div class="crm-modal-box">
+      <div class="crm-modal-header">
+        <h2 id="modal-catering-title">Inquiry Details</h2>
+        <button class="crm-btn-icon" onclick="closeCateringModal()">×</button>
+      </div>
+      <div class="crm-modal-content" id="modal-catering-content">
         <!-- Populated by JS -->
       </div>
     </div>

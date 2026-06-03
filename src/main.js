@@ -262,6 +262,36 @@ function showToast(message) {
   }, 3000);
 }
 
+// Catering Form Logic
+const cateringForm = document.getElementById('catering-form');
+if (cateringForm) {
+  cateringForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('cat-name').value;
+    const email = document.getElementById('cat-email').value;
+    const phone = document.getElementById('cat-phone').value;
+    const date = document.getElementById('cat-date').value;
+    const guests = document.getElementById('cat-guests').value;
+    const details = document.getElementById('cat-details').value;
+
+    try {
+      await addDoc(collection(db, 'catering_inquiries'), {
+        name, email, phone, date, guests, details,
+        status: 'new',
+        createdAt: serverTimestamp()
+      });
+      cateringForm.reset();
+      document.getElementById('cat-status').style.display = 'block';
+      setTimeout(() => {
+        document.getElementById('cat-status').style.display = 'none';
+      }, 5000);
+    } catch (err) {
+      console.error("Error submitting catering inquiry: ", err);
+      showToast('Error sending inquiry. Please try again or call us.');
+    }
+  });
+}
+
 // Countdown Timer Logic
 function initCountdown() {
   const openingDate = new Date('June 10, 2026 00:00:00').getTime();
