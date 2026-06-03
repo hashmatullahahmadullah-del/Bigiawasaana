@@ -30,8 +30,8 @@ if (cateringForm) {
         name,
         email,
         phone,
-        eventDate: date,
-        guestCount: guests,
+        date,
+        guests,
         details,
         status: 'new',
         createdAt: serverTimestamp()
