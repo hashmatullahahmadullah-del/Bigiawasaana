@@ -38,6 +38,12 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
+    // Catering Inquiries Collection
+    match /catering_inquiries/{inquiry} {
+      allow create: if true; // Anyone can submit an inquiry
+      allow read, update, delete: if request.auth != null; // Only admins can view and manage
+    }
+    
     // Default: Deny everything else
     match /{document=**} {
       allow read, write: if false;
