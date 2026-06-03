@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Location & Hours — Bigi Awasaana | Reseda, LA</title>
-  <meta name="description" content="Visit Bigi Awasaana for authentic Afghan street food. Located in Reseda Park, Los Angeles. Open every night 6PM–2AM.">
+  <meta name="description" content="Visit Bigi Awasaana for authentic Afghan street food. Located in Reseda, Los Angeles. Open every night 6PM–2AM. Coal-fired kabobs, bolani, and more.">
   <meta name="keywords" content="Bigi Awasaana location, Afghan restaurant Reseda, halal food near me, late night halal Los Angeles">
-
   <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+
   <!-- Open Graph -->
   <meta property="og:title" content="Location & Hours — Bigi Awasaana">
-  <meta property="og:description" content="Open every night 6PM–2AM in Reseda, Los Angeles.">
+  <meta property="og:description" content="Open every night 6PM–2AM in Reseda, Los Angeles. Authentic Afghan halal street food.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://bigiawasaana.com/locations.html">
 
@@ -20,12 +20,21 @@
     "@context": "https://schema.org",
     "@type": "FoodEstablishment",
     "name": "Bigi Awasaana",
-    "image": "https://bigiawasaana.com/logo.png",
-    "description": "Authentic Afghan street food in Reseda, LA.",
+    "image": "https://bigiawasaana.com/favicon.jpg",
+    "description": "Authentic Afghan street food in Reseda, LA. Coal-fired kabobs, bolani, saffron rice. 100% Zabiha Halal.",
     "telephone": "+13234211646",
+    "url": "https://bigiawasaana.com",
+    "servesCuisine": "Afghan",
+    "priceRange": "$$",
+    "hasMap": "https://maps.app.goo.gl/t4KWMKMnUs3DKg6W8",
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 34.1866938,
+      "longitude": -118.5331266
+    },
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Victory Blvd, Reseda Park",
+      "streetAddress": "Victory Blvd",
       "addressLocality": "Reseda",
       "addressRegion": "CA",
       "postalCode": "91335",
@@ -39,78 +48,121 @@
     }
   }
   </script>
+
   <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
 </head>
 <body>
 
   <!-- Nav -->
-  <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(6,6,6,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center; height: 72px;">
-      <a href="/" style="display: flex; align-items: center; text-decoration: none;">
-        <img src="/logo.png" alt="Bigi Awasaana Logo" style="height: 64px; width: auto; object-fit: contain;">
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
+        <img src="/logo.png" alt="Bigi Awasaana Logo">
       </a>
-      <div style="display: flex; gap: var(--space-s); font-family: 'Barlow Condensed'; font-weight: 600; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;">
-        <a href="/menu.html" class="hide-mobile" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Menu</a>
-        <a href="/specials.html" class="hide-mobile" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Specials</a>
-        <a href="/locations.html" style="color: var(--white); text-decoration: none; transition: color 0.2s;">Location</a>
-        <a href="/catering.html" class="hide-mobile" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">Catering</a>
-        <a href="tel:+13234211646" style="color: var(--accent); text-decoration: none; transition: color 0.2s; font-weight: 700;">(323) 421-1646</a>
-      </div>
+      <ul class="nav-links">
+        <li><a href="/menu.html">Menu</a></li>
+        <li><a href="/specials.html">Specials</a></li>
+        <li><a href="/locations.html" class="active">Location</a></li>
+        <li><a href="/catering.html">Catering</a></li>
+        <li><a href="tel:+13234211646" class="nav-cta">(323) 421-1646</a></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
+  <!-- Mobile Drawer -->
+  <div class="nav-mobile-drawer" id="nav-mobile-drawer">
+    <a href="/menu.html">Menu</a>
+    <a href="/specials.html">Specials</a>
+    <a href="/locations.html" class="active">Location</a>
+    <a href="/catering.html">Catering</a>
+    <a href="tel:+13234211646" class="nav-cta">📞 (323) 421-1646</a>
+  </div>
+
   <!-- Header -->
-  <header style="padding-top: 120px; padding-bottom: 60px; text-align: center; border-bottom: 1px solid var(--border);">
+  <header class="page-header" style="padding-top: 120px; padding-bottom: 60px; text-align: center; border-bottom: 1px solid var(--border);">
     <div class="container">
       <div style="font-family: 'Barlow Condensed'; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; font-weight: 600;">FIND US</div>
       <h1 class="font-lalezar" style="font-size: clamp(32px, 6vw, 64px); line-height: 1; margin-bottom: 16px;">LOCATION & HOURS</h1>
+      <p style="color: var(--gray); font-size: 15px; max-width: 500px; margin: 0 auto;">Come find us at Reseda — open every night for the hungry and the bold.</p>
     </div>
   </header>
 
   <!-- Location Content -->
-  <section class="py-xl">
-    <div class="container" style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;">
-      
-      <div style="flex: 1; min-width: 300px;">
-        <h2 style="font-family: 'Barlow Condensed'; font-size: 28px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px;">Reseda Park</h2>
-        
+  <section style="padding: clamp(40px, 7vw, 96px) 0;">
+    <div class="container loc-grid" style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start;">
+
+      <!-- Info Panel -->
+      <div style="flex: 1; min-width: 280px;">
+        <h2 style="font-family: 'Barlow Condensed'; font-size: 28px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 32px;">Reseda Park</h2>
+
         <div style="margin-bottom: 32px;">
-          <h3 style="color: var(--accent); font-family: 'Barlow Condensed'; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Address</h3>
-          <p style="color: var(--gray); line-height: 1.6;">Victory Blvd, Reseda Park<br>Reseda, CA 91335</p>
+          <h3 style="color: var(--accent); font-family: 'Barlow Condensed'; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">📍 Address</h3>
+          <p style="color: var(--gray); line-height: 1.8; font-size: 15px;">Victory Blvd, Reseda Park<br>Reseda, CA 91335</p>
+          <a href="https://maps.app.goo.gl/t4KWMKMnUs3DKg6W8" target="_blank" rel="noopener" style="display: inline-block; margin-top: 10px; font-size: 13px; color: var(--accent); text-decoration: none; font-family: 'Barlow Condensed'; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">Get Directions →</a>
         </div>
 
         <div style="margin-bottom: 32px;">
-          <h3 style="color: var(--accent); font-family: 'Barlow Condensed'; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Hours</h3>
-          <p style="color: var(--gray); line-height: 1.6;">Monday - Sunday<br>6:00 PM – 2:00 AM</p>
+          <h3 style="color: var(--accent); font-family: 'Barlow Condensed'; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">🕐 Hours</h3>
+          <p style="color: var(--gray); line-height: 1.8; font-size: 15px;">Monday – Sunday<br><strong style="color: var(--white);">6:00 PM – 2:00 AM</strong></p>
         </div>
 
         <div style="margin-bottom: 32px;">
-          <h3 style="color: var(--accent); font-family: 'Barlow Condensed'; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Contact</h3>
-          <p style="color: var(--gray); line-height: 1.6;">
-            <a href="tel:+13234211646" style="color: var(--white); text-decoration: none;">(323) 421-1646</a><br>
-            <a href="mailto:bigiawasaana@gmail.com" style="color: var(--gray); text-decoration: none;">bigiawasaana@gmail.com</a>
+          <h3 style="color: var(--accent); font-family: 'Barlow Condensed'; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">📞 Contact</h3>
+          <p style="line-height: 1.8; font-size: 15px;">
+            <a href="tel:+13234211646" style="color: var(--white); text-decoration: none; font-weight: 600;">(323) 421-1646</a><br>
+            <a href="mailto:bigiawasaana@gmail.com" style="color: var(--gray); text-decoration: none; font-size: 13px;">bigiawasaana@gmail.com</a>
           </p>
+        </div>
+
+        <!-- Halal Badge -->
+        <div style="display: inline-flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); padding: 12px 20px; border-radius: 4px;">
+          <span style="font-size: 20px;">🥩</span>
+          <span style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--gray);">100% Zabiha Halal</span>
         </div>
       </div>
 
-      <div style="flex: 2; min-width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 8px;">
-        <!-- Embedded Google Map placeholder, you can swap the src with a real embed link -->
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d16518.257771787134!2d-118.5392095!3d34.1887309!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c29a2db12fbc4b%3A0xcb1cc3372c3d528b!2sReseda%20Park%20and%20Recreation%20Center!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus" width="100%" height="450" style="border:0; filter: invert(90%) hue-rotate(180deg);" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <!-- Map -->
+      <div style="flex: 2; min-width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3301.733596502356!2d-118.5357015!3d34.1866982!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2992101da902b%3A0xaf9068e034271c71!2sBigi%20Awasaana%20(Afghan%20Halal%20Cuisine)!5e0!3m2!1sen!2sus!4v1717397734204!5m2!1sen!2sus"
+          width="100%"
+          height="460"
+          style="border:0; display:block; filter: invert(90%) hue-rotate(180deg);"
+          allowfullscreen=""
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Bigi Awasaana on Google Maps">
+        </iframe>
       </div>
 
     </div>
   </section>
 
+  <!-- CTA Banner -->
+  <section style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 48px 0; text-align: center;">
+    <div class="container">
+      <p class="font-lalezar" style="font-size: clamp(22px, 4vw, 36px); margin-bottom: 20px;">Ready to Order?</p>
+      <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <a href="/menu.html" class="btn-primary" style="text-decoration: none; display: inline-block;">View Full Menu</a>
+        <a href="/catering.html" class="btn-outline" style="text-decoration: none; display: inline-block;">Book Catering</a>
+      </div>
+    </div>
+  </section>
+
   <!-- Footer -->
-  <footer class="footer py-l">
+  <footer class="footer">
     <div class="container">
       <div class="footer-grid">
         <div class="text-center-mobile" style="margin-bottom: 24px;">
           <a href="/"><img src="/logo.png" alt="Bigi Awasaana Logo" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
-          <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Real food. Real flavor. Bigi Awasaana.</p>
+          <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Born from the Silk Road. Only.</p>
         </div>
         <div class="text-center-mobile">
-          <div class="footer-label">Navigation</div>
+          <div class="footer-label">Navigate</div>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <a href="/menu.html" style="font-size: 13px; color: var(--gray); text-decoration: none;">Menu</a>
             <a href="/specials.html" style="font-size: 13px; color: var(--gray); text-decoration: none;">Specials</a>
@@ -125,11 +177,15 @@
         <div class="text-center-mobile">
           <div class="footer-label">Contact</div>
           <p style="font-size: 13px; margin-bottom: 6px;"><a href="tel:+13234211646" style="color: var(--white); text-decoration: none; font-weight: 600;">(323) 421-1646</a></p>
-          <p style="font-size: 13px;"><a href="mailto:bigiawasaana@gmail.com" style="color: var(--gray); text-decoration: none; transition: color 0.2s;">bigiawasaana@gmail.com</a></p>
+          <p style="font-size: 13px;"><a href="mailto:bigiawasaana@gmail.com" style="color: var(--gray); text-decoration: none;">bigiawasaana@gmail.com</a></p>
         </div>
       </div>
     </div>
   </footer>
 
+  <script type="module">
+    import { initNav } from '/src/nav.js';
+    initNav('locations');
+  </script>
 </body>
 </html>
