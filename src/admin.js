@@ -1,6 +1,6 @@
 import { auth, db } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
@@ -230,6 +230,8 @@ window.updateOrderStatus = async (id, newStatus) => {
 
 const addMenuForm = document.getElementById("add-menu-form");
 const adminMenuList = document.getElementById("admin-menu-list");
+const editMenuModal = document.getElementById("edit-menu-modal");
+const editMenuForm = document.getElementById("edit-menu-form");
 
 if (addMenuForm) {
   addMenuForm.addEventListener("submit", async (e) => {
@@ -239,9 +241,10 @@ if (addMenuForm) {
     const desc = document.getElementById("menu-desc").value;
     const category = document.getElementById("menu-category").value;
     const img = document.getElementById("menu-img").value;
+    const featured = document.getElementById("menu-featured").checked;
     
     try {
-      await addDoc(collection(db, "menu"), { name, price, desc, category, img });
+      await addDoc(collection(db, "menu"), { name, price, desc, category, img, featured: !!featured });
       document.getElementById("menu-status").style.display = "block";
       addMenuForm.reset();
       setTimeout(() => { document.getElementById("menu-status").style.display = "none"; }, 3000);
@@ -263,13 +266,28 @@ async function loadMenuAdmin() {
       return;
     }
     let html = "";
-    snapshot.forEach(doc => {
-      const data = doc.data();
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const itemId = docSnap.id;
+      const descText = data.desc || data.description || '';
+      
       html += `
-        <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <strong style="font-size: 16px;">${data.name}</strong>
-            <div style="color: var(--gray); font-size: 12px;">$${typeof data.price === "number" ? data.price.toFixed(2) : data.price} • ${data.category}</div>
+        <div style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <strong style="font-size: 16px; color: var(--white);">${data.name}</strong>
+              ${data.featured ? '<span style="background: rgba(255,215,0,0.15); color: #FFD700; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,215,0,0.3); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">⭐ Featured</span>' : ''}
+            </div>
+            <div style="color: var(--gray); font-size: 12px; margin-bottom: 6px;">
+              $${typeof data.price === "number" ? data.price.toFixed(2) : data.price} • <span style="text-transform: capitalize;">${data.category}</span>
+            </div>
+            <div style="color: #888; font-size: 13px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              ${descText}
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-outline btn-small" onclick="openEditMenuModal('${itemId}', ${JSON.stringify(data).replace(/"/g, '&quot;')})" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+            <button class="btn-outline btn-small" onclick="deleteMenuItem('${itemId}', '${data.name.replace(/'/g, "\\'")}')" style="padding: 6px 12px; font-size: 12px; border-color: rgba(255,69,0,0.4); color: var(--accent);">Delete</button>
           </div>
         </div>
       `;
@@ -279,6 +297,67 @@ async function loadMenuAdmin() {
     console.error("Error loading menu: ", err);
     adminMenuList.innerHTML = "<p style=\"color: var(--accent);\">Failed to load menu.</p>";
   }
+}
+
+// Global Edit/Delete Functions for Menu
+window.openEditMenuModal = (id, data) => {
+  if (!editMenuModal) return;
+  document.getElementById("edit-menu-id").value = id;
+  document.getElementById("edit-menu-name").value = data.name || "";
+  document.getElementById("edit-menu-price").value = data.price || "";
+  document.getElementById("edit-menu-category").value = data.category || "platters";
+  document.getElementById("edit-menu-img").value = data.img || data.image || data.imageUrl || "";
+  document.getElementById("edit-menu-desc").value = data.desc || data.description || "";
+  document.getElementById("edit-menu-featured").checked = !!data.featured;
+  
+  editMenuModal.style.display = "flex";
+};
+
+window.closeEditMenuModal = () => {
+  if (editMenuModal) {
+    editMenuModal.style.display = "none";
+  }
+};
+
+window.deleteMenuItem = async (id, name) => {
+  if (confirm(`Are you sure you want to delete "${name}" from the menu?`)) {
+    try {
+      await deleteDoc(doc(db, "menu", id));
+      loadMenuAdmin();
+    } catch (err) {
+      console.error("Error deleting menu item: ", err);
+      alert("Failed to delete menu item.");
+    }
+  }
+};
+
+if (editMenuForm) {
+  editMenuForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("edit-menu-id").value;
+    const name = document.getElementById("edit-menu-name").value;
+    const price = parseFloat(document.getElementById("edit-menu-price").value);
+    const category = document.getElementById("edit-menu-category").value;
+    const img = document.getElementById("edit-menu-img").value;
+    const desc = document.getElementById("edit-menu-desc").value;
+    const featured = document.getElementById("edit-menu-featured").checked;
+    
+    try {
+      await updateDoc(doc(db, "menu", id), {
+        name,
+        price,
+        category,
+        img,
+        desc,
+        featured: !!featured
+      });
+      closeEditMenuModal();
+      loadMenuAdmin();
+    } catch (err) {
+      console.error("Error updating menu item: ", err);
+      alert("Failed to update menu item.");
+    }
+  });
 }
 
 // ==========================================

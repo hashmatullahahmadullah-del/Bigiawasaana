@@ -134,6 +134,9 @@
               <textarea id="menu-desc" placeholder="Description" rows="3" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
               <input type="text" id="menu-category" placeholder="Category (e.g. platters, wraps, drinks)" value="platters" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
               <input type="url" id="menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+              <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
+                <input type="checkbox" id="menu-featured"> Mark as Featured Item (displays on Homepage)
+              </label>
               <button type="submit" class="btn-primary" style="align-self: flex-start; margin-top: 8px;">Add to Menu</button>
             </form>
             <div id="menu-status" style="color: #00c853; font-size: 13px; margin-top: 12px; display: none;">Item added successfully!</div>
@@ -322,6 +325,33 @@
       </div>
       <div class="crm-modal-content" id="modal-catering-content">
         <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Menu Item Modal -->
+  <div class="crm-modal" id="edit-menu-modal">
+    <div class="crm-modal-box">
+      <div class="crm-modal-header">
+        <h2>Edit Menu Item</h2>
+        <button class="crm-btn-icon" onclick="closeEditMenuModal()">×</button>
+      </div>
+      <div class="crm-modal-content">
+        <form id="edit-menu-form" style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="hidden" id="edit-menu-id">
+          <input type="text" id="edit-menu-name" placeholder="Item Name" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+          <input type="number" id="edit-menu-price" placeholder="Price" step="0.01" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+          <textarea id="edit-menu-desc" placeholder="Description" rows="3" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
+          <input type="text" id="edit-menu-category" placeholder="Category" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+          <input type="url" id="edit-menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+          <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
+            <input type="checkbox" id="edit-menu-featured"> Mark as Featured Item (displays on Homepage)
+          </label>
+          <div style="display: flex; gap: 12px; margin-top: 16px;">
+            <button type="submit" class="btn-primary" style="flex: 1;">Save Changes</button>
+            <button type="button" class="btn-outline" style="flex: 1;" onclick="closeEditMenuModal()">Cancel</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

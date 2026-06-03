@@ -24,12 +24,16 @@ async function loadMenuFromFirestore() {
           desc: data.desc || data.description || '',
           price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
           category: (data.category || 'platters').toLowerCase(),
-          img: data.img || data.image || data.imageUrl || ''
+          img: data.img || data.image || data.imageUrl || '',
+          featured: !!data.featured
         };
       });
 
       // Build category pills dynamically from Firestore data
       buildCategoryPills();
+      
+      // Render featured menu on home page if element exists
+      renderFeaturedMenu();
     }
   } catch (error) {
     console.error('Error loading menu from Firestore:', error);
@@ -112,6 +116,39 @@ function renderMenu(category = 'all') {
           <span class="menu-card-price">$${item.price.toFixed(2)}</span>
           <!-- Ordering is disabled until June 10 -->
         </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// Render Featured Menu Items on Home page
+function renderFeaturedMenu() {
+  const grid = document.getElementById('featured-menu-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  let featuredItems = menuItems.filter(item => item.featured);
+  
+  // Fallback to first 3 items if no items are explicitly featured
+  if (featuredItems.length === 0) {
+    featuredItems = menuItems.slice(0, 3);
+  }
+
+  featuredItems.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'menu-card';
+    card.style.borderColor = 'var(--accent)';
+    
+    const imgHtml = item.img 
+      ? `<img src="${item.img}" alt="${item.name}" class="menu-card-img" loading="lazy">`
+      : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>`;
+    
+    card.innerHTML = `
+      ${imgHtml}
+      <div class="menu-card-content">
+        <h3 class="menu-card-title">${item.name}</h3>
+        <p class="menu-card-desc">${item.desc}</p>
       </div>
     `;
     grid.appendChild(card);
