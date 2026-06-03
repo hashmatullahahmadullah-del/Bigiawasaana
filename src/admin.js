@@ -266,9 +266,11 @@ async function loadMenuAdmin() {
       return;
     }
     let html = "";
+    window.adminMenuData = {};
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       const itemId = docSnap.id;
+      window.adminMenuData[itemId] = data;
       const descText = data.desc || data.description || '';
       
       html += `
@@ -286,8 +288,8 @@ async function loadMenuAdmin() {
             </div>
           </div>
           <div style="display: flex; gap: 8px;">
-            <button class="btn-outline btn-small" onclick="openEditMenuModal('${itemId}', ${JSON.stringify(data).replace(/"/g, '&quot;')})" style="padding: 6px 12px; font-size: 12px;">Edit</button>
-            <button class="btn-outline btn-small" onclick="deleteMenuItem('${itemId}', '${data.name.replace(/'/g, "\\'")}')" style="padding: 6px 12px; font-size: 12px; border-color: rgba(255,69,0,0.4); color: var(--accent);">Delete</button>
+            <button class="btn-outline btn-small" onclick="openEditMenuModal('${itemId}')" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+            <button class="btn-outline btn-small" onclick="deleteMenuItem('${itemId}')" style="padding: 6px 12px; font-size: 12px; border-color: rgba(255,69,0,0.4); color: var(--accent);">Delete</button>
           </div>
         </div>
       `;
@@ -300,8 +302,9 @@ async function loadMenuAdmin() {
 }
 
 // Global Edit/Delete Functions for Menu
-window.openEditMenuModal = (id, data) => {
-  if (!editMenuModal) return;
+window.openEditMenuModal = (id) => {
+  const data = window.adminMenuData[id];
+  if (!editMenuModal || !data) return;
   document.getElementById("edit-menu-id").value = id;
   document.getElementById("edit-menu-name").value = data.name || "";
   document.getElementById("edit-menu-price").value = data.price || "";
@@ -319,8 +322,10 @@ window.closeEditMenuModal = () => {
   }
 };
 
-window.deleteMenuItem = async (id, name) => {
-  if (confirm(`Are you sure you want to delete "${name}" from the menu?`)) {
+window.deleteMenuItem = async (id) => {
+  const data = window.adminMenuData[id];
+  if (!data) return;
+  if (confirm(`Are you sure you want to delete "${data.name}" from the menu?`)) {
     try {
       await deleteDoc(doc(db, "menu", id));
       loadMenuAdmin();
