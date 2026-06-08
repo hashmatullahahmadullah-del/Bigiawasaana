@@ -453,7 +453,7 @@ window.handlePayment = async () => {
     // Generate QR code for order status page
     const orderId = result.data.orderId;
     const accessToken = result.data.accessToken;
-    const statusUrl = `https://bigi-awasaana-7b3ce.web.app/order-status.html?orderId=${orderId}&token=${accessToken}`;
+    const statusUrl = `https://bigiawasaana.com/order-status.html?orderId=${orderId}&token=${accessToken}`;
     const qrContainer = document.getElementById('qr-code-container');
     if (qrContainer && window.QRCode) {
       qrContainer.innerHTML = '';

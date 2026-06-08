@@ -13,6 +13,7 @@ export default defineConfig({
         catering: resolve(__dirname, 'catering.html'),
         kitchen: resolve(__dirname, 'kitchen.html'),
         orderStatus: resolve(__dirname, 'order-status.html'),
+        customerDisplay: resolve(__dirname, 'customer-display.html'),
         cateringJs: resolve(__dirname, 'src/catering.js'),
       },
     },

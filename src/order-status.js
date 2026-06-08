@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const order = docSnap.data();
+    console.log("Firestore order status:", order.status);
 
     // Security check: verify token
     if (order.accessToken !== token) {
