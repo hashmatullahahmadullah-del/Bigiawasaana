@@ -349,3 +349,93 @@ body {
   }
   .kds-col { min-width: 280px; }
 }
+
+/* ── PIN Screen ── */
+.kds-pin-screen {
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--kds-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.kds-pin-container {
+  background-color: var(--kds-surface);
+  padding: 60px 40px;
+  border-radius: 12px;
+  border-top: 6px solid var(--accent);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.kds-pin-logo {
+  height: 80px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.kds-pin-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  color: var(--white);
+  margin: 0 0 30px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.kds-pin-input {
+  width: 100%;
+  background: var(--kds-bg);
+  border: 2px solid var(--kds-border);
+  color: var(--white);
+  font-size: 36px;
+  text-align: center;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  letter-spacing: 10px;
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.kds-pin-input:focus {
+  border-color: var(--accent);
+}
+
+.kds-pin-btn {
+  width: 100%;
+  background-color: var(--accent);
+  color: var(--white);
+  border: none;
+  padding: 18px;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: opacity 0.2s;
+}
+
+.kds-pin-btn:hover {
+  opacity: 0.9;
+}
+
+.kds-pin-btn:disabled {
+  background-color: var(--gray);
+  cursor: not-allowed;
+}
+
+.kds-pin-error {
+  color: #ff3008;
+  margin-top: 16px;
+  font-size: 16px;
+  min-height: 20px;
+}

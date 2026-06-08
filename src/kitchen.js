@@ -42,20 +42,103 @@ if (new URLSearchParams(window.location.search).get('admin') === 'true') {
 }
 
 if (localStorage.getItem('bigi_admin') !== 'true') {
+  document.getElementById('kds-pin-screen').style.display = 'none';
   document.getElementById('kds-app').style.display = 'none';
   document.getElementById('kds-denied').style.display = 'flex';
 } else {
   document.getElementById('kds-denied').style.display = 'none';
-  document.getElementById('kds-app').style.display = 'block';
   
-  // Sign in anonymously to satisfy Firestore rules
+  if (sessionStorage.getItem('kds_authenticated') === 'true') {
+    document.getElementById('kds-pin-screen').style.display = 'none';
+    document.getElementById('kds-app').style.display = 'block';
+    // Initialize Auth then KDS
+    const auth = getAuth(app);
+    signInAnonymously(auth).then(() => {
+      initKDS();
+    }).catch(err => {
+      console.error("Auth failed:", err);
+      alert("Auth failed. Check console.");
+    });
+  } else {
+    document.getElementById('kds-app').style.display = 'none';
+    document.getElementById('kds-pin-screen').style.display = 'flex';
+    initPinScreen();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// PIN Screen Logic
+// ─────────────────────────────────────────────────────────────────
+function initPinScreen() {
+  const pinInput = document.getElementById('kds-pin-input');
+  const pinBtn = document.getElementById('kds-pin-btn');
+  const errorMsg = document.getElementById('kds-pin-error');
+  
+  let attempts = 0;
+  let lockoutTimer = null;
+
   const auth = getAuth(app);
-  signInAnonymously(auth).then(() => {
-    initKDS();
-  }).catch(err => {
-    console.error("Auth failed:", err);
-    alert("Could not authenticate. KDS requires internet access.");
+  signInAnonymously(auth).catch(err => console.error("PIN screen auth failed:", err));
+
+  pinBtn.addEventListener('click', async () => {
+    const pin = pinInput.value.trim();
+    if (!pin) return;
+
+    pinBtn.disabled = true;
+    pinBtn.textContent = 'VERIFYING...';
+    errorMsg.textContent = '';
+
+    try {
+      const functions = getFunctions(app);
+      const verifyKdsPin = httpsCallable(functions, 'verifyKdsPin');
+      const result = await verifyKdsPin({ pin });
+
+      if (result.data.success) {
+        sessionStorage.setItem('kds_authenticated', 'true');
+        document.getElementById('kds-pin-screen').style.display = 'none';
+        document.getElementById('kds-app').style.display = 'block';
+        initKDS();
+      } else {
+        handleWrongPin();
+      }
+    } catch (err) {
+      console.error("PIN verification error:", err);
+      handleWrongPin();
+    }
   });
+
+  function handleWrongPin() {
+    attempts++;
+    pinInput.value = '';
+    if (attempts >= 3) {
+      startLockout();
+    } else {
+      errorMsg.textContent = `Incorrect PIN. ${3 - attempts} attempts remaining.`;
+      pinBtn.disabled = false;
+      pinBtn.textContent = 'ENTER KITCHEN';
+    }
+  }
+
+  function startLockout() {
+    let timeLeft = 60;
+    pinInput.disabled = true;
+    
+    errorMsg.textContent = `Too many failed attempts. Try again in ${timeLeft}s.`;
+    
+    lockoutTimer = setInterval(() => {
+      timeLeft--;
+      errorMsg.textContent = `Too many failed attempts. Try again in ${timeLeft}s.`;
+      
+      if (timeLeft <= 0) {
+        clearInterval(lockoutTimer);
+        attempts = 0;
+        pinInput.disabled = false;
+        pinBtn.disabled = false;
+        pinBtn.textContent = 'ENTER KITCHEN';
+        errorMsg.textContent = '';
+      }
+    }, 1000);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────

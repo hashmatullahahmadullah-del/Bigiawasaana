@@ -34,8 +34,7 @@ service cloud.firestore {
 
     // Settings Collection: Admin only
     match /settings/{doc} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if request.auth != null;
     }
     
     // Catering Inquiries Collection

@@ -488,3 +488,29 @@ exports.updateOrderStatus = functions.https.onCall(async (data, context) => {
 
   return { success: true, orderId, status };
 });
+
+// ─────────────────────────────────────────────────────────────────
+// verifyKdsPin
+// Callable function — verifies the KDS PIN
+// ─────────────────────────────────────────────────────────────────
+exports.verifyKdsPin = functions.https.onCall(async (data, context) => {
+  const { pin } = data;
+
+  if (!pin || typeof pin !== 'string') {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing or invalid PIN.');
+  }
+
+  const docRef = db.collection('settings').doc('kds');
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    throw new functions.https.HttpsError('not-found', 'KDS settings not found.');
+  }
+
+  const kdsData = doc.data();
+  if (kdsData.pin === pin) {
+    return { success: true };
+  } else {
+    return { success: false };
+  }
+});
