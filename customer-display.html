@@ -16,19 +16,23 @@
   <!-- Header -->
   <header class="cd-header">
     <div class="cd-header-left">
-      <h1 class="cd-logo">🔥 BIGI <span>AWASAANA</span></h1>
+      <img src="/logo.png" alt="Bigi Awasaana Logo" class="cd-logo-img">
+      <div class="cd-tagline-container">
+        <h1 class="cd-logo">BIGI <span>AWASAANA</span></h1>
+        <p class="cd-tagline">Born from the Silk Road. Grilled in Los Angeles.</p>
+      </div>
     </div>
     <div class="cd-header-right">
-      <p class="cd-tagline">Born from the Silk Road</p>
-      <button id="cd-init-audio" class="cd-audio-btn">🔊 Enable Audio</button>
+      <button id="cd-init-audio" class="cd-icon-btn" aria-label="Enable Audio">🔊</button>
+      <button id="cd-fullscreen-btn" class="cd-icon-btn" aria-label="Toggle Fullscreen">⛶</button>
     </div>
   </header>
 
   <!-- 2 Columns -->
   <main class="cd-grid">
     <!-- Preparing Column -->
-    <div class="cd-col">
-      <div class="cd-col-header" style="border-top: 6px solid #f5a623;">
+    <div class="cd-col cd-col-preparing">
+      <div class="cd-col-header" style="border-top: 6px solid #FFCC00;">
         <h2>🟡 PREPARING</h2>
       </div>
       <div class="cd-col-body" id="col-preparing">
@@ -37,8 +41,8 @@
     </div>
 
     <!-- Ready for Pickup Column -->
-    <div class="cd-col">
-      <div class="cd-col-header" style="border-top: 6px solid #27ae60;">
+    <div class="cd-col cd-col-ready">
+      <div class="cd-col-header" style="border-top: 6px solid #00CC66;">
         <h2>🟢 READY FOR PICKUP</h2>
       </div>
       <div class="cd-col-body" id="col-ready">
@@ -46,6 +50,14 @@
       </div>
     </div>
   </main>
+
+  <!-- Bottom Ticker -->
+  <footer class="cd-ticker-wrap">
+    <div class="cd-ticker">
+      <div class="cd-ticker-item">Thank you for dining with Bigi Awasaana • Born from the Silk Road. Grilled in Los Angeles. • Follow us on Instagram @bigiawasaana •</div>
+      <div class="cd-ticker-item">Thank you for dining with Bigi Awasaana • Born from the Silk Road. Grilled in Los Angeles. • Follow us on Instagram @bigiawasaana •</div>
+    </div>
+  </footer>
 
   <script type="module" src="/src/customer-display.js"></script>
 </body>

@@ -5,30 +5,62 @@ import { getAuth, signInAnonymously } from 'firebase/auth';
 let audioContext = null;
 let audioEnabled = false;
 
-// Audio Chime Setup
+// ─────────────────────────────────────────────────────────────────
+// Fullscreen logic
+// ─────────────────────────────────────────────────────────────────
+const fullscreenBtn = document.getElementById('cd-fullscreen-btn');
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.warn("Fullscreen error:", err);
+      alert("Press F11 to enter fullscreen.");
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+if (fullscreenBtn) {
+  fullscreenBtn.addEventListener('click', toggleFullscreen);
+}
+
+document.addEventListener('fullscreenchange', () => {
+  if (fullscreenBtn) {
+    fullscreenBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
+  }
+});
+
+// Auto-fullscreen on first user interaction
+document.body.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+}, { once: true });
+
+// ─────────────────────────────────────────────────────────────────
+// Audio Chime
+// ─────────────────────────────────────────────────────────────────
 function playReadyChime() {
   if (!audioEnabled || !audioContext) return;
   try {
     const osc = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-    
-    // Nice pleasant 'ding-dong'
+
     osc.type = 'sine';
-    
-    // Note 1: E6
+    // Ding: E6 → C6
     osc.frequency.setValueAtTime(1318.51, audioContext.currentTime);
-    // Note 2: C6
     osc.frequency.setValueAtTime(1046.50, audioContext.currentTime + 0.3);
-    
+
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
     gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.05);
     gainNode.gain.setValueAtTime(0.4, audioContext.currentTime + 0.25);
     gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.3);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
-    
+
     osc.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     osc.start(audioContext.currentTime);
     osc.stop(audioContext.currentTime + 1.0);
   } catch(e) {
@@ -43,16 +75,16 @@ document.getElementById('cd-init-audio').addEventListener('click', (e) => {
   if (audioContext.state === 'suspended') {
     audioContext.resume();
   }
-  audioEnabled = true;
-  e.currentTarget.classList.add('enabled');
-  e.currentTarget.textContent = '🔊 Audio Enabled';
-  // Play test chime
-  playReadyChime();
+  audioEnabled = !audioEnabled;
+  e.currentTarget.classList.toggle('enabled', audioEnabled);
+  e.currentTarget.textContent = audioEnabled ? '🔊' : '🔇';
+  if (audioEnabled) playReadyChime();
 });
 
+// ─────────────────────────────────────────────────────────────────
 // App init
+// ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Sign in anonymously to satisfy Firestore rules
   const auth = getAuth(app);
   signInAnonymously(auth).then(() => {
     initDisplay();
@@ -81,17 +113,16 @@ function initDisplay() {
       const data = doc.data();
       const status = data.status;
 
-      // Filter to only preparing or ready (and pending, which we lump into preparing visually)
       if (['pending', 'preparing', 'ready'].includes(status)) {
         newOrders[doc.id] = {
           id: doc.id,
           shortId: doc.id.slice(-4).toUpperCase(),
           customerName: formatFirstName(data.customerName || 'Guest'),
-          status: status === 'pending' ? 'preparing' : status, // visually group pending as preparing
+          status: status === 'pending' ? 'preparing' : status,
           createdAt: data.createdAt ? data.createdAt.toDate().getTime() : 0
         };
 
-        // If it transitioned to ready, play chime
+        // Chime on transition to ready
         if (status === 'ready' && currentOrders[doc.id] && currentOrders[doc.id].status !== 'ready') {
           if (!playedChimeThisTick) {
             playReadyChime();
@@ -115,7 +146,7 @@ function renderDisplay(newOrders) {
   const colPreparing = document.getElementById('col-preparing');
   const colReady = document.getElementById('col-ready');
 
-  // Handle removed orders (completed or cancelled)
+  // Handle removed orders (completed)
   Object.keys(currentOrders).forEach(id => {
     if (!newOrders[id]) {
       const el = document.getElementById(`cd-order-${id}`);
@@ -126,13 +157,12 @@ function renderDisplay(newOrders) {
     }
   });
 
-  // Convert to array and sort by createdAt
+  // Sort by createdAt ascending
   const ordersList = Object.values(newOrders).sort((a, b) => a.createdAt - b.createdAt);
 
   ordersList.forEach(order => {
     let el = document.getElementById(`cd-order-${order.id}`);
-    
-    // Create if doesn't exist
+
     if (!el) {
       el = document.createElement('div');
       el.id = `cd-order-${order.id}`;
@@ -142,10 +172,8 @@ function renderDisplay(newOrders) {
       `;
     }
 
-    // Update state classes
     el.className = `cd-card status-${order.status}`;
 
-    // Append to correct column
     if (order.status === 'preparing') {
       if (el.parentElement !== colPreparing) colPreparing.appendChild(el);
     } else if (order.status === 'ready') {

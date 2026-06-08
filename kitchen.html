@@ -26,59 +26,53 @@
     <!-- Header -->
     <header class="kds-header">
       <div class="kds-header-left">
-        <h1 class="kds-logo">BIGI AWASAANA KITCHEN</h1>
+        <img src="/logo.png" alt="Bigi Awasaana Logo" class="kds-logo-img">
+        <div class="kds-tagline-container">
+          <h1 class="kds-logo">BIGI <span>AWASAANA</span> KITCHEN</h1>
+          <p class="kds-tagline">Born from the Silk Road. Grilled in Los Angeles.</p>
+        </div>
       </div>
       <div class="kds-header-right">
-        <button id="kds-mute-btn" class="kds-icon-btn" title="Toggle Audio Alerts">
-          🔔
-        </button>
-        <div id="kds-clock" class="kds-clock">10:00:00 AM</div>
+        <div class="kds-clock" id="kds-clock">12:00:00 PM</div>
+        <button id="kds-mute-btn" class="kds-icon-btn" aria-label="Toggle Audio">🔔</button>
+        <button id="kds-fullscreen-btn" class="kds-icon-btn" aria-label="Toggle Fullscreen">⛶</button>
       </div>
     </header>
 
     <!-- 5 Columns Grid -->
     <main class="kds-grid">
       
-      <!-- SQUARE POS -->
-      <section class="kds-col kds-col-pos">
+      <!-- 5 Columns -->
+      <div class="kds-col kds-col-pos">
         <div class="kds-col-header">
-          <h2>SQUARE POS <span id="count-pos" class="kds-count">0</span></h2>
+          <h2>🟠 SQUARE <span class="kds-count" id="count-pos">0</span></h2>
         </div>
         <div class="kds-col-body" id="col-pos"></div>
-      </section>
-
-      <!-- WEBSITE -->
-      <section class="kds-col kds-col-website">
+      </div>
+      <div class="kds-col kds-col-website">
         <div class="kds-col-header">
-          <h2>WEBSITE <span id="count-website" class="kds-count">0</span></h2>
+          <h2>🔵 WEBSITE <span class="kds-count" id="count-website">0</span></h2>
         </div>
         <div class="kds-col-body" id="col-website"></div>
-      </section>
-
-      <!-- DOORDASH -->
-      <section class="kds-col kds-col-doordash">
+      </div>
+      <div class="kds-col kds-col-doordash">
         <div class="kds-col-header">
-          <h2>DOORDASH <span id="count-doordash" class="kds-count">0</span></h2>
+          <h2>🟢 DOORDASH <span class="kds-count" id="count-doordash">0</span></h2>
         </div>
         <div class="kds-col-body" id="col-doordash"></div>
-      </section>
-
-      <!-- UBER EATS -->
-      <section class="kds-col kds-col-ubereats">
+      </div>
+      <div class="kds-col kds-col-ubereats">
         <div class="kds-col-header">
-          <h2>UBER EATS <span id="count-ubereats" class="kds-count">0</span></h2>
+          <h2>🟡 UBER EATS <span class="kds-count" id="count-ubereats">0</span></h2>
         </div>
         <div class="kds-col-body" id="col-ubereats"></div>
-      </section>
-
-      <!-- GRUBHUB -->
-      <section class="kds-col kds-col-grubhub">
+      </div>
+      <div class="kds-col kds-col-grubhub">
         <div class="kds-col-header">
-          <h2>GRUBHUB <span id="count-grubhub" class="kds-count">0</span></h2>
+          <h2>🔴 GRUBHUB <span class="kds-count" id="count-grubhub">0</span></h2>
         </div>
         <div class="kds-col-body" id="col-grubhub"></div>
-      </section>
-
+      </div>
     </main>
 
   </div>

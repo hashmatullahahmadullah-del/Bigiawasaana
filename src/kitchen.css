@@ -1,8 +1,8 @@
 :root {
-  --kds-bg: #060606;
-  --kds-surface: #121212;
-  --kds-border: #2a2a2a;
-  --kds-header-bg: #1a1a1a;
+  --kds-bg: #1A1A1A;
+  --kds-surface: #242424;
+  --kds-header-bg: #1A1A1A;
+  --kds-border: #333333;
   --white: #fff;
   --gray: #a0a0a0;
   --accent: #FF6B35;
@@ -30,9 +30,12 @@ body {
   overflow: hidden;
 }
 
+/* Hide fullscreen elements when active */
+:fullscreen .kds-icon-btn[aria-label="Toggle Fullscreen"] { /* handled by JS */ }
+
 /* ── Header ── */
 .kds-header {
-  height: 60px;
+  height: 80px;
   background-color: var(--kds-header-bg);
   border-bottom: 2px solid var(--kds-pos);
   display: flex;
@@ -41,16 +44,44 @@ body {
   padding: 0 24px;
 }
 
+.kds-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.kds-logo-img {
+  height: 48px;
+  width: auto;
+  border-radius: 4px;
+}
+
+.kds-tagline-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .kds-logo {
   font-family: 'Lalezar', cursive;
-  font-size: 22px;
+  font-size: 26px;
   color: var(--white);
   margin: 0;
   letter-spacing: 1px;
+  line-height: 1;
 }
 
 .kds-logo span {
   color: var(--kds-pos);
+}
+
+.kds-tagline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  color: var(--gray);
+  margin: 4px 0 0 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .kds-header-right {
@@ -61,7 +92,7 @@ body {
 
 .kds-clock {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: 2px;
   color: var(--white);
@@ -69,23 +100,29 @@ body {
 
 .kds-icon-btn {
   background: none;
-  border: none;
+  border: 1px solid transparent;
   color: var(--white);
-  font-size: 22px;
+  font-size: 20px;
   cursor: pointer;
   opacity: 0.7;
-  transition: opacity 0.2s;
-  padding: 4px 8px;
+  transition: all 0.2s;
+  padding: 6px 10px;
+  border-radius: 4px;
 }
 
-.kds-icon-btn:hover { opacity: 1; }
-.kds-icon-btn.muted { opacity: 0.3; }
+.kds-icon-btn:hover { 
+  opacity: 1; 
+  background: rgba(255,255,255,0.1); 
+}
+.kds-icon-btn.muted { 
+  opacity: 0.4; 
+}
 
 /* ── Grid Layout ── */
 .kds-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  height: calc(100vh - 60px);
+  height: calc(100vh - 80px);
 }
 
 .kds-col {
@@ -182,23 +219,24 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--kds-border);
 }
 
 .kds-card-name {
-  font-size: 21px;
+  font-size: 26px;
   font-weight: 700;
   text-transform: uppercase;
-  margin: 0 0 2px 0;
+  margin: 0 0 4px 0;
   line-height: 1.1;
   font-family: 'Barlow Condensed', sans-serif;
   letter-spacing: 1px;
+  color: var(--white);
 }
 
 .kds-card-id {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--gray);
   font-family: 'Barlow Condensed', sans-serif;
   letter-spacing: 1px;
@@ -207,23 +245,23 @@ body {
 .kds-card-time-box { text-align: right; }
 
 .kds-card-elapsed {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--white);
+  color: var(--accent);
 }
 
 .kds-card-time {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--gray);
 }
 
 /* ── Platform Badge (delivery orders) ── */
 .kds-platform-badge {
   display: inline-block;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1px;
-  padding: 2px 8px;
+  padding: 4px 8px;
   border-radius: 4px;
   margin-bottom: 8px;
   font-family: 'Barlow Condensed', sans-serif;
@@ -243,25 +281,26 @@ body {
 
 /* ── Items List ── */
 .kds-card-items {
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
   padding: 0;
   list-style: none;
 }
 
 .kds-card-item {
-  font-size: 17px;
-  padding: 3px 0;
+  font-size: 18px;
+  padding: 4px 0;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: baseline;
+  color: var(--white);
 }
 
 .kds-item-qty {
   font-weight: 700;
   color: var(--accent);
-  min-width: 22px;
+  min-width: 24px;
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 19px;
+  font-size: 20px;
 }
 
 /* ── Action Buttons ── */

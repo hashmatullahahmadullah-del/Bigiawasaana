@@ -6,6 +6,37 @@ import { getAuth, signInAnonymously } from 'firebase/auth';
 // ─────────────────────────────────────────────────────────────────
 // Admin Gate
 // ─────────────────────────────────────────────────────────────────
+// Fullscreen logic
+const fullscreenBtn = document.getElementById('kds-fullscreen-btn');
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.warn("Fullscreen error:", err);
+      alert("Press F11 to enter fullscreen.");
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+if (fullscreenBtn) {
+  fullscreenBtn.addEventListener('click', toggleFullscreen);
+}
+document.addEventListener('fullscreenchange', () => {
+  if (fullscreenBtn) {
+    fullscreenBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
+  }
+});
+
+// Auto-fullscreen on first interaction
+let firstInteraction = false;
+document.body.addEventListener('click', () => {
+  if (!firstInteraction && !document.fullscreenElement) {
+    firstInteraction = true;
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+}, { once: true });
+
+// Check admin access
 if (new URLSearchParams(window.location.search).get('admin') === 'true') {
   localStorage.setItem('bigi_admin', 'true');
 }
