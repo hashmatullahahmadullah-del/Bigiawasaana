@@ -140,6 +140,25 @@ function initKDS() {
   }, (error) => {
     console.error("KDS sync error:", error);
   });
+
+  // Start polling Square API for POS/Uber/DoorDash orders
+  pollSquareOrders();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Square API Polling
+// ─────────────────────────────────────────────────────────────────
+async function pollSquareOrders() {
+  try {
+    console.log("Polling Square orders...");
+    // Call the deployed HTTP function (CORS is enabled on backend)
+    await fetch('https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/syncSquareOrders');
+  } catch (err) {
+    console.error("Error polling Square orders:", err);
+  } finally {
+    // Poll again in 30 seconds
+    setTimeout(pollSquareOrders, 30000);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
