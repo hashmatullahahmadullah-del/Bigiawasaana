@@ -9,8 +9,8 @@ import { app } from './firebase.js';
 // Replace with your Sandbox Application ID from developer.squareup.com
 // In production, swap for your Production Application ID
 // ─────────────────────────────────────────────────────────────────
-const SQUARE_APP_ID = 'sandbox-sq0idb-ywC4Vw5vSq_GRghlcXOHGw'; // ← Replace with your Sandbox App ID
-const SQUARE_LOCATION_ID = 'LVVN2XC88162M'; // ← Replace with your Location ID
+const SQUARE_APP_ID = 'sq0idp-ZNKswm32xh_nRRecm5ggFg'; // ← Replace with your Production App ID
+const SQUARE_LOCATION_ID = 'LVVN2XC88162M'; // ← Replace with your Production Location ID
 
 // Firebase Functions
 const functions = getFunctions(app);
@@ -271,7 +271,9 @@ async function initSquarePayments() {
   }
 
   try {
-    const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
+    const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID, {
+      environment: 'production'
+    });
     squareCard = await payments.card();
     console.log('Square Web Payments initialized.');
   } catch (err) {
