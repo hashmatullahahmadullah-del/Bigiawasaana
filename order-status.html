@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Order Status - Bigi Awasaana</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lalezar&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/src/style.css">
+  <style>
+    body {
+      background-color: var(--bg);
+      color: var(--white);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .status-logo {
+      font-family: 'Lalezar', cursive;
+      font-size: 28px;
+      color: var(--white);
+      margin: 0;
+      letter-spacing: 1px;
+    }
+
+    .status-logo span { color: var(--accent); }
+
+    .status-container {
+      flex: 1;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 24px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin: 30px 0;
+      position: relative;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      position: absolute;
+      top: 15px;
+      left: 10%;
+      right: 10%;
+      z-index: 1;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.5s ease-out, background-color 0.5s;
+    }
+
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 33%;
+    }
+
+    .step-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    .step-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--gray);
+      text-align: center;
+      transition: color 0.3s;
+    }
+
+    /* Active states */
+    .step.active .step-circle {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+    .step.active .step-label { color: var(--white); }
+
+    .step.completed-step .step-circle {
+      border-color: var(--accent);
+      background: var(--surface);
+      color: var(--accent);
+    }
+    .step.completed-step .step-label { color: var(--white); }
+
+    /* Order Info */
+    .order-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-top: 20px;
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .order-number {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--white);
+    }
+
+    .order-name {
+      color: var(--gray);
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .items-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 16px;
+    }
+
+    .item-qty {
+      font-weight: 700;
+      color: var(--accent);
+      margin-right: 12px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+    }
+
+    .hero-status {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .hero-status h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 0 0 8px 0;
+      color: var(--accent);
+    }
+
+    .hero-status p {
+      color: var(--gray);
+      margin: 0;
+      font-size: 16px;
+    }
+
+    #loading-state, #error-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Completion specific styling */
+    .theme-ready .progress-fill { background: #27ae60; }
+    .theme-ready .step.active .step-circle { background: #27ae60; border-color: #27ae60; }
+    .theme-ready .step.completed-step .step-circle { border-color: #27ae60; color: #27ae60; }
+    .theme-ready .hero-status h2 { color: #27ae60; }
+  </style>
+</head>
+<body>
+
+  <header class="status-header">
+    <h1 class="status-logo">BIGI <span>AWASAANA</span></h1>
+  </header>
+
+  <main class="status-container" id="main-content" style="display: none;">
+    <div class="hero-status" id="hero-status">
+      <h2 id="status-title">Preparing</h2>
+      <p id="status-desc">We're getting your order ready.</p>
+    </div>
+
+    <div class="progress-container" id="progress-container">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-steps">
+        <div class="step" id="step-1">
+          <div class="step-circle">🍳</div>
+          <div class="step-label">Preparing</div>
+        </div>
+        <div class="step" id="step-2">
+          <div class="step-circle">🛍️</div>
+          <div class="step-label">Ready</div>
+        </div>
+        <div class="step" id="step-3">
+          <div class="step-circle">✅</div>
+          <div class="step-label">Complete</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-box">
+      <div class="order-header">
+        <div>
+          <p class="order-name" id="order-customer">Guest</p>
+          <h3 class="order-number" id="order-id">#----</h3>
+        </div>
+        <div style="text-align: right;">
+          <p class="order-name">Total</p>
+          <h3 class="order-number" id="order-total" style="font-size: 22px; color: var(--accent);">$0.00</h3>
+        </div>
+      </div>
+      <ul class="items-list" id="order-items"></ul>
+    </div>
+  </main>
+
+  <div id="loading-state">
+    <div class="spinner"></div>
+    <p style="color: var(--gray);">Locating your order...</p>
+  </div>
+
+  <div id="error-state" style="display: none;">
+    <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+    <h2 style="font-family: 'Barlow Condensed'; font-size: 28px; font-weight: 700; margin: 0 0 10px 0;">ORDER NOT FOUND</h2>
+    <p style="color: var(--gray); margin-bottom: 24px;" id="error-msg">We couldn't find an order with this link.</p>
+    <a href="/menu.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Back to Menu</a>
+  </div>
+
+  <script type="module" src="/src/order-status.js"></script>
+</body>
+</html>

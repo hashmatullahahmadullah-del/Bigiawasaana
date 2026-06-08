@@ -209,6 +209,14 @@ function renderOrders() {
     let timeDisplay = elapsed > 0 ? `${elapsed} min` : 'Just now';
     if (order.status === 'completed') timeDisplay = 'Done';
 
+    // Platform badge for delivery orders
+    const deliveryBadges = { doordash: 'DD · DoorDash', ubereats: 'UE · Uber Eats', grubhub: 'GH · Grubhub' };
+    const badgeClasses = { doordash: 'badge-doordash', ubereats: 'badge-ubereats', grubhub: 'badge-grubhub' };
+    const platformBadgeHtml = deliveryBadges[order.source]
+      ? `<div class="kds-platform-badge ${badgeClasses[order.source]}">${deliveryBadges[order.source]}</div>
+         <p class="kds-delivery-note">📦 Delivery — driver will collect</p>`
+      : '';
+
     const itemsHtml = (order.items || []).map(item => `
       <li class="kds-card-item">
         <span class="kds-item-qty">${item.quantity}×</span>
@@ -236,6 +244,7 @@ function renderOrders() {
           <div class="kds-card-time">${formatTime(order.createdAt)}</div>
         </div>
       </div>
+      ${platformBadgeHtml}
       <ul class="kds-card-items">${itemsHtml}</ul>
       ${actionBtnHtml}
     `;

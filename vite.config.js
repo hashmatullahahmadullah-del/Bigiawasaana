@@ -1,4 +1,3 @@
-
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
@@ -13,6 +12,7 @@ export default defineConfig({
         locations: resolve(__dirname, 'locations.html'),
         catering: resolve(__dirname, 'catering.html'),
         kitchen: resolve(__dirname, 'kitchen.html'),
+        orderStatus: resolve(__dirname, 'order-status.html'),
         cateringJs: resolve(__dirname, 'src/catering.js'),
       },
     },

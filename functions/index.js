@@ -1,6 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const cors = require('cors');
+const crypto = require('crypto');
 const { Client, Environment, ApiError } = require('square');
 
 admin.initializeApp();
@@ -11,7 +12,6 @@ const corsHandler = cors({ origin: true });
 
 // ─────────────────────────────────────────────────────────────────
 // Square client — initialized from Firebase environment config
-// Set with: firebase functions:config:set square.access_token="..." square.location_id="..." square.env="sandbox"
 // ─────────────────────────────────────────────────────────────────
 function getSquareClient() {
   const config = functions.config().square || {};
@@ -35,14 +35,18 @@ function getLocationId() {
 
 // ─────────────────────────────────────────────────────────────────
 // processSquarePayment
-// Callable function: receives item IDs + quantities + card token
+// Callable function: receives item IDs + quantities + card token + tipCents
 // Fetches prices SERVER-SIDE from Firestore (browser cannot control amounts)
+// Calculates tax server-side (10.25% LA County)
+// Validates tip (max $100)
 // Creates Square Order + Payment, then writes to Firestore
 // ─────────────────────────────────────────────────────────────────
-exports.processSquarePayment = functions.https.onCall(async (data, context) => {
-  const { sourceId, items, customerName, customerPhone } = data;
+const TAX_RATE = 0.1025; // LA County / Reseda sales tax rate
 
-  // Validate inputs
+exports.processSquarePayment = functions.https.onCall(async (data, context) => {
+  const { sourceId, items, customerName, customerPhone, tipCents: rawTipCents } = data;
+
+  // ── Validate inputs ──
   if (!sourceId || typeof sourceId !== 'string') {
     throw new functions.https.HttpsError('invalid-argument', 'Missing or invalid payment token (sourceId).');
   }
@@ -53,9 +57,18 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', 'Customer name is required.');
   }
 
+  // ── Validate tip ──
+  const tipCents = typeof rawTipCents === 'number' ? Math.floor(rawTipCents) : 0;
+  if (tipCents < 0) {
+    throw new functions.https.HttpsError('invalid-argument', 'Tip cannot be negative.');
+  }
+  if (tipCents > 10000) {
+    throw new functions.https.HttpsError('invalid-argument', 'Tip cannot exceed $100.00.');
+  }
+
   // ── Step 1: Fetch item prices from Firestore (server-side, tamper-proof) ──
   const resolvedItems = [];
-  let totalCents = 0;
+  let subtotalCents = 0;
 
   for (const cartItem of items) {
     if (!cartItem.id || typeof cartItem.qty !== 'number' || cartItem.qty < 1 || cartItem.qty > 100) {
@@ -74,7 +87,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     }
 
     const itemTotalCents = Math.round(price * 100) * cartItem.qty;
-    totalCents += itemTotalCents;
+    subtotalCents += itemTotalCents;
 
     resolvedItems.push({
       name: menuData.name,
@@ -84,11 +97,15 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     });
   }
 
-  if (totalCents <= 0) {
-    throw new functions.https.HttpsError('invalid-argument', 'Order total must be greater than zero.');
+  if (subtotalCents <= 0) {
+    throw new functions.https.HttpsError('invalid-argument', 'Order subtotal must be greater than zero.');
   }
 
-  // ── Step 2: Create Square Order ──
+  // ── Step 2: Server-side tax calculation ──
+  const taxCents = Math.round(subtotalCents * TAX_RATE);
+  const totalCents = subtotalCents + taxCents + tipCents;
+
+  // ── Step 3: Create Square Order ──
   const squareClient = getSquareClient();
   const locationId = getLocationId();
 
@@ -131,7 +148,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('internal', 'Failed to create order with Square.');
   }
 
-  // ── Step 3: Process Square Payment ──
+  // ── Step 4: Process Square Payment ──
   let squarePaymentId;
   try {
     const paymentResponse = await squareClient.paymentsApi.createPayment({
@@ -157,10 +174,14 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('internal', 'Payment processing failed. Your card was not charged.');
   }
 
-  // ── Step 4: Write order to Firestore ──
+  // ── Step 5: Generate access token for order status page ──
+  const accessToken = crypto.randomBytes(8).toString('hex');
+
+  // ── Step 6: Write order to Firestore ──
   const orderDoc = {
     squareOrderId,
     squarePaymentId,
+    accessToken,  // short random token for order status page privacy
     source: 'website',
     customerName: customerName.trim(),
     customerPhone: (customerPhone || '').trim(),
@@ -169,18 +190,28 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
       quantity: item.quantity,
       price: item.price,
     })),
+    subtotal: subtotalCents / 100,
+    tax: taxCents / 100,
+    tip: tipCents / 100,
     total: totalCents / 100,
+    subtotalCents,
+    taxCents,
+    tipCents,
     totalCents,
     status: 'pending',
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
   };
 
-  const docRef = await db.collection('orders').doc(squareOrderId).set(orderDoc);
+  await db.collection('orders').doc(squareOrderId).set(orderDoc);
 
   return {
     success: true,
     orderId: squareOrderId,
+    accessToken,
+    subtotal: `$${(subtotalCents / 100).toFixed(2)}`,
+    tax: `$${(taxCents / 100).toFixed(2)}`,
+    tip: `$${(tipCents / 100).toFixed(2)}`,
     total: `$${(totalCents / 100).toFixed(2)}`,
     message: `Order confirmed! Your order #${squareOrderId.slice(-4).toUpperCase()} is being prepared.`,
   };
@@ -190,8 +221,9 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
 // ─────────────────────────────────────────────────────────────────
 // syncSquareOrders
 // HTTP function — called by the KDS every 30 seconds (polling)
-// Fetches today's orders from Square Orders API,
+// Fetches today's PAID orders from Square Orders API,
 // parses source/channel, writes/updates Firestore
+// Skips: unpaid draft orders (no tenders) and website orders (handled by processSquarePayment)
 // ─────────────────────────────────────────────────────────────────
 exports.syncSquareOrders = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
@@ -232,14 +264,23 @@ exports.syncSquareOrders = functions.https.onRequest((req, res) => {
       const syncedOrders = [];
 
       for (const order of orders) {
-        // Determine source from Square order metadata / source
-        let source = 'pos'; // default = Square POS
-        const sourceName = (order.source?.name || '').toLowerCase();
         const metadata = order.metadata || {};
+        const sourceName = (order.source?.name || '').toLowerCase();
 
-        if (metadata.source === 'website' || sourceName.includes('bigi') || sourceName.includes('website')) {
-          source = 'website';
-        } else if (sourceName.includes('doordash') || sourceName.includes('door dash')) {
+        // ── SKIP: Website orders (already written by processSquarePayment with full data) ──
+        if (metadata.source === 'website' || sourceName.includes('website') || sourceName.includes('bigi')) {
+          continue;
+        }
+
+        // ── SKIP: Unpaid draft orders (Square creates a draft when card form initializes) ──
+        // An order with no tenders has not been paid — don't show it on KDS yet
+        if (!order.tenders || order.tenders.length === 0) {
+          continue;
+        }
+
+        // Determine source
+        let source = 'pos'; // default = Square POS
+        if (sourceName.includes('doordash') || sourceName.includes('door dash')) {
           source = 'doordash';
         } else if (sourceName.includes('uber') || sourceName.includes('ubereats')) {
           source = 'ubereats';
@@ -333,7 +374,6 @@ exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
   try {
     const event = req.body;
 
-    // Square sends type like 'order.created' or 'order.updated'
     if (!event || !event.type || !event.data) {
       return res.status(400).send('Invalid webhook payload');
     }
@@ -345,25 +385,26 @@ exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
       return res.status(200).send('No order data, ignoring.');
     }
 
-    // Only process order events
     if (!eventType.startsWith('order.')) {
       return res.status(200).send('Not an order event, ignoring.');
     }
 
+    const metadata = orderData.metadata || {};
+    const sourceName = (orderData.source?.name || '').toLowerCase();
+
+    // Skip website orders and unpaid drafts
+    if (metadata.source === 'website' || sourceName.includes('website')) {
+      return res.status(200).send('Website order handled by processSquarePayment, ignoring.');
+    }
+    if (!orderData.tenders || orderData.tenders.length === 0) {
+      return res.status(200).send('Unpaid draft order, ignoring.');
+    }
+
     // Determine source
     let source = 'pos';
-    const sourceName = (orderData.source?.name || '').toLowerCase();
-    const metadata = orderData.metadata || {};
-
-    if (metadata.source === 'website' || sourceName.includes('website')) {
-      source = 'website';
-    } else if (sourceName.includes('doordash')) {
-      source = 'doordash';
-    } else if (sourceName.includes('uber')) {
-      source = 'ubereats';
-    } else if (sourceName.includes('grubhub')) {
-      source = 'grubhub';
-    }
+    if (sourceName.includes('doordash')) source = 'doordash';
+    else if (sourceName.includes('uber')) source = 'ubereats';
+    else if (sourceName.includes('grubhub')) source = 'grubhub';
 
     // Map state
     let status = 'pending';

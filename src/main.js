@@ -11,6 +11,7 @@ import { app } from './firebase.js';
 // ─────────────────────────────────────────────────────────────────
 const SQUARE_APP_ID = 'sq0idp-ZNKswm32xh_nRRecm5ggFg'; // ← Replace with your Production App ID
 const SQUARE_LOCATION_ID = 'LVVN2XC88162M'; // ← Replace with your Production Location ID
+const TAX_RATE = 0.1025; // LA County / Reseda sales tax rate (10.25%)
 
 // Firebase Functions
 const functions = getFunctions(app);
@@ -310,25 +311,62 @@ window.openPaymentModal = async () => {
   document.getElementById('payment-success').style.display = 'none';
   document.getElementById('card-errors').textContent = '';
 
-  // Build order summary
-  const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  // Build order summary with tax + tip
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  const tax = subtotal * TAX_RATE;
   const summaryEl = document.getElementById('payment-order-summary');
+
+  function updateModalTotal() {
+    const tipInput = document.getElementById('tip-input');
+    const tip = parseFloat(tipInput?.value || '0') || 0;
+    const safeTip = Math.min(tip, 100); // client-side cap matches server cap
+    const total = subtotal + tax + safeTip;
+    document.getElementById('modal-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('modal-tax').textContent = `$${tax.toFixed(2)}`;
+    document.getElementById('modal-tip-display').textContent = `$${safeTip.toFixed(2)}`;
+    document.getElementById('modal-total').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('pay-total').textContent = `$${total.toFixed(2)}`;
+  }
+
   summaryEl.innerHTML = `
     <div style="margin-bottom: 16px;">
       ${cart.map(item => `
-        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px;">
+        <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px;">
           <span style="color: var(--white);">${item.qty}× ${item.name}</span>
           <span style="color: var(--gray);">$${(item.price * item.qty).toFixed(2)}</span>
         </div>
       `).join('')}
-      <div style="display: flex; justify-content: space-between; padding: 10px 0 0; border-top: 1px solid var(--border); margin-top: 8px; font-weight: 700; font-size: 16px;">
-        <span>Total</span>
-        <span style="color: var(--accent);">$${total.toFixed(2)}</span>
+      <div style="border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px;">
+        <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; color: var(--gray);">
+          <span>Subtotal</span><span id="modal-subtotal">$${subtotal.toFixed(2)}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; color: var(--gray);">
+          <span>Tax (10.25%)</span><span id="modal-tax">$${tax.toFixed(2)}</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 14px; color: var(--gray);">
+          <span>Tip</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="color: var(--gray);">$</span>
+            <input id="tip-input" type="number" min="0" max="100" step="0.50" placeholder="0.00"
+              style="width: 70px; background: var(--surface); border: 1px solid var(--border); padding: 6px 8px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px; text-align: right;"
+              oninput="if(typeof updateModalTotal==='function') updateModalTotal()">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; color: var(--gray);">
+          <span style="font-style: italic;">Tip applied</span><span id="modal-tip-display">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 10px 0 0; border-top: 1px solid var(--border); margin-top: 8px; font-weight: 700; font-size: 17px;">
+          <span>Total</span>
+          <span style="color: var(--accent);" id="modal-total">$${(subtotal + tax).toFixed(2)}</span>
+        </div>
       </div>
     </div>
   `;
 
-  document.getElementById('pay-total').textContent = `$${total.toFixed(2)}`;
+  // Make updateModalTotal available to the oninput handler
+  window.updateModalTotal = updateModalTotal;
+
+  document.getElementById('pay-total').textContent = `$${(subtotal + tax).toFixed(2)}`;
 
   // Attach Square card form
   if (squareCard) {
@@ -373,14 +411,17 @@ window.handlePayment = async () => {
   payButton.textContent = 'Processing...';
 
   try {
-    // Step 1: Tokenize the card (Square SDK handles all card data — never touches our server)
+    // Step 1: Tokenize the card
     const tokenResult = await squareCard.tokenize();
 
     if (tokenResult.status !== 'OK') {
       const errorMessages = tokenResult.errors?.map(e => e.message).join(', ') || 'Card validation failed.';
       errorsEl.textContent = errorMessages;
       payButton.disabled = false;
-      payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${cart.reduce((s,i) => s + i.price * i.qty, 0).toFixed(2)}</span>`;
+      const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+      const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
+      const tip = Math.min(tipRaw, 100);
+      payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(subtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
       return;
     }
 
@@ -390,21 +431,46 @@ window.handlePayment = async () => {
     summaryEl.style.display = 'none';
     processingEl.style.display = 'block';
 
-    // Step 3: Call Cloud Function with card token + item IDs (NO prices sent)
+    // Step 3: Call Cloud Function
     const nameInput = document.getElementById('customer-name');
     const phoneInput = document.getElementById('customer-phone');
+    const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
+    const tipCents = Math.round(Math.min(tipRaw, 100) * 100);
 
     const result = await processSquarePayment({
       sourceId: tokenResult.token,
-      items: cart.map(i => ({ id: i.id, qty: i.qty })),  // IDs + quantities ONLY — server fetches prices
+      items: cart.map(i => ({ id: i.id, qty: i.qty })),
       customerName: nameInput.value.trim(),
       customerPhone: phoneInput.value.trim(),
+      tipCents,
     });
 
     // Step 4: Success!
     processingEl.style.display = 'none';
     successEl.style.display = 'block';
     document.getElementById('success-message').textContent = result.data.message;
+
+    // Generate QR code for order status page
+    const orderId = result.data.orderId;
+    const accessToken = result.data.accessToken;
+    const statusUrl = `https://bigi-awasaana-7b3ce.web.app/order-status.html?orderId=${orderId}&token=${accessToken}`;
+    const qrContainer = document.getElementById('qr-code-container');
+    if (qrContainer && window.QRCode) {
+      qrContainer.innerHTML = '';
+      new window.QRCode(qrContainer, {
+        text: statusUrl,
+        width: 160,
+        height: 160,
+        colorDark: '#ffffff',
+        colorLight: '#000000',
+        correctLevel: window.QRCode.CorrectLevel.M,
+      });
+    }
+    const trackBtn = document.getElementById('track-order-btn');
+    if (trackBtn) {
+      trackBtn.href = statusUrl;
+      trackBtn.style.display = 'inline-block';
+    }
 
     // Clear cart
     cart = [];
@@ -423,8 +489,10 @@ window.handlePayment = async () => {
     summaryEl.style.display = 'block';
     payButton.disabled = false;
 
-    const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
-    payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${total.toFixed(2)}</span>`;
+    const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+    const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
+    const tip = Math.min(tipRaw, 100);
+    payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(subtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
 
     const errorMsg = err.message || 'Payment failed. Please try again.';
     errorsEl.textContent = errorMsg;

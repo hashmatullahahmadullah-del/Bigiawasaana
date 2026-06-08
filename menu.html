@@ -40,6 +40,9 @@
 
   <!-- Square Web Payments SDK (PRODUCTION) -->
   <script src="https://web.squarecdn.com/v1/square.js"></script>
+  
+  <!-- QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -198,8 +201,18 @@
       <div id="payment-success" style="display: none; text-align: center; padding: 24px;">
         <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
         <h3 style="font-size: 20px; margin-bottom: 8px;">Order Confirmed!</h3>
-        <p id="success-message" style="color: var(--gray); font-size: 14px;"></p>
-        <button class="btn-primary" style="margin-top: 20px;" onclick="closePaymentModal()">Done</button>
+        <p id="success-message" style="color: var(--gray); font-size: 14px; margin-bottom: 20px;"></p>
+        
+        <div style="background: var(--bg); padding: 16px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">
+          <p style="font-family: 'Barlow Condensed'; font-size: 14px; font-weight: 700; letter-spacing: 1px; color: var(--accent); text-transform: uppercase; margin-top: 0; margin-bottom: 12px;">Track Your Order</p>
+          <div id="qr-code-container" style="display: flex; justify-content: center; background: white; padding: 10px; border-radius: 4px; margin: 0 auto;"></div>
+          <p style="font-size: 12px; color: var(--gray); margin-top: 12px; margin-bottom: 0;">Scan to view live status</p>
+        </div>
+
+        <div>
+          <a id="track-order-btn" href="#" class="btn-primary" style="display: none; margin-bottom: 12px; text-decoration: none;">View Order Status</a>
+          <button class="btn-primary" style="background: transparent; border: 1px solid var(--border); color: var(--white);" onclick="closePaymentModal()">Close</button>
+        </div>
       </div>
 
       <p style="text-align: center; font-size: 11px; color: var(--gray); margin-top: 16px; letter-spacing: 0.5px;">
