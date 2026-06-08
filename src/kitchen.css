@@ -196,13 +196,7 @@ body {
   border-left: 5px solid var(--kds-border); /* overridden by status */
   border-radius: 6px;
   padding: 14px;
-  animation: slideIn 0.25s ease-out;
   transition: border-color 0.3s, opacity 0.3s;
-}
-
-@keyframes slideIn {
-  from { transform: translateY(-12px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
 }
 
 /* Status: left-border stripe only — no glow, no pulse */
