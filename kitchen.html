@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bigi Awasaana | Kitchen Display</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/kitchen.css">
+</head>
+<body>
+
+  <!-- Access Denied Gate -->
+  <div id="kds-denied" style="display: none; height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+    <div>
+      <h1 style="font-family: 'Barlow Condensed'; color: var(--accent); font-size: 48px; letter-spacing: 2px;">ACCESS DENIED</h1>
+      <p style="color: var(--gray); font-size: 20px; margin-top: 10px;">Visit any page with <code>?admin=true</code> to unlock.</p>
+    </div>
+  </div>
+
+  <!-- KDS App -->
+  <div id="kds-app" style="display: none;">
+    
+    <!-- Header -->
+    <header class="kds-header">
+      <div class="kds-header-left">
+        <h1 class="kds-logo">BIGI AWASAANA KITCHEN</h1>
+      </div>
+      <div class="kds-header-right">
+        <button id="kds-mute-btn" class="kds-icon-btn" title="Toggle Audio Alerts">
+          🔔
+        </button>
+        <div id="kds-clock" class="kds-clock">10:00:00 AM</div>
+      </div>
+    </header>
+
+    <!-- 5 Columns Grid -->
+    <main class="kds-grid">
+      
+      <!-- SQUARE POS -->
+      <section class="kds-col kds-col-pos">
+        <div class="kds-col-header">
+          <h2>SQUARE POS <span id="count-pos" class="kds-count">0</span></h2>
+        </div>
+        <div class="kds-col-body" id="col-pos"></div>
+      </section>
+
+      <!-- WEBSITE -->
+      <section class="kds-col kds-col-website">
+        <div class="kds-col-header">
+          <h2>WEBSITE <span id="count-website" class="kds-count">0</span></h2>
+        </div>
+        <div class="kds-col-body" id="col-website"></div>
+      </section>
+
+      <!-- DOORDASH -->
+      <section class="kds-col kds-col-doordash">
+        <div class="kds-col-header">
+          <h2>DOORDASH <span id="count-doordash" class="kds-count">0</span></h2>
+        </div>
+        <div class="kds-col-body" id="col-doordash"></div>
+      </section>
+
+      <!-- UBER EATS -->
+      <section class="kds-col kds-col-ubereats">
+        <div class="kds-col-header">
+          <h2>UBER EATS <span id="count-ubereats" class="kds-count">0</span></h2>
+        </div>
+        <div class="kds-col-body" id="col-ubereats"></div>
+      </section>
+
+      <!-- GRUBHUB -->
+      <section class="kds-col kds-col-grubhub">
+        <div class="kds-col-header">
+          <h2>GRUBHUB <span id="count-grubhub" class="kds-count">0</span></h2>
+        </div>
+        <div class="kds-col-body" id="col-grubhub"></div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script type="module" src="/src/kitchen.js"></script>
+</body>
+</html>

@@ -12,6 +12,7 @@ export default defineConfig({
         specials: resolve(__dirname, 'specials.html'),
         locations: resolve(__dirname, 'locations.html'),
         catering: resolve(__dirname, 'catering.html'),
+        kitchen: resolve(__dirname, 'kitchen.html'),
         cateringJs: resolve(__dirname, 'src/catering.js'),
       },
     },

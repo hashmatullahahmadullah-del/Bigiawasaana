@@ -1,221 +1,449 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
+const cors = require('cors');
+const { Client, Environment, ApiError } = require('square');
 
 admin.initializeApp();
+const db = admin.firestore();
 
-exports.regenerateMenuPage = functions.firestore
-  .document('menu/{itemId}')
-  .onWrite(async (change, context) => {
+// CORS middleware
+const corsHandler = cors({ origin: true });
 
+// ─────────────────────────────────────────────────────────────────
+// Square client — initialized from Firebase environment config
+// Set with: firebase functions:config:set square.access_token="..." square.location_id="..." square.env="sandbox"
+// ─────────────────────────────────────────────────────────────────
+function getSquareClient() {
+  const config = functions.config().square || {};
+  const accessToken = config.access_token || process.env.SQUARE_ACCESS_TOKEN;
+  const env = config.env || process.env.SQUARE_ENV || 'sandbox';
+
+  if (!accessToken) {
+    throw new Error('Square access token not configured. Run: firebase functions:config:set square.access_token="YOUR_TOKEN"');
+  }
+
+  return new Client({
+    accessToken,
+    environment: env === 'production' ? Environment.Production : Environment.Sandbox,
+  });
+}
+
+function getLocationId() {
+  const config = functions.config().square || {};
+  return config.location_id || process.env.SQUARE_LOCATION_ID;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// processSquarePayment
+// Callable function: receives item IDs + quantities + card token
+// Fetches prices SERVER-SIDE from Firestore (browser cannot control amounts)
+// Creates Square Order + Payment, then writes to Firestore
+// ─────────────────────────────────────────────────────────────────
+exports.processSquarePayment = functions.https.onCall(async (data, context) => {
+  const { sourceId, items, customerName, customerPhone } = data;
+
+  // Validate inputs
+  if (!sourceId || typeof sourceId !== 'string') {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing or invalid payment token (sourceId).');
+  }
+  if (!items || !Array.isArray(items) || items.length === 0 || items.length > 50) {
+    throw new functions.https.HttpsError('invalid-argument', 'Items must be a non-empty array (max 50).');
+  }
+  if (!customerName || typeof customerName !== 'string' || customerName.trim().length === 0) {
+    throw new functions.https.HttpsError('invalid-argument', 'Customer name is required.');
+  }
+
+  // ── Step 1: Fetch item prices from Firestore (server-side, tamper-proof) ──
+  const resolvedItems = [];
+  let totalCents = 0;
+
+  for (const cartItem of items) {
+    if (!cartItem.id || typeof cartItem.qty !== 'number' || cartItem.qty < 1 || cartItem.qty > 100) {
+      throw new functions.https.HttpsError('invalid-argument', `Invalid item: ${JSON.stringify(cartItem)}`);
+    }
+
+    const menuDoc = await db.collection('menu').doc(cartItem.id).get();
+    if (!menuDoc.exists) {
+      throw new functions.https.HttpsError('not-found', `Menu item not found: ${cartItem.id}`);
+    }
+
+    const menuData = menuDoc.data();
+    const price = typeof menuData.price === 'number' ? menuData.price : parseFloat(menuData.price);
+    if (isNaN(price) || price <= 0) {
+      throw new functions.https.HttpsError('internal', `Invalid price for item: ${menuData.name}`);
+    }
+
+    const itemTotalCents = Math.round(price * 100) * cartItem.qty;
+    totalCents += itemTotalCents;
+
+    resolvedItems.push({
+      name: menuData.name,
+      quantity: cartItem.qty,
+      price: price,
+      totalCents: itemTotalCents,
+    });
+  }
+
+  if (totalCents <= 0) {
+    throw new functions.https.HttpsError('invalid-argument', 'Order total must be greater than zero.');
+  }
+
+  // ── Step 2: Create Square Order ──
+  const squareClient = getSquareClient();
+  const locationId = getLocationId();
+
+  if (!locationId) {
+    throw new functions.https.HttpsError('failed-precondition', 'Square location ID not configured.');
+  }
+
+  const idempotencyKey = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const paymentIdempotencyKey = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  let squareOrderId;
+  try {
+    const orderResponse = await squareClient.ordersApi.createOrder({
+      order: {
+        locationId,
+        referenceId: idempotencyKey,
+        lineItems: resolvedItems.map(item => ({
+          name: item.name,
+          quantity: String(item.quantity),
+          basePriceMoney: {
+            amount: BigInt(Math.round(item.price * 100)),
+            currency: 'USD',
+          },
+        })),
+        metadata: {
+          source: 'website',
+          customerName: customerName.trim(),
+          customerPhone: (customerPhone || '').trim(),
+        },
+      },
+      idempotencyKey,
+    });
+
+    squareOrderId = orderResponse.result.order.id;
+  } catch (err) {
+    console.error('Square Order creation failed:', err);
+    if (err instanceof ApiError) {
+      throw new functions.https.HttpsError('internal', `Square error: ${err.errors?.[0]?.detail || err.message}`);
+    }
+    throw new functions.https.HttpsError('internal', 'Failed to create order with Square.');
+  }
+
+  // ── Step 3: Process Square Payment ──
+  let squarePaymentId;
+  try {
+    const paymentResponse = await squareClient.paymentsApi.createPayment({
+      sourceId,
+      idempotencyKey: paymentIdempotencyKey,
+      amountMoney: {
+        amount: BigInt(totalCents),
+        currency: 'USD',
+      },
+      orderId: squareOrderId,
+      locationId,
+      note: `Bigi Awasaana Web Order - ${customerName.trim()}`,
+      referenceId: squareOrderId,
+    });
+
+    squarePaymentId = paymentResponse.result.payment.id;
+  } catch (err) {
+    console.error('Square Payment failed:', err);
+    if (err instanceof ApiError) {
+      const detail = err.errors?.[0]?.detail || err.message;
+      throw new functions.https.HttpsError('internal', `Payment failed: ${detail}`);
+    }
+    throw new functions.https.HttpsError('internal', 'Payment processing failed. Your card was not charged.');
+  }
+
+  // ── Step 4: Write order to Firestore ──
+  const orderDoc = {
+    squareOrderId,
+    squarePaymentId,
+    source: 'website',
+    customerName: customerName.trim(),
+    customerPhone: (customerPhone || '').trim(),
+    items: resolvedItems.map(item => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+    })),
+    total: totalCents / 100,
+    totalCents,
+    status: 'pending',
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: null,
+  };
+
+  const docRef = await db.collection('orders').doc(squareOrderId).set(orderDoc);
+
+  return {
+    success: true,
+    orderId: squareOrderId,
+    total: `$${(totalCents / 100).toFixed(2)}`,
+    message: `Order confirmed! Your order #${squareOrderId.slice(-4).toUpperCase()} is being prepared.`,
+  };
+});
+
+
+// ─────────────────────────────────────────────────────────────────
+// syncSquareOrders
+// HTTP function — called by the KDS every 30 seconds (polling)
+// Fetches today's orders from Square Orders API,
+// parses source/channel, writes/updates Firestore
+// ─────────────────────────────────────────────────────────────────
+exports.syncSquareOrders = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
     try {
-      // Fetch all current menu items from Firestore
-      const snapshot = await admin.firestore()
-        .collection('menu')
-        .where('available', '==', true)
-        .get();
+      const squareClient = getSquareClient();
+      const locationId = getLocationId();
 
-      const items = [];
-      snapshot.forEach(doc => {
-        items.push({ id: doc.id, ...doc.data() });
+      if (!locationId) {
+        return res.status(500).json({ error: 'Square location ID not configured.' });
+      }
+
+      // Get start of today (UTC)
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      const searchResponse = await squareClient.ordersApi.searchOrders({
+        locationIds: [locationId],
+        query: {
+          filter: {
+            dateTimeFilter: {
+              createdAt: {
+                startAt: startOfDay.toISOString(),
+              },
+            },
+            stateFilter: {
+              states: ['OPEN', 'COMPLETED'],
+            },
+          },
+          sort: {
+            sortField: 'CREATED_AT',
+            sortOrder: 'DESC',
+          },
+        },
       });
 
-      // Group items by category
-      const categories = {};
-      items.forEach(item => {
-        const cat = item.category || 'Other';
-        if (!categories[cat]) categories[cat] = [];
-        categories[cat].push(item);
-      });
+      const orders = searchResponse.result.orders || [];
+      const batch = db.batch();
+      const syncedOrders = [];
 
-      // Category display order
-      const categoryOrder = ['Wraps', 'Platters', 'Sides', 'Drinks'];
-      const sortedCategories = [
-        ...categoryOrder.filter(c => categories[c]),
-        ...Object.keys(categories).filter(c => !categoryOrder.includes(c))
-      ];
+      for (const order of orders) {
+        // Determine source from Square order metadata / source
+        let source = 'pos'; // default = Square POS
+        const sourceName = (order.source?.name || '').toLowerCase();
+        const metadata = order.metadata || {};
 
-      // Build menu items HTML
-      let menuSectionsHTML = '';
-      sortedCategories.forEach(catName => {
-        const catItems = categories[catName];
-        let itemsHTML = '';
-        catItems.forEach(item => {
-          const specialBadge = item.special
-            ? '<span class="special-badge">Chef\'s Special</span>'
-            : '';
-          itemsHTML += `
-          <div class="menu-item">
-            <div class="menu-item-info">
-              <h3>${item.name} ${specialBadge}</h3>
-              <p>${item.description || ''}</p>
-            </div>
-            <div class="menu-item-price">$${parseFloat(item.price).toFixed(2)}</div>
-          </div>`;
+        if (metadata.source === 'website' || sourceName.includes('bigi') || sourceName.includes('website')) {
+          source = 'website';
+        } else if (sourceName.includes('doordash') || sourceName.includes('door dash')) {
+          source = 'doordash';
+        } else if (sourceName.includes('uber') || sourceName.includes('ubereats')) {
+          source = 'ubereats';
+        } else if (sourceName.includes('grubhub') || sourceName.includes('grub hub')) {
+          source = 'grubhub';
+        }
+
+        // Map Square order state to our status
+        let status = 'pending';
+        if (order.state === 'COMPLETED') {
+          status = 'completed';
+        } else if (order.fulfillments && order.fulfillments.length > 0) {
+          const fulfillmentState = order.fulfillments[0].state;
+          if (fulfillmentState === 'PROPOSED') status = 'pending';
+          else if (fulfillmentState === 'RESERVED' || fulfillmentState === 'PREPARED') status = 'preparing';
+          else if (fulfillmentState === 'COMPLETED') status = 'ready';
+        }
+
+        // Extract customer name
+        let customerName = 'Guest';
+        if (metadata.customerName) {
+          customerName = metadata.customerName;
+        } else if (order.fulfillments?.[0]?.pickupDetails?.recipient?.displayName) {
+          customerName = order.fulfillments[0].pickupDetails.recipient.displayName;
+        } else if (order.fulfillments?.[0]?.deliveryDetails?.recipient?.displayName) {
+          customerName = order.fulfillments[0].deliveryDetails.recipient.displayName;
+        }
+
+        // Extract items
+        const items = (order.lineItems || []).map(li => ({
+          name: li.name || 'Unknown Item',
+          quantity: parseInt(li.quantity || '1', 10),
+          price: li.basePriceMoney ? Number(li.basePriceMoney.amount) / 100 : 0,
+        }));
+
+        // Total
+        const totalCents = order.totalMoney ? Number(order.totalMoney.amount) : 0;
+
+        const orderData = {
+          squareOrderId: order.id,
+          source,
+          customerName,
+          customerPhone: metadata.customerPhone || '',
+          items,
+          total: totalCents / 100,
+          totalCents,
+          status,
+          createdAt: admin.firestore.Timestamp.fromDate(new Date(order.createdAt)),
+          syncedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        // Use squareOrderId as doc ID for natural dedup
+        const docRef = db.collection('orders').doc(order.id);
+        batch.set(docRef, orderData, { merge: true });
+
+        syncedOrders.push({
+          id: order.id,
+          source,
+          customerName,
+          status,
+          itemCount: items.length,
         });
+      }
 
-        menuSectionsHTML += `
-        <section class="menu-category" aria-label="${catName}">
-          <div class="menu-category-title">${catName}</div>
-          ${itemsHTML}
-        </section>`;
+      await batch.commit();
+
+      return res.json({
+        success: true,
+        synced: syncedOrders.length,
+        orders: syncedOrders,
       });
-
-      // Build schema JSON for structured data
-      const schemaMenuSections = sortedCategories.map(catName => ({
-        "@type": "MenuSection",
-        "name": catName,
-        "hasMenuItem": categories[catName].map(item => ({
-          "@type": "MenuItem",
-          "name": item.name,
-          "description": item.description || '',
-          "offers": {
-            "@type": "Offer",
-            "price": parseFloat(item.price).toFixed(2),
-            "priceCurrency": "USD"
-          }
-        }))
-      }));
-
-      const schemaJSON = JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Menu",
-        "name": "Bigi Awasaana Menu",
-        "url": "https://bigiawasaana.com/menu",
-        "hasMenuSection": schemaMenuSections
-      }, null, 2);
-
-      // Generate full menu.html
-      const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menu — Bigi Awasaana Afghan Street Food Reseda LA</title>
-  <meta name="description" content="Full menu of Bigi Awasaana — authentic Afghan street food in Reseda, Los Angeles. Coal-fired kabobs, bolani, saffron rice platters and more. 100% Zabiha Halal.">
-  <meta name="keywords" content="Afghan food menu Reseda, halal menu LA, kabob menu Los Angeles, bolani, Afghan platter, Zabiha Halal menu Reseda, Afghan street food menu">
-  <link rel="stylesheet" href="/style.css">
-  <script type="application/ld+json">
-  ${schemaJSON}
-  </script>
-  <style>
-    .menu-page { max-width: 800px; margin: 0 auto; padding: 120px var(--space-s) 80px; }
-    .menu-page-header { text-align: center; margin-bottom: 64px; }
-    .menu-page-header h1 { font-size: clamp(36px, 6vw, 64px); margin-bottom: 12px; }
-    .menu-page-header p { color: var(--gray); font-size: 14px; letter-spacing: 1px; }
-    .menu-category { margin-bottom: 56px; }
-    .menu-category-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--accent);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
-      margin-bottom: 24px;
-    }
-    .menu-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 20px 0;
-      border-bottom: 1px solid var(--border);
-      gap: 24px;
-    }
-    .menu-item:last-child { border-bottom: none; }
-    .menu-item-info h3 {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .menu-item-info p { font-size: 13px; color: var(--gray); line-height: 1.5; }
-    .menu-item-price {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--accent);
-      white-space: nowrap;
-    }
-    .special-badge {
-      display: inline-block;
-      background: var(--accent-soft);
-      color: var(--accent);
-      border: 1px solid var(--accent-border);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 2px 8px;
-      border-radius: 2px;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
-    .order-cta {
-      text-align: center;
-      padding: 64px 0 0;
-      border-top: 1px solid var(--border);
-      margin-top: 64px;
-    }
-    .order-cta h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 12px; }
-    .order-cta p { color: var(--gray); font-size: 14px; margin-bottom: 32px; }
-    @media (max-width: 640px) {
-      .menu-page { padding: 100px 16px 60px; }
-    }
-  </style>
-</head>
-<body>
-
-  <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(6,6,6,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center; height: 72px;">
-      <a href="/" style="display: flex; align-items: center; text-decoration: none;">
-        <img src="/logo.png" alt="Bigi Awasaana Logo" style="height: 64px; width: auto; object-fit: contain;">
-      </a>
-      <div style="display: flex; gap: var(--space-s); font-family: 'Barlow Condensed'; font-weight: 600; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;">
-        <a href="/" style="color: var(--gray); text-decoration: none;">Home</a>
-        <a href="/menu" style="color: var(--accent); text-decoration: none; font-weight: 700;">Menu</a>
-        <a href="tel:+13237986120" style="color: var(--accent); text-decoration: none; font-weight: 700;">(323) 798-6120</a>
-      </div>
-    </div>
-  </nav>
-
-  <main class="menu-page">
-    <div class="menu-page-header">
-      <h1>Our Menu</h1>
-      <p>Handcrafted &middot; Coal-fired &middot; 100% Zabiha Halal &middot; Reseda, Los Angeles</p>
-    </div>
-
-    ${menuSectionsHTML}
-
-    <div class="order-cta">
-      <h2>Ready to Order?</h2>
-      <p>Visit us every night in Reseda, Los Angeles — or order online for pickup.</p>
-      <a href="/" class="btn-primary" style="text-decoration: none; display: inline-flex;">Order Online</a>
-    </div>
-  </main>
-
-  <footer style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 80px;">
-    <div class="container" style="text-align: center;">
-      <p style="font-size: 13px; color: var(--gray);">Bigi Awasaana &mdash; Afghan Street Food &mdash; Reseda, Los Angeles, CA &mdash; Open Every Night 6PM–2AM</p>
-    </div>
-  </footer>
-
-</body>
-</html>`;
-
-      // Write menu.html to the public hosting directory
-      const menuPath = path.join(__dirname, '..', 'menu.html');
-      fs.writeFileSync(menuPath, html, 'utf8');
-
-      console.log(`menu.html regenerated with ${items.length} items across ${sortedCategories.length} categories.`);
-      return null;
-
-    } catch (error) {
-      console.error('Error regenerating menu.html:', error);
-      throw error;
+    } catch (err) {
+      console.error('syncSquareOrders error:', err);
+      return res.status(500).json({ error: err.message });
     }
   });
+});
+
+
+// ─────────────────────────────────────────────────────────────────
+// handleSquareWebhook
+// HTTP endpoint — register this URL in Square Developer Dashboard
+// under Webhooks for real-time order updates
+// Events: order.created, order.updated
+// ─────────────────────────────────────────────────────────────────
+exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).send('Method not allowed');
+  }
+
+  try {
+    const event = req.body;
+
+    // Square sends type like 'order.created' or 'order.updated'
+    if (!event || !event.type || !event.data) {
+      return res.status(400).send('Invalid webhook payload');
+    }
+
+    const eventType = event.type;
+    const orderData = event.data?.object?.order;
+
+    if (!orderData || !orderData.id) {
+      return res.status(200).send('No order data, ignoring.');
+    }
+
+    // Only process order events
+    if (!eventType.startsWith('order.')) {
+      return res.status(200).send('Not an order event, ignoring.');
+    }
+
+    // Determine source
+    let source = 'pos';
+    const sourceName = (orderData.source?.name || '').toLowerCase();
+    const metadata = orderData.metadata || {};
+
+    if (metadata.source === 'website' || sourceName.includes('website')) {
+      source = 'website';
+    } else if (sourceName.includes('doordash')) {
+      source = 'doordash';
+    } else if (sourceName.includes('uber')) {
+      source = 'ubereats';
+    } else if (sourceName.includes('grubhub')) {
+      source = 'grubhub';
+    }
+
+    // Map state
+    let status = 'pending';
+    if (orderData.state === 'COMPLETED') {
+      status = 'completed';
+    } else if (orderData.fulfillments?.length > 0) {
+      const fState = orderData.fulfillments[0].state;
+      if (fState === 'RESERVED' || fState === 'PREPARED') status = 'preparing';
+      else if (fState === 'COMPLETED') status = 'ready';
+    }
+
+    // Customer name
+    let customerName = metadata.customerName || 'Guest';
+    if (customerName === 'Guest') {
+      const fulfillment = orderData.fulfillments?.[0];
+      customerName = fulfillment?.pickupDetails?.recipient?.displayName
+        || fulfillment?.deliveryDetails?.recipient?.displayName
+        || 'Guest';
+    }
+
+    // Items
+    const items = (orderData.lineItems || []).map(li => ({
+      name: li.name || 'Unknown Item',
+      quantity: parseInt(li.quantity || '1', 10),
+      price: li.basePriceMoney ? Number(li.basePriceMoney.amount) / 100 : 0,
+    }));
+
+    const totalCents = orderData.totalMoney ? Number(orderData.totalMoney.amount) : 0;
+
+    const firestoreData = {
+      squareOrderId: orderData.id,
+      source,
+      customerName,
+      customerPhone: metadata.customerPhone || '',
+      items,
+      total: totalCents / 100,
+      totalCents,
+      status,
+      createdAt: admin.firestore.Timestamp.fromDate(new Date(orderData.createdAt)),
+      webhookUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await db.collection('orders').doc(orderData.id).set(firestoreData, { merge: true });
+
+    console.log(`Webhook processed: ${eventType} for order ${orderData.id} (source: ${source})`);
+    return res.status(200).send('OK');
+  } catch (err) {
+    console.error('Webhook error:', err);
+    return res.status(500).send('Internal error');
+  }
+});
+
+
+// ─────────────────────────────────────────────────────────────────
+// updateOrderStatus
+// Callable function — used by KDS to change order status
+// ─────────────────────────────────────────────────────────────────
+exports.updateOrderStatus = functions.https.onCall(async (data, context) => {
+  const { orderId, status } = data;
+
+  if (!orderId || typeof orderId !== 'string') {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing orderId.');
+  }
+
+  const validStatuses = ['pending', 'preparing', 'ready', 'completed'];
+  if (!validStatuses.includes(status)) {
+    throw new functions.https.HttpsError('invalid-argument', `Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+  }
+
+  const docRef = db.collection('orders').doc(orderId);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    throw new functions.https.HttpsError('not-found', 'Order not found.');
+  }
+
+  await docRef.update({
+    status,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  return { success: true, orderId, status };
+});

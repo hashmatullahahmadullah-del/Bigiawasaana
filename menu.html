@@ -37,6 +37,9 @@
   </script>
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/mobile-nav.css">
+
+  <!-- Square Web Payments SDK -->
+  <script src="https://web.squarecdn.com/v1/square.js"></script>
 </head>
 <body>
 
@@ -125,8 +128,8 @@
     </div>
   </footer>
 
-  <!-- Cart FAB -->
-  <button class="btn-primary cart-fab" onclick="toggleCart(true)" id="cart-fab" style="display: none;">
+  <!-- Cart FAB (always visible) -->
+  <button class="btn-primary cart-fab" onclick="toggleCart(true)" id="cart-fab">
     <span style="font-size: 16px;">BAG</span>
     <span id="cart-count-badge" class="cart-badge">0</span>
   </button>
@@ -156,9 +159,52 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button class="btn-primary" style="width: 100%;" onclick="placeOrder('cloud')">Confirm Order</button>
-        <button class="btn-outline" style="width: 100%; background: #25D366; color: #fff; border: none;" onclick="placeOrder('whatsapp')">Order via WhatsApp</button>
+        <button class="btn-primary" style="width: 100%;" onclick="openPaymentModal()" id="checkout-btn">Pay with Card →</button>
+        <p style="text-align: center; font-size: 12px; color: var(--gray); margin-top: 4px;">Secure checkout powered by Square</p>
       </div>
+    </div>
+  </div>
+
+  <!-- Square Payment Modal (overlay) -->
+  <div id="payment-modal" class="payment-modal-overlay" style="display: none;">
+    <div class="payment-modal">
+      <div class="payment-modal-header">
+        <h2 style="font-size: 18px; letter-spacing: 2px; font-family: 'Barlow Condensed'; font-weight: 700;">SECURE CHECKOUT</h2>
+        <button onclick="closePaymentModal()" style="background: none; border: none; color: var(--gray); font-size: 28px; cursor: pointer; padding: 4px 8px; line-height: 1;">&times;</button>
+      </div>
+
+      <!-- Order Summary -->
+      <div id="payment-order-summary" class="payment-order-summary"></div>
+
+      <!-- Square Card Form -->
+      <div style="margin-bottom: 20px;">
+        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 10px;">Card Details</label>
+        <div id="card-container" style="min-height: 90px;"></div>
+        <div id="card-errors" style="color: #ff4444; font-size: 13px; margin-top: 8px; min-height: 18px;"></div>
+      </div>
+
+      <!-- Pay Button -->
+      <button id="pay-button" class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px; letter-spacing: 1px;" onclick="handlePayment()">
+        COMPLETE PURCHASE — <span id="pay-total">$0.00</span>
+      </button>
+
+      <!-- Processing State -->
+      <div id="payment-processing" style="display: none; text-align: center; padding: 24px;">
+        <div class="spinner"></div>
+        <p style="color: var(--gray); margin-top: 12px; font-size: 14px;">Processing your payment...</p>
+      </div>
+
+      <!-- Success State -->
+      <div id="payment-success" style="display: none; text-align: center; padding: 24px;">
+        <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+        <h3 style="font-size: 20px; margin-bottom: 8px;">Order Confirmed!</h3>
+        <p id="success-message" style="color: var(--gray); font-size: 14px;"></p>
+        <button class="btn-primary" style="margin-top: 20px;" onclick="closePaymentModal()">Done</button>
+      </div>
+
+      <p style="text-align: center; font-size: 11px; color: var(--gray); margin-top: 16px; letter-spacing: 0.5px;">
+        🔒 Secured by Square. Your card info never touches our servers.
+      </p>
     </div>
   </div>
 

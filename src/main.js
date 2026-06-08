@@ -1,12 +1,29 @@
 import './style.css';
 import { db } from './firebase.js';
 import { collection, addDoc, getDocs, serverTimestamp } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from './firebase.js';
+
+// ─────────────────────────────────────────────────────────────────
+// SQUARE CONFIGURATION
+// Replace with your Sandbox Application ID from developer.squareup.com
+// In production, swap for your Production Application ID
+// ─────────────────────────────────────────────────────────────────
+const SQUARE_APP_ID = 'sandbox-sq0idb-ywC4Vw5vSq_GRghlcXOHGw'; // ← Replace with your Sandbox App ID
+const SQUARE_LOCATION_ID = 'LVVN2XC88162M'; // ← Replace with your Location ID
+
+// Firebase Functions
+const functions = getFunctions(app);
+const processSquarePayment = httpsCallable(functions, 'processSquarePayment');
 
 // Menu data loaded from Firestore
 let menuItems = [];
 let cart = [];
+let squareCard = null; // Square card payment method instance
 
-// Fetch menu from Firestore
+// ─────────────────────────────────────────────────────────────────
+// MENU LOADING
+// ─────────────────────────────────────────────────────────────────
 async function loadMenuFromFirestore() {
   const grid = document.getElementById('menu-grid');
   if (grid) {
@@ -49,43 +66,45 @@ async function loadMenuFromFirestore() {
   renderMenu('all');
 }
 
-// Build category pills from actual Firestore data
+// ─────────────────────────────────────────────────────────────────
+// CATEGORY PILLS
+// ─────────────────────────────────────────────────────────────────
 function buildCategoryPills() {
   const scrollContainer = document.querySelector('.cat-scroll');
   if (!scrollContainer) return;
 
-  // Get unique categories
-  const categories = [...new Set(menuItems.map(item => item.category))];
-
+  const categories = [...new Set(menuItems.map(i => i.category))];
+  
   scrollContainer.innerHTML = '';
-
-  // Add "All" pill
-  const allPill = document.createElement('div');
-  allPill.className = 'category-pill active';
-  allPill.dataset.cat = 'all';
+  
+  // "All" pill
+  const allPill = document.createElement('button');
+  allPill.className = 'cat-pill active';
   allPill.textContent = 'All';
-  allPill.addEventListener('click', handlePillClick);
+  allPill.onclick = () => {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    allPill.classList.add('active');
+    renderMenu('all');
+  };
   scrollContainer.appendChild(allPill);
-
-  // Add a pill for each category
+  
   categories.forEach(cat => {
-    const pill = document.createElement('div');
-    pill.className = 'category-pill';
-    pill.dataset.cat = cat;
+    const pill = document.createElement('button');
+    pill.className = 'cat-pill';
     pill.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
-    pill.addEventListener('click', handlePillClick);
+    pill.onclick = () => {
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      renderMenu(cat);
+    };
     scrollContainer.appendChild(pill);
   });
 }
 
-function handlePillClick(e) {
-  document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
-  e.target.classList.add('active');
-  renderMenu(e.target.dataset.cat);
-}
-
-// Render Menu
-function renderMenu(category = 'all') {
+// ─────────────────────────────────────────────────────────────────
+// MENU RENDERING — with "Add to Cart" buttons always visible
+// ─────────────────────────────────────────────────────────────────
+function renderMenu(category) {
   const grid = document.getElementById('menu-grid');
   if (!grid) return;
   grid.innerHTML = '';
@@ -114,7 +133,7 @@ function renderMenu(category = 'all') {
         <p class="menu-card-desc">${item.desc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${item.price.toFixed(2)}</span>
-          <!-- Ordering is disabled until June 10 -->
+          <button class="btn-primary btn-add-cart" onclick="addToCart('${item.id}')">+ Add</button>
         </div>
       </div>
     `;
@@ -155,7 +174,9 @@ function renderFeaturedMenu() {
   });
 }
 
-// Cart Logic
+// ─────────────────────────────────────────────────────────────────
+// CART LOGIC
+// ─────────────────────────────────────────────────────────────────
 window.addToCart = (id) => {
   const item = menuItems.find(i => i.id === id);
   if (!item) return;
@@ -224,6 +245,13 @@ function updateCartUI() {
   
   countBadge.textContent = count;
   totalEl.textContent = `$${total.toFixed(2)}`;
+
+  // Disable checkout button if cart is empty
+  const checkoutBtn = document.getElementById('checkout-btn');
+  if (checkoutBtn) {
+    checkoutBtn.disabled = cart.length === 0;
+    checkoutBtn.style.opacity = cart.length === 0 ? '0.5' : '1';
+  }
 }
 
 window.toggleCart = (show) => {
@@ -233,59 +261,178 @@ window.toggleCart = (show) => {
   }
 };
 
-window.placeOrder = async (method) => {
+// ─────────────────────────────────────────────────────────────────
+// SQUARE WEB PAYMENTS — Payment Modal
+// ─────────────────────────────────────────────────────────────────
+async function initSquarePayments() {
+  if (!window.Square) {
+    console.warn('Square SDK not loaded.');
+    return;
+  }
+
+  try {
+    const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
+    squareCard = await payments.card();
+    console.log('Square Web Payments initialized.');
+  } catch (err) {
+    console.error('Failed to initialize Square Web Payments:', err);
+  }
+}
+
+window.openPaymentModal = async () => {
   if (cart.length === 0) {
     showToast('Your cart is empty.');
     return;
   }
-  
+
   const nameInput = document.getElementById('customer-name');
   const phoneInput = document.getElementById('customer-phone');
-  const customerName = nameInput.value.trim();
-  const customerPhone = phoneInput.value.trim();
-  
+  const customerName = nameInput?.value.trim();
+  const customerPhone = phoneInput?.value.trim();
+
   if (!customerName || !customerPhone) {
-    showToast('Please enter your name and phone number for the order.');
-    if (!customerName) nameInput.focus();
-    else phoneInput.focus();
+    showToast('Please enter your name and phone number.');
+    if (!customerName) nameInput?.focus();
+    else phoneInput?.focus();
     return;
   }
-  
+
+  // Show modal
+  const modal = document.getElementById('payment-modal');
+  modal.style.display = 'flex';
+
+  // Reset states
+  document.getElementById('pay-button').style.display = 'block';
+  document.getElementById('card-container').style.display = 'block';
+  document.getElementById('payment-processing').style.display = 'none';
+  document.getElementById('payment-success').style.display = 'none';
+  document.getElementById('card-errors').textContent = '';
+
+  // Build order summary
   const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const orderData = {
-    customerName,
-    customerPhone,
-    items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
-    total: `$${total.toFixed(2)}`,
-    status: 'pending',
-    createdAt: serverTimestamp(),
-    method,
-    prepTime: 15
-  };
+  const summaryEl = document.getElementById('payment-order-summary');
+  summaryEl.innerHTML = `
+    <div style="margin-bottom: 16px;">
+      ${cart.map(item => `
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px;">
+          <span style="color: var(--white);">${item.qty}× ${item.name}</span>
+          <span style="color: var(--gray);">$${(item.price * item.qty).toFixed(2)}</span>
+        </div>
+      `).join('')}
+      <div style="display: flex; justify-content: space-between; padding: 10px 0 0; border-top: 1px solid var(--border); margin-top: 8px; font-weight: 700; font-size: 16px;">
+        <span>Total</span>
+        <span style="color: var(--accent);">$${total.toFixed(2)}</span>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('pay-total').textContent = `$${total.toFixed(2)}`;
+
+  // Attach Square card form
+  if (squareCard) {
+    try {
+      await squareCard.attach('#card-container');
+    } catch (err) {
+      // Card may already be attached, that's OK
+      console.log('Card form attach:', err.message);
+    }
+  } else {
+    document.getElementById('card-errors').textContent = 'Payment form could not load. Please refresh the page.';
+  }
+};
+
+window.closePaymentModal = () => {
+  const modal = document.getElementById('payment-modal');
+  modal.style.display = 'none';
+
+  // Detach card form
+  if (squareCard) {
+    try { squareCard.destroy(); } catch(e) {}
+    // Re-init for next use
+    initSquarePayments();
+  }
+};
+
+window.handlePayment = async () => {
+  if (!squareCard) {
+    showToast('Payment form not ready. Please refresh.');
+    return;
+  }
+
+  const payButton = document.getElementById('pay-button');
+  const cardContainer = document.getElementById('card-container');
+  const processingEl = document.getElementById('payment-processing');
+  const successEl = document.getElementById('payment-success');
+  const errorsEl = document.getElementById('card-errors');
+  const summaryEl = document.getElementById('payment-order-summary');
+
+  errorsEl.textContent = '';
+  payButton.disabled = true;
+  payButton.textContent = 'Processing...';
 
   try {
-    await addDoc(collection(db, 'orders'), orderData);
-    
+    // Step 1: Tokenize the card (Square SDK handles all card data — never touches our server)
+    const tokenResult = await squareCard.tokenize();
+
+    if (tokenResult.status !== 'OK') {
+      const errorMessages = tokenResult.errors?.map(e => e.message).join(', ') || 'Card validation failed.';
+      errorsEl.textContent = errorMessages;
+      payButton.disabled = false;
+      payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${cart.reduce((s,i) => s + i.price * i.qty, 0).toFixed(2)}</span>`;
+      return;
+    }
+
+    // Step 2: Show processing state
+    payButton.style.display = 'none';
+    cardContainer.style.display = 'none';
+    summaryEl.style.display = 'none';
+    processingEl.style.display = 'block';
+
+    // Step 3: Call Cloud Function with card token + item IDs (NO prices sent)
+    const nameInput = document.getElementById('customer-name');
+    const phoneInput = document.getElementById('customer-phone');
+
+    const result = await processSquarePayment({
+      sourceId: tokenResult.token,
+      items: cart.map(i => ({ id: i.id, qty: i.qty })),  // IDs + quantities ONLY — server fetches prices
+      customerName: nameInput.value.trim(),
+      customerPhone: phoneInput.value.trim(),
+    });
+
+    // Step 4: Success!
+    processingEl.style.display = 'none';
+    successEl.style.display = 'block';
+    document.getElementById('success-message').textContent = result.data.message;
+
+    // Clear cart
     cart = [];
     nameInput.value = '';
     phoneInput.value = '';
     updateCartUI();
     window.toggleCart(false);
-    showToast('Order placed successfully! We will prepare it right away.');
-    
-    if (method === 'whatsapp') {
-      const text = `Hi Bigi Awasaana! I'm ${customerName}. I'd like to order:\n` + 
-                   orderData.items.map(i => `${i.qty}x ${i.name}`).join('\n') +
-                   `\nTotal: $${total.toFixed(2)}`;
-      window.open(`https://wa.me/13234211646?text=${encodeURIComponent(text)}`, '_blank');
-    }
-  } catch (error) {
-    console.error("Error placing order: ", error);
-    showToast('Error placing order. Please try again.');
+
+    showToast('Payment successful! Your order is being prepared.');
+
+  } catch (err) {
+    console.error('Payment error:', err);
+    processingEl.style.display = 'none';
+    payButton.style.display = 'block';
+    cardContainer.style.display = 'block';
+    summaryEl.style.display = 'block';
+    payButton.disabled = false;
+
+    const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+    payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${total.toFixed(2)}</span>`;
+
+    const errorMsg = err.message || 'Payment failed. Please try again.';
+    errorsEl.textContent = errorMsg;
+    showToast(errorMsg);
   }
 };
 
-// Toast Notification
+// ─────────────────────────────────────────────────────────────────
+// TOAST NOTIFICATIONS
+// ─────────────────────────────────────────────────────────────────
 function showToast(message) {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -299,37 +446,9 @@ function showToast(message) {
   }, 3000);
 }
 
-// Catering Form Logic
-const cateringForm = document.getElementById('catering-form');
-if (cateringForm) {
-  cateringForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('cat-name').value;
-    const email = document.getElementById('cat-email').value;
-    const phone = document.getElementById('cat-phone').value;
-    const date = document.getElementById('cat-date').value;
-    const guests = document.getElementById('cat-guests').value;
-    const details = document.getElementById('cat-details').value;
-
-    try {
-      await addDoc(collection(db, 'catering_inquiries'), {
-        name, email, phone, date, guests, details,
-        status: 'new',
-        createdAt: serverTimestamp()
-      });
-      cateringForm.reset();
-      document.getElementById('cat-status').style.display = 'block';
-      setTimeout(() => {
-        document.getElementById('cat-status').style.display = 'none';
-      }, 5000);
-    } catch (err) {
-      console.error("Error submitting catering inquiry: ", err);
-      showToast('Error sending inquiry. Please try again or call us.');
-    }
-  });
-}
-
-// Countdown Timer Logic
+// ─────────────────────────────────────────────────────────────────
+// COUNTDOWN TIMER
+// ─────────────────────────────────────────────────────────────────
 function initCountdown() {
   const openingDate = new Date('June 10, 2026 00:00:00').getTime();
   
@@ -362,9 +481,30 @@ function initCountdown() {
   }, 1000);
 }
 
-// Init
+// ─────────────────────────────────────────────────────────────────
+// SCROLL REVEAL ANIMATION
+// ─────────────────────────────────────────────────────────────────
+function initReveal() {
+  const els = document.querySelectorAll('.reveal');
+  if (!els.length) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  els.forEach(el => observer.observe(el));
+}
+
+// ─────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadMenuFromFirestore();
   updateCartUI();
   initCountdown();
+  initReveal();
+  initSquarePayments();
 });
