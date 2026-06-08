@@ -80,10 +80,10 @@ function buildCategoryPills() {
   
   // "All" pill
   const allPill = document.createElement('button');
-  allPill.className = 'cat-pill active';
+  allPill.className = 'category-pill active';
   allPill.textContent = 'All';
   allPill.onclick = () => {
-    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
     allPill.classList.add('active');
     renderMenu('all');
   };
@@ -91,10 +91,10 @@ function buildCategoryPills() {
   
   categories.forEach(cat => {
     const pill = document.createElement('button');
-    pill.className = 'cat-pill';
+    pill.className = 'category-pill';
     pill.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
     pill.onclick = () => {
-      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       renderMenu(cat);
     };
