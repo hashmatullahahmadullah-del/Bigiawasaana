@@ -145,7 +145,7 @@ function initPinScreen() {
 // State
 // ─────────────────────────────────────────────────────────────────
 const functions = getFunctions(app);
-const updateOrderStatus = httpsCallable(functions, 'updateOrderStatus');
+const updateSquareOrderStatus = httpsCallable(functions, 'updateSquareOrderStatus');
 
 let orders = [];
 let audioContext = null;
@@ -340,11 +340,15 @@ function renderOrders() {
 
     let actionBtnHtml = '';
     if (order.status === 'pending') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-pending" onclick="updateOrder('${order.id}', 'preparing')">START PREPARING</button>`;
+      actionBtnHtml = `<button class="kds-card-action kds-btn-pending" onclick="updateOrder('${order.id}', 'preparing')">▶ START PREPARING</button>`;
     } else if (order.status === 'preparing') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-preparing" onclick="updateOrder('${order.id}', 'ready')">MARK READY</button>`;
+      actionBtnHtml = `<button class="kds-card-action kds-btn-preparing" onclick="updateOrder('${order.id}', 'ready')">✓ MARK READY</button>`;
     } else if (order.status === 'ready') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-ready" onclick="updateOrder('${order.id}', 'completed')">COMPLETE</button>`;
+      actionBtnHtml = `<button class="kds-card-action kds-btn-ready" onclick="updateOrder('${order.id}', 'completed')">✅ COMPLETE</button>`;
+    }
+
+    if (['doordash', 'ubereats', 'grubhub'].includes(order.source) && order.status !== 'completed') {
+      actionBtnHtml += `<button class="kds-card-action kds-btn-cancel" onclick="updateOrder('${order.id}', 'canceled')" style="margin-top: 8px;">✗ CANCEL</button>`;
     }
 
     card.innerHTML = `
@@ -388,7 +392,7 @@ window.updateOrder = async (orderId, newStatus) => {
     }
     
     // Call Cloud Function to bypass client rules
-    await updateOrderStatus({ orderId, status: newStatus });
+    await updateSquareOrderStatus({ orderId, status: newStatus });
   } catch (error) {
     console.error("Failed to update status:", error);
     alert("Failed to update status. Are you connected to the internet?");

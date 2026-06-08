@@ -135,6 +135,17 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
           customerName: customerName.trim(),
           customerPhone: (customerPhone || '').trim(),
         },
+        fulfillments: [{
+          type: 'PICKUP',
+          state: 'PROPOSED',
+          pickupDetails: {
+            recipient: {
+              displayName: customerName.trim(),
+              phoneNumber: (customerPhone || '').trim(),
+            },
+            scheduleType: 'ASAP'
+          }
+        }],
       },
       idempotencyKey,
     });
@@ -275,6 +286,12 @@ exports.syncSquareOrders = functions.https.onRequest((req, res) => {
         // ── SKIP: Unpaid draft orders (Square creates a draft when card form initializes) ──
         // An order with no tenders has not been paid — don't show it on KDS yet
         if (!order.tenders || order.tenders.length === 0) {
+          continue;
+        }
+
+        // ── SKIP: Already completed orders in Firestore ──
+        const existingDoc = await db.collection('orders').doc(order.id).get();
+        if (existingDoc.exists && existingDoc.data().status === 'completed') {
           continue;
         }
 
@@ -459,17 +476,17 @@ exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
 
 
 // ─────────────────────────────────────────────────────────────────
-// updateOrderStatus
-// Callable function — used by KDS to change order status
+// updateSquareOrderStatus
+// Callable function — used by KDS to change order status & sync to Square
 // ─────────────────────────────────────────────────────────────────
-exports.updateOrderStatus = functions.https.onCall(async (data, context) => {
+exports.updateSquareOrderStatus = functions.https.onCall(async (data, context) => {
   const { orderId, status } = data;
 
   if (!orderId || typeof orderId !== 'string') {
     throw new functions.https.HttpsError('invalid-argument', 'Missing orderId.');
   }
 
-  const validStatuses = ['pending', 'preparing', 'ready', 'completed'];
+  const validStatuses = ['pending', 'preparing', 'ready', 'completed', 'canceled'];
   if (!validStatuses.includes(status)) {
     throw new functions.https.HttpsError('invalid-argument', `Invalid status. Must be one of: ${validStatuses.join(', ')}`);
   }
@@ -479,6 +496,54 @@ exports.updateOrderStatus = functions.https.onCall(async (data, context) => {
 
   if (!doc.exists) {
     throw new functions.https.HttpsError('not-found', 'Order not found.');
+  }
+
+  const orderData = doc.data();
+
+  // Determine Square fulfillment state
+  let squareState = '';
+  if (status === 'preparing') squareState = 'RESERVED';
+  else if (status === 'ready') squareState = 'PREPARED';
+  else if (status === 'completed') squareState = 'COMPLETED';
+  else if (status === 'canceled') squareState = 'CANCELED';
+
+  if (squareState && orderData.squareOrderId) {
+    try {
+      const squareClient = getSquareClient();
+      const locationId = getLocationId();
+
+      // Step 1 — fetch current order
+      const currentOrder = await squareClient.ordersApi.retrieveOrder(orderData.squareOrderId);
+      const version = currentOrder.result.order.version;
+      const fulfillmentUid = currentOrder.result.order.fulfillments?.[0]?.uid;
+
+      if (fulfillmentUid) {
+        // Step 2 — update fulfillment state
+        const orderUpdate = {
+          locationId: locationId,
+          version: version,
+          fulfillments: [{
+            uid: fulfillmentUid,
+            state: squareState
+          }]
+        };
+
+        if (status === 'completed') {
+          orderUpdate.state = 'COMPLETED';
+        }
+
+        await squareClient.ordersApi.updateOrder(orderData.squareOrderId, {
+          order: orderUpdate,
+          idempotencyKey: crypto.randomUUID()
+        });
+      }
+    } catch (err) {
+      console.error('Square update failed:', err);
+      if (err instanceof ApiError) {
+        console.error('Square error detail:', err.errors?.[0]?.detail);
+      }
+      // Depending on strictness, we might throw here, but let's allow Firestore update
+    }
   }
 
   await docRef.update({

@@ -205,7 +205,7 @@ body {
 .kds-card.status-ready     { border-left-color: var(--status-ready); }
 .kds-card.status-completed {
   border-left-color: var(--status-completed);
-  opacity: 0.35;
+  opacity: 0.4;
 }
 
 /* ── Card Header ── */
@@ -328,6 +328,12 @@ body {
 .kds-btn-ready {
   background: var(--status-ready);
   color: #fff;
+}
+
+.kds-btn-cancel {
+  background: transparent;
+  border: 2px solid #ff3008;
+  color: #ff3008;
 }
 
 /* ── Responsive ── */
