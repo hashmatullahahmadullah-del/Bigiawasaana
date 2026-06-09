@@ -400,7 +400,10 @@ window.openPaymentModal = async () => {
       // Apple Pay
       try {
         const applePay = await squarePayments.applePay(req);
-        await applePay.attach('#apple-pay-button');
+        await applePay.attach('#apple-pay-button', {
+          buttonColor: 'black',
+          buttonType: 'plain'
+        });
         const apBtn = document.getElementById('apple-pay-button');
         apBtn.style.display = 'block';
         apBtn.onclick = null;
