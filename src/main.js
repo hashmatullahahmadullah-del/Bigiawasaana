@@ -265,6 +265,8 @@ window.toggleCart = (show) => {
 // ─────────────────────────────────────────────────────────────────
 // SQUARE WEB PAYMENTS — Payment Modal
 // ─────────────────────────────────────────────────────────────────
+let squarePayments;
+
 async function initSquarePayments() {
   if (!window.Square) {
     console.warn('Square SDK not loaded.');
@@ -272,10 +274,10 @@ async function initSquarePayments() {
   }
 
   try {
-    const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID, {
+    squarePayments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID, {
       environment: 'production'
     });
-    squareCard = await payments.card();
+    squareCard = await squarePayments.card();
     console.log('Square Web Payments initialized.');
   } catch (err) {
     console.error('Failed to initialize Square Web Payments:', err);
@@ -379,6 +381,72 @@ window.openPaymentModal = async () => {
   } else {
     document.getElementById('card-errors').textContent = 'Payment form could not load. Please refresh the page.';
   }
+
+  // Attach Digital Wallets
+  if (squarePayments) {
+    try {
+      const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
+      const totalAmount = (subtotal + tax + tipRaw).toFixed(2);
+      
+      const req = squarePayments.paymentRequest({
+        countryCode: 'US',
+        currencyCode: 'USD',
+        total: {
+          amount: totalAmount,
+          label: 'Bigi Awasaana Order',
+        },
+      });
+
+      // Apple Pay
+      try {
+        const applePay = await squarePayments.applePay(req);
+        await applePay.attach('#apple-pay-button');
+        const apBtn = document.getElementById('apple-pay-button');
+        apBtn.style.display = 'block';
+        apBtn.onclick = null;
+        apBtn.addEventListener('click', async () => {
+          try {
+            const result = await applePay.tokenize();
+            if (result.status === 'OK') {
+              await processSquareToken(result.token);
+            } else {
+              document.getElementById('card-errors').textContent = result.errors?.map(e => e.message).join(', ') || 'Apple Pay failed.';
+            }
+          } catch (e) {
+            console.error('Apple Pay error:', e);
+          }
+        });
+      } catch (e) {
+        console.log('Apple Pay not supported:', e);
+      }
+
+      // Google Pay
+      try {
+        const googlePay = await squarePayments.googlePay(req);
+        await googlePay.attach('#google-pay-button');
+        const gpBtn = document.getElementById('google-pay-button');
+        gpBtn.style.display = 'block';
+        gpBtn.onclick = null;
+        gpBtn.addEventListener('click', async () => {
+          try {
+            const result = await googlePay.tokenize();
+            if (result.status === 'OK') {
+              await processSquareToken(result.token);
+            } else {
+              document.getElementById('card-errors').textContent = result.errors?.map(e => e.message).join(', ') || 'Google Pay failed.';
+            }
+          } catch (e) {
+            console.error('Google Pay error:', e);
+          }
+        });
+      } catch (e) {
+        console.log('Google Pay not supported:', e);
+      }
+
+    } catch (e) {
+      console.error('Digital wallet setup error:', e);
+    }
+  }
 };
 
 window.closePaymentModal = () => {
@@ -388,9 +456,15 @@ window.closePaymentModal = () => {
   // Detach card form
   if (squareCard) {
     try { squareCard.destroy(); } catch(e) {}
-    // Re-init for next use
+    // We do not re-init automatically here to prevent double init, let's just detach or destroy.
     initSquarePayments();
   }
+  
+  // Hide digital wallet buttons to reset state
+  document.getElementById('apple-pay-button').style.display = 'none';
+  document.getElementById('google-pay-button').style.display = 'none';
+  document.getElementById('apple-pay-button').innerHTML = '';
+  document.getElementById('google-pay-button').innerHTML = '';
 };
 
 window.handlePayment = async () => {
@@ -400,11 +474,7 @@ window.handlePayment = async () => {
   }
 
   const payButton = document.getElementById('pay-button');
-  const cardContainer = document.getElementById('card-container');
-  const processingEl = document.getElementById('payment-processing');
-  const successEl = document.getElementById('payment-success');
   const errorsEl = document.getElementById('card-errors');
-  const summaryEl = document.getElementById('payment-order-summary');
 
   errorsEl.textContent = '';
   payButton.disabled = true;
@@ -425,20 +495,40 @@ window.handlePayment = async () => {
       return;
     }
 
-    // Step 2: Show processing state
-    payButton.style.display = 'none';
-    cardContainer.style.display = 'none';
-    summaryEl.style.display = 'none';
-    processingEl.style.display = 'block';
+    await processSquareToken(tokenResult.token);
+  } catch (err) {
+    console.error('Payment error:', err);
+    errorsEl.textContent = 'An unexpected error occurred. Please try again.';
+    payButton.disabled = false;
+    payButton.innerHTML = 'COMPLETE PURCHASE';
+  }
+};
 
-    // Step 3: Call Cloud Function
+async function processSquareToken(token) {
+  const cardContainer = document.getElementById('card-container');
+  const payButton = document.getElementById('pay-button');
+  const processingEl = document.getElementById('payment-processing');
+  const successEl = document.getElementById('payment-success');
+  const summaryEl = document.getElementById('payment-order-summary');
+  const errorsEl = document.getElementById('card-errors');
+  const digitalWallets = document.getElementById('digital-wallets');
+
+  // Step 2: Show processing state
+  payButton.style.display = 'none';
+  cardContainer.style.display = 'none';
+  summaryEl.style.display = 'none';
+  if (digitalWallets) digitalWallets.style.display = 'none';
+  processingEl.style.display = 'block';
+
+  // Step 3: Call Cloud Function
+  try {
     const nameInput = document.getElementById('customer-name');
     const phoneInput = document.getElementById('customer-phone');
     const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
     const tipCents = Math.round(Math.min(tipRaw, 100) * 100);
 
     const result = await processSquarePayment({
-      sourceId: tokenResult.token,
+      sourceId: token,
       items: cart.map(i => ({ id: i.id, qty: i.qty })),
       customerName: nameInput.value.trim(),
       customerPhone: phoneInput.value.trim(),
@@ -448,6 +538,7 @@ window.handlePayment = async () => {
     // Step 4: Success!
     processingEl.style.display = 'none';
     successEl.style.display = 'block';
+
     document.getElementById('success-message').textContent = result.data.message;
 
     // Generate QR code for order status page
@@ -474,19 +565,20 @@ window.handlePayment = async () => {
 
     // Clear cart
     cart = [];
-    nameInput.value = '';
-    phoneInput.value = '';
-    updateCartUI();
-    window.toggleCart(false);
+    if (nameInput) nameInput.value = '';
+    if (phoneInput) phoneInput.value = '';
+    if (typeof updateCartUI === 'function') updateCartUI();
+    if (typeof window.toggleCart === 'function') window.toggleCart(false);
 
     showToast('Payment successful! Your order is being prepared.');
 
   } catch (err) {
     console.error('Payment error:', err);
     processingEl.style.display = 'none';
-    payButton.style.display = 'block';
     cardContainer.style.display = 'block';
     summaryEl.style.display = 'block';
+    if (digitalWallets) digitalWallets.style.display = 'block';
+    payButton.style.display = 'block';
     payButton.disabled = false;
 
     const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);

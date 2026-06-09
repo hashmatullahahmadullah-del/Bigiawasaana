@@ -188,6 +188,24 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
   // ── Step 5: Generate access token for order status page ──
   const accessToken = crypto.randomBytes(8).toString('hex');
 
+  // ── Step 5.5: Calculate Dynamic Wait Time ──
+  let activeOrderCount = 0;
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const activeSnapshot = await db.collection('orders')
+      .where('createdAt', '>=', admin.firestore.Timestamp.fromDate(today))
+      .where('status', 'in', ['pending', 'preparing'])
+      .get();
+    activeOrderCount = activeSnapshot.size;
+  } catch (err) {
+    console.error('Failed to get active order count:', err);
+  }
+  
+  // Base 10 mins + 5 mins per active order
+  const waitTimeMinutes = 10 + (activeOrderCount * 5);
+  const estimatedReadyAt = admin.firestore.Timestamp.fromDate(new Date(Date.now() + waitTimeMinutes * 60000));
+
   // ── Step 6: Write order to Firestore ──
   const orderDoc = {
     squareOrderId,
@@ -210,6 +228,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     tipCents,
     totalCents,
     status: 'pending',
+    estimatedReadyAt,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
   };
@@ -543,6 +562,22 @@ exports.updateSquareOrderStatus = functions.https.onCall(async (data, context) =
         console.error('Square error detail:', err.errors?.[0]?.detail);
       }
       // Depending on strictness, we might throw here, but let's allow Firestore update
+    }
+  }
+
+  // Send Push Notification
+  if (status === 'ready' && orderData.fcmToken) {
+    try {
+      await admin.messaging().send({
+        token: orderData.fcmToken,
+        notification: {
+          title: 'Your order is ready! 🔥',
+          body: `Your Bigi Awasaana order #${orderId.slice(-4).toUpperCase()} is ready for pickup!`
+        }
+      });
+      console.log(`Push notification sent for order ${orderId}`);
+    } catch (err) {
+      console.error('Failed to send FCM push notification:', err);
     }
   }
 

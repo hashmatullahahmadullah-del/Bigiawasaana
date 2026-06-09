@@ -70,28 +70,40 @@ if (localStorage.getItem('bigi_admin') !== 'true') {
 // PIN Screen Logic
 // ─────────────────────────────────────────────────────────────────
 function initPinScreen() {
-  const pinInput = document.getElementById('kds-pin-input');
-  const pinBtn = document.getElementById('kds-pin-btn');
+  const pinDisplay = document.getElementById('kds-pin-display');
   const errorMsg = document.getElementById('kds-pin-error');
+  const keys = document.querySelectorAll('.kds-pin-key');
   
+  let currentPin = '';
   let attempts = 0;
   let lockoutTimer = null;
+  let isVerifying = false;
 
   const auth = getAuth(app);
   signInAnonymously(auth).catch(err => console.error("PIN screen auth failed:", err));
 
-  pinBtn.addEventListener('click', async () => {
-    const pin = pinInput.value.trim();
-    if (!pin) return;
-
-    pinBtn.disabled = true;
-    pinBtn.textContent = 'VERIFYING...';
+  function updateDisplay() {
+    if (isVerifying) return;
+    pinDisplay.textContent = '•'.repeat(currentPin.length);
+    pinDisplay.classList.remove('error');
     errorMsg.textContent = '';
+  }
+
+  async function verifyPin() {
+    if (currentPin.length !== 6 || isVerifying) return;
+    
+    isVerifying = true;
+    pinDisplay.textContent = 'VERIFYING...';
+    pinDisplay.style.letterSpacing = '2px';
+    pinDisplay.style.fontSize = '24px';
+    
+    // Disable keypad
+    keys.forEach(k => k.disabled = true);
 
     try {
       const functions = getFunctions(app);
       const verifyKdsPin = httpsCallable(functions, 'verifyKdsPin');
-      const result = await verifyKdsPin({ pin });
+      const result = await verifyKdsPin({ pin: currentPin });
 
       if (result.data.success) {
         sessionStorage.setItem('kds_authenticated', 'true');
@@ -105,24 +117,59 @@ function initPinScreen() {
       console.error("PIN verification error:", err);
       handleWrongPin();
     }
+  }
+
+  keys.forEach(key => {
+    key.addEventListener('click', () => {
+      if (isVerifying || lockoutTimer) return;
+      
+      const val = key.textContent;
+      
+      if (key.id === 'kds-pin-clear') {
+        currentPin = '';
+        updateDisplay();
+      } else if (key.id === 'kds-pin-back') {
+        currentPin = currentPin.slice(0, -1);
+        updateDisplay();
+      } else if (currentPin.length < 6) {
+        currentPin += val;
+        updateDisplay();
+        
+        if (currentPin.length === 6) {
+          verifyPin();
+        }
+      }
+    });
   });
 
   function handleWrongPin() {
     attempts++;
-    pinInput.value = '';
+    currentPin = '';
+    isVerifying = false;
+    pinDisplay.style.letterSpacing = '';
+    pinDisplay.style.fontSize = '';
+    pinDisplay.classList.add('error');
+    
     if (attempts >= 3) {
       startLockout();
     } else {
+      pinDisplay.textContent = 'ERROR';
       errorMsg.textContent = `Incorrect PIN. ${3 - attempts} attempts remaining.`;
-      pinBtn.disabled = false;
-      pinBtn.textContent = 'ENTER KITCHEN';
+      keys.forEach(k => k.disabled = false);
+      setTimeout(() => {
+        if (!isVerifying && !lockoutTimer) {
+           pinDisplay.textContent = '';
+           pinDisplay.classList.remove('error');
+        }
+      }, 1000);
     }
   }
 
   function startLockout() {
     let timeLeft = 60;
-    pinInput.disabled = true;
     
+    pinDisplay.textContent = 'LOCKED';
+    pinDisplay.style.letterSpacing = '4px';
     errorMsg.textContent = `Too many failed attempts. Try again in ${timeLeft}s.`;
     
     lockoutTimer = setInterval(() => {
@@ -131,11 +178,14 @@ function initPinScreen() {
       
       if (timeLeft <= 0) {
         clearInterval(lockoutTimer);
+        lockoutTimer = null;
         attempts = 0;
-        pinInput.disabled = false;
-        pinBtn.disabled = false;
-        pinBtn.textContent = 'ENTER KITCHEN';
+        currentPin = '';
+        pinDisplay.textContent = '';
+        pinDisplay.style.letterSpacing = '';
+        pinDisplay.classList.remove('error');
         errorMsg.textContent = '';
+        keys.forEach(k => k.disabled = false);
       }
     }, 1000);
   }

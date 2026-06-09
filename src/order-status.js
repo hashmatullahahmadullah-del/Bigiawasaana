@@ -1,5 +1,6 @@
-import { db } from './firebase.js';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { app, db } from './firebase.js';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { getMessaging, getToken } from 'firebase/messaging';
 
 document.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -34,10 +35,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     renderOrder(orderId, order);
+    
+    // Request push notification permissions
+    if (order.status !== 'completed') {
+      setupPushNotifications(orderId, order.fcmToken);
+    }
+    
   }, (err) => {
     console.error("Firebase read error:", err);
     showError("Failed to connect to real-time updates. Please refresh the page.");
   });
+
+  async function setupPushNotifications(orderId, existingToken) {
+    try {
+      const messaging = getMessaging(app);
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        // You would normally pass a VAPID key to getToken: getToken(messaging, { vapidKey: '...' })
+        // If omitted, Firebase uses the default project sender ID.
+        const currentToken = await getToken(messaging);
+        if (currentToken && currentToken !== existingToken) {
+          const orderRef = doc(db, 'orders', orderId);
+          await updateDoc(orderRef, { fcmToken: currentToken });
+          console.log('FCM token saved for order notifications');
+        }
+      }
+    } catch (err) {
+      console.log('Push notifications not enabled or failed:', err);
+      // Silent fail
+    }
+  }
 
   function showError(msg) {
     loadingState.style.display = 'none';
@@ -101,5 +128,30 @@ document.addEventListener('DOMContentLoaded', () => {
         stepEl.classList.add('active');
       }
     });
+
+    // Wait time logic
+    const waitContainer = document.getElementById('wait-time-container');
+    const waitText = document.getElementById('wait-time-text');
+    
+    if (order.status === 'pending' || order.status === 'preparing') {
+      if (order.estimatedReadyAt) {
+        // Handle Firestore timestamp or standard date
+        const readyTime = order.estimatedReadyAt.toDate ? order.estimatedReadyAt.toDate() : new Date(order.estimatedReadyAt);
+        const now = new Date();
+        const diffMins = Math.ceil((readyTime - now) / 60000);
+        
+        if (diffMins > 0) {
+          waitText.textContent = `Ready in ~${diffMins} minutes`;
+          waitContainer.style.display = 'block';
+        } else {
+          waitText.textContent = `Ready very soon`;
+          waitContainer.style.display = 'block';
+        }
+      } else {
+        waitContainer.style.display = 'none';
+      }
+    } else {
+      waitContainer.style.display = 'none';
+    }
   }
 });

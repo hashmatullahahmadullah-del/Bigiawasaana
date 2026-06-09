@@ -25,8 +25,26 @@
     <div class="kds-pin-container">
       <img src="/logo.png" alt="Bigi Awasaana Logo" class="kds-pin-logo">
       <h2 class="kds-pin-title">Kitchen Access Only</h2>
-      <input type="password" id="kds-pin-input" class="kds-pin-input" placeholder="Enter PIN" maxlength="6" autocomplete="off">
-      <button id="kds-pin-btn" class="kds-pin-btn">ENTER KITCHEN</button>
+      
+      <div id="kds-pin-display" class="kds-pin-display">
+        <!-- Dots will appear here -->
+      </div>
+      
+      <div class="kds-pin-pad">
+        <button class="kds-pin-key">1</button>
+        <button class="kds-pin-key">2</button>
+        <button class="kds-pin-key">3</button>
+        <button class="kds-pin-key">4</button>
+        <button class="kds-pin-key">5</button>
+        <button class="kds-pin-key">6</button>
+        <button class="kds-pin-key">7</button>
+        <button class="kds-pin-key">8</button>
+        <button class="kds-pin-key">9</button>
+        <button class="kds-pin-key kds-pin-action" id="kds-pin-clear">CLEAR</button>
+        <button class="kds-pin-key">0</button>
+        <button class="kds-pin-key kds-pin-action" id="kds-pin-back">⌫</button>
+      </div>
+      
       <div id="kds-pin-error" class="kds-pin-error"></div>
     </div>
   </div>
