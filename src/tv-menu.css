@@ -72,72 +72,77 @@ body {
 }
 
 /* ── Category Nav ── */
-.tv-category-nav {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  padding: 20px 40px;
-  flex-shrink: 0;
-}
-
-.tv-cat-tab {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 32px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  padding-bottom: 8px;
-  border-bottom: 3px solid transparent;
-  transition: all 0.4s ease;
-  opacity: 0.5;
-}
-
-.tv-cat-tab.active {
-  color: var(--text-primary);
-  border-bottom-color: var(--accent);
-  opacity: 1;
-}
+/* Removed category tabs for static layout */
 
 /* ── Main Menu Area ── */
 .tv-main {
   flex: 1;
-  padding: 0 60px 40px 60px;
+  padding: 0 40px 30px 40px;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .tv-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: 40px;
   height: 100%;
-  align-content: start;
+  overflow-y: hidden;
 }
+
+.tv-category-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tv-category-header {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.tv-category-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Hide scrollbar */
+.tv-category-items::-webkit-scrollbar { width: 0; }
 
 /* ── Menu Item Card (Luxury Style) ── */
 .tv-item-card {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(40px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .tv-item-img {
-  width: 140px;
-  height: 140px;
-  border-radius: 12px;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
   object-fit: cover;
   background-color: #1a1a1a;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
@@ -145,9 +150,9 @@ body {
 }
 
 .tv-item-img-placeholder {
-  width: 140px;
-  height: 140px;
-  border-radius: 12px;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #1a1a1a, #111);
   display: flex;
   align-items: center;
@@ -155,8 +160,8 @@ body {
   flex-shrink: 0;
 }
 .tv-item-img-placeholder svg {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   fill: rgba(255,255,255,0.1);
 }
 
@@ -171,13 +176,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 4px;
 }
 
 .tv-item-name {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.1;
@@ -187,15 +192,15 @@ body {
 
 .tv-item-price {
   font-family: 'Outfit', sans-serif;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 300;
   color: var(--accent);
 }
 
 .tv-item-desc {
-  font-size: 16px;
+  font-size: 14px;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

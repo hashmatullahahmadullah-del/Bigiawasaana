@@ -3,9 +3,6 @@ import { collection, doc, onSnapshot } from 'firebase/firestore';
 
 let menuItems = [];
 let categories = [];
-let currentCategoryIndex = 0;
-let categoryRotationInterval = null;
-
 let featuredItems = [];
 let currentFeaturedIndex = 0;
 let featuredRotationInterval = null;
@@ -67,15 +64,7 @@ function processData() {
     return a.localeCompare(b);
   });
 
-  renderCategoryNav();
-  showCurrentCategory();
-
-  // Start Category Rotation (every 15 seconds)
-  if (categoryRotationInterval) clearInterval(categoryRotationInterval);
-  categoryRotationInterval = setInterval(() => {
-    currentCategoryIndex = (currentCategoryIndex + 1) % categories.length;
-    showCurrentCategory();
-  }, 15000);
+  renderAllCategories();
 
   // Process Specials (Featured)
   featuredItems = menuItems.filter(i => i.featured);
@@ -112,44 +101,39 @@ function updateFeaturedDisplay() {
 // ─────────────────────────────────────────────────────────────────
 // RENDER
 // ─────────────────────────────────────────────────────────────────
-function renderCategoryNav() {
-  const nav = document.getElementById('tv-category-nav');
-  nav.innerHTML = categories.map((cat, idx) => `
-    <div class="tv-cat-tab ${idx === currentCategoryIndex ? 'active' : ''}" id="tab-${idx}">
-      ${cat}
-    </div>
-  `).join('');
-}
-
-function showCurrentCategory() {
-  // Update Nav
-  document.querySelectorAll('.tv-cat-tab').forEach((el, idx) => {
-    el.classList.toggle('active', idx === currentCategoryIndex);
-  });
-
-  const catName = categories[currentCategoryIndex];
-  const items = menuItems.filter(i => i.category === catName);
-  
+function renderAllCategories() {
   const grid = document.getElementById('tv-grid');
   
-  // Render Cards (No Dollar Sign)
-  grid.innerHTML = items.map((item, idx) => `
-    <div class="tv-item-card" style="animation-delay: ${idx * 0.05}s">
-      ${item.img 
-        ? `<img src="${item.img}" class="tv-item-img" alt="">` 
-        : `<div class="tv-item-img-placeholder">
-             <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-           </div>`
-      }
-      <div class="tv-item-info">
-        <div class="tv-item-header">
-          <div class="tv-item-name">${item.name}</div>
-          <div class="tv-item-price">${item.price.toFixed(2)}</div>
+  grid.innerHTML = categories.map((catName) => {
+    const items = menuItems.filter(i => i.category === catName);
+    
+    const itemsHtml = items.map((item, idx) => `
+      <div class="tv-item-card" style="animation-delay: ${idx * 0.05}s">
+        ${item.img 
+          ? `<img src="${item.img}" class="tv-item-img" alt="">` 
+          : `<div class="tv-item-img-placeholder">
+               <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+             </div>`
+        }
+        <div class="tv-item-info">
+          <div class="tv-item-header">
+            <div class="tv-item-name">${item.name}</div>
+            <div class="tv-item-price">${item.price.toFixed(2)}</div>
+          </div>
+          ${item.desc ? `<div class="tv-item-desc">${item.desc}</div>` : ''}
         </div>
-        ${item.desc ? `<div class="tv-item-desc">${item.desc}</div>` : ''}
       </div>
-    </div>
-  `).join('');
+    `).join('');
+
+    return `
+      <div class="tv-category-column">
+        <h2 class="tv-category-header">${catName}</h2>
+        <div class="tv-category-items">
+          ${itemsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 document.addEventListener('DOMContentLoaded', initMenuBoard);
