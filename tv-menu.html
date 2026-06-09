@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, initial-scale=1.0">
+  <title>Menu Board — Bigi Awasaana</title>
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lalezar&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/src/tv-menu.css">
+</head>
+<body>
+
+  <!-- ══════════ HEADER ══════════ -->
+  <header class="tv-header">
+    <div class="tv-header-left">
+      <img src="/logo.png" alt="Bigi Awasaana" class="tv-logo-img">
+      <div>
+        <h1 class="tv-brand">BIGI <span>AWASAANA</span></h1>
+        <p class="tv-tagline">Born from the Silk Road · Grilled in Los Angeles</p>
+      </div>
+    </div>
+    <div class="tv-header-right">
+      <div class="tv-clock" id="tv-clock">12:00 PM</div>
+    </div>
+  </header>
+
+  <!-- ══════════ PROMO BANNER (from Firebase) ══════════ -->
+  <div class="tv-promo-banner" id="tv-promo-banner" style="display: none;">
+    <div class="tv-promo-icon">📢</div>
+    <div class="tv-promo-text" id="tv-promo-text"></div>
+  </div>
+
+  <!-- ══════════ MAIN CONTENT ══════════ -->
+  <main class="tv-main" id="tv-main">
+    <!-- TODAY'S SPECIALS (featured items) -->
+    <section class="tv-specials-section" id="tv-specials-section" style="display: none;">
+      <div class="tv-section-header">
+        <span class="tv-section-badge">🔥</span>
+        <h2>Today's Specials</h2>
+      </div>
+      <div class="tv-specials-grid" id="tv-specials-grid"></div>
+    </section>
+
+    <!-- FULL MENU -->
+    <div class="tv-menu-columns" id="tv-menu-columns">
+      <!-- Dynamically injected category columns -->
+    </div>
+
+    <!-- LOADING STATE -->
+    <div class="tv-loading" id="tv-loading">
+      <div class="tv-loading-spinner"></div>
+      <p>Loading Menu…</p>
+    </div>
+  </main>
+
+  <!-- ══════════ BOTTOM TICKER ══════════ -->
+  <footer class="tv-ticker-wrap">
+    <div class="tv-ticker" id="tv-ticker">
+      <span class="tv-ticker-item">🔥 Fresh off the grill — made to order &nbsp;•&nbsp; Born from the Silk Road. Grilled in Los Angeles. &nbsp;•&nbsp; Follow us @bigiawasaana &nbsp;•&nbsp; Catering available — ask at the counter! &nbsp;•&nbsp;</span>
+      <span class="tv-ticker-item">🔥 Fresh off the grill — made to order &nbsp;•&nbsp; Born from the Silk Road. Grilled in Los Angeles. &nbsp;•&nbsp; Follow us @bigiawasaana &nbsp;•&nbsp; Catering available — ask at the counter! &nbsp;•&nbsp;</span>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/tv-menu.js"></script>
+</body>
+</html>

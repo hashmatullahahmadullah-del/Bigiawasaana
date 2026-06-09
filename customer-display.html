@@ -2,60 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Order Display - Bigi Awasaana</title>
-  
+  <meta name="viewport" content="width=1920, initial-scale=1.0">
+  <title>Menu Board — Bigi Awasaana</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lalezar&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
+
   <link rel="stylesheet" href="/src/customer-display.css">
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="cd-header">
-    <div class="cd-header-left">
-      <img src="/logo.png" alt="Bigi Awasaana Logo" class="cd-logo-img">
-      <div class="cd-tagline-container">
-        <h1 class="cd-logo">BIGI <span>AWASAANA</span></h1>
-        <p class="cd-tagline">Born from the Silk Road. Grilled in Los Angeles.</p>
+  <!-- ══════════ HEADER BAR ══════════ -->
+  <header class="mb-header">
+    <div class="mb-header-left">
+      <img src="/logo.png" alt="Bigi Awasaana" class="mb-logo-img">
+      <div class="mb-brand">
+        <h1 class="mb-brand-name">BIGI <span>AWASAANA</span></h1>
+        <p class="mb-tagline">Born from the Silk Road · Grilled in Los Angeles</p>
       </div>
     </div>
-    <div class="cd-header-right">
-      <button id="cd-init-audio" class="cd-icon-btn" aria-label="Enable Audio">🔊</button>
-      <button id="cd-fullscreen-btn" class="cd-icon-btn" aria-label="Toggle Fullscreen">⛶</button>
+    <div class="mb-header-right">
+      <div class="mb-clock" id="mb-clock">12:00 PM</div>
     </div>
   </header>
 
-  <!-- 2 Columns -->
-  <main class="cd-grid">
-    <!-- Preparing Column -->
-    <div class="cd-col cd-col-preparing">
-      <div class="cd-col-header" style="border-top: 6px solid #FFCC00;">
-        <h2>🟡 PREPARING</h2>
-      </div>
-      <div class="cd-col-body" id="col-preparing">
-        <!-- Order cards go here -->
-      </div>
-    </div>
-
-    <!-- Ready for Pickup Column -->
-    <div class="cd-col cd-col-ready">
-      <div class="cd-col-header" style="border-top: 6px solid #00CC66;">
-        <h2>🟢 READY FOR PICKUP</h2>
-      </div>
-      <div class="cd-col-body" id="col-ready">
-        <!-- Order cards go here -->
+  <!-- ══════════ MENU CONTENT (scrollable area) ══════════ -->
+  <main class="mb-content" id="mb-content">
+    <div class="mb-content-inner" id="mb-menu-container">
+      <!-- Menu items injected by JS -->
+      <div class="mb-loading" id="mb-loading">
+        <div class="mb-loading-spinner"></div>
+        <p>Loading Menu…</p>
       </div>
     </div>
   </main>
 
-  <!-- Bottom Ticker -->
-  <footer class="cd-ticker-wrap">
-    <div class="cd-ticker">
-      <div class="cd-ticker-item">Thank you for dining with Bigi Awasaana • Born from the Silk Road. Grilled in Los Angeles. • Follow us on Instagram @bigiawasaana •</div>
-      <div class="cd-ticker-item">Thank you for dining with Bigi Awasaana • Born from the Silk Road. Grilled in Los Angeles. • Follow us on Instagram @bigiawasaana •</div>
+  <!-- ══════════ BOTTOM TICKER ══════════ -->
+  <footer class="mb-ticker-wrap">
+    <div class="mb-ticker" id="mb-ticker">
+      <span class="mb-ticker-item">🔥 Fresh off the grill — made to order &nbsp;•&nbsp; Born from the Silk Road. Grilled in Los Angeles. &nbsp;•&nbsp; Follow us @bigiawasaana &nbsp;•&nbsp; Catering available — ask at the counter! &nbsp;•&nbsp;</span>
+      <span class="mb-ticker-item">🔥 Fresh off the grill — made to order &nbsp;•&nbsp; Born from the Silk Road. Grilled in Los Angeles. &nbsp;•&nbsp; Follow us @bigiawasaana &nbsp;•&nbsp; Catering available — ask at the counter! &nbsp;•&nbsp;</span>
     </div>
   </footer>
 
