@@ -1,12 +1,12 @@
 :root {
-  --bg: #0a0a0a;
-  --surface: #141414;
+  --bg: #000000;
+  --surface: #111111;
   --surface-hover: #1c1c1c;
-  --border: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.1);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --accent: #d4af37; /* Luxury Gold */
-  --accent-glow: rgba(212, 175, 55, 0.15);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --accent: #ff4500; /* Orange */
+  --accent-glow: rgba(255, 69, 0, 0.15);
 }
 
 * {
@@ -113,9 +113,10 @@ body {
 
 .tv-grid {
   display: flex;
-  gap: 40px;
+  gap: 20px;
   height: 100%;
   overflow-y: hidden;
+  justify-content: space-between;
 }
 
 .tv-category-column {
@@ -123,40 +124,41 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  /* Allow columns to shrink based on content, but generally be equal */
 }
 
 .tv-category-header {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 36px;
+  font-size: clamp(24px, 3vw, 36px);
   font-weight: 600;
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 2px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   border-bottom: 2px solid var(--border);
-  padding-bottom: 10px;
+  padding-bottom: 8px;
 }
 
 .tv-category-items {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   overflow-y: auto;
   padding-right: 10px;
+  align-content: start;
 }
 
 /* Hide scrollbar */
 .tv-category-items::-webkit-scrollbar { width: 0; }
 
-/* ── Menu Item Card (Luxury Style) ── */
+/* ── Menu Item Card (Stacked Style) ── */
 .tv-item-card {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 8px;
+  overflow: hidden;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
@@ -167,24 +169,21 @@ body {
 }
 
 .tv-item-img {
-  width: 100px;
-  height: 100px;
-  border-radius: 8px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   background-color: #1a1a1a;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
-  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .tv-item-img-placeholder {
-  width: 100px;
-  height: 100px;
-  border-radius: 8px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   background: linear-gradient(135deg, #1a1a1a, #111);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
 }
 .tv-item-img-placeholder svg {
   width: 32px;
@@ -193,23 +192,23 @@ body {
 }
 
 .tv-item-info {
-  flex: 1;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 8px;
 }
 
 .tv-item-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 4px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
 }
 
 .tv-item-name {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 26px;
+  font-size: clamp(20px, 2vw, 26px);
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.1;
@@ -219,19 +218,62 @@ body {
 
 .tv-item-price {
   font-family: 'Outfit', sans-serif;
-  font-size: 24px;
-  font-weight: 300;
+  font-size: clamp(18px, 1.8vw, 24px);
+  font-weight: 400;
   color: var(--accent);
 }
 
 .tv-item-desc {
-  font-size: 14px;
+  font-size: clamp(12px, 1vw, 14px);
   color: var(--text-secondary);
   line-height: 1.3;
+  text-align: center;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ── Responsive adjustments for different TV sizes ── */
+@media (max-width: 1280px) { /* approx 24-inch or lower res */
+  .tv-header {
+    height: 100px;
+    padding: 15px;
+  }
+  .tv-logo {
+    height: 70px;
+  }
+  .tv-main {
+    padding: 0 20px 20px 20px;
+  }
+  .tv-grid {
+    gap: 15px;
+  }
+  .tv-category-items {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 900px) { /* approx 16-inch or lower res */
+  .tv-header {
+    height: 80px;
+  }
+  .tv-logo {
+    height: 50px;
+  }
+  .tv-grid {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .tv-grid::-webkit-scrollbar { width: 0; }
+  .tv-category-items {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    overflow-y: visible;
+  }
+  .tv-category-column {
+    margin-bottom: 30px;
+  }
 }
 
 /* ── Loading ── */
