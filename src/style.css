@@ -1416,3 +1416,66 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* =========================================
+   GLOBAL POP-UP AD
+========================================= */
+.global-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s var(--ease), visibility 0.4s;
+}
+
+.global-popup-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.global-popup-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 40px 32px;
+  max-width: 480px;
+  width: 100%;
+  position: relative;
+  transform: translateY(20px) scale(0.95);
+  transition: transform 0.4s var(--ease);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  text-align: center;
+}
+
+.global-popup-overlay.show .global-popup-content {
+  transform: translateY(0) scale(1);
+}
+
+.global-popup-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--gray);
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.global-popup-close:hover {
+  color: var(--white);
+}

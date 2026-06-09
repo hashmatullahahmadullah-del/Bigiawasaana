@@ -158,6 +158,64 @@ function initCRMData() {
     });
     renderCatering();
   });
+
+  // 5. Load Pop-up Settings
+  loadPopupSettings();
+}
+
+async function loadPopupSettings() {
+  onSnapshot(doc(db, 'settings', 'popup'), (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      document.getElementById('popup-active').checked = data.active || false;
+      document.getElementById('popup-title').value = data.title || '';
+      document.getElementById('popup-message').value = data.message || '';
+      document.getElementById('popup-btn-text').value = data.buttonText || '';
+      document.getElementById('popup-btn-url').value = data.buttonUrl || '';
+      togglePopupEditor(data.active);
+    }
+  });
+}
+
+const popupActiveCheckbox = document.getElementById('popup-active');
+const popupEditor = document.getElementById('popup-editor');
+const btnSavePopup = document.getElementById('btn-save-popup');
+
+function togglePopupEditor(isActive) {
+  if (isActive) {
+    popupEditor.style.opacity = '1';
+    popupEditor.style.pointerEvents = 'auto';
+  } else {
+    popupEditor.style.opacity = '0.5';
+    popupEditor.style.pointerEvents = 'none';
+  }
+}
+
+if (popupActiveCheckbox) {
+  popupActiveCheckbox.addEventListener('change', (e) => {
+    togglePopupEditor(e.target.checked);
+  });
+}
+
+if (btnSavePopup) {
+  btnSavePopup.addEventListener('click', async () => {
+    btnSavePopup.textContent = 'Saving...';
+    try {
+      await setDoc(doc(db, 'settings', 'popup'), {
+        active: popupActiveCheckbox.checked,
+        title: document.getElementById('popup-title').value,
+        message: document.getElementById('popup-message').value,
+        buttonText: document.getElementById('popup-btn-text').value,
+        buttonUrl: document.getElementById('popup-btn-url').value,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      showToast('Pop-Up settings saved successfully');
+    } catch (e) {
+      console.error('Error saving popup settings:', e);
+      showToast('Error saving settings', true);
+    }
+    btnSavePopup.textContent = 'Save Pop-Up Settings';
+  });
 }
 
 // ==========================================
