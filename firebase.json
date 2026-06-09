@@ -19,6 +19,14 @@
       "display.html",
       "display.js"
     ],
+    "headers": [
+      {
+        "source": "/.well-known/**",
+        "headers": [
+          { "key": "Content-Type", "value": "application/octet-stream" }
+        ]
+      }
+    ],
     "rewrites": [
       { "source": "/menu", "destination": "/menu.html" },
       { "source": "/review", "destination": "/review.html" },
