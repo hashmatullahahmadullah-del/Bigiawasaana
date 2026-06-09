@@ -8,12 +8,36 @@ let currentFeaturedIndex = 0;
 let featuredRotationInterval = null;
 
 // ─────────────────────────────────────────────────────────────────
-// AUTO-FULLSCREEN & MANUAL TOGGLE
+// AUTO-FULLSCREEN, MANUAL TOGGLE, & WAKE LOCK
 // ─────────────────────────────────────────────────────────────────
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        console.log('Screen Wake Lock released');
+      });
+      console.log('Screen Wake Lock acquired');
+    }
+  } catch (err) {
+    console.error('Wake Lock error:', err.name, err.message);
+  }
+}
+
+// Re-request wake lock if visibility changes
+document.addEventListener('visibilitychange', async () => {
+  if (wakeLock !== null && document.visibilityState === 'visible') {
+    requestWakeLock();
+  }
+});
+
 document.body.addEventListener('click', () => {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(() => {});
   }
+  requestWakeLock();
 }, { once: true });
 
 document.addEventListener('DOMContentLoaded', () => {
