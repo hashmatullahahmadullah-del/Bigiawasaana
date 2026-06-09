@@ -14,56 +14,35 @@
 </head>
 <body>
 
-  <!-- ══════════ HEADER ══════════ -->
+  <!-- ══════════ CENTERED LOGO HEADER ══════════ -->
   <header class="tv-header">
-    <div class="tv-header-left">
-      <img src="/logo.png" alt="Bigi Awasaana" class="tv-logo-img">
-      <div>
-        <h1 class="tv-brand">BIGI <span>AWASAANA</span></h1>
-        <p class="tv-tagline">Born from the Silk Road · Grilled in Los Angeles</p>
-      </div>
-    </div>
-    <div class="tv-header-right">
-      <div class="tv-clock" id="tv-clock">12:00 PM</div>
-    </div>
+    <img src="/logo.png" alt="Bigi Awasaana" class="tv-logo">
   </header>
 
-  <!-- ══════════ PROMO BANNER (from Firebase) ══════════ -->
-  <div class="tv-promo-banner" id="tv-promo-banner" style="display: none;">
-    <div class="tv-promo-icon">📢</div>
-    <div class="tv-promo-text" id="tv-promo-text"></div>
+  <!-- ══════════ PROMO STRIP (from Firebase TV settings) ══════════ -->
+  <div class="tv-promo-strip" id="tv-promo-strip" style="display: none;">
+    <div class="tv-promo-inner" id="tv-promo-inner"></div>
   </div>
 
-  <!-- ══════════ MAIN CONTENT ══════════ -->
+  <!-- ══════════ CATEGORY TABS ══════════ -->
+  <nav class="tv-category-nav" id="tv-category-nav"></nav>
+
+  <!-- ══════════ MAIN MENU GRID ══════════ -->
   <main class="tv-main" id="tv-main">
-    <!-- TODAY'S SPECIALS (featured items) -->
-    <section class="tv-specials-section" id="tv-specials-section" style="display: none;">
-      <div class="tv-section-header">
-        <span class="tv-section-badge">🔥</span>
-        <h2>Today's Specials</h2>
-      </div>
-      <div class="tv-specials-grid" id="tv-specials-grid"></div>
-    </section>
+    <div class="tv-grid" id="tv-grid"></div>
 
-    <!-- FULL MENU -->
-    <div class="tv-menu-columns" id="tv-menu-columns">
-      <!-- Dynamically injected category columns -->
-    </div>
-
-    <!-- LOADING STATE -->
+    <!-- Loading -->
     <div class="tv-loading" id="tv-loading">
       <div class="tv-loading-spinner"></div>
       <p>Loading Menu…</p>
     </div>
   </main>
 
-  <!-- ══════════ BOTTOM TICKER ══════════ -->
-  <footer class="tv-ticker-wrap">
-    <div class="tv-ticker" id="tv-ticker">
-      <span class="tv-ticker-item">🔥 Fresh off the grill — made to order &nbsp;•&nbsp; Born from the Silk Road. Grilled in Los Angeles. &nbsp;•&nbsp; Follow us @bigiawasaana &nbsp;•&nbsp; Catering available — ask at the counter! &nbsp;•&nbsp;</span>
-      <span class="tv-ticker-item">🔥 Fresh off the grill — made to order &nbsp;•&nbsp; Born from the Silk Road. Grilled in Los Angeles. &nbsp;•&nbsp; Follow us @bigiawasaana &nbsp;•&nbsp; Catering available — ask at the counter! &nbsp;•&nbsp;</span>
-    </div>
-  </footer>
+  <!-- ══════════ SPECIALS BANNER (cycles through featured) ══════════ -->
+  <div class="tv-specials-bar" id="tv-specials-bar" style="display: none;">
+    <span class="tv-specials-label">TODAY'S SPECIAL</span>
+    <span class="tv-specials-text" id="tv-specials-text"></span>
+  </div>
 
   <script type="module" src="/src/tv-menu.js"></script>
 </body>

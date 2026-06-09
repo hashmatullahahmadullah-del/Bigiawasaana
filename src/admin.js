@@ -156,11 +156,58 @@ function initCRMData() {
     snapshot.forEach(d => {
       state.catering.push({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate() || new Date() });
     });
-    renderCatering();
-  });
-
-  // 5. Load Pop-up Settings
+  // 5. Load Pop-up Settings & TV Promo Settings
   loadPopupSettings();
+  loadTvPromoSettings();
+}
+
+async function loadTvPromoSettings() {
+  onSnapshot(doc(db, 'settings', 'tv_promo'), (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      document.getElementById('tv-promo-active').checked = data.active || false;
+      document.getElementById('tv-promo-text').value = data.text || '';
+      toggleTvPromoEditor(data.active);
+    }
+  });
+}
+
+function toggleTvPromoEditor(isActive) {
+  const editor = document.getElementById('tv-promo-editor');
+  if (isActive) {
+    editor.style.opacity = '1';
+    editor.style.pointerEvents = 'auto';
+  } else {
+    editor.style.opacity = '0.5';
+    editor.style.pointerEvents = 'none';
+  }
+}
+
+const tvPromoCheckbox = document.getElementById('tv-promo-active');
+const btnSaveTvPromo = document.getElementById('btn-save-tv-promo');
+
+if (tvPromoCheckbox) {
+  tvPromoCheckbox.addEventListener('change', (e) => {
+    toggleTvPromoEditor(e.target.checked);
+  });
+}
+
+if (btnSaveTvPromo) {
+  btnSaveTvPromo.addEventListener('click', async () => {
+    btnSaveTvPromo.textContent = 'Saving...';
+    try {
+      await setDoc(doc(db, 'settings', 'tv_promo'), {
+        active: tvPromoCheckbox.checked,
+        text: document.getElementById('tv-promo-text').value,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      showToast('TV Promo saved successfully');
+    } catch (e) {
+      console.error('Error saving TV promo:', e);
+      showToast('Error saving TV promo', true);
+    }
+    btnSaveTvPromo.textContent = 'Save TV Promo';
+  });
 }
 
 async function loadPopupSettings() {

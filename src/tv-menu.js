@@ -1,21 +1,14 @@
 import { db } from './firebase.js';
-import { collection, doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot } from 'firebase/firestore';
 
-// ─────────────────────────────────────────────────────────────────
-// CLOCK
-// ─────────────────────────────────────────────────────────────────
-function updateClock() {
-  const el = document.getElementById('tv-clock');
-  if (!el) return;
-  const now = new Date();
-  let h = now.getHours();
-  const m = String(now.getMinutes()).padStart(2, '0');
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  el.textContent = `${h}:${m} ${ampm}`;
-}
-setInterval(updateClock, 1000);
-updateClock();
+let menuItems = [];
+let categories = [];
+let currentCategoryIndex = 0;
+let categoryRotationInterval = null;
+
+let featuredItems = [];
+let currentFeaturedIndex = 0;
+let featuredRotationInterval = null;
 
 // ─────────────────────────────────────────────────────────────────
 // AUTO-FULLSCREEN
@@ -27,120 +20,136 @@ document.body.addEventListener('click', () => {
 }, { once: true });
 
 // ─────────────────────────────────────────────────────────────────
-// LOAD MENU (real-time)
+// INITIALIZE
 // ─────────────────────────────────────────────────────────────────
 function initMenuBoard() {
-  const menuRef = collection(db, 'menu');
-
-  onSnapshot(menuRef, (snapshot) => {
-    const items = [];
+  // Listen for Menu
+  onSnapshot(collection(db, 'menu'), (snapshot) => {
+    menuItems = [];
     snapshot.forEach(d => {
       const data = d.data();
-      items.push({
+      menuItems.push({
         id: d.id,
         name: data.name || 'Untitled',
         desc: data.desc || data.description || '',
         price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
         category: (data.category || 'platters').toLowerCase(),
+        img: data.img || data.image || data.imageUrl || '',
         featured: !!data.featured
       });
     });
 
-    renderMenuBoard(items);
+    processData();
   });
 
-  // Listen for promo/popup settings
-  onSnapshot(doc(db, 'settings', 'popup'), (snap) => {
-    const banner = document.getElementById('tv-promo-banner');
-    const text = document.getElementById('tv-promo-text');
-    if (!snap.exists()) { banner.style.display = 'none'; return; }
-
-    const data = snap.data();
-    if (data.active && data.title) {
-      text.textContent = data.title + (data.message ? ' — ' + data.message.replace(/\n/g, ' ') : '');
-      banner.style.display = 'flex';
+  // Listen for Promo Strip
+  onSnapshot(doc(db, 'settings', 'tv_promo'), (snap) => {
+    const strip = document.getElementById('tv-promo-strip');
+    const inner = document.getElementById('tv-promo-inner');
+    
+    if (snap.exists() && snap.data().active && snap.data().text) {
+      inner.textContent = snap.data().text;
+      strip.style.display = 'block';
     } else {
-      banner.style.display = 'none';
+      strip.style.display = 'none';
     }
   });
 }
 
-// ─────────────────────────────────────────────────────────────────
-// RENDER
-// ─────────────────────────────────────────────────────────────────
-function renderMenuBoard(items) {
-  const loading = document.getElementById('tv-loading');
-  if (loading) loading.style.display = 'none';
+function processData() {
+  document.getElementById('tv-loading').style.display = 'none';
 
-  // ── Featured / Today's Specials ──
-  const specialsSection = document.getElementById('tv-specials-section');
-  const specialsGrid = document.getElementById('tv-specials-grid');
-  const featured = items.filter(i => i.featured);
-
-  if (featured.length > 0) {
-    specialsSection.style.display = 'block';
-    specialsGrid.innerHTML = featured.map((item, i) => `
-      <div class="tv-special-card" style="animation-delay: ${i * 0.1}s">
-        <div>
-          <div class="tv-special-name">${item.name}</div>
-          ${item.desc ? `<div class="tv-special-desc">${item.desc}</div>` : ''}
-        </div>
-        <div class="tv-special-price">$${item.price.toFixed(2)}</div>
-      </div>
-    `).join('');
-  } else {
-    specialsSection.style.display = 'none';
-  }
-
-  // ── Group by category ──
-  const categories = {};
-  items.forEach(item => {
-    const cat = item.category;
-    if (!categories[cat]) categories[cat] = [];
-    categories[cat].push(item);
-  });
-
-  // Sort categories alphabetically, but put "platters" first
-  const catNames = Object.keys(categories).sort((a, b) => {
+  // Process Categories
+  const catSet = new Set(menuItems.map(i => i.category));
+  categories = Array.from(catSet).sort((a, b) => {
     if (a === 'platters') return -1;
     if (b === 'platters') return 1;
     return a.localeCompare(b);
   });
 
-  const columnsContainer = document.getElementById('tv-menu-columns');
-  columnsContainer.innerHTML = catNames.map(cat => {
-    const catItems = categories[cat];
-    return `
-      <div class="tv-menu-col">
-        <div class="tv-menu-col-header">${cat}</div>
-        <div class="tv-menu-col-body">
-          ${catItems.map((item, i) => `
-            <div class="tv-menu-item" style="animation-delay: ${i * 0.05}s">
-              <span class="tv-item-name">${item.name}</span>
-              <span class="tv-item-dots"></span>
-              <span class="tv-item-price">$${item.price.toFixed(2)}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }).join('');
+  renderCategoryNav();
+  showCurrentCategory();
 
-  // Auto-scroll columns that overflow
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.tv-menu-col-body').forEach(col => {
-      if (col.scrollHeight > col.clientHeight) {
-        const distance = col.scrollHeight - col.clientHeight;
-        col.style.setProperty('--scroll-distance', `-${distance}px`);
-        col.classList.add('auto-scrolling');
-      }
-    });
-  });
+  // Start Category Rotation (every 15 seconds)
+  if (categoryRotationInterval) clearInterval(categoryRotationInterval);
+  categoryRotationInterval = setInterval(() => {
+    currentCategoryIndex = (currentCategoryIndex + 1) % categories.length;
+    showCurrentCategory();
+  }, 15000);
+
+  // Process Specials (Featured)
+  featuredItems = menuItems.filter(i => i.featured);
+  const specialsBar = document.getElementById('tv-specials-bar');
+  const specialsText = document.getElementById('tv-specials-text');
+
+  if (featuredItems.length > 0) {
+    specialsBar.style.display = 'flex';
+    updateFeaturedDisplay();
+    
+    // Start Featured Rotation (every 8 seconds)
+    if (featuredRotationInterval) clearInterval(featuredRotationInterval);
+    featuredRotationInterval = setInterval(() => {
+      currentFeaturedIndex = (currentFeaturedIndex + 1) % featuredItems.length;
+      updateFeaturedDisplay();
+    }, 8000);
+  } else {
+    specialsBar.style.display = 'none';
+  }
+}
+
+function updateFeaturedDisplay() {
+  const item = featuredItems[currentFeaturedIndex];
+  const el = document.getElementById('tv-specials-text');
+  if (el && item) {
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.textContent = `${item.name} — ${item.price.toFixed(2)}`;
+      el.style.opacity = '1';
+    }, 400); // fade transition
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
-// INIT
+// RENDER
 // ─────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  initMenuBoard();
-});
+function renderCategoryNav() {
+  const nav = document.getElementById('tv-category-nav');
+  nav.innerHTML = categories.map((cat, idx) => `
+    <div class="tv-cat-tab ${idx === currentCategoryIndex ? 'active' : ''}" id="tab-${idx}">
+      ${cat}
+    </div>
+  `).join('');
+}
+
+function showCurrentCategory() {
+  // Update Nav
+  document.querySelectorAll('.tv-cat-tab').forEach((el, idx) => {
+    el.classList.toggle('active', idx === currentCategoryIndex);
+  });
+
+  const catName = categories[currentCategoryIndex];
+  const items = menuItems.filter(i => i.category === catName);
+  
+  const grid = document.getElementById('tv-grid');
+  
+  // Render Cards (No Dollar Sign)
+  grid.innerHTML = items.map((item, idx) => `
+    <div class="tv-item-card" style="animation-delay: ${idx * 0.05}s">
+      ${item.img 
+        ? `<img src="${item.img}" class="tv-item-img" alt="">` 
+        : `<div class="tv-item-img-placeholder">
+             <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+           </div>`
+      }
+      <div class="tv-item-info">
+        <div class="tv-item-header">
+          <div class="tv-item-name">${item.name}</div>
+          <div class="tv-item-price">${item.price.toFixed(2)}</div>
+        </div>
+        ${item.desc ? `<div class="tv-item-desc">${item.desc}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', initMenuBoard);

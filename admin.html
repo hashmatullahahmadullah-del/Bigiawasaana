@@ -294,40 +294,64 @@
 
         <!-- Marketing View -->
         <section id="marketing-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Marketing & Pop-Ups</h1>
+          <h1 class="crm-view-title">Marketing & Promos</h1>
           
-          <div class="crm-panel mt-m">
-            <h2 class="crm-panel-title">Website Pop-Up Announcement</h2>
-            <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px; max-width: 600px;">Display a global pop-up on the website for important announcements, daily locations, or specials. Customers can dismiss it, and it will stay hidden until you update the message again.</p>
-            
-            <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
-              <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
-                <input type="checkbox" id="popup-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
-                Enable Global Pop-Up
-              </label>
-
-              <div id="popup-editor" style="display: flex; flex-direction: column; gap: 16px;">
-                <div>
-                  <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Pop-Up Title</label>
-                  <input type="text" id="popup-title" placeholder="e.g. Catch us downtown today!" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                </div>
-                <div>
-                  <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Message</label>
-                  <textarea id="popup-message" rows="4" placeholder="Full announcement text..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
-                </div>
-                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                  <div style="flex: 1; min-width: 200px;">
-                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Button Text (Optional)</label>
-                    <input type="text" id="popup-btn-text" placeholder="e.g. Order Now" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                  </div>
-                  <div style="flex: 2; min-width: 200px;">
-                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Button Link URL (Optional)</label>
-                    <input type="url" id="popup-btn-url" placeholder="https://..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                  </div>
-                </div>
-              </div>
+          <div class="crm-dashboard-grid">
+            <!-- Global Website Pop-Up -->
+            <div class="crm-panel mt-m">
+              <h2 class="crm-panel-title">Website Pop-Up Announcement</h2>
+              <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">Display a global pop-up on the website for important announcements.</p>
               
-              <button id="btn-save-popup" class="btn-primary" style="margin-top: 24px; padding: 12px 24px;">Save Pop-Up Settings</button>
+              <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
+                <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
+                  <input type="checkbox" id="popup-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
+                  Enable Website Pop-Up
+                </label>
+
+                <div id="popup-editor" style="display: flex; flex-direction: column; gap: 16px;">
+                  <div>
+                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Pop-Up Title</label>
+                    <input type="text" id="popup-title" placeholder="e.g. Catch us downtown today!" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                  </div>
+                  <div>
+                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Message</label>
+                    <textarea id="popup-message" rows="4" placeholder="Full announcement text..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
+                  </div>
+                  <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Button Text</label>
+                      <input type="text" id="popup-btn-text" placeholder="e.g. Order Now" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Button URL</label>
+                      <input type="url" id="popup-btn-url" placeholder="https://..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                  </div>
+                </div>
+                <button id="btn-save-popup" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save Website Pop-Up</button>
+              </div>
+            </div>
+
+            <!-- TV Menu Promo Strip -->
+            <div class="crm-panel mt-m">
+              <h2 class="crm-panel-title">TV Menu Board Promo</h2>
+              <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">Display a scrolling promotional banner at the top of the TV menu display.</p>
+              
+              <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
+                <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
+                  <input type="checkbox" id="tv-promo-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
+                  Enable TV Promo Banner
+                </label>
+
+                <div id="tv-promo-editor" style="display: flex; flex-direction: column; gap: 16px;">
+                  <div>
+                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Scrolling Promo Text</label>
+                    <textarea id="tv-promo-text" rows="4" placeholder="e.g. FOLLOW US ON INSTAGRAM @BIGIAWASAANA • ASK ABOUT CATERING! •" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit; font-size: 16px;"></textarea>
+                    <p style="font-size: 12px; color: var(--gray); margin-top: 8px;">Tip: Add bullet points (•) at the start and end so it loops cleanly.</p>
+                  </div>
+                </div>
+                <button id="btn-save-tv-promo" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save TV Promo</button>
+              </div>
             </div>
           </div>
         </section>
