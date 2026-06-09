@@ -82,11 +82,37 @@ document.getElementById('cd-init-audio').addEventListener('click', (e) => {
 });
 
 // ─────────────────────────────────────────────────────────────────
-// App init
+// WAKE LOCK (Prevent Screen Sleep)
+// ─────────────────────────────────────────────────────────────────
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        console.log('Screen Wake Lock released');
+      });
+      console.log('Screen Wake Lock acquired');
+    }
+  } catch (err) {
+    console.error('Wake Lock error:', err.name, err.message);
+  }
+}
+
+document.addEventListener('visibilitychange', async () => {
+  if (wakeLock !== null && document.visibilityState === 'visible') {
+    requestWakeLock();
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
+// INITIALIZE
 // ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const auth = getAuth(app);
   signInAnonymously(auth).then(() => {
+    requestWakeLock();
     initDisplay();
   }).catch(err => {
     console.error("Auth failed:", err);

@@ -4,6 +4,31 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
 // ─────────────────────────────────────────────────────────────────
+// WAKE LOCK (Prevent Screen Sleep)
+// ─────────────────────────────────────────────────────────────────
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        console.log('Screen Wake Lock released');
+      });
+      console.log('Screen Wake Lock acquired');
+    }
+  } catch (err) {
+    console.error('Wake Lock error:', err.name, err.message);
+  }
+}
+
+document.addEventListener('visibilitychange', async () => {
+  if (wakeLock !== null && document.visibilityState === 'visible') {
+    requestWakeLock();
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
 // Admin Gate
 // ─────────────────────────────────────────────────────────────────
 // Fullscreen logic
@@ -47,6 +72,7 @@ if (localStorage.getItem('bigi_admin') !== 'true') {
   document.getElementById('kds-denied').style.display = 'flex';
 } else {
   document.getElementById('kds-denied').style.display = 'none';
+  requestWakeLock();
   
   if (sessionStorage.getItem('kds_authenticated') === 'true') {
     document.getElementById('kds-pin-screen').style.display = 'none';
