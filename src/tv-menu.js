@@ -8,13 +8,31 @@ let currentFeaturedIndex = 0;
 let featuredRotationInterval = null;
 
 // ─────────────────────────────────────────────────────────────────
-// AUTO-FULLSCREEN
+// AUTO-FULLSCREEN & MANUAL TOGGLE
 // ─────────────────────────────────────────────────────────────────
 document.body.addEventListener('click', () => {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(() => {});
   }
 }, { once: true });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const fullscreenBtn = document.getElementById('tv-fullscreen-btn');
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // prevent body click
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    });
+  }
+  
+  initMenuBoard();
+});
 
 // ─────────────────────────────────────────────────────────────────
 // INITIALIZE
@@ -135,5 +153,3 @@ function renderAllCategories() {
     `;
   }).join('');
 }
-
-document.addEventListener('DOMContentLoaded', initMenuBoard);
