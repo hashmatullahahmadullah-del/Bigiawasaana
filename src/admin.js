@@ -156,6 +156,9 @@ function initCRMData() {
     snapshot.forEach(d => {
       state.catering.push({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate() || new Date() });
     });
+    renderCatering();
+  });
+
   // 5. Load Pop-up Settings & TV Promo Settings
   loadPopupSettings();
   loadTvPromoSettings();
