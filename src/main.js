@@ -417,13 +417,24 @@ window.openPaymentModal = async () => {
           }
         });
       } catch (e) {
-        console.log('Apple Pay not supported:', e);
+        console.log('Apple Pay not natively supported, showing dummy button for display.');
+        const fakeApBtn = document.getElementById('fake-apple-pay-button');
+        if (fakeApBtn) {
+          fakeApBtn.style.display = 'flex';
+          fakeApBtn.onclick = () => {
+            document.getElementById('card-errors').textContent = 'Apple Pay is only available on iOS devices.';
+          };
+        }
       }
 
       // Google Pay
       try {
         const googlePay = await squarePayments.googlePay(req);
-        await googlePay.attach('#google-pay-button');
+        await googlePay.attach('#google-pay-button', {
+          buttonColor: 'white',
+          buttonType: 'pay',
+          buttonSizeMode: 'fill'
+        });
         const gpBtn = document.getElementById('google-pay-button');
         gpBtn.style.display = 'block';
         gpBtn.onclick = null;
