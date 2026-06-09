@@ -1,4 +1,7 @@
 // Shared mobile nav logic for all pages
+import { db } from './firebase.js';
+import { doc, getDoc } from 'firebase/firestore';
+
 export function initNav(activePage = '') {
   const hamburger = document.getElementById('nav-hamburger');
   const drawer = document.getElementById('nav-mobile-drawer');
@@ -27,9 +30,6 @@ export function initNav(activePage = '') {
 
   checkGlobalPopup();
 }
-
-import { db } from './firebase.js';
-import { doc, getDoc } from 'firebase/firestore';
 
 async function checkGlobalPopup() {
   try {
