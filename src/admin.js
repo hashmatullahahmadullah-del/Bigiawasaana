@@ -421,12 +421,12 @@ window.openEditMenuModal = (id) => {
   document.getElementById("edit-menu-desc").value = data.desc || data.description || "";
   document.getElementById("edit-menu-featured").checked = !!data.featured;
   
-  editMenuModal.style.display = "flex";
+  editMenuModal.classList.add("open");
 };
 
 window.closeEditMenuModal = () => {
   if (editMenuModal) {
-    editMenuModal.style.display = "none";
+    editMenuModal.classList.remove("open");
   }
 };
 
