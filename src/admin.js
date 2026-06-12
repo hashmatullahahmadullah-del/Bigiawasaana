@@ -1,6 +1,7 @@
-import { auth, db } from './firebase.js';
+import { auth, db, storage } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
@@ -341,25 +342,73 @@ const adminMenuList = document.getElementById("admin-menu-list");
 const editMenuModal = document.getElementById("edit-menu-modal");
 const editMenuForm = document.getElementById("edit-menu-form");
 
+// Image upload label listeners
+const addMenuUploadInput = document.getElementById('menu-img-upload');
+const addMenuFilename = document.getElementById('menu-img-filename');
+if (addMenuUploadInput && addMenuFilename) {
+  addMenuUploadInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      addMenuFilename.textContent = e.target.files[0].name;
+    } else {
+      addMenuFilename.textContent = 'No file chosen';
+    }
+  });
+}
+
+const editMenuUploadInput = document.getElementById('edit-menu-img-upload');
+const editMenuFilename = document.getElementById('edit-menu-img-filename');
+if (editMenuUploadInput && editMenuFilename) {
+  editMenuUploadInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      editMenuFilename.textContent = e.target.files[0].name;
+    } else {
+      editMenuFilename.textContent = 'No file chosen';
+    }
+  });
+}
+
+// Upload helper function
+async function uploadImageFile(file) {
+  const storageRef = ref(storage, `menu-images/${Date.now()}_${file.name}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  const downloadUrl = await getDownloadURL(snapshot.ref);
+  return downloadUrl;
+}
+
 if (addMenuForm) {
   addMenuForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const submitBtn = addMenuForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Adding...';
+    submitBtn.disabled = true;
+
     const name = document.getElementById("menu-name").value;
     const price = parseFloat(document.getElementById("menu-price").value);
     const desc = document.getElementById("menu-desc").value;
     const category = document.getElementById("menu-category").value;
-    const img = document.getElementById("menu-img").value;
+    let img = document.getElementById("menu-img").value;
     const featured = document.getElementById("menu-featured").checked;
     
     try {
+      const fileInput = document.getElementById('menu-img-upload');
+      if (fileInput.files.length > 0) {
+        submitBtn.textContent = 'Uploading Image...';
+        img = await uploadImageFile(fileInput.files[0]);
+      }
+
       await addDoc(collection(db, "menu"), { name, price, desc, category, img, featured: !!featured });
       document.getElementById("menu-status").style.display = "block";
       addMenuForm.reset();
+      if (addMenuFilename) addMenuFilename.textContent = 'No file chosen';
       setTimeout(() => { document.getElementById("menu-status").style.display = "none"; }, 3000);
       loadMenuAdmin();
     } catch (err) {
       console.error("Error adding menu item: ", err);
       alert("Failed to add menu item.");
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     }
   });
 }
@@ -447,15 +496,26 @@ window.deleteMenuItem = async (id) => {
 if (editMenuForm) {
   editMenuForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const submitBtn = editMenuForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Saving...';
+    submitBtn.disabled = true;
+
     const id = document.getElementById("edit-menu-id").value;
     const name = document.getElementById("edit-menu-name").value;
     const price = parseFloat(document.getElementById("edit-menu-price").value);
     const category = document.getElementById("edit-menu-category").value;
-    const img = document.getElementById("edit-menu-img").value;
+    let img = document.getElementById("edit-menu-img").value;
     const desc = document.getElementById("edit-menu-desc").value;
     const featured = document.getElementById("edit-menu-featured").checked;
     
     try {
+      const fileInput = document.getElementById('edit-menu-img-upload');
+      if (fileInput.files.length > 0) {
+        submitBtn.textContent = 'Uploading Image...';
+        img = await uploadImageFile(fileInput.files[0]);
+      }
+
       await updateDoc(doc(db, "menu", id), {
         name,
         price,
@@ -469,6 +529,9 @@ if (editMenuForm) {
     } catch (err) {
       console.error("Error updating menu item: ", err);
       alert("Failed to update menu item.");
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     }
   });
 }
