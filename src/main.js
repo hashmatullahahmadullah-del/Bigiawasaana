@@ -28,7 +28,40 @@ let squareCard = null; // Square card payment method instance
 async function loadMenuFromFirestore() {
   const grid = document.getElementById('menu-grid');
   if (grid) {
-    grid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px 0;">Loading menu...</p>';
+    grid.innerHTML = `
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-text-title"></div>
+          <div class="skeleton-text-desc"></div>
+          <div class="skeleton-text-desc short"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-text-title"></div>
+          <div class="skeleton-text-desc"></div>
+          <div class="skeleton-text-desc short"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-text-title"></div>
+          <div class="skeleton-text-desc"></div>
+          <div class="skeleton-text-desc short"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-text-title"></div>
+          <div class="skeleton-text-desc"></div>
+          <div class="skeleton-text-desc short"></div>
+        </div>
+      </div>
+    `;
   }
 
   try {

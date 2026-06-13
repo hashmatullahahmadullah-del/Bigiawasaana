@@ -415,7 +415,17 @@ if (addMenuForm) {
 
 async function loadMenuAdmin() {
   if (!adminMenuList) return;
-  adminMenuList.innerHTML = "<p style=\"color: var(--gray);\">Loading...</p>";
+  adminMenuList.innerHTML = `
+    <tr>
+      <td colspan="5">
+        <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+          <div style="height: 48px; width: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--bg) 8%, var(--border) 18%, var(--bg) 33%); background-size: 1000px 100%; animation: skeleton-shimmer 2s infinite linear;"></div>
+          <div style="height: 48px; width: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--bg) 8%, var(--border) 18%, var(--bg) 33%); background-size: 1000px 100%; animation: skeleton-shimmer 2s infinite linear;"></div>
+          <div style="height: 48px; width: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--bg) 8%, var(--border) 18%, var(--bg) 33%); background-size: 1000px 100%; animation: skeleton-shimmer 2s infinite linear;"></div>
+        </div>
+      </td>
+    </tr>
+  `;
   try {
     const snapshot = await getDocs(collection(db, "menu"));
     if (snapshot.empty) {
