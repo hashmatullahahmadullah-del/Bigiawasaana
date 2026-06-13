@@ -169,6 +169,10 @@ function renderFeaturedMenu() {
       <div class="menu-card-content">
         <h3 class="menu-card-title">${item.name}</h3>
         <p class="menu-card-desc">${item.desc}</p>
+        <div class="menu-card-footer">
+          <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
+          <button class="btn-primary btn-add-cart" onclick="addToCart('${item.id}')">+ Add</button>
+        </div>
       </div>
     `;
     grid.appendChild(card);
