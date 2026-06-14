@@ -152,17 +152,52 @@
       <button onclick="toggleCart(false)" style="background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; padding: 10px;">&times;</button>
     </div>
     
-    <div id="cart-items" style="flex: 1; overflow-y: auto; padding: var(--space-m);"></div>
+    <div id="cart-items" style="flex: 1; overflow-y: auto; padding: var(--space-m);">
+      <!-- Cart items injected here -->
+    </div>
 
-    <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface);">
+    <div style="padding: 0 var(--space-m) var(--space-m); background: var(--bg); border-top: 1px solid var(--border); overflow-y: auto; max-height: 50vh;">
+      <!-- Pickup Selection -->
+      <div id="pickup-selection-container" style="margin-top: 16px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--surface);">
+        <div class="pickup-toggles" style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+          <label style="flex: 1; min-width: 140px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="pickup_type" value="asap" checked onchange="togglePickupType()">
+            <span style="font-size: 14px; font-weight: 600;">Pick up ASAP <span id="asap-estimate" style="color: var(--accent); font-weight: normal;">(~15 min)</span></span>
+          </label>
+          <label style="flex: 1; min-width: 140px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="pickup_type" value="scheduled" onchange="togglePickupType()">
+            <span style="font-size: 14px;">Schedule for later</span>
+          </label>
+        </div>
+        
+        <div id="scheduled-pickup-options" style="display: none; padding-top: 12px; border-top: 1px solid var(--border);">
+          <div class="pickup-time-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-size: 12px; color: var(--gray); display: block; margin-bottom: 4px;">Date</label>
+              <select id="pickup-date-select" onchange="updateTimeSlots()" style="width: 100%; padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px;">
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 12px; color: var(--gray); display: block; margin-bottom: 4px;">Time</label>
+              <select id="pickup-time-select" style="width: 100%; padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px;">
+              </select>
+            </div>
+          </div>
+          <div id="pickup-time-warning" style="display: none; color: #ff4444; font-size: 12px; margin-top: 8px;">Selected time is unavailable.</div>
+        </div>
+      </div>
+
       <div style="margin-bottom: var(--space-s);">
         <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Order Name</label>
-        <input type="text" id="customer-name" placeholder="E.g., John Doe" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
+        <input type="text" id="customer-name" placeholder="E.g., John Doe" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
       </div>
       <div style="margin-bottom: var(--space-m);">
         <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Phone Number</label>
-        <input type="tel" id="customer-phone" placeholder="(123) 456-7890" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
+        <input type="tel" id="customer-phone" placeholder="(123) 456-7890" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
       </div>
+    </div>
+
+    <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface);">
 
       <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-m); font-size: 20px; font-weight: 700; font-family: 'Barlow Condensed'; letter-spacing: 1px;">
         <span>TOTAL</span>
@@ -184,34 +219,13 @@
         <button onclick="closePaymentModal()" style="background: none; border: none; color: var(--gray); font-size: 28px; cursor: pointer; padding: 4px 8px; line-height: 1;">&times;</button>
       </div>
 
-      <!-- Pickup Selection -->
-      <div style="margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--bg);">
-        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
-          <label style="flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="radio" name="pickup_type" value="asap" checked onchange="togglePickupType()">
-            <span style="font-size: 14px; font-weight: 600;">Pick up ASAP <span id="asap-estimate" style="color: var(--accent); font-weight: normal;">(~15 min)</span></span>
-          </label>
-          <label style="flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="radio" name="pickup_type" value="scheduled" onchange="togglePickupType()">
-            <span style="font-size: 14px;">Schedule for later</span>
-          </label>
+      <!-- Pickup Summary (Read-Only) -->
+      <div style="margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--surface); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Pickup Time</label>
+          <div id="payment-pickup-summary" style="font-size: 15px; font-weight: 600;">ASAP</div>
         </div>
-        
-        <div id="scheduled-pickup-options" style="display: none; padding-top: 12px; border-top: 1px solid var(--border);">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div>
-              <label style="font-size: 12px; color: var(--gray); display: block; margin-bottom: 4px;">Date</label>
-              <select id="pickup-date-select" onchange="updateTimeSlots()" style="width: 100%; padding: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px;">
-              </select>
-            </div>
-            <div>
-              <label style="font-size: 12px; color: var(--gray); display: block; margin-bottom: 4px;">Time</label>
-              <select id="pickup-time-select" style="width: 100%; padding: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px;">
-              </select>
-            </div>
-          </div>
-          <div id="pickup-time-warning" style="display: none; color: #ff4444; font-size: 12px; margin-top: 8px;">Selected time is unavailable.</div>
-        </div>
+        <button onclick="editPickupTime()" style="background: none; border: none; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: underline;">Change</button>
       </div>
 
       <!-- Order Summary -->

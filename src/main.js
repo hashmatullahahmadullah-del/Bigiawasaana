@@ -555,7 +555,17 @@ window.openPaymentModal = async () => {
     return;
   }
 
+  // Validate pickup selection
+  let pickupPayload;
+  try {
+    pickupPayload = getPickupPayload();
+  } catch (err) {
+    showToast(err.message);
+    return;
+  }
+
   // Show modal
+
   const modal = document.getElementById('payment-modal');
   modal.style.display = 'flex';
 
@@ -565,6 +575,19 @@ window.openPaymentModal = async () => {
   document.getElementById('payment-processing').style.display = 'none';
   document.getElementById('payment-success').style.display = 'none';
   document.getElementById('card-errors').textContent = '';
+
+  // Update read-only pickup summary
+  const summaryElPickup = document.getElementById('payment-pickup-summary');
+  if (pickupPayload.pickupType === 'asap') {
+    const asapEstimate = document.getElementById('asap-estimate')?.textContent || '';
+    summaryElPickup.innerHTML = `ASAP <span style="color: var(--accent); font-weight: normal;">${asapEstimate}</span>`;
+  } else {
+    const dateEl = document.getElementById('pickup-date-select');
+    const timeEl = document.getElementById('pickup-time-select');
+    const dateText = dateEl.options[dateEl.selectedIndex]?.text || '';
+    const timeText = timeEl.options[timeEl.selectedIndex]?.text || '';
+    summaryElPickup.textContent = `${dateText}, ${timeText}`;
+  }
 
   // Build order summary with tax + tip
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -772,6 +795,13 @@ window.closePaymentModal = () => {
   document.getElementById('google-pay-button').style.display = 'none';
   document.getElementById('apple-pay-button').innerHTML = '';
   document.getElementById('google-pay-button').innerHTML = '';
+};
+
+window.editPickupTime = () => {
+  window.closePaymentModal();
+  if (typeof window.toggleCart === 'function') {
+    window.toggleCart(true);
+  }
 };
 
 // ─────────────────────────────────────────────────────────────────

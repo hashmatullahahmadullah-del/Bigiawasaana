@@ -1630,3 +1630,14 @@ body {
   margin-top: 8px;
 }
 
+/* =========================================
+   PICKUP UI RESPONSIVENESS
+========================================= */
+@media (max-width: 400px) {
+  .pickup-time-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .pickup-toggles {
+    flex-direction: column;
+  }
+}
