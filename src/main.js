@@ -757,40 +757,7 @@ function showToast(message) {
   }, 3000);
 }
 
-// ─────────────────────────────────────────────────────────────────
-// COUNTDOWN TIMER
-// ─────────────────────────────────────────────────────────────────
-function initCountdown() {
-  const openingDate = new Date('June 10, 2026 00:00:00').getTime();
-  
-  const daysEl = document.getElementById('cd-days');
-  const hoursEl = document.getElementById('cd-hours');
-  const minsEl = document.getElementById('cd-mins');
-  const secsEl = document.getElementById('cd-secs');
-  
-  if (!daysEl) return;
-  
-  const timer = setInterval(() => {
-    const now = new Date().getTime();
-    const distance = openingDate - now;
-    
-    if (distance < 0) {
-      clearInterval(timer);
-      document.getElementById('countdown').innerHTML = '<div style="font-size: 24px; color: var(--accent); font-weight: 700; font-family: \'Barlow Condensed\';">WE ARE OPEN!</div>';
-      return;
-    }
-    
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    
-    daysEl.textContent = days.toString().padStart(2, '0');
-    hoursEl.textContent = hours.toString().padStart(2, '0');
-    minsEl.textContent = minutes.toString().padStart(2, '0');
-    secsEl.textContent = seconds.toString().padStart(2, '0');
-  }, 1000);
-}
+
 
 // ─────────────────────────────────────────────────────────────────
 // SCROLL REVEAL ANIMATION
@@ -815,7 +782,7 @@ function initReveal() {
 document.addEventListener('DOMContentLoaded', () => {
   loadMenuFromFirestore();
   updateCartUI();
-  initCountdown();
+
   initReveal();
   initSquarePayments();
 });
