@@ -163,6 +163,7 @@ function initCRMData() {
     renderAllOrders();
     renderUpcomingScheduledOrders();
     renderLoyalty();
+    if (typeof renderEconomics === 'function') renderEconomics();
   });
 
   // 4. Listen to Catering Inquiries
@@ -617,6 +618,7 @@ async function loadMenuAdmin() {
     });
     adminMenuList.innerHTML = html;
     if (typeof populateDealSelects === 'function') populateDealSelects();
+    if (typeof renderEconomics === 'function') renderEconomics();
   } catch (err) {
     console.error("Error loading menu: ", err);
     adminMenuList.innerHTML = "<p style=\"color: var(--accent);\">Failed to load menu.</p>";
@@ -1570,7 +1572,8 @@ function calculateItemEconomics(itemData) {
   totalCost += parseFloat(eco.miscCost || 0);
 
   // 3. Margin & %
-  const price = parseFloat(itemData.price || 0);
+  const priceStr = String(itemData.price || 0).replace('$', '');
+  const price = parseFloat(priceStr) || 0;
   const contributionMargin = price - totalCost;
   const foodCostPercent = price > 0 ? (totalCost / price) * 100 : 0;
 
@@ -1638,7 +1641,7 @@ function renderEconomicsMenu() {
     html += `
       <tr style="border-bottom: 1px solid var(--border);">
         <td style="padding: 12px; font-weight: 600;">${i.item.name}</td>
-        <td style="padding: 12px;">$${parseFloat(i.item.price).toFixed(2)}</td>
+        <td style="padding: 12px;">$${(parseFloat(String(i.item.price || 0).replace('$', '')) || 0).toFixed(2)}</td>
         <td style="padding: 12px;">$${i.totalCost.toFixed(2)}</td>
         <td style="padding: 12px; color: var(--accent); font-weight: bold;">$${i.contributionMargin.toFixed(2)}</td>
         <td style="padding: 12px;">
@@ -1752,13 +1755,16 @@ window.saveRecipe = async (e, menuId) => {
   const validIngs = window._tempRecipeIngredients.filter(i => i.ingredientId && i.quantity > 0);
 
   try {
-    await updateDoc(doc(db, 'menu', menuId), {
-      economics: {
-        ingredients: validIngs,
-        packagingCost: packCost,
-        miscCost: miscCost
-      }
-    });
+    const ecoUpdate = {
+      ingredients: validIngs,
+      packagingCost: packCost,
+      miscCost: miscCost
+    };
+    await updateDoc(doc(db, 'menu', menuId), { economics: ecoUpdate });
+    
+    // Update local cache to reflect changes immediately
+    window.adminMenuData[menuId].economics = ecoUpdate;
+
     showToast('Recipe saved successfully');
     closeEditRecipeModal();
     renderEconomics();
@@ -2216,7 +2222,8 @@ function renderEconomicsDelivery() {
   `;
 
   items.forEach(i => {
-    const price = parseFloat(i.item.price || 0);
+    const priceStr = String(i.item.price || 0).replace('$', '');
+    const price = parseFloat(priceStr) || 0;
     
     // Calculates margin after taking away the commission % from the revenue
     const ddMargin = price - (price * ((platforms.doordash||0)/100)) - i.totalCost;
@@ -2251,8 +2258,14 @@ window.savePlatformRates = async () => {
   const grubhub = parseFloat(document.getElementById('plat-gh').value) || 0;
 
   try {
-    await setDoc(doc(db, 'unitEconomics_platforms', 'rates'), { doordash, ubereats, grubhub }, { merge: true });
+    const newRates = { doordash, ubereats, grubhub };
+    await setDoc(doc(db, 'unitEconomics_platforms', 'rates'), newRates, { merge: true });
+    
+    // Update local cache
+    state.unitPlatforms = { ...state.unitPlatforms, ...newRates };
+    
     showToast('Platform rates updated');
+    renderEconomics();
   } catch(err) {
     console.error(err);
     showToast('Error saving rates', true);
