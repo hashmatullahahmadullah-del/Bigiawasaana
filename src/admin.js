@@ -7,8 +7,29 @@ const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
 const loginForm = document.getElementById('login-form');
 const logoutBtn = document.getElementById('logout-btn');
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const navOverlay = document.getElementById('crm-nav-overlay');
+const crmNav = document.querySelector('.crm-nav');
 const errorEl = document.getElementById('login-error');
 const ordersList = document.getElementById('orders-list');
+
+// Mobile Nav Logic
+function toggleMobileMenu() {
+  const isOpen = crmNav.classList.contains('open');
+  if (isOpen) {
+    crmNav.classList.remove('open');
+    navOverlay.style.display = 'none';
+    navOverlay.style.opacity = '0';
+  } else {
+    crmNav.classList.add('open');
+    navOverlay.style.display = 'block';
+    // Small delay to allow display: block to apply before opacity transition
+    setTimeout(() => navOverlay.style.opacity = '1', 10);
+  }
+}
+
+mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+navOverlay.addEventListener('click', toggleMobileMenu);
 
 let state = {
   customers: [],
@@ -1108,6 +1129,14 @@ document.querySelectorAll('.crm-nav-item').forEach(btn => {
     const targetId = btn.dataset.target;
     btn.classList.add('active');
     document.getElementById(targetId).style.display = 'block';
+    
+    // Close mobile menu if open
+    if (window.innerWidth <= 768 && typeof toggleMobileMenu === 'function') {
+      const crmNav = document.querySelector('.crm-nav');
+      if (crmNav && crmNav.classList.contains('open')) {
+        toggleMobileMenu();
+      }
+    }
   });
 });
 
@@ -1640,16 +1669,16 @@ function renderEconomicsMenu() {
     const color = getFoodCostColor(i.foodCostPercent);
     html += `
       <tr style="border-bottom: 1px solid var(--border);">
-        <td style="padding: 12px; font-weight: 600;">${i.item.name}</td>
-        <td style="padding: 12px;">$${(parseFloat(String(i.item.price || 0).replace('$', '')) || 0).toFixed(2)}</td>
-        <td style="padding: 12px;">$${i.totalCost.toFixed(2)}</td>
-        <td style="padding: 12px; color: var(--accent); font-weight: bold;">$${i.contributionMargin.toFixed(2)}</td>
-        <td style="padding: 12px;">
+        <td data-label="Item" style="padding: 12px; font-weight: 600;">${i.item.name}</td>
+        <td data-label="Price" style="padding: 12px;">$${(parseFloat(String(i.item.price || 0).replace('$', '')) || 0).toFixed(2)}</td>
+        <td data-label="Total Cost" style="padding: 12px;">$${i.totalCost.toFixed(2)}</td>
+        <td data-label="Margin ($)" style="padding: 12px; color: var(--accent); font-weight: bold;">$${i.contributionMargin.toFixed(2)}</td>
+        <td data-label="Food Cost %" style="padding: 12px;">
           <span style="background: ${color}22; color: ${color}; padding: 4px 8px; border-radius: 4px; font-weight: bold;">
             ${i.foodCostPercent.toFixed(1)}%
           </span>
         </td>
-        <td style="padding: 12px;">
+        <td data-label="Actions" style="padding: 12px;">
           <button class="btn-outline btn-small" onclick="openEditRecipeModal('${i.id}')">Edit Recipe</button>
         </td>
       </tr>
@@ -1698,11 +1727,11 @@ window.openEditRecipeModal = (menuId) => {
   window._tempRecipeIngredients = [...ingredients];
   renderRecipeIngredientRows();
 
-  document.getElementById('edit-recipe-modal').style.display = 'flex';
+  document.getElementById('edit-recipe-modal').classList.add('open');
 };
 
 window.closeEditRecipeModal = () => {
-  document.getElementById('edit-recipe-modal').style.display = 'none';
+  document.getElementById('edit-recipe-modal').classList.remove('open');
 };
 
 function renderRecipeIngredientRows() {
@@ -1733,6 +1762,10 @@ function renderRecipeIngredientRows() {
 }
 
 window.addRecipeIngredientRow = () => {
+  if (window._tempRecipeIngredients.some(i => !i.ingredientId || i.quantity <= 0)) {
+    showToast('Please fill out existing ingredient rows first', true);
+    return;
+  }
   window._tempRecipeIngredients.push({ ingredientId: '', quantity: 0 });
   renderRecipeIngredientRows();
 };
@@ -1813,9 +1846,9 @@ function renderEconomicsIngredients() {
     state.ingredients.forEach(ing => {
       html += `
         <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 12px; font-weight: 600;">${ing.name}</td>
-          <td style="padding: 12px;">$${ing.costPerUnit.toFixed(3)} / ${ing.unit}</td>
-          <td style="padding: 12px;">
+          <td data-label="Name" style="padding: 12px; font-weight: 600;">${ing.name}</td>
+          <td data-label="Cost Per Unit" style="padding: 12px;">$${ing.costPerUnit.toFixed(3)} / ${ing.unit}</td>
+          <td data-label="Actions" style="padding: 12px;">
             <button class="btn-outline btn-small" onclick="deleteIngredient('${ing.id}')" style="padding: 4px 8px; border-color: rgba(255,69,0,0.4); color: var(--accent);">Delete</button>
           </td>
         </tr>
@@ -1991,12 +2024,12 @@ function renderEconomicsLaborEvents() {
 
       html += `
         <tr style="border-bottom: 1px solid var(--border); cursor: pointer;" onclick="openEditEventModal('${ev.id}')">
-          <td style="padding: 12px; font-weight: 600; color: var(--white);">${ev.name}</td>
-          <td style="padding: 12px;">${ev.date.toLocaleDateString()}</td>
-          <td style="padding: 12px;">$${totalFixed.toFixed(2)}</td>
-          <td style="padding: 12px; color: var(--accent); font-weight: bold;">${breakEven}</td>
-          <td style="padding: 12px;">${ev.actualOrders || '-'}</td>
-          <td style="padding: 12px;">${statusHtml}</td>
+          <td data-label="Event Name" style="padding: 12px; font-weight: 600; color: var(--white);">${ev.name}</td>
+          <td data-label="Date" style="padding: 12px;">${ev.date.toLocaleDateString()}</td>
+          <td data-label="Fixed Costs" style="padding: 12px;">$${totalFixed.toFixed(2)}</td>
+          <td data-label="Break-Even Orders" style="padding: 12px; color: var(--accent); font-weight: bold;">${breakEven}</td>
+          <td data-label="Actual Orders" style="padding: 12px;">${ev.actualOrders || '-'}</td>
+          <td data-label="Status" style="padding: 12px;">${statusHtml}</td>
         </tr>
       `;
     });
@@ -2238,12 +2271,12 @@ function renderEconomicsDelivery() {
 
     html += `
       <tr style="border-bottom: 1px solid var(--border);">
-        <td style="padding: 12px; font-weight: 600;">${i.item.name}</td>
-        <td style="padding: 12px;">$${price.toFixed(2)}</td>
-        <td style="padding: 12px; color: var(--accent); font-weight: bold;">$${i.contributionMargin.toFixed(2)}</td>
-        <td style="padding: 12px; background: rgba(255,51,51,0.05);">${fmtMargin(ddMargin)}</td>
-        <td style="padding: 12px; background: rgba(6,193,103,0.05);">${fmtMargin(ueMargin)}</td>
-        <td style="padding: 12px; background: rgba(255,128,0,0.05);">${fmtMargin(ghMargin)}</td>
+        <td data-label="Item" style="padding: 12px; font-weight: 600;">${i.item.name}</td>
+        <td data-label="Price" style="padding: 12px;">$${price.toFixed(2)}</td>
+        <td data-label="In-Store Margin" style="padding: 12px; color: var(--accent); font-weight: bold;">$${i.contributionMargin.toFixed(2)}</td>
+        <td data-label="DoorDash Margin" style="padding: 12px; background: rgba(255,51,51,0.05);">${fmtMargin(ddMargin)}</td>
+        <td data-label="Uber Eats Margin" style="padding: 12px; background: rgba(6,193,103,0.05);">${fmtMargin(ueMargin)}</td>
+        <td data-label="Grubhub Margin" style="padding: 12px; background: rgba(255,128,0,0.05);">${fmtMargin(ghMargin)}</td>
       </tr>
     `;
   });
