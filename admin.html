@@ -85,6 +85,10 @@
             <span class="icon">⏱️</span>
             <span class="label">Pickup Settings</span>
           </button>
+          <button class="crm-nav-item" data-target="economics-view">
+            <span class="icon">📈</span>
+            <span class="label">Unit Economics</span>
+          </button>
         </div>
       </nav>
 
@@ -95,6 +99,8 @@
         <section id="dashboard-view" class="crm-view active">
           <h1 class="crm-view-title">Overview</h1>
           
+          <div id="food-cost-alert-container" style="margin-bottom: 24px; display: none;"></div>
+
           <div class="crm-stats-grid">
             <div class="crm-stat-card">
               <div class="stat-title">Total Customers</div>
@@ -541,6 +547,34 @@
           </div>
         </section>
 
+        <!-- Unit Economics View -->
+        <section id="economics-view" class="crm-view">
+          <h1 class="crm-view-title">Unit Economics & Profitability</h1>
+          
+          <div class="crm-subnav" style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+            <button class="btn-outline active" id="btn-eco-menu" onclick="switchEconomicsTab('menu')">Menu Profitability</button>
+            <button class="btn-outline" id="btn-eco-ingredients" onclick="switchEconomicsTab('ingredients')">Ingredients</button>
+            <button class="btn-outline" id="btn-eco-labor" onclick="switchEconomicsTab('labor')">Labor & Events</button>
+            <button class="btn-outline" id="btn-eco-delivery" onclick="switchEconomicsTab('delivery')">Delivery Impact</button>
+          </div>
+
+          <div id="eco-tab-menu" class="eco-tab">
+            <!-- Rendered by JS -->
+          </div>
+          
+          <div id="eco-tab-ingredients" class="eco-tab" style="display: none;">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div id="eco-tab-labor" class="eco-tab" style="display: none;">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div id="eco-tab-delivery" class="eco-tab" style="display: none;">
+            <!-- Rendered by JS -->
+          </div>
+        </section>
+
       </main>
     </div>
   </section>
@@ -613,6 +647,36 @@
             <button type="button" class="btn-outline" style="flex: 1;" onclick="closeEditMenuModal()">Cancel</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Recipe Modal -->
+  <div class="crm-modal" id="edit-recipe-modal">
+    <div class="crm-modal-box" style="max-width: 600px;">
+      <div class="crm-modal-header">
+        <h2 id="edit-recipe-title">Edit Recipe</h2>
+        <button class="crm-btn-icon" onclick="closeEditRecipeModal()">×</button>
+      </div>
+      <div class="crm-modal-content">
+        <div id="recipe-editor-container">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Event Modal -->
+  <div class="crm-modal" id="edit-event-modal">
+    <div class="crm-modal-box">
+      <div class="crm-modal-header">
+        <h2 id="edit-event-title">Event Analyzer</h2>
+        <button class="crm-btn-icon" onclick="closeEditEventModal()">×</button>
+      </div>
+      <div class="crm-modal-content">
+        <div id="event-editor-container">
+          <!-- Rendered by JS -->
+        </div>
       </div>
     </div>
   </div>
