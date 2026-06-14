@@ -1560,3 +1560,73 @@ body {
 .global-popup-close:hover {
   color: var(--white);
 }
+
+/* =========================================
+   DEALS & PROMOTIONS CARDS
+========================================= */
+.deals-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.promo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px 24px var(--space-m) 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: transform 0.3s var(--ease), border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+
+.promo-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px rgba(255, 69, 0, 0.15);
+}
+
+.promo-badge {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  background: var(--accent);
+  color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(255, 69, 0, 0.3);
+}
+
+.promo-title {
+  font-family: 'Lalezar', cursive;
+  font-size: 24px;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  line-height: 1.1;
+  color: var(--white);
+}
+
+.promo-desc {
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.promo-meta {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+

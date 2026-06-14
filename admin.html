@@ -77,6 +77,10 @@
             <span class="icon">📢</span>
             <span class="label">Marketing</span>
           </button>
+          <button class="crm-nav-item" data-target="deals-view">
+            <span class="icon">🏷️</span>
+            <span class="label">Deals & Combos</span>
+          </button>
         </div>
       </nav>
 
@@ -361,6 +365,175 @@
                 <button id="btn-save-tv-promo" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save TV Promo</button>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- Deals & Combos View -->
+        <section id="deals-view" class="crm-view" style="display: none;">
+          <h1 class="crm-view-title">Deals & Combos Manager</h1>
+          
+          <div class="crm-dashboard-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start;">
+            
+            <!-- Left Panel: Create / Edit Deal Form -->
+            <div class="crm-panel">
+              <h2 class="crm-panel-title" id="deal-form-title">Create New Deal</h2>
+              <form id="deal-form" style="display: flex; flex-direction: column; gap: 16px;">
+                <input type="hidden" id="deal-id">
+                
+                <!-- Section 1: Basic Info -->
+                <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
+                  <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">1. General Details</h3>
+                  
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Deal Title *</label>
+                      <input type="text" id="deal-title" placeholder="e.g. Kabob Lovers Deal" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Promo Badge (Optional)</label>
+                      <input type="text" id="deal-badge" placeholder="e.g. Website Only, Limited" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Description *</label>
+                    <textarea id="deal-desc" rows="2" placeholder="e.g. Buy any 2 Kabob Plates, get 1 drink free!" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Deal Type *</label>
+                      <select id="deal-type" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; height: 38px;">
+                        <option value="percent_off">Percent Off (% off)</option>
+                        <option value="fixed_off">Fixed Off ($ off)</option>
+                        <option value="bogo">BOGO (Buy X Get Y)</option>
+                        <option value="free_item">Free Item</option>
+                        <option value="bundle_price">Bundle Price (Fixed Package)</option>
+                        <option value="combo">Combo Deal</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Priority (Higher = Evaluated First)</label>
+                      <input type="number" id="deal-priority" value="0" min="0" step="1" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Start Date & Time (Optional)</label>
+                      <input type="datetime-local" id="deal-start" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">End Date & Time (Optional)</label>
+                      <input type="datetime-local" id="deal-end" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Usage Limit Per Order (Optional)</label>
+                      <input type="number" id="deal-limit" placeholder="Unlimited" min="1" step="1" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 6px; margin-top: 15px;">
+                      <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
+                        <input type="checkbox" id="deal-active" checked style="accent-color: var(--accent);"> Active Promotion
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
+                        <input type="checkbox" id="deal-showonsite" checked style="accent-color: var(--accent);"> Show Promo Card on Website
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
+                        <input type="checkbox" id="deal-stackable" style="accent-color: var(--accent);"> Stackable with other deals
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section 2: Trigger Conditions -->
+                <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
+                  <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">2. Trigger Conditions (Who Qualifies)</h3>
+                  
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 14px; user-select: none; cursor: pointer;">
+                      <input type="checkbox" id="deal-cond-order" style="accent-color: var(--accent);"> Applies to Whole Order
+                    </label>
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Min Quantity / Min Order Spend</label>
+                      <input type="number" id="deal-cond-qty" value="1" min="0" step="0.01" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Required Menu Items</label>
+                      <div class="multiselect-list" id="deal-cond-items" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Dynamically populated checkboxes -->
+                      </div>
+                    </div>
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Required Categories</label>
+                      <div class="multiselect-list" id="deal-cond-categories" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Dynamically populated checkboxes -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section 3: Reward Details -->
+                <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
+                  <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">3. Reward Details (What They Get)</h3>
+                  
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Discount Type</label>
+                      <select id="deal-reward-type" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; height: 38px;">
+                        <option value="percent">Percentage Off (%)</option>
+                        <option value="fixed">Fixed Off Amount ($)</option>
+                        <option value="freeItem">Free Item (100% off)</option>
+                        <option value="fixedBundlePrice">Fixed Bundle Price</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Discount / Bundle Value *</label>
+                      <input type="number" id="deal-reward-val" placeholder="e.g. 10 for 10% or 29.99 for bundle" required step="0.01" min="0" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Reward/Free Items (BOGO/Free Item)</label>
+                      <div class="multiselect-list" id="deal-reward-items" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Dynamically populated checkboxes -->
+                      </div>
+                    </div>
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Reward Quantity</label>
+                      <input type="number" id="deal-reward-qty" value="1" min="1" step="1" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 8px;">
+                  <button type="submit" id="deal-save-btn" class="btn-primary" style="flex: 1; padding: 12px;">Save Promotion</button>
+                  <button type="button" id="deal-cancel-btn" class="btn-outline" style="flex: 1; padding: 12px; display: none;">Cancel Edit</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Right Panel: Deals List -->
+            <div class="crm-panel">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 class="crm-panel-title" style="margin-bottom: 0;">Active & Scheduled Promotions</h2>
+                <select id="deal-filter" class="crm-select" style="padding: 6px 12px; font-size: 13px; width: 140px;">
+                  <option value="all">All Deals</option>
+                  <option value="active">Active Only</option>
+                  <option value="inactive">Inactive Only</option>
+                </select>
+              </div>
+              <div id="admin-deals-list" style="display: flex; flex-direction: column; gap: 16px; max-height: 800px; overflow-y: auto;">
+                <p style="color: var(--gray); text-align: center; padding: 40px 0;">Loading promotions...</p>
+              </div>
+            </div>
+
           </div>
         </section>
 

@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 const cors = require('cors');
 const crypto = require('crypto');
 const { Client, Environment, ApiError } = require('square');
+const { evaluateDeals } = require('./deals-evaluator');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -68,6 +69,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
 
   // ── Step 1: Fetch item prices from Firestore (server-side, tamper-proof) ──
   const resolvedItems = [];
+  const menuItems = [];
   let subtotalCents = 0;
 
   for (const cartItem of items) {
@@ -86,6 +88,8 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('internal', `Invalid price for item: ${menuData.name}`);
     }
 
+    menuItems.push({ id: cartItem.id, ...menuData, price });
+
     const itemTotalCents = Math.round(price * 100) * cartItem.qty;
     subtotalCents += itemTotalCents;
 
@@ -101,9 +105,18 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', 'Order subtotal must be greater than zero.');
   }
 
+  // ── Step 1.5: Evaluate Deals ──
+  const dealsSnapshot = await db.collection('deals').where('active', '==', true).get();
+  const activeDeals = dealsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+  const evalResult = evaluateDeals(items, activeDeals, menuItems);
+  const discountCents = evalResult.discountCents;
+  
+  const discountedSubtotalCents = Math.max(0, subtotalCents - discountCents);
+
   // ── Step 2: Server-side tax calculation ──
-  const taxCents = Math.round(subtotalCents * TAX_RATE);
-  const totalCents = subtotalCents + taxCents + tipCents;
+  const taxCents = Math.round(discountedSubtotalCents * TAX_RATE);
+  const totalCents = discountedSubtotalCents + taxCents + tipCents;
 
   // ── Step 3: Create Square Order ──
   const squareClient = getSquareClient();
@@ -116,20 +129,51 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
   const idempotencyKey = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const paymentIdempotencyKey = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+  const squareLineItems = [];
+  const unitGroups = {};
+  for (const u of evalResult.units) {
+    const key = `${u.itemId}_${u.discountCents}`;
+    if (!unitGroups[key]) {
+      unitGroups[key] = {
+        name: u.name,
+        priceCents: u.priceCents,
+        discountCents: u.discountCents,
+        quantity: 0
+      };
+    }
+    unitGroups[key].quantity++;
+  }
+
+  for (const key in unitGroups) {
+    const group = unitGroups[key];
+    const itemName = group.discountCents > 0 ? `${group.name} (Discounted)` : group.name;
+    squareLineItems.push({
+      name: itemName,
+      quantity: String(group.quantity),
+      basePriceMoney: {
+        amount: BigInt(group.priceCents),
+        currency: 'USD',
+      },
+    });
+  }
+
   let squareOrderId;
   try {
     const orderResponse = await squareClient.ordersApi.createOrder({
       order: {
         locationId,
         referenceId: idempotencyKey,
-        lineItems: resolvedItems.map(item => ({
-          name: item.name,
-          quantity: String(item.quantity),
-          basePriceMoney: {
-            amount: BigInt(Math.round(item.price * 100)),
+        lineItems: squareLineItems,
+        taxes: [{
+          name: 'Sales Tax',
+          scope: 'ORDER',
+          type: 'ADDITIVE',
+          percentage: (TAX_RATE * 100).toFixed(2),
+          appliedMoney: {
+            amount: BigInt(taxCents),
             currency: 'USD',
-          },
-        })),
+          }
+        }],
         metadata: {
           source: 'website',
           customerName: customerName.trim(),
@@ -220,10 +264,14 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
       price: item.price,
     })),
     subtotal: subtotalCents / 100,
+    discount: discountCents / 100,
+    discountedSubtotal: discountedSubtotalCents / 100,
     tax: taxCents / 100,
     tip: tipCents / 100,
     total: totalCents / 100,
     subtotalCents,
+    discountCents,
+    discountedSubtotalCents,
     taxCents,
     tipCents,
     totalCents,

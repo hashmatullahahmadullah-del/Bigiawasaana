@@ -1,8 +1,9 @@
 import './style.css';
 import { db } from './firebase.js';
-import { collection, addDoc, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, serverTimestamp, onSnapshot, query, where } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from './firebase.js';
+import { evaluateDeals } from './lib/deals-evaluator.js';
 
 // ─────────────────────────────────────────────────────────────────
 // SQUARE CONFIGURATION
@@ -20,6 +21,7 @@ const processSquarePayment = httpsCallable(functions, 'processSquarePayment');
 // Menu data loaded from Firestore
 let menuItems = [];
 let cart = [];
+let activeDeals = [];
 let squareCard = null; // Square card payment method instance
 
 // ─────────────────────────────────────────────────────────────────
@@ -98,6 +100,7 @@ async function loadMenuFromFirestore() {
   }
 
   renderMenu('all');
+  initDealsListener();
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -213,6 +216,55 @@ function renderFeaturedMenu() {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// DEALS RENDERING & LISTENER
+// ─────────────────────────────────────────────────────────────────
+function initDealsListener() {
+  const dealsRef = collection(db, 'deals');
+  const q = query(dealsRef, where('active', '==', true));
+  
+  onSnapshot(q, (snapshot) => {
+    activeDeals = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    renderDealsGrid();
+    updateCartUI(); // re-eval deals when deals change
+  });
+}
+
+function renderDealsGrid() {
+  const dealsToRender = activeDeals.filter(d => d.showOnSite);
+  const sections = document.querySelectorAll('.deals-section');
+  
+  if (dealsToRender.length === 0) {
+    sections.forEach(s => s.style.display = 'none');
+    return;
+  }
+
+  sections.forEach(s => s.style.display = 'block');
+  
+  const grids = document.querySelectorAll('#deals-grid');
+  grids.forEach(grid => {
+    grid.innerHTML = '';
+    dealsToRender.forEach(deal => {
+      const card = document.createElement('div');
+      card.className = 'promo-card';
+      
+      const badgeHtml = deal.badge ? `<div class="promo-badge">${deal.badge}</div>` : '';
+      
+      card.innerHTML = `
+        ${badgeHtml}
+        <div class="promo-card-content">
+          <h3 class="promo-title">${deal.title}</h3>
+          <p class="promo-desc">${deal.description || ''}</p>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
 // CART LOGIC
 // ─────────────────────────────────────────────────────────────────
 window.addToCart = (id) => {
@@ -249,14 +301,17 @@ function updateCartUI() {
   if (!itemsContainer || !countBadge || !totalEl) return;
   
   itemsContainer.innerHTML = '';
-  let total = 0;
+  let subtotal = 0;
   let count = 0;
   
   if (cart.length === 0) {
     itemsContainer.innerHTML = '<p style="color: var(--gray); text-align: center; margin-top: 40px;">Your cart is empty.</p>';
+    countBadge.textContent = 0;
+    totalEl.textContent = `$0.00`;
   } else {
+    // 1. Render items first
     cart.forEach(item => {
-      total += item.price * item.qty;
+      subtotal += item.price * item.qty;
       count += item.qty;
       const el = document.createElement('div');
       el.className = 'cart-item';
@@ -279,11 +334,36 @@ function updateCartUI() {
       `;
       itemsContainer.appendChild(el);
     });
+
+    // 2. Evaluate deals
+    const evalResult = evaluateDeals(cart, activeDeals, menuItems);
+    const discountAmount = evalResult.discountCents / 100;
+    
+    if (evalResult.appliedDeals.length > 0) {
+      const dealsContainer = document.createElement('div');
+      dealsContainer.style.marginTop = '16px';
+      dealsContainer.style.paddingTop = '16px';
+      dealsContainer.style.borderTop = '1px dashed var(--border)';
+      
+      let dealsHtml = `<div style="font-size: 12px; font-family: 'Barlow Condensed'; letter-spacing: 1px; color: var(--accent); margin-bottom: 8px;">APPLIED PROMOTIONS</div>`;
+      evalResult.appliedDeals.forEach(deal => {
+        dealsHtml += `
+          <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; color: var(--accent);">
+            <span>✓ ${deal.title}</span>
+            <span>-$${(deal.discountCents / 100).toFixed(2)}</span>
+          </div>
+        `;
+      });
+      dealsContainer.innerHTML = dealsHtml;
+      itemsContainer.appendChild(dealsContainer);
+    }
+    
+    countBadge.textContent = count;
+    totalEl.innerHTML = discountAmount > 0 
+      ? `<span style="text-decoration: line-through; color: var(--gray); font-size: 14px; margin-right: 8px;">$${subtotal.toFixed(2)}</span>$${(subtotal - discountAmount).toFixed(2)}`
+      : `$${subtotal.toFixed(2)}`;
   }
   
-  countBadge.textContent = count;
-  totalEl.textContent = `$${total.toFixed(2)}`;
-
   // Disable checkout button if cart is empty
   const checkoutBtn = document.getElementById('checkout-btn');
   if (checkoutBtn) {
@@ -352,15 +432,22 @@ window.openPaymentModal = async () => {
 
   // Build order summary with tax + tip
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const tax = subtotal * TAX_RATE;
+  const evalResult = evaluateDeals(cart, activeDeals, menuItems);
+  const discountAmount = evalResult.discountCents / 100;
+  const discountedSubtotal = subtotal - discountAmount;
+  
+  const tax = discountedSubtotal * TAX_RATE;
   const summaryEl = document.getElementById('payment-order-summary');
 
   function updateModalTotal() {
     const tipInput = document.getElementById('tip-input');
     const tip = parseFloat(tipInput?.value || '0') || 0;
     const safeTip = Math.min(tip, 100); // client-side cap matches server cap
-    const total = subtotal + tax + safeTip;
+    const total = discountedSubtotal + tax + safeTip;
     document.getElementById('modal-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+    if (document.getElementById('modal-discount')) {
+      document.getElementById('modal-discount').textContent = `-$${discountAmount.toFixed(2)}`;
+    }
     document.getElementById('modal-tax').textContent = `$${tax.toFixed(2)}`;
     document.getElementById('modal-tip-display').textContent = `$${safeTip.toFixed(2)}`;
     document.getElementById('modal-total').textContent = `$${total.toFixed(2)}`;
@@ -379,6 +466,11 @@ window.openPaymentModal = async () => {
         <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; color: var(--gray);">
           <span>Subtotal</span><span id="modal-subtotal">$${subtotal.toFixed(2)}</span>
         </div>
+        ${discountAmount > 0 ? `
+        <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; color: var(--accent);">
+          <span>Discount</span><span id="modal-discount">-$${discountAmount.toFixed(2)}</span>
+        </div>
+        ` : ''}
         <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; color: var(--gray);">
           <span>Tax (10.25%)</span><span id="modal-tax">$${tax.toFixed(2)}</span>
         </div>
@@ -396,7 +488,7 @@ window.openPaymentModal = async () => {
         </div>
         <div style="display: flex; justify-content: space-between; padding: 10px 0 0; border-top: 1px solid var(--border); margin-top: 8px; font-weight: 700; font-size: 17px;">
           <span>Total</span>
-          <span style="color: var(--accent);" id="modal-total">$${(subtotal + tax).toFixed(2)}</span>
+          <span style="color: var(--accent);" id="modal-total">$${(discountedSubtotal + tax).toFixed(2)}</span>
         </div>
       </div>
     </div>
@@ -405,7 +497,7 @@ window.openPaymentModal = async () => {
   // Make updateModalTotal available to the oninput handler
   window.updateModalTotal = updateModalTotal;
 
-  document.getElementById('pay-total').textContent = `$${(subtotal + tax).toFixed(2)}`;
+  document.getElementById('pay-total').textContent = `$${(discountedSubtotal + tax).toFixed(2)}`;
 
   // Attach Square card form
   if (squareCard) {
@@ -423,7 +515,7 @@ window.openPaymentModal = async () => {
   if (squarePayments) {
     try {
       const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
-      const totalAmount = (subtotal + tax + tipRaw).toFixed(2);
+      const totalAmount = (discountedSubtotal + tax + tipRaw).toFixed(2);
       
       const req = squarePayments.paymentRequest({
         countryCode: 'US',
@@ -540,9 +632,12 @@ window.handlePayment = async () => {
       errorsEl.textContent = errorMessages;
       payButton.disabled = false;
       const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+      const evalResult = evaluateDeals(cart, activeDeals, menuItems);
+      const discountAmount = evalResult.discountCents / 100;
+      const discountedSubtotal = subtotal - discountAmount;
       const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
       const tip = Math.min(tipRaw, 100);
-      payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(subtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
+      payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
       return;
     }
 
@@ -633,9 +728,12 @@ async function processSquareToken(token) {
     payButton.disabled = false;
 
     const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+    const evalResult = evaluateDeals(cart, activeDeals, menuItems);
+    const discountAmount = evalResult.discountCents / 100;
+    const discountedSubtotal = subtotal - discountAmount;
     const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
     const tip = Math.min(tipRaw, 100);
-    payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(subtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
+    payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
 
     const errorMsg = err.message || 'Payment failed. Please try again.';
     errorsEl.textContent = errorMsg;
