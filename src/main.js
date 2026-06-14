@@ -24,6 +24,142 @@ let cart = [];
 let activeDeals = [];
 let squareCard = null; // Square card payment method instance
 
+// Pickup State
+let pickupConfig = {
+  basePrepTimeMinutes: 15,
+  perOrderIncrementMinutes: 3,
+  maxWaitMinutes: 60,
+  minLeadTimeMinutes: 20,
+  maxScheduleDaysAhead: 3,
+  slotIntervalMinutes: 15,
+  prepBufferBeforeCloseMinutes: 30,
+  businessHours: { open: "12:00", close: "22:30" }
+};
+let activeAsapOrderCount = 0;
+
+// Load Pickup Config
+import { doc } from 'firebase/firestore';
+onSnapshot(doc(db, 'settings', 'pickupConfig'), (docSnap) => {
+  if (docSnap.exists()) {
+    pickupConfig = { ...pickupConfig, ...docSnap.data() };
+    updateAsapEstimate();
+  }
+});
+
+onSnapshot(doc(db, 'liveStats', 'current'), (docSnap) => {
+  if (docSnap.exists()) {
+    activeAsapOrderCount = docSnap.data().activeAsapOrderCount || 0;
+    updateAsapEstimate();
+  }
+});
+
+function updateAsapEstimate() {
+  const el = document.getElementById('asap-estimate');
+  if (el) {
+    const rawWait = pickupConfig.basePrepTimeMinutes + (activeAsapOrderCount * pickupConfig.perOrderIncrementMinutes);
+    const wait = Math.min(rawWait, pickupConfig.maxWaitMinutes);
+    el.textContent = `(~${wait} min)`;
+  }
+}
+
+window.togglePickupType = () => {
+  const pType = document.querySelector('input[name="pickup_type"]:checked').value;
+  if (pType === 'scheduled') {
+    document.getElementById('scheduled-pickup-options').style.display = 'block';
+    populateDates();
+  } else {
+    document.getElementById('scheduled-pickup-options').style.display = 'none';
+  }
+};
+
+function populateDates() {
+  const dateSelect = document.getElementById('pickup-date-select');
+  if (!dateSelect) return;
+  dateSelect.innerHTML = '';
+  
+  const now = new Date();
+  
+  for (let i = 0; i <= pickupConfig.maxScheduleDaysAhead; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const opt = document.createElement('option');
+    opt.value = d.toISOString().split('T')[0];
+    opt.textContent = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    dateSelect.appendChild(opt);
+  }
+  
+  updateTimeSlots();
+}
+
+window.updateTimeSlots = () => {
+  const dateStr = document.getElementById('pickup-date-select').value;
+  const timeSelect = document.getElementById('pickup-time-select');
+  if (!dateStr || !timeSelect) return;
+  timeSelect.innerHTML = '';
+  
+  const now = new Date();
+  const selectedDate = new Date(dateStr + "T00:00:00");
+  const isToday = selectedDate.getDate() === now.getDate() && selectedDate.getMonth() === now.getMonth() && selectedDate.getFullYear() === now.getFullYear();
+  
+  const [openH, openM] = pickupConfig.businessHours.open.split(':').map(Number);
+  const [closeH, closeM] = pickupConfig.businessHours.close.split(':').map(Number);
+  
+  let startH = openH;
+  let startM = openM;
+  
+  if (isToday) {
+    // If today, start from now + lead time
+    const leadMs = pickupConfig.minLeadTimeMinutes * 60000;
+    const earliestTime = new Date(now.getTime() + leadMs);
+    
+    if (earliestTime.getHours() > startH || (earliestTime.getHours() === startH && earliestTime.getMinutes() > startM)) {
+       startH = earliestTime.getHours();
+       startM = Math.ceil(earliestTime.getMinutes() / pickupConfig.slotIntervalMinutes) * pickupConfig.slotIntervalMinutes;
+       if (startM >= 60) {
+         startH++;
+         startM = 0;
+       }
+    }
+  }
+  
+  // End time is close - buffer
+  let endH = closeH;
+  let endM = closeM - pickupConfig.prepBufferBeforeCloseMinutes;
+  if (endM < 0) {
+    endH--;
+    endM += 60;
+  }
+  
+  let currentH = startH;
+  let currentM = startM;
+  let hasSlots = false;
+  
+  while (currentH < endH || (currentH === endH && currentM <= endM)) {
+    hasSlots = true;
+    const ampm = currentH >= 12 ? 'PM' : 'AM';
+    const displayH = currentH % 12 === 0 ? 12 : currentH % 12;
+    const displayM = currentM.toString().padStart(2, '0');
+    
+    const opt = document.createElement('option');
+    opt.value = `${currentH.toString().padStart(2, '0')}:${displayM}:00`;
+    opt.textContent = `${displayH}:${displayM} ${ampm}`;
+    timeSelect.appendChild(opt);
+    
+    currentM += pickupConfig.slotIntervalMinutes;
+    if (currentM >= 60) {
+      currentH++;
+      currentM -= 60;
+    }
+  }
+  
+  if (!hasSlots) {
+    document.getElementById('pickup-time-warning').style.display = 'block';
+    timeSelect.disabled = true;
+  } else {
+    document.getElementById('pickup-time-warning').style.display = 'none';
+    timeSelect.disabled = false;
+  }
+};
+
 // ─────────────────────────────────────────────────────────────────
 // MENU LOADING
 // ─────────────────────────────────────────────────────────────────
@@ -537,10 +673,24 @@ window.openPaymentModal = async () => {
         apBtn.style.display = 'block';
         apBtn.onclick = null;
         apBtn.addEventListener('click', async () => {
+          let pickupPayload;
+          try {
+            pickupPayload = getPickupPayload();
+          } catch (err) {
+            showToast(err.message);
+            return;
+          }
+          
           try {
             const result = await applePay.tokenize();
             if (result.status === 'OK') {
-              await processSquareToken(result.token);
+              await processSquareToken(result.token, {
+                customerName: document.getElementById('customer-name').value.trim(),
+                customerPhone: document.getElementById('customer-phone').value.trim(),
+                tipCents: Math.round((parseFloat(document.getElementById('tip-input')?.value || '0') || 0) * 100),
+                pickupType: pickupPayload.pickupType,
+                pickupTime: pickupPayload.pickupTime
+              });
             } else {
               document.getElementById('card-errors').textContent = result.errors?.map(e => e.message).join(', ') || 'Apple Pay failed.';
             }
@@ -571,10 +721,24 @@ window.openPaymentModal = async () => {
         gpBtn.style.display = 'block';
         gpBtn.onclick = null;
         gpBtn.addEventListener('click', async () => {
+          let pickupPayload;
+          try {
+            pickupPayload = getPickupPayload();
+          } catch (err) {
+            showToast(err.message);
+            return;
+          }
+          
           try {
             const result = await googlePay.tokenize();
             if (result.status === 'OK') {
-              await processSquareToken(result.token);
+              await processSquareToken(result.token, {
+                customerName: document.getElementById('customer-name').value.trim(),
+                customerPhone: document.getElementById('customer-phone').value.trim(),
+                tipCents: Math.round((parseFloat(document.getElementById('tip-input')?.value || '0') || 0) * 100),
+                pickupType: pickupPayload.pickupType,
+                pickupTime: pickupPayload.pickupTime
+              });
             } else {
               document.getElementById('card-errors').textContent = result.errors?.map(e => e.message).join(', ') || 'Google Pay failed.';
             }
@@ -610,82 +774,107 @@ window.closePaymentModal = () => {
   document.getElementById('google-pay-button').innerHTML = '';
 };
 
+// ─────────────────────────────────────────────────────────────────
+// handlePayment
+// ─────────────────────────────────────────────────────────────────
+function getPickupPayload() {
+  const pickupTypeEl = document.querySelector('input[name="pickup_type"]:checked');
+  const pickupType = pickupTypeEl ? pickupTypeEl.value : 'asap';
+  let pickupTime = null;
+  
+  if (pickupType === 'scheduled') {
+    const dateStr = document.getElementById('pickup-date-select')?.value;
+    const timeStr = document.getElementById('pickup-time-select')?.value;
+    if (!dateStr || !timeStr || document.getElementById('pickup-time-select').disabled) {
+      throw new Error('Please select a valid scheduled pickup time.');
+    }
+    pickupTime = `${dateStr}T${timeStr}`;
+  }
+  return { pickupType, pickupTime };
+}
+
 window.handlePayment = async () => {
-  if (!squareCard) {
-    showToast('Payment form not ready. Please refresh.');
+  const nameInput = document.getElementById('customer-name');
+  const phoneInput = document.getElementById('customer-phone');
+  const customerName = nameInput?.value.trim();
+  const customerPhone = phoneInput?.value.trim();
+
+  if (!customerName || !customerPhone) {
+    showToast('Name and phone are required.');
     return;
   }
+  
+  let pickupPayload;
+  try {
+    pickupPayload = getPickupPayload();
+  } catch (err) {
+    showToast(err.message);
+    return;
+  }
+  const { pickupType, pickupTime } = pickupPayload;
 
-  const payButton = document.getElementById('pay-button');
+  const tipInput = document.getElementById('tip-input');
+  const tipAmount = parseFloat(tipInput?.value || '0') || 0;
+  const tipCents = Math.round(tipAmount * 100);
+
+  // UI state
+  const payBtn = document.getElementById('pay-button');
   const errorsEl = document.getElementById('card-errors');
+  const cardContainer = document.getElementById('card-container');
+  const processingDiv = document.getElementById('payment-processing');
 
+  payBtn.disabled = true;
+  payBtn.textContent = 'Processing...';
   errorsEl.textContent = '';
-  payButton.disabled = true;
-  payButton.textContent = 'Processing...';
 
   try {
-    // Step 1: Tokenize the card
-    const tokenResult = await squareCard.tokenize();
+    const result = await squareCard.tokenize();
+    if (result.status === 'OK') {
+      
+      cardContainer.style.display = 'none';
+      processingDiv.style.display = 'flex';
 
-    if (tokenResult.status !== 'OK') {
-      const errorMessages = tokenResult.errors?.map(e => e.message).join(', ') || 'Card validation failed.';
-      errorsEl.textContent = errorMessages;
-      payButton.disabled = false;
-      const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
-      const evalResult = evaluateDeals(cart, activeDeals, menuItems);
-      const discountAmount = evalResult.discountCents / 100;
-      const discountedSubtotal = subtotal - discountAmount;
-      const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
-      const tip = Math.min(tipRaw, 100);
-      payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
-      return;
+      await processSquareToken(result.token, {
+        customerName,
+        customerPhone,
+        tipCents,
+        pickupType,
+        pickupTime
+      });
+    } else {
+      let errorMessage = `Tokenization failed: ${result.errors[0].message}`;
+      console.error(errorMessage);
+      errorsEl.textContent = errorMessage;
+      payBtn.disabled = false;
+      payBtn.textContent = 'Pay Now';
     }
-
-    await processSquareToken(tokenResult.token);
-  } catch (err) {
-    console.error('Payment error:', err);
+  } catch (e) {
+    console.error('Payment handler error:', e);
     errorsEl.textContent = 'An unexpected error occurred. Please try again.';
-    payButton.disabled = false;
-    payButton.innerHTML = 'COMPLETE PURCHASE';
+    payBtn.disabled = false;
+    payBtn.textContent = 'Pay Now';
   }
 };
 
-async function processSquareToken(token) {
-  const cardContainer = document.getElementById('card-container');
-  const payButton = document.getElementById('pay-button');
-  const processingEl = document.getElementById('payment-processing');
-  const successEl = document.getElementById('payment-success');
-  const summaryEl = document.getElementById('payment-order-summary');
-  const errorsEl = document.getElementById('card-errors');
-  const digitalWallets = document.getElementById('digital-wallets');
-
-  // Step 2: Show processing state
-  payButton.style.display = 'none';
-  cardContainer.style.display = 'none';
-  summaryEl.style.display = 'none';
-  if (digitalWallets) digitalWallets.style.display = 'none';
-  processingEl.style.display = 'block';
-
-  // Step 3: Call Cloud Function
+async function processSquareToken(token, { customerName, customerPhone, tipCents, pickupType, pickupTime }) {
   try {
-    const nameInput = document.getElementById('customer-name');
-    const phoneInput = document.getElementById('customer-phone');
-    const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
-    const tipCents = Math.round(Math.min(tipRaw, 100) * 100);
-
-    const result = await processSquarePayment({
+    // We send tipCents explicitly. The server calculates subtotals & taxes using evaluateDeals.
+    const res = await processSquarePayment({
       sourceId: token,
-      items: cart.map(i => ({ id: i.id, qty: i.qty })),
-      customerName: nameInput.value.trim(),
-      customerPhone: phoneInput.value.trim(),
+      customerName,
+      customerPhone,
+      items: cart,
       tipCents,
+      pickupType,
+      pickupTime
     });
 
-    // Step 4: Success!
-    processingEl.style.display = 'none';
-    successEl.style.display = 'block';
-
-    document.getElementById('success-message').textContent = result.data.message;
+    const result = res;
+    if (result.data.success) {
+      // Payment Successful
+      document.getElementById('payment-processing').style.display = 'none';
+      document.getElementById('payment-success').style.display = 'block';
+      document.getElementById('success-message').textContent = result.data.message;
 
     // Generate QR code for order status page
     const orderId = result.data.orderId;
@@ -711,12 +900,13 @@ async function processSquareToken(token) {
 
     // Clear cart
     cart = [];
-    if (nameInput) nameInput.value = '';
-    if (phoneInput) phoneInput.value = '';
+    document.getElementById('customer-name').value = '';
+    document.getElementById('customer-phone').value = '';
     if (typeof updateCartUI === 'function') updateCartUI();
     if (typeof window.toggleCart === 'function') window.toggleCart(false);
 
     showToast('Payment successful! Your order is being prepared.');
+    } // End of if (result.data.success)
 
   } catch (err) {
     console.error('Payment error:', err);

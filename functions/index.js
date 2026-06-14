@@ -45,7 +45,7 @@ function getLocationId() {
 const TAX_RATE = 0.1025; // LA County / Reseda sales tax rate
 
 exports.processSquarePayment = functions.https.onCall(async (data, context) => {
-  const { sourceId, items, customerName, customerPhone, tipCents: rawTipCents } = data;
+  const { sourceId, items, customerName, customerPhone, tipCents: rawTipCents, pickupType, pickupTime } = data;
 
   // ── Validate inputs ──
   if (!sourceId || typeof sourceId !== 'string') {
@@ -232,23 +232,73 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
   // ── Step 5: Generate access token for order status page ──
   const accessToken = crypto.randomBytes(8).toString('hex');
 
-  // ── Step 5.5: Calculate Dynamic Wait Time ──
-  let activeOrderCount = 0;
-  try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const activeSnapshot = await db.collection('orders')
-      .where('createdAt', '>=', admin.firestore.Timestamp.fromDate(today))
-      .where('status', 'in', ['pending', 'preparing'])
-      .get();
-    activeOrderCount = activeSnapshot.size;
-  } catch (err) {
-    console.error('Failed to get active order count:', err);
-  }
+  // ── Step 5.5: Validate Pickup & Calculate Dynamic Wait Time ──
+  const pickupConfigDoc = await db.collection('settings').doc('pickupConfig').get();
+  const config = pickupConfigDoc.exists ? pickupConfigDoc.data() : {
+    basePrepTimeMinutes: 15,
+    perOrderIncrementMinutes: 3,
+    maxWaitMinutes: 60,
+    minLeadTimeMinutes: 20,
+    maxScheduleDaysAhead: 3,
+    slotIntervalMinutes: 15,
+    prepBufferBeforeCloseMinutes: 30,
+    businessHours: { open: "12:00", close: "22:30" }
+  };
+
+  const pType = pickupType === 'scheduled' ? 'scheduled' : 'asap';
+  let requestedTime = null;
+  let estimatedReadyTime;
+  let releasedToKitchen = true;
+
+  const now = new Date();
   
-  // Base 10 mins + 5 mins per active order
-  const waitTimeMinutes = 10 + (activeOrderCount * 5);
-  const estimatedReadyAt = admin.firestore.Timestamp.fromDate(new Date(Date.now() + waitTimeMinutes * 60000));
+  if (pType === 'scheduled') {
+    if (!pickupTime) {
+      throw new functions.https.HttpsError('invalid-argument', 'Scheduled pickup requires a pickupTime.');
+    }
+    const requestedDate = new Date(pickupTime);
+    if (isNaN(requestedDate.getTime())) {
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid pickupTime.');
+    }
+    
+    // Basic server-side validation
+    const leadMs = config.minLeadTimeMinutes * 60000;
+    if (requestedDate.getTime() < now.getTime() + leadMs - 5 * 60000) { // 5 min grace period for latency
+      throw new functions.https.HttpsError('invalid-argument', 'Pickup time is too soon.');
+    }
+    
+    const maxDaysMs = config.maxScheduleDaysAhead * 24 * 60 * 60 * 1000;
+    if (requestedDate.getTime() > now.getTime() + maxDaysMs + 24 * 60 * 60 * 1000) { // 1 day grace
+      throw new functions.https.HttpsError('invalid-argument', 'Pickup time is too far in the future.');
+    }
+    
+    requestedTime = admin.firestore.Timestamp.fromDate(requestedDate);
+    estimatedReadyTime = requestedTime;
+    releasedToKitchen = false;
+  } else {
+    // ASAP
+    let activeAsapOrderCount = 0;
+    try {
+      const statsDoc = await db.collection('liveStats').doc('current').get();
+      if (statsDoc.exists) {
+        activeAsapOrderCount = statsDoc.data().activeAsapOrderCount || 0;
+      }
+    } catch (err) {
+      console.error('Failed to get liveStats:', err);
+    }
+    
+    const rawWait = config.basePrepTimeMinutes + (activeAsapOrderCount * config.perOrderIncrementMinutes);
+    const waitTimeMinutes = Math.min(rawWait, config.maxWaitMinutes);
+    estimatedReadyTime = admin.firestore.Timestamp.fromDate(new Date(now.getTime() + waitTimeMinutes * 60000));
+    releasedToKitchen = true;
+  }
+
+  const pickupObj = {
+    type: pType,
+    requestedTime,
+    estimatedReadyTime,
+    releasedToKitchen
+  };
 
   // ── Step 6: Write order to Firestore ──
   const orderDoc = {
@@ -275,11 +325,16 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     taxCents,
     tipCents,
     totalCents,
-    status: 'pending',
-    estimatedReadyAt,
+    status: pType === 'scheduled' ? 'scheduled' : 'pending', // Use a custom status or stick to pending. Let's use pending but it won't show if releasedToKitchen is false.
+    pickup: pickupObj,
+    estimatedReadyAt: estimatedReadyTime,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: null,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
+  
+  if (pType === 'scheduled') {
+     orderDoc.status = 'pending'; 
+  }
 
   await db.collection('orders').doc(squareOrderId).set(orderDoc);
 
@@ -662,3 +717,104 @@ exports.verifyKdsPin = functions.https.onCall(async (data, context) => {
     return { success: false };
   }
 });
+
+// ─────────────────────────────────────────────────────────────────
+// updateLiveStats
+// Firestore trigger to maintain active ASAP order count
+// ─────────────────────────────────────────────────────────────────
+exports.updateLiveStats = functions.firestore
+  .document('orders/{orderId}')
+  .onWrite(async (change, context) => {
+    // Only proceed if it's a creation or if status/pickup type changed
+    const before = change.before.data();
+    const after = change.after.data();
+
+    if (before && after) {
+      const beforeActive = before.status === 'pending' || before.status === 'preparing';
+      const afterActive = after.status === 'pending' || after.status === 'preparing';
+      const beforeAsap = before.pickup && before.pickup.type === 'asap';
+      const afterAsap = after.pickup && after.pickup.type === 'asap';
+      
+      if (beforeActive === afterActive && beforeAsap === afterAsap) {
+        return null; // No relevant change
+      }
+    }
+
+    // Do a full aggregation of active ASAP orders
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const activeSnapshot = await db.collection('orders')
+        .where('createdAt', '>=', admin.firestore.Timestamp.fromDate(today))
+        .where('status', 'in', ['pending', 'preparing'])
+        .get();
+        
+      let count = 0;
+      activeSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.pickup && data.pickup.type === 'asap') {
+          count++;
+        }
+      });
+      
+      await db.collection('liveStats').doc('current').set({
+        activeAsapOrderCount: count,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Failed to update liveStats:', err);
+    }
+    return null;
+  });
+
+// ─────────────────────────────────────────────────────────────────
+// releaseScheduledOrders
+// Scheduled function running every minute
+// ─────────────────────────────────────────────────────────────────
+exports.releaseScheduledOrders = functions.pubsub
+  .schedule('every 1 minutes')
+  .timeZone('America/Los_Angeles')
+  .onRun(async (context) => {
+    try {
+      const pickupConfigDoc = await db.collection('settings').doc('pickupConfig').get();
+      const config = pickupConfigDoc.exists ? pickupConfigDoc.data() : { basePrepTimeMinutes: 15 };
+      const basePrepMs = (config.basePrepTimeMinutes || 15) * 60000;
+      
+      const now = new Date();
+      const releaseThreshold = admin.firestore.Timestamp.fromDate(new Date(now.getTime() + basePrepMs));
+      
+      // We can't do a compound query on requestedTime <= releaseThreshold and releasedToKitchen == false
+      // easily without an index. We will query by releasedToKitchen == false and filter.
+      const scheduledSnapshot = await db.collection('orders')
+        .where('pickup.releasedToKitchen', '==', false)
+        .where('pickup.type', '==', 'scheduled')
+        .get();
+        
+      const batch = db.batch();
+      let count = 0;
+      
+      scheduledSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.pickup && data.pickup.requestedTime) {
+          const reqTime = data.pickup.requestedTime.toDate();
+          // due or overdue for release
+          if (reqTime.getTime() - basePrepMs <= now.getTime()) {
+            batch.update(doc.ref, {
+              'pickup.releasedToKitchen': true,
+              'status': 'pending', // Enter KDS flow
+              updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            count++;
+          }
+        }
+      });
+      
+      if (count > 0) {
+        await batch.commit();
+        console.log(`Released ${count} scheduled orders to the kitchen.`);
+      }
+    } catch (err) {
+      console.error('Failed to release scheduled orders:', err);
+    }
+    return null;
+  });

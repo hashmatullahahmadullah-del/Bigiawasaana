@@ -149,6 +149,7 @@ function initCRMData() {
     renderDashboard();
     renderCustomers();
     renderAllOrders();
+    renderUpcomingScheduledOrders();
     renderLoyalty();
   });
 
@@ -170,6 +171,9 @@ function initCRMData() {
   if (typeof initDealsListener === 'function') {
     dealsUnsub = initDealsListener();
   }
+
+  // 7. Load Pickup Settings
+  loadPickupSettings();
 }
 
 async function loadTvPromoSettings() {
@@ -274,6 +278,105 @@ if (btnSavePopup) {
     }
     btnSavePopup.textContent = 'Save Pop-Up Settings';
   });
+}
+
+// ==========================================
+// PICKUP SETTINGS & SCHEDULED ORDERS
+// ==========================================
+function loadPickupSettings() {
+  onSnapshot(doc(db, 'settings', 'pickupConfig'), (docSnap) => {
+    if (docSnap.exists()) {
+      const config = docSnap.data();
+      document.getElementById('pickup-base-prep').value = config.basePrepTimeMinutes || 15;
+      document.getElementById('pickup-per-order').value = config.perOrderIncrementMinutes || 3;
+      document.getElementById('pickup-max-wait').value = config.maxWaitMinutes || 60;
+      document.getElementById('pickup-min-lead').value = config.minLeadTimeMinutes || 20;
+      document.getElementById('pickup-max-days').value = config.maxScheduleDaysAhead || 3;
+      document.getElementById('pickup-slot-interval').value = config.slotIntervalMinutes || 15;
+      document.getElementById('pickup-prep-buffer').value = config.prepBufferBeforeCloseMinutes || 30;
+      if (config.businessHours) {
+        document.getElementById('pickup-open-time').value = config.businessHours.open || '12:00';
+        document.getElementById('pickup-close-time').value = config.businessHours.close || '22:30';
+      }
+    }
+  });
+}
+
+document.getElementById('pickup-config-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.textContent = 'Saving...';
+  
+  const config = {
+    basePrepTimeMinutes: parseInt(document.getElementById('pickup-base-prep').value, 10),
+    perOrderIncrementMinutes: parseInt(document.getElementById('pickup-per-order').value, 10),
+    maxWaitMinutes: parseInt(document.getElementById('pickup-max-wait').value, 10),
+    minLeadTimeMinutes: parseInt(document.getElementById('pickup-min-lead').value, 10),
+    maxScheduleDaysAhead: parseInt(document.getElementById('pickup-max-days').value, 10),
+    slotIntervalMinutes: parseInt(document.getElementById('pickup-slot-interval').value, 10),
+    prepBufferBeforeCloseMinutes: parseInt(document.getElementById('pickup-prep-buffer').value, 10),
+    businessHours: {
+      open: document.getElementById('pickup-open-time').value,
+      close: document.getElementById('pickup-close-time').value
+    },
+    updatedAt: serverTimestamp()
+  };
+
+  try {
+    await setDoc(doc(db, 'settings', 'pickupConfig'), config, { merge: true });
+    showToast('Pickup settings saved!');
+  } catch (err) {
+    console.error('Error saving pickup settings', err);
+    showToast('Error saving pickup settings', true);
+  }
+  btn.textContent = 'Save Pickup Settings';
+});
+
+function renderUpcomingScheduledOrders() {
+  const tbody = document.getElementById('upcoming-scheduled-list');
+  if (!tbody) return;
+
+  // Filter orders
+  const upcoming = state.orders.filter(o => 
+    o.pickup && 
+    o.pickup.type === 'scheduled' && 
+    o.pickup.releasedToKitchen === false &&
+    ['pending', 'preparing', 'RESERVED', 'PREPARED'].includes(o.status)
+  );
+
+  // Sort by requestedTime ascending
+  upcoming.sort((a, b) => {
+    const tA = a.pickup.requestedTime?.toDate() || new Date(9999,11,31);
+    const tB = b.pickup.requestedTime?.toDate() || new Date(9999,11,31);
+    return tA - tB;
+  });
+
+  if (upcoming.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gray);">No upcoming scheduled orders.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = upcoming.map(o => {
+    const requestedTimeStr = o.pickup.requestedTime?.toDate()
+      ? o.pickup.requestedTime.toDate().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+      : 'N/A';
+    
+    const qty = o.items ? o.items.reduce((sum, item) => sum + item.qty, 0) : 0;
+    
+    return `
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 12px; font-weight: 600; color: var(--accent);">${requestedTimeStr}</td>
+        <td style="padding: 12px; font-weight: 500;">${o.customerName || 'N/A'}</td>
+        <td style="padding: 12px;">$${o.total.toFixed(2)}</td>
+        <td style="padding: 12px;">${qty} items</td>
+        <td style="padding: 12px;">
+          <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
+            ${o.status}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 // ==========================================

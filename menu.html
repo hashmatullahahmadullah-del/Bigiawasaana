@@ -184,6 +184,36 @@
         <button onclick="closePaymentModal()" style="background: none; border: none; color: var(--gray); font-size: 28px; cursor: pointer; padding: 4px 8px; line-height: 1;">&times;</button>
       </div>
 
+      <!-- Pickup Selection -->
+      <div style="margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--bg);">
+        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <label style="flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="pickup_type" value="asap" checked onchange="togglePickupType()">
+            <span style="font-size: 14px; font-weight: 600;">Pick up ASAP <span id="asap-estimate" style="color: var(--accent); font-weight: normal;">(~15 min)</span></span>
+          </label>
+          <label style="flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="pickup_type" value="scheduled" onchange="togglePickupType()">
+            <span style="font-size: 14px;">Schedule for later</span>
+          </label>
+        </div>
+        
+        <div id="scheduled-pickup-options" style="display: none; padding-top: 12px; border-top: 1px solid var(--border);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-size: 12px; color: var(--gray); display: block; margin-bottom: 4px;">Date</label>
+              <select id="pickup-date-select" onchange="updateTimeSlots()" style="width: 100%; padding: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px;">
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 12px; color: var(--gray); display: block; margin-bottom: 4px;">Time</label>
+              <select id="pickup-time-select" style="width: 100%; padding: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px;">
+              </select>
+            </div>
+          </div>
+          <div id="pickup-time-warning" style="display: none; color: #ff4444; font-size: 12px; margin-top: 8px;">Selected time is unavailable.</div>
+        </div>
+      </div>
+
       <!-- Order Summary -->
       <div id="payment-order-summary" class="payment-order-summary"></div>
 

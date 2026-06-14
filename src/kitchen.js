@@ -305,7 +305,7 @@ function initKDS() {
   const ordersRef = collection(db, 'orders');
   const q = query(
     ordersRef,
-    where('createdAt', '>=', startOfDay)
+    where('updatedAt', '>=', startOfDay)
   );
 
   onSnapshot(q, (snapshot) => {
@@ -383,6 +383,11 @@ function renderOrders() {
     let colKey = order.source || 'pos';
     if (!columns[colKey]) colKey = 'pos'; // Fallback
     
+    // Hide scheduled orders that haven't been released to the kitchen yet
+    if (order.pickup && order.pickup.type === 'scheduled' && order.pickup.releasedToKitchen === false) {
+      return;
+    }
+
     // Skip old completed orders (hide after 60s)
     if (order.status === 'completed' && getElapsedMinutes(order.updatedAt?.toDate() || order.createdAt) > 1) {
       return; 
@@ -402,10 +407,20 @@ function renderOrders() {
     // Platform badge for delivery orders
     const deliveryBadges = { doordash: 'DD · DoorDash', ubereats: 'UE · Uber Eats', grubhub: 'GH · Grubhub' };
     const badgeClasses = { doordash: 'badge-doordash', ubereats: 'badge-ubereats', grubhub: 'badge-grubhub' };
-    const platformBadgeHtml = deliveryBadges[order.source]
+    let platformBadgeHtml = deliveryBadges[order.source]
       ? `<div class="kds-platform-badge ${badgeClasses[order.source]}">${deliveryBadges[order.source]}</div>
          <p class="kds-delivery-note">📦 Delivery — driver will collect</p>`
       : '';
+      
+    // Pickup Badge
+    if (order.pickup) {
+      if (order.pickup.type === 'scheduled') {
+        const reqTimeStr = order.pickup.requestedTime?.toDate()?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) || '';
+        platformBadgeHtml += `<div class="kds-platform-badge" style="background: var(--accent); color: white; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 8px;">🕒 SCHEDULED: ${reqTimeStr}</div>`;
+      } else {
+         platformBadgeHtml += `<div class="kds-platform-badge" style="background: rgba(255,255,255,0.2); color: white; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 8px;">🔥 ASAP</div>`;
+      }
+    }
 
     const itemsHtml = (order.items || []).map(item => `
       <li class="kds-card-item">
