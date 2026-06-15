@@ -621,6 +621,7 @@ body {
   color: var(--white);
   height: 100vh;
   overflow: hidden;
+  overflow-x: hidden;
   font-family: 'Outfit', sans-serif;
 }
 
@@ -682,6 +683,7 @@ body {
   flex: 1;
   padding: var(--space-m) clamp(20px, 4vw, 48px);
   overflow-y: auto;
+  min-width: 0;
 }
 
 .crm-view-title {
@@ -690,6 +692,13 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-bottom: var(--space-s);
+}
+
+.crm-subnav {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  white-space: nowrap;
 }
 
 .crm-header-action {
@@ -969,6 +978,10 @@ body {
     padding: 16px;
   }
   
+  .crm-view-title {
+    font-size: clamp(18px, 5vw, 28px);
+  }
+  
   /* Touch Targets */
   .btn-primary, .btn-outline, .btn-small, .tab-btn {
     min-height: 44px;
@@ -1083,6 +1096,7 @@ body {
   color: var(--white);
   height: 100vh;
   overflow: hidden;
+  overflow-x: hidden;
   font-family: 'Outfit', sans-serif;
 }
 
@@ -1143,6 +1157,7 @@ body {
   flex: 1;
   padding: var(--space-m) clamp(20px, 4vw, 48px);
   overflow-y: auto;
+  min-width: 0;
 }
 
 .crm-view-title {
@@ -1151,6 +1166,13 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-bottom: var(--space-s);
+}
+
+.crm-subnav {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  white-space: nowrap;
 }
 
 .crm-header-action {
