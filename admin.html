@@ -7,6 +7,7 @@
   <link rel="icon" type="image/jpeg" href="/favicon.jpg">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="/admin-manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,6 +32,7 @@
         <span style="color: var(--accent);">Admin Dashboard</span>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
+        <button id="lang-toggle" class="btn-outline" style="padding: 8px 16px; font-size: 12px; white-space: nowrap; font-family: 'Outfit', sans-serif;">EN | فا</button>
         <button id="logout-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none;">Logout</button>
         <button id="pwa-install-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none; white-space: nowrap;">Install App</button>
         <button id="mobile-menu-btn" class="crm-btn-icon" style="display: none; padding: 8px; font-size: 24px;">☰</button>
@@ -67,43 +69,43 @@
         <div class="crm-nav-links" style="padding-top: 20px;">
           <button class="crm-nav-item active" data-target="dashboard-view">
             <span class="icon">📊</span>
-            <span class="label">Overview</span>
+            <span class="label" data-i18n="admin.nav.overview">Overview</span>
           </button>
           <button class="crm-nav-item" data-target="live-orders-view">
             <span class="icon">🔥</span>
-            <span class="label">Live Orders</span>
+            <span class="label" data-i18n="admin.nav.orders">Live Orders</span>
           </button>
           <button class="crm-nav-item" data-target="menu-manage-view">
             <span class="icon">🍔</span>
-            <span class="label">Menu Manager</span>
+            <span class="label" data-i18n="admin.nav.menu">Menu Manager</span>
           </button>
           <button class="crm-nav-item" data-target="customers-view">
             <span class="icon">👥</span>
-            <span class="label">Customers</span>
+            <span class="label" data-i18n="admin.nav.crm">Customers</span>
           </button>
           <button class="crm-nav-item" data-target="orders-view">
             <span class="icon">🧾</span>
-            <span class="label">All Orders</span>
+            <span class="label" data-i18n="admin.nav.orders">All Orders</span>
           </button>
           <button class="crm-nav-item" data-target="reviews-view">
             <span class="icon">⭐</span>
-            <span class="label">Reviews</span>
+            <span class="label" data-i18n="admin.nav.reviews">Reviews</span>
           </button>
           <button class="crm-nav-item" data-target="loyalty-view">
             <span class="icon">🏆</span>
-            <span class="label">Loyalty</span>
+            <span class="label" data-i18n="admin.nav.loyalty">Loyalty</span>
           </button>
           <button class="crm-nav-item" data-target="catering-view">
             <span class="icon">📅</span>
-            <span class="label">Catering</span>
+            <span class="label" data-i18n="nav.catering">Catering</span>
           </button>
           <button class="crm-nav-item" data-target="marketing-view">
             <span class="icon">📢</span>
-            <span class="label">Marketing</span>
+            <span class="label" data-i18n="admin.nav.marketing">Marketing</span>
           </button>
           <button class="crm-nav-item" data-target="deals-view">
             <span class="icon">🏷️</span>
-            <span class="label">Deals & Combos</span>
+            <span class="label" data-i18n="admin.nav.promotions">Deals & Combos</span>
           </button>
           <button class="crm-nav-item" data-target="pickup-view">
             <span class="icon">⏱️</span>
@@ -111,7 +113,7 @@
           </button>
           <button class="crm-nav-item" data-target="economics-view">
             <span class="icon">📈</span>
-            <span class="label">Unit Economics</span>
+            <span class="label" data-i18n="admin.nav.unitEconomics">Unit Economics</span>
           </button>
         </div>
       </nav>
@@ -172,8 +174,10 @@
             <h3 style="margin-bottom: 16px; font-family: 'Barlow Condensed'; font-size: 20px;">Add New Menu Item</h3>
             <form id="add-menu-form" style="display: flex; flex-direction: column; gap: 12px;">
               <input type="text" id="menu-name" placeholder="Item Name (e.g. Bolani)" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+              <input type="text" id="menu-name_fa" placeholder="Persian Name (Optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; direction: rtl; text-align: right;">
               <input type="number" id="menu-price" placeholder="Price (e.g. 12.00)" step="0.01" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
               <textarea id="menu-desc" placeholder="Description" rows="3" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
+              <textarea id="menu-desc_fa" placeholder="Persian Description (Optional)" rows="2" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: inherit; resize: vertical; direction: rtl; text-align: right;"></textarea>
               <input type="text" id="menu-category" placeholder="Category (e.g. platters, wraps, drinks)" value="platters" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
               <div style="display: flex; gap: 8px; flex-direction: column;">
                 <input type="url" id="menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
@@ -576,10 +580,10 @@
           <h1 class="crm-view-title">Unit Economics & Profitability</h1>
           
           <div class="crm-subnav" style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-            <button class="btn-outline active" id="btn-eco-menu" onclick="switchEconomicsTab('menu')">Menu Profitability</button>
-            <button class="btn-outline" id="btn-eco-ingredients" onclick="switchEconomicsTab('ingredients')">Ingredients</button>
-            <button class="btn-outline" id="btn-eco-labor" onclick="switchEconomicsTab('labor')">Labor & Events</button>
-            <button class="btn-outline" id="btn-eco-delivery" onclick="switchEconomicsTab('delivery')">Delivery Impact</button>
+            <button class="btn-outline active" id="btn-eco-menu" onclick="switchEconomicsTab('menu')" data-i18n="ue.tab.menuProfitability">Menu Profitability</button>
+            <button class="btn-outline" id="btn-eco-ingredients" onclick="switchEconomicsTab('ingredients')" data-i18n="ue.tab.ingredients">Ingredients</button>
+            <button class="btn-outline" id="btn-eco-labor" onclick="switchEconomicsTab('labor')" data-i18n="ue.tab.laborEvents">Labor & Events</button>
+            <button class="btn-outline" id="btn-eco-delivery" onclick="switchEconomicsTab('delivery')" data-i18n="ue.tab.deliveryImpact">Delivery Impact</button>
           </div>
 
           <div id="eco-tab-menu" class="eco-tab">
@@ -651,8 +655,10 @@
         <form id="edit-menu-form" style="display: flex; flex-direction: column; gap: 12px;">
           <input type="hidden" id="edit-menu-id">
           <input type="text" id="edit-menu-name" placeholder="Item Name" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+          <input type="text" id="edit-menu-name_fa" placeholder="Persian Name (Optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; direction: rtl; text-align: right;">
           <input type="number" id="edit-menu-price" placeholder="Price" step="0.01" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
           <textarea id="edit-menu-desc" placeholder="Description" rows="3" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
+          <textarea id="edit-menu-desc_fa" placeholder="Persian Description (Optional)" rows="2" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: inherit; resize: vertical; direction: rtl; text-align: right;"></textarea>
           <input type="text" id="edit-menu-category" placeholder="Category" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
           <div style="display: flex; gap: 8px; flex-direction: column;">
             <input type="url" id="edit-menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">

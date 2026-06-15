@@ -1664,3 +1664,12 @@ body {
     flex-direction: column;
   }
 }
+  
+/* RTL Overrides for Admin */  
+[dir="rtl"] .crm-body { font-family: 'Vazirmatn', sans-serif; text-align: right; }  
+[dir="rtl"] .crm-nav { transform: translateX(100%); left: auto; right: 0; }  
+[dir="rtl"] .crm-nav.open { transform: translateX(0); }  
+[dir="rtl"] .crm-layout { margin-left: 0; margin-right: 240px; }  
+@media (max-width: 768px) { [dir="rtl"] .crm-layout { margin-right: 0; } }  
+[dir="rtl"] .crm-nav-links { align-items: flex-start; }  
+[dir="rtl"] .crm-nav-item { flex-direction: row; } 

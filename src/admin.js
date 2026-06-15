@@ -2,6 +2,7 @@ import { auth, db, storage } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { t, getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
 
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
@@ -14,6 +15,18 @@ const errorEl = document.getElementById('login-error');
 const ordersList = document.getElementById('orders-list');
 const pwaInstallBtn = document.getElementById('pwa-install-btn');
 const iosInstallHint = document.getElementById('ios-install-hint');
+const langToggleBtn = document.getElementById('lang-toggle');
+
+// Init Language
+setLang(getLang());
+applyTranslations();
+if (langToggleBtn) {
+  langToggleBtn.addEventListener('click', () => {
+    toggleLang();
+    applyTranslations();
+    if (typeof renderEconomics === 'function') renderEconomics();
+  });
+}
 
 // PWA Installation Logic
 let deferredPrompt;
@@ -600,8 +613,10 @@ if (addMenuForm) {
     submitBtn.disabled = true;
 
     const name = document.getElementById("menu-name").value;
+    const name_fa = document.getElementById("menu-name_fa").value;
     const price = parseFloat(document.getElementById("menu-price").value);
     const desc = document.getElementById("menu-desc").value;
+    const desc_fa = document.getElementById("menu-desc_fa").value;
     const category = document.getElementById("menu-category").value;
     let img = document.getElementById("menu-img").value;
     const featured = document.getElementById("menu-featured").checked;
@@ -613,7 +628,7 @@ if (addMenuForm) {
         img = await uploadImageFile(fileInput.files[0]);
       }
 
-      await addDoc(collection(db, "menu"), { name, price, desc, category, img, featured: !!featured });
+      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, img, featured: !!featured });
       document.getElementById("menu-status").style.display = "block";
       addMenuForm.reset();
       if (addMenuFilename) addMenuFilename.textContent = 'No file chosen';
@@ -692,10 +707,12 @@ window.openEditMenuModal = (id) => {
   if (!editMenuModal || !data) return;
   document.getElementById("edit-menu-id").value = id;
   document.getElementById("edit-menu-name").value = data.name || "";
+  document.getElementById("edit-menu-name_fa").value = data.name_fa || "";
   document.getElementById("edit-menu-price").value = data.price || "";
   document.getElementById("edit-menu-category").value = data.category || "platters";
   document.getElementById("edit-menu-img").value = data.img || data.image || data.imageUrl || "";
   document.getElementById("edit-menu-desc").value = data.desc || data.description || "";
+  document.getElementById("edit-menu-desc_fa").value = data.desc_fa || "";
   document.getElementById("edit-menu-featured").checked = !!data.featured;
   
   editMenuModal.classList.add("open");
@@ -731,10 +748,12 @@ if (editMenuForm) {
 
     const id = document.getElementById("edit-menu-id").value;
     const name = document.getElementById("edit-menu-name").value;
+    const name_fa = document.getElementById("edit-menu-name_fa").value;
     const price = parseFloat(document.getElementById("edit-menu-price").value);
     const category = document.getElementById("edit-menu-category").value;
     let img = document.getElementById("edit-menu-img").value;
     const desc = document.getElementById("edit-menu-desc").value;
+    const desc_fa = document.getElementById("edit-menu-desc_fa").value;
     const featured = document.getElementById("edit-menu-featured").checked;
     
     try {
@@ -746,10 +765,12 @@ if (editMenuForm) {
 
       await updateDoc(doc(db, "menu", id), {
         name,
+        name_fa,
         price,
         category,
         img,
         desc,
+        desc_fa,
         featured: !!featured
       });
       closeEditMenuModal();
@@ -1695,12 +1716,12 @@ function renderEconomicsMenu() {
   let html = `<table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
     <thead>
       <tr>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">Item</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">Price</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">Total Cost</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">Margin ($)</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">Food Cost %</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">Actions</th>
+        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.menuItem')}</th>
+        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.price')}</th>
+        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.foodCost')}</th>
+        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.marginPct')} ($)</th>
+        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.foodCost')} %</th>
+        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.actions')}</th>
       </tr>
     </thead>
     <tbody>`;
@@ -1718,8 +1739,8 @@ function renderEconomicsMenu() {
             ${i.foodCostPercent.toFixed(1)}%
           </span>
         </td>
-        <td data-label="Actions" style="padding: 12px;">
-          <button class="btn-outline btn-small" onclick="openEditRecipeModal('${i.id}')">Edit Recipe</button>
+        <td data-label="${t('ue.table.actions')}" style="padding: 12px;">
+          <button class="btn-outline btn-small" onclick="openEditRecipeModal('${i.id}')">${t('ue.btn.editRecipe')}</button>
         </td>
       </tr>
     `;
@@ -1856,8 +1877,8 @@ function renderEconomicsIngredients() {
 
   let html = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h2 style="font-family: 'Barlow Condensed';">Shared Ingredients Database</h2>
-      <button class="btn-primary btn-small" onclick="addIngredient()">+ Add Ingredient</button>
+      <h2 style="font-family: 'Barlow Condensed';">${t('ue.tab.ingredients')}</h2>
+      <button class="btn-primary btn-small" onclick="addIngredient()">+ ${t('ue.btn.addIngredient')}</button>
     </div>
     <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
       <form id="add-ing-form" onsubmit="saveNewIngredient(event)" style="display: none; gap: 8px; margin-bottom: 16px; align-items: center;">
@@ -1865,16 +1886,16 @@ function renderEconomicsIngredients() {
         <input type="number" id="new-ing-cost" placeholder="Cost ($)" step="0.001" required style="flex: 1; padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
         <span style="color: var(--gray);">per</span>
         <input type="text" id="new-ing-unit" placeholder="Unit (e.g. oz, piece)" required style="flex: 1; padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-        <button type="submit" class="btn-primary btn-small">Save</button>
-        <button type="button" class="btn-outline btn-small" onclick="document.getElementById('add-ing-form').style.display='none'">Cancel</button>
+        <button type="submit" class="btn-primary btn-small">${t('btn.save')}</button>
+        <button type="button" class="btn-outline btn-small" onclick="document.getElementById('add-ing-form').style.display='none'">${t('btn.cancel')}</button>
       </form>
 
       <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
         <thead>
           <tr>
-            <th style="padding: 12px; border-bottom: 1px solid var(--border);">Name</th>
-            <th style="padding: 12px; border-bottom: 1px solid var(--border);">Cost Per Unit</th>
-            <th style="padding: 12px; border-bottom: 1px solid var(--border);">Actions</th>
+            <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.ingredientName')}</th>
+            <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.costPerUnit')}</th>
+            <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.actions')}</th>
           </tr>
         </thead>
         <tbody>
@@ -2034,8 +2055,8 @@ function renderEconomicsLaborEvents() {
         <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
           <thead>
             <tr>
-              <th style="padding: 12px; border-bottom: 1px solid var(--border);">Event Name</th>
-              <th style="padding: 12px; border-bottom: 1px solid var(--border);">Date</th>
+              <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.eventName')}</th>
+              <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.date')}</th>
               <th style="padding: 12px; border-bottom: 1px solid var(--border);">Fixed Costs</th>
               <th style="padding: 12px; border-bottom: 1px solid var(--border);">Break-Even Orders</th>
               <th style="padding: 12px; border-bottom: 1px solid var(--border);">Actual Orders</th>
