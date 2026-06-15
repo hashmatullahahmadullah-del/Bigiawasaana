@@ -34,6 +34,7 @@
   }
   </script>
 
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/mobile-nav.css">
 </head>
@@ -46,10 +47,11 @@
         <img src="/logo.png" alt="Bigi Awasaana Logo">
       </a>
       <ul class="nav-links">
-        <li><a href="/menu.html">Menu</a></li>
-        <li><a href="/specials.html">Specials</a></li>
-        <li><a href="/locations.html">Location</a></li>
+        <li><a href="/menu.html" data-i18n="nav.menu">Menu</a></li>
+        <li><a href="/specials.html" data-i18n="nav.specials">Specials</a></li>
+        <li><a href="/locations.html" data-i18n="nav.location">Location</a></li>
         <li><a href="/catering.html" class="active">Catering</a></li>
+        <li><button class="site-lang-toggle btn-outline" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
         <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
       </ul>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
@@ -60,10 +62,11 @@
 
   <!-- Mobile Drawer -->
   <div class="nav-mobile-drawer" id="nav-mobile-drawer">
-    <a href="/menu.html">Menu</a>
-    <a href="/specials.html">Specials</a>
-    <a href="/locations.html">Location</a>
+    <a href="/menu.html" data-i18n="nav.menu">Menu</a>
+    <a href="/specials.html" data-i18n="nav.specials">Specials</a>
+    <a href="/locations.html" data-i18n="nav.location">Location</a>
     <a href="/catering.html" class="active">Catering</a>
+    <button class="site-lang-toggle btn-outline" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
     <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
   </div>
 

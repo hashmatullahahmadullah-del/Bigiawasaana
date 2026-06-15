@@ -4,6 +4,7 @@ import { collection, addDoc, getDocs, serverTimestamp, onSnapshot, query, where 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from './firebase.js';
 import { evaluateDeals } from './lib/deals-evaluator.js';
+import { getLang, t } from './i18n/index.js';
 
 // ─────────────────────────────────────────────────────────────────
 // SQUARE CONFIGURATION
@@ -295,15 +296,19 @@ function renderMenu(category) {
     const card = document.createElement('div');
     card.className = 'menu-card';
     
+    const lang = getLang();
+    const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
+    const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
+    
     const imgHtml = item.img 
-      ? `<img src="${item.img}" alt="${item.name}" class="menu-card-img" loading="lazy">`
+      ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" loading="lazy">`
       : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">No Image</div>`;
     
     card.innerHTML = `
       ${imgHtml}
       <div class="menu-card-content">
-        <h3 class="menu-card-title">${item.name}</h3>
-        <p class="menu-card-desc">${item.desc}</p>
+        <h3 class="menu-card-title">${displayName}</h3>
+        <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${item.price.toFixed(2)}</span>
           <button class="btn-primary btn-add-cart" onclick="addToCart('${item.id}')">+ Add</button>
@@ -313,6 +318,7 @@ function renderMenu(category) {
     grid.appendChild(card);
   });
 }
+window.renderMenu = renderMenu;
 
 // Render Featured Menu Items on Home page
 function renderFeaturedMenu() {
@@ -332,15 +338,19 @@ function renderFeaturedMenu() {
     card.className = 'menu-card';
     card.style.borderColor = 'var(--accent)';
     
+    const lang = getLang();
+    const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
+    const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
+    
     const imgHtml = item.img 
-      ? `<img src="${item.img}" alt="${item.name}" class="menu-card-img" loading="lazy">`
+      ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" loading="lazy">`
       : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>`;
     
     card.innerHTML = `
       ${imgHtml}
       <div class="menu-card-content">
-        <h3 class="menu-card-title">${item.name}</h3>
-        <p class="menu-card-desc">${item.desc}</p>
+        <h3 class="menu-card-title">${displayName}</h3>
+        <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
           <button class="btn-primary btn-add-cart" onclick="addToCart('${item.id}')">+ Add</button>
@@ -350,6 +360,7 @@ function renderFeaturedMenu() {
     grid.appendChild(card);
   });
 }
+window.renderFeaturedMenu = renderFeaturedMenu;
 
 // ─────────────────────────────────────────────────────────────────
 // DEALS RENDERING & LISTENER

@@ -1673,3 +1673,29 @@ body {
 @media (max-width: 768px) { [dir="rtl"] .crm-layout { margin-right: 0; } }  
 [dir="rtl"] .crm-nav-links { align-items: flex-start; }  
 [dir="rtl"] .crm-nav-item { flex-direction: row; } 
+
+/* RTL Overrides for Customer Site */
+[dir="rtl"] body {
+  font-family: 'Vazirmatn', sans-serif;
+  text-align: right;
+}
+
+[dir="rtl"] .site-nav .container {
+  direction: ltr; /* Keeps logo left, links right */
+}
+
+[dir="rtl"] .nav-links,
+[dir="rtl"] .nav-mobile-drawer {
+  direction: rtl;
+}
+
+[dir="rtl"] .nav-logo {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+/* Ensure Square payment form is LTR so card fields don't break */
+#payment-form {
+  direction: ltr !important;
+  text-align: left !important;
+}

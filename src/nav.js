@@ -1,6 +1,7 @@
 // Shared mobile nav logic for all pages
 import { db } from './firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
+import { getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
 
 export function initNav(activePage = '') {
   const hamburger = document.getElementById('nav-hamburger');
@@ -10,6 +11,22 @@ export function initNav(activePage = '') {
   hamburger.addEventListener('click', () => {
     hamburger.classList.toggle('open');
     drawer.classList.toggle('open');
+  });
+
+  // Language setup
+  setLang(getLang());
+  applyTranslations();
+
+  const langToggles = document.querySelectorAll('.site-lang-toggle');
+  langToggles.forEach(btn => {
+    btn.addEventListener('click', () => {
+      toggleLang();
+      applyTranslations();
+      // If we are on menu.html, we need to re-render the menu
+      if (typeof window.renderMenu === 'function') {
+        window.renderMenu();
+      }
+    });
   });
 
   // Close drawer when a link is clicked
