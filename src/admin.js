@@ -12,6 +12,46 @@ const navOverlay = document.getElementById('crm-nav-overlay');
 const crmNav = document.querySelector('.crm-nav');
 const errorEl = document.getElementById('login-error');
 const ordersList = document.getElementById('orders-list');
+const pwaInstallBtn = document.getElementById('pwa-install-btn');
+const iosInstallHint = document.getElementById('ios-install-hint');
+
+// PWA Installation Logic
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (pwaInstallBtn) pwaInstallBtn.style.display = 'block';
+});
+
+if (pwaInstallBtn) {
+  pwaInstallBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        pwaInstallBtn.style.display = 'none';
+      }
+      deferredPrompt = null;
+    }
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  if (pwaInstallBtn) pwaInstallBtn.style.display = 'none';
+  console.log('PWA was installed');
+});
+
+// iOS Detection & Hint
+const isIos = () => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(userAgent);
+};
+const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+
+if (isIos() && !isInStandaloneMode() && iosInstallHint) {
+  iosInstallHint.style.display = 'block';
+}
 
 // Mobile Nav Logic
 function toggleMobileMenu() {

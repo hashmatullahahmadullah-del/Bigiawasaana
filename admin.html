@@ -32,10 +32,17 @@
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
         <button id="logout-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none;">Logout</button>
+        <button id="pwa-install-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none; white-space: nowrap;">Install App</button>
         <button id="mobile-menu-btn" class="crm-btn-icon" style="display: none; padding: 8px; font-size: 24px;">☰</button>
       </div>
     </div>
   </nav>
+
+  <!-- iOS Install Hint -->
+  <div id="ios-install-hint" style="display: none; position: fixed; top: 72px; left: 0; right: 0; z-index: 999; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px; text-align: center; font-size: 13px; color: var(--gray);">
+    📱 iPhone: tap Share → Add to Home Screen
+    <button onclick="document.getElementById('ios-install-hint').style.display='none'" style="margin-left: 12px; background: none; border: none; color: var(--white); cursor: pointer; text-decoration: underline;">Dismiss</button>
+  </div>
 
   <!-- Mobile Nav Overlay -->
   <div id="crm-nav-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1001; opacity: 0; transition: opacity 0.3s;"></div>
