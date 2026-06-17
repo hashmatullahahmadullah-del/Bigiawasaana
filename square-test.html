@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Square Payment Diagnostic</title>
+  <script src="https://web.squarecdn.com/v1/square.js"></script>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+    #log { white-space: pre-wrap; margin-top: 20px; }
+    .error { color: #f44; }
+    .success { color: #4f4; }
+    .info { color: #ff0; }
+    #card-container { min-height: 100px; border: 2px dashed #555; margin: 20px 0; padding: 10px; background: #222; }
+    button { background: #ff4500; color: white; border: none; padding: 12px 24px; font-size: 16px; cursor: pointer; margin: 10px 5px; }
+  </style>
+</head>
+<body>
+  <h1>🔧 Square Payment Diagnostic Tool</h1>
+  <p>App ID: sq0idp-ZNKswm32xh_nRRecm5ggFg</p>
+  <p>Location ID: LVVN2XC88162M</p>
+  <hr>
+  <div id="log"></div>
+  <div id="card-container"></div>
+  <button id="tokenize-btn" disabled>Test Tokenize</button>
+  <button id="reinit-btn">Re-Initialize</button>
+
+  <script>
+    const APP_ID = 'sq0idp-ZNKswm32xh_nRRecm5ggFg';
+    const LOCATION_ID = 'LVVN2XC88162M';
+    let payments, card;
+
+    function log(msg, type = '') {
+      const el = document.getElementById('log');
+      const cls = type ? ` class="${type}"` : '';
+      el.innerHTML += `<span${cls}>[${new Date().toLocaleTimeString()}] ${msg}</span>\n`;
+      console.log(msg);
+    }
+
+    async function init() {
+      log('--- Starting Square Diagnostic ---', 'info');
+      
+      // Step 1: Check SDK loaded
+      if (!window.Square) {
+        log('❌ window.Square is undefined - SDK failed to load!', 'error');
+        log('Check if https://web.squarecdn.com/v1/square.js is blocked by ad blocker or CSP', 'error');
+        return;
+      }
+      log('✅ Square SDK loaded (window.Square exists)', 'success');
+      log(`   Square SDK version: ${window.Square.version || 'unknown'}`, 'info');
+
+      // Step 2: Initialize payments
+      try {
+        log('Initializing Square.payments()...');
+        payments = window.Square.payments(APP_ID, LOCATION_ID);
+        log('✅ Square.payments() initialized successfully', 'success');
+      } catch (err) {
+        log(`❌ Square.payments() FAILED: ${err.message}`, 'error');
+        log(`   Full error: ${JSON.stringify(err)}`, 'error');
+        return;
+      }
+
+      // Step 3: Create card
+      try {
+        log('Creating card instance (payments.card())...');
+        card = await payments.card();
+        log('✅ Card instance created', 'success');
+      } catch (err) {
+        log(`❌ payments.card() FAILED: ${err.message}`, 'error');
+        log(`   This usually means the App ID is invalid or the account is disabled`, 'error');
+        return;
+      }
+
+      // Step 4: Attach card
+      try {
+        log('Attaching card to #card-container...');
+        await card.attach('#card-container');
+        log('✅ Card attached to DOM - you should see card fields above', 'success');
+        document.getElementById('tokenize-btn').disabled = false;
+      } catch (err) {
+        log(`❌ card.attach() FAILED: ${err.message}`, 'error');
+        return;
+      }
+
+      // Step 5: Check iframe
+      const iframes = document.getElementById('card-container').querySelectorAll('iframe');
+      log(`   Found ${iframes.length} iframe(s) in #card-container`, 'info');
+      
+      log('');
+      log('=== Card form should be visible above ===', 'info');
+      log('Enter test card: 4111 1111 1111 1111, any future date, any CVV, any ZIP', 'info');
+      log('Then click "Test Tokenize"', 'info');
+    }
+
+    document.getElementById('tokenize-btn').addEventListener('click', async () => {
+      if (!card) {
+        log('❌ No card instance', 'error');
+        return;
+      }
+      log('');
+      log('--- Attempting tokenize() ---', 'info');
+      try {
+        const result = await card.tokenize();
+        log(`Tokenize result status: ${result.status}`, result.status === 'OK' ? 'success' : 'error');
+        if (result.status === 'OK') {
+          log(`✅ TOKEN: ${result.token}`, 'success');
+          log('Tokenization works! The issue is elsewhere (server-side or Firebase).', 'success');
+        } else {
+          log(`❌ Tokenization failed`, 'error');
+          if (result.errors) {
+            result.errors.forEach(e => {
+              log(`   Error: ${e.type} - ${e.field || 'n/a'} - ${e.message}`, 'error');
+            });
+          }
+          log('If errors say "VALIDATION_ERROR" on fields, the card fields are empty or invalid.', 'info');
+          log('If errors say something else, the App ID or domain may be misconfigured.', 'info');
+        }
+      } catch (err) {
+        log(`❌ tokenize() threw exception: ${err.message}`, 'error');
+        log(`   Full error: ${JSON.stringify(err)}`, 'error');
+      }
+    });
+
+    document.getElementById('reinit-btn').addEventListener('click', () => {
+      document.getElementById('card-container').innerHTML = '';
+      document.getElementById('log').innerHTML = '';
+      init();
+    });
+
+    // Auto-run
+    init();
+  </script>
+</body>
+</html>
