@@ -538,9 +538,9 @@ async function initSquarePayments() {
   }
 
   try {
-    squarePayments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID, {
-      environment: 'production'
-    });
+    if (!squarePayments) {
+      squarePayments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
+    }
     squareCard = await squarePayments.card();
     console.log('Square Web Payments initialized.');
   } catch (err) {
@@ -669,6 +669,11 @@ window.openPaymentModal = async () => {
 
   document.getElementById('pay-total').textContent = `$${(discountedSubtotal + tax).toFixed(2)}`;
 
+  // Ensure Square card is initialized (handles close → reopen race condition)
+  if (!squareCard) {
+    await initSquarePayments();
+  }
+
   // Attach Square card form
   if (squareCard) {
     try {
@@ -794,11 +799,10 @@ window.closePaymentModal = () => {
   const modal = document.getElementById('payment-modal');
   modal.style.display = 'none';
 
-  // Detach card form
+  // Destroy the card instance — openPaymentModal will re-create it on demand
   if (squareCard) {
     try { squareCard.destroy(); } catch(e) {}
-    // We do not re-init automatically here to prevent double init, let's just detach or destroy.
-    initSquarePayments();
+    squareCard = null;
   }
   
   // Hide digital wallet buttons to reset state
@@ -868,6 +872,13 @@ window.handlePayment = async () => {
   payBtn.textContent = 'Processing...';
   errorsEl.textContent = '';
 
+  if (!squareCard) {
+    errorsEl.textContent = 'Payment form not ready. Please close and reopen the checkout.';
+    payBtn.disabled = false;
+    payBtn.textContent = 'Pay Now';
+    return;
+  }
+
   try {
     const result = await squareCard.tokenize();
     if (result.status === 'OK') {
@@ -883,9 +894,11 @@ window.handlePayment = async () => {
         pickupTime
       });
     } else {
-      let errorMessage = `Tokenization failed: ${result.errors[0].message}`;
-      console.error(errorMessage);
-      errorsEl.textContent = errorMessage;
+      const errMsg = result.errors && result.errors.length > 0
+        ? result.errors.map(e => e.message).join(', ')
+        : 'Card validation failed. Please check your card details.';
+      console.error('Tokenization failed:', errMsg);
+      errorsEl.textContent = errMsg;
       payBtn.disabled = false;
       payBtn.textContent = 'Pay Now';
     }
