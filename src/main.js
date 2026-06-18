@@ -533,7 +533,9 @@ let squarePayments;
 
 async function initSquarePayments() {
   if (!window.Square) {
-    console.warn('Square SDK not loaded.');
+    console.error('Square SDK not loaded — check if https://web.squarecdn.com/v1/square.js is blocked.');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) checkoutBtn.textContent = 'Payment Unavailable';
     return;
   }
 
@@ -542,9 +544,12 @@ async function initSquarePayments() {
       squarePayments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
     }
     squareCard = await squarePayments.card();
-    console.log('Square Web Payments initialized.');
+    console.log('Square Web Payments initialized successfully.');
   } catch (err) {
     console.error('Failed to initialize Square Web Payments:', err);
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) checkoutBtn.textContent = 'Payment Setup Error';
+    showToast('Payment system could not load: ' + err.message);
   }
 }
 
@@ -964,23 +969,27 @@ async function processSquareToken(token, { customerName, customerPhone, tipCents
 
   } catch (err) {
     console.error('Payment error:', err);
-    processingEl.style.display = 'none';
-    cardContainer.style.display = 'block';
-    summaryEl.style.display = 'block';
-    if (digitalWallets) digitalWallets.style.display = 'block';
-    payButton.style.display = 'block';
-    payButton.disabled = false;
+    const _processing = document.getElementById('payment-processing');
+    const _cardContainer = document.getElementById('card-container');
+    const _payBtn = document.getElementById('pay-button');
+    const _errorsEl = document.getElementById('card-errors');
 
-    const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
-    const evalResult = evaluateDeals(cart, activeDeals, menuItems);
-    const discountAmount = evalResult.discountCents / 100;
-    const discountedSubtotal = subtotal - discountAmount;
-    const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
-    const tip = Math.min(tipRaw, 100);
-    payButton.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
+    if (_processing) _processing.style.display = 'none';
+    if (_cardContainer) _cardContainer.style.display = 'block';
+    if (_payBtn) {
+      _payBtn.style.display = 'block';
+      _payBtn.disabled = false;
+      const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+      const evalResult = evaluateDeals(cart, activeDeals, menuItems);
+      const discountAmount = evalResult.discountCents / 100;
+      const discountedSubtotal = subtotal - discountAmount;
+      const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
+      const tip = Math.min(tipRaw, 100);
+      _payBtn.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
+    }
 
     const errorMsg = err.message || 'Payment failed. Please try again.';
-    errorsEl.textContent = errorMsg;
+    if (_errorsEl) _errorsEl.textContent = errorMsg;
     showToast(errorMsg);
   }
 };
