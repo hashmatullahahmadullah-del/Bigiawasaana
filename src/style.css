@@ -411,7 +411,7 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: url('/hero.png') center/cover no-repeat;
+  background: url('/hero-food.jpg') center/cover no-repeat;
   position: relative;
 }
 .hero::before {
@@ -526,7 +526,23 @@ body {
 }
 
 /* --- HERITAGE --- */
-.heritage { padding: clamp(48px, 8vw, 100px) 0; border-top: 1px solid var(--border); }
+.heritage {
+  padding: clamp(48px, 8vw, 100px) 0;
+  border-top: 1px solid var(--border);
+  background: url('/trailer.png') center/cover fixed no-repeat;
+  position: relative;
+}
+.heritage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 6, 6, 0.85); /* dark overlay so text is readable */
+  z-index: 1;
+}
+.heritage .container {
+  position: relative;
+  z-index: 2;
+}
 .heritage-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
