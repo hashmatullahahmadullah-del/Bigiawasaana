@@ -305,7 +305,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
       console.error('Failed to get liveStats:', err);
     }
     
-    const rawWait = config.basePrepTimeMinutes + (activeAsapOrderCount * config.perOrderIncrementMinutes);
+    const rawWait = config.basePrepTimeMinutes + (activeAsapOrderCount * config.perOrderIncrementMinutes) + (config.busyModeOffsetMinutes || 0);
     const waitTimeMinutes = Math.min(rawWait, config.maxWaitMinutes);
     estimatedReadyTime = admin.firestore.Timestamp.fromDate(new Date(now.getTime() + waitTimeMinutes * 60000));
     releasedToKitchen = true;

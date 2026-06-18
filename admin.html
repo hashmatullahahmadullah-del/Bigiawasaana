@@ -180,14 +180,33 @@
               <textarea id="menu-desc_fa" placeholder="Persian Description (Optional)" rows="2" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: inherit; resize: vertical; direction: rtl; text-align: right;"></textarea>
               <input type="text" id="menu-category" placeholder="Category (e.g. platters, wraps, drinks)" value="platters" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
               <div style="display: flex; gap: 8px; flex-direction: column;">
-                <input type="url" id="menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                <input type="url" id="edit-menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
                 <span style="color: var(--gray); font-size: 12px; text-align: center;">OR</span>
                 <div style="display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 6px;">
-                  <label for="menu-img-upload" style="cursor: pointer; background: var(--surface); padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border); font-size: 13px;">Choose File</label>
-                  <input type="file" id="menu-img-upload" accept="image/*" style="display: none;">
-                  <span id="menu-img-filename" style="font-size: 13px; color: var(--gray);">No file chosen</span>
+                  <label for="edit-menu-img-upload" style="cursor: pointer; background: var(--surface); padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border); font-size: 13px;">Choose File</label>
+                  <input type="file" id="edit-menu-img-upload" accept="image/*" style="display: none;">
+                  <span id="edit-menu-img-filename" style="font-size: 13px; color: var(--gray);">No file chosen</span>
                 </div>
               </div>
+
+              <!-- Options Builder (Variants & Add-ons) -->
+              <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <h4 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--gray); text-transform: uppercase; margin: 0;">Variants</h4>
+                  <button type="button" class="btn-outline btn-small" id="add-variant-btn">+ Add Variant</button>
+                </div>
+                <p style="color: var(--gray); font-size: 12px; margin-top: 0; margin-bottom: 8px;">Mutually exclusive choices (e.g. Size: Regular, Large). Overrides base price.</p>
+                <div id="variants-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+              </div>
+              <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <h4 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--gray); text-transform: uppercase; margin: 0;">Add-Ons</h4>
+                  <button type="button" class="btn-outline btn-small" id="add-addon-btn">+ Add Add-On</button>
+                </div>
+                <p style="color: var(--gray); font-size: 12px; margin-top: 0; margin-bottom: 8px;">Optional extras (e.g. Extra White Sauce). Adds to base price.</p>
+                <div id="addons-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+              </div>
+
               <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
                 <input type="checkbox" id="menu-featured"> Mark as Featured Item (displays on Homepage)
               </label>
@@ -575,6 +594,69 @@
           </div>
         </section>
 
+        <!-- Pickup Settings View -->
+        <section id="pickup-view" class="crm-view" style="display: none;">
+          <h1 class="crm-view-title">Pickup & Ordering Settings</h1>
+          
+          <div class="crm-panel mt-m">
+            <h2 class="crm-panel-title">Dynamic Wait Time & Scheduling</h2>
+            <form id="pickup-config-form" style="display: flex; flex-direction: column; gap: 16px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Base Prep Time (mins)</label>
+                  <input type="number" id="pickup-base-prep" class="crm-input" required>
+                </div>
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Per-Order Increment (mins)</label>
+                  <input type="number" id="pickup-per-order" class="crm-input" required>
+                </div>
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Max Wait Time (mins)</label>
+                  <input type="number" id="pickup-max-wait" class="crm-input" required>
+                </div>
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase;">Busy Mode Offset (mins)</label>
+                  <input type="number" id="pickup-busy-offset" class="crm-input" value="0" placeholder="e.g. 20 for +20 mins delay" required>
+                </div>
+              </div>
+              
+              <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--white); margin-top: 16px;">Scheduled Ordering Limits</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Min Lead Time (mins)</label>
+                  <input type="number" id="pickup-min-lead" class="crm-input" required>
+                </div>
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Max Days Ahead</label>
+                  <input type="number" id="pickup-max-days" class="crm-input" required>
+                </div>
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Slot Interval (mins)</label>
+                  <input type="number" id="pickup-slot-interval" class="crm-input" required>
+                </div>
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Buffer Before Close (mins)</label>
+                  <input type="number" id="pickup-prep-buffer" class="crm-input" required>
+                </div>
+              </div>
+
+              <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--white); margin-top: 16px;">Business Hours</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Open Time (HH:MM)</label>
+                  <input type="time" id="pickup-open-time" class="crm-input" required>
+                </div>
+                <div class="crm-form-group">
+                  <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Close Time (HH:MM)</label>
+                  <input type="time" id="pickup-close-time" class="crm-input" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" style="margin-top: 16px; align-self: flex-start;">Save Pickup Settings</button>
+            </form>
+          </div>
+        </section>
+
         <!-- Unit Economics View -->
         <section id="economics-view" class="crm-view">
           <h1 class="crm-view-title">Unit Economics & Profitability</h1>
@@ -669,6 +751,25 @@
               <span id="edit-menu-img-filename" style="font-size: 13px; color: var(--gray);">No file chosen</span>
             </div>
           </div>
+
+          <!-- Options Builder (Variants & Add-ons) -->
+          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h4 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--gray); text-transform: uppercase; margin: 0;">Variants</h4>
+              <button type="button" class="btn-outline btn-small" id="edit-variant-btn">+ Add Variant</button>
+            </div>
+            <p style="color: var(--gray); font-size: 12px; margin-top: 0; margin-bottom: 8px;">Mutually exclusive choices (e.g. Size: Regular, Large). Overrides base price.</p>
+            <div id="edit-variants-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          </div>
+          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h4 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--gray); text-transform: uppercase; margin: 0;">Add-Ons</h4>
+              <button type="button" class="btn-outline btn-small" id="edit-addon-btn">+ Add Add-On</button>
+            </div>
+            <p style="color: var(--gray); font-size: 12px; margin-top: 0; margin-bottom: 8px;">Optional extras (e.g. Extra White Sauce). Adds to base price.</p>
+            <div id="edit-addons-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          </div>
+
           <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
             <input type="checkbox" id="edit-menu-featured"> Mark as Featured Item (displays on Homepage)
           </label>

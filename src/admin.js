@@ -409,6 +409,7 @@ function loadPickupSettings() {
       document.getElementById('pickup-base-prep').value = config.basePrepTimeMinutes || 15;
       document.getElementById('pickup-per-order').value = config.perOrderIncrementMinutes || 3;
       document.getElementById('pickup-max-wait').value = config.maxWaitMinutes || 60;
+      document.getElementById('pickup-busy-offset').value = config.busyModeOffsetMinutes || 0;
       document.getElementById('pickup-min-lead').value = config.minLeadTimeMinutes || 20;
       document.getElementById('pickup-max-days').value = config.maxScheduleDaysAhead || 3;
       document.getElementById('pickup-slot-interval').value = config.slotIntervalMinutes || 15;
@@ -430,6 +431,7 @@ document.getElementById('pickup-config-form')?.addEventListener('submit', async 
     basePrepTimeMinutes: parseInt(document.getElementById('pickup-base-prep').value, 10),
     perOrderIncrementMinutes: parseInt(document.getElementById('pickup-per-order').value, 10),
     maxWaitMinutes: parseInt(document.getElementById('pickup-max-wait').value, 10),
+    busyModeOffsetMinutes: parseInt(document.getElementById('pickup-busy-offset').value, 10) || 0,
     minLeadTimeMinutes: parseInt(document.getElementById('pickup-min-lead').value, 10),
     maxScheduleDaysAhead: parseInt(document.getElementById('pickup-max-days').value, 10),
     slotIntervalMinutes: parseInt(document.getElementById('pickup-slot-interval').value, 10),
@@ -604,6 +606,42 @@ async function uploadImageFile(file) {
   return downloadUrl;
 }
 
+// Options Builder Helpers
+function getBuilderOptions(prefix) {
+  const options = [];
+  const container = document.getElementById(`${prefix}-container`);
+  if (!container) return options;
+  const rows = container.querySelectorAll('.option-row');
+  rows.forEach(row => {
+    const name = row.querySelector('.opt-name').value.trim();
+    const price = parseFloat(row.querySelector('.opt-price').value);
+    if (name) {
+      options.push({ name, price: isNaN(price) ? 0 : price });
+    }
+  });
+  return options;
+}
+
+function createOptionRow(prefix, type, name = '', price = '') {
+  const container = document.getElementById(`${prefix}-container`);
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'option-row';
+  div.style.display = 'flex';
+  div.style.gap = '8px';
+  div.innerHTML = `
+    <input type="text" class="opt-name" placeholder="${type} Name" value="${name}" style="flex: 2; padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+    <input type="number" step="0.01" class="opt-price" placeholder="Price ($)" value="${price}" style="flex: 1; padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+    <button type="button" class="btn-outline" onclick="this.parentElement.remove()" style="padding: 0 12px; color: #ff5252; border-color: #ff5252;">×</button>
+  `;
+  container.appendChild(div);
+}
+
+document.getElementById('add-variant-btn')?.addEventListener('click', () => createOptionRow('variants', 'Variant'));
+document.getElementById('add-addon-btn')?.addEventListener('click', () => createOptionRow('addons', 'Add-On'));
+document.getElementById('edit-variant-btn')?.addEventListener('click', () => createOptionRow('edit-variants', 'Variant'));
+document.getElementById('edit-addon-btn')?.addEventListener('click', () => createOptionRow('edit-addons', 'Add-On'));
+
 if (addMenuForm) {
   addMenuForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -628,9 +666,14 @@ if (addMenuForm) {
         img = await uploadImageFile(fileInput.files[0]);
       }
 
-      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, img, featured: !!featured });
+      const variants = getBuilderOptions('variants');
+      const addOns = getBuilderOptions('addons');
+
+      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, img, featured: !!featured, variants, addOns });
       document.getElementById("menu-status").style.display = "block";
       addMenuForm.reset();
+      document.getElementById('variants-container').innerHTML = '';
+      document.getElementById('addons-container').innerHTML = '';
       if (addMenuFilename) addMenuFilename.textContent = 'No file chosen';
       setTimeout(() => { document.getElementById("menu-status").style.display = "none"; }, 3000);
       loadMenuAdmin();
@@ -715,6 +758,18 @@ window.openEditMenuModal = (id) => {
   document.getElementById("edit-menu-desc_fa").value = data.desc_fa || "";
   document.getElementById("edit-menu-featured").checked = !!data.featured;
   
+  const vContainer = document.getElementById('edit-variants-container');
+  if (vContainer) {
+    vContainer.innerHTML = '';
+    (data.variants || []).forEach(v => createOptionRow('edit-variants', 'Variant', v.name, v.price));
+  }
+  
+  const aContainer = document.getElementById('edit-addons-container');
+  if (aContainer) {
+    aContainer.innerHTML = '';
+    (data.addOns || []).forEach(a => createOptionRow('edit-addons', 'Add-On', a.name, a.price));
+  }
+  
   editMenuModal.classList.add("open");
 };
 
@@ -763,6 +818,9 @@ if (editMenuForm) {
         img = await uploadImageFile(fileInput.files[0]);
       }
 
+      const variants = getBuilderOptions('edit-variants');
+      const addOns = getBuilderOptions('edit-addons');
+
       await updateDoc(doc(db, "menu", id), {
         name,
         name_fa,
@@ -771,7 +829,9 @@ if (editMenuForm) {
         img,
         desc,
         desc_fa,
-        featured: !!featured
+        featured: !!featured,
+        variants,
+        addOns
       });
       closeEditMenuModal();
       loadMenuAdmin();
