@@ -383,7 +383,7 @@ body {
 .skeleton-text-title {
   height: 24px;
   width: 60%;
-  border-radius: 4px;
+  border-radius: 100px; /* Insta-like pill shape */
   background: var(--border);
   position: relative;
   overflow: hidden;
@@ -392,7 +392,7 @@ body {
 .skeleton-text-desc {
   height: 14px;
   width: 100%;
-  border-radius: 4px;
+  border-radius: 100px; /* Insta-like pill shape */
   background: var(--border);
   position: relative;
   overflow: hidden;
@@ -411,9 +411,9 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03), transparent);
   transform: translateX(-100%);
-  animation: skeleton-shimmer 1.5s infinite;
+  animation: skeleton-shimmer 1.5s infinite ease-in-out;
 }
 
 /* --- HERO --- */
