@@ -1232,10 +1232,45 @@ function initReveal() {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// LOAD SERVICE AREAS
+// ─────────────────────────────────────────────────────────────────
+async function loadServiceAreas() {
+  const section = document.getElementById('service-areas-section');
+  const grid = document.getElementById('service-areas-grid');
+  if (!section || !grid) return;
+
+  try {
+    const q = query(collection(db, 'serviceAreas'), where('isPublished', '==', true));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) {
+      // Keep hidden if no published areas
+      return;
+    }
+
+    grid.innerHTML = '';
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const a = document.createElement('a');
+      a.href = `/areas/${doc.id}`;
+      a.textContent = data.name || doc.id;
+      a.style = "color: var(--gray); text-decoration: none; font-size: 14px; border-bottom: 1px solid transparent; padding-bottom: 2px;";
+      grid.appendChild(a);
+    });
+
+    // Make visible once populated
+    section.style.display = 'block';
+  } catch (err) {
+    console.error('Error loading service areas:', err);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadMenuFromFirestore();
+  loadServiceAreas();
   updateCartUI();
 
   initReveal();
