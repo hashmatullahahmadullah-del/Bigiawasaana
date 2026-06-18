@@ -5,6 +5,7 @@ service cloud.firestore {
     // Menu Collection: Public read, Authenticated Admin write
     match /menu/{item} {
       allow read: if true;
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow write: if request.auth != null;
     }
     
@@ -16,22 +17,28 @@ service cloud.firestore {
       // Anyone can read a SINGLE order (for tracking page)
       // But listing ALL orders requires auth
       allow get: if true;
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow list: if request.auth != null;
       
       // Only authenticated admins can update or delete
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow update: if request.auth != null
         && request.resource.data.status in ['pending', 'preparing', 'ready', 'completed'];
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow delete: if request.auth != null;
     }
 
     // Settings Collection
     match /settings/{doc} {
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow read: if doc == 'pickupConfig' || request.auth != null;
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow write: if request.auth != null;
     }
     
     // Live Stats
     match /liveStats/{doc} {
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow read: if doc == 'current' || request.auth != null;
       allow write: if false; // Only Cloud Functions can write
     }
@@ -39,12 +46,21 @@ service cloud.firestore {
     // Catering Inquiries Collection
     match /catering_inquiries/{inquiry} {
       allow create: if true; // Anyone can submit an inquiry
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow read, update, delete: if request.auth != null; // Only admins can view and manage
     }
     
     // Deals Collection
     match /deals/{deal} {
       allow read: if true;
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
+      allow write: if request.auth != null;
+    }
+
+    // Service Areas Collection (Local SEO)
+    match /serviceAreas/{area} {
+      allow read: if true;
+      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow write: if request.auth != null;
     }
     

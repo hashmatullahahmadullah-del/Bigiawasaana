@@ -4,6 +4,8 @@ const cors = require('cors');
 const crypto = require('crypto');
 const { Client, Environment, ApiError } = require('square');
 const { evaluateDeals } = require('./deals-evaluator');
+const fs = require('fs');
+const path = require('path');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -836,3 +838,162 @@ exports.releaseScheduledOrders = functions.pubsub
     }
     return null;
   });
+
+// ─────────────────────────────────────────────────────────────────
+// renderAreaPage (SSR for /areas/**)
+// ─────────────────────────────────────────────────────────────────
+exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
+  try {
+    const urlParts = req.path.split('/').filter(Boolean);
+    const areaId = urlParts[urlParts.length - 1]; // e.g. "tarzana"
+
+    if (!areaId) {
+      return res.status(404).send('Not Found');
+    }
+
+    const areaDoc = await db.collection('serviceAreas').doc(areaId).get();
+    
+    if (!areaDoc.exists) {
+      // Return hard 404 with fallback HTML as requested
+      const notFoundHtml = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Area Not Found | Bigi Awasaana</title>
+        <style>
+          body { background: #060606; color: #fff; font-family: 'Barlow Condensed', sans-serif; text-align: center; padding-top: 20vh; margin: 0; }
+          h1 { color: #ff4500; font-size: 3rem; text-transform: uppercase; margin-bottom: 1rem; }
+          p { color: #a0a0a0; font-family: 'Outfit', sans-serif; font-size: 1.1rem; }
+          a { color: #ff4500; text-decoration: none; border: 1px solid #ff4500; padding: 10px 20px; border-radius: 4px; display: inline-block; margin-top: 20px; }
+          a:hover { background: rgba(255, 69, 0, 0.1); }
+        </style>
+      </head>
+      <body>
+        <h1>Area Not Found</h1>
+        <p>We couldn't find the neighborhood page you're looking for.</p>
+        <p>Check out our authentic Halal Afghan menu instead!</p>
+        <a href="/menu.html">View Menu</a> <a href="/" style="margin-left: 10px; border-color: #333; color: #fff;">Homepage</a>
+      </body>
+      </html>`;
+      return res.status(404).send(notFoundHtml);
+    }
+
+    const areaData = areaDoc.data();
+    
+    // Read the bundled template
+    const templatePath = path.join(__dirname, 'area-template.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+
+    // Replace SEO placeholders
+    const title = areaData.title || `Halal Afghan Food Delivery in ${areaData.name || areaId} | Bigi Awasaana`;
+    const description = areaData.metaDescription || `Order the best Halal Afghan street food, kabobs, and bolani in ${areaData.name || areaId}.`;
+    
+    html = html.replace(/{{TITLE}}/g, title);
+    html = html.replace(/{{META_DESC}}/g, description);
+
+    // Thin content safeguard
+    if (areaData.isPublished === false) {
+      html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
+    } else {
+      html = html.replace(/{{META_ROBOTS}}/g, ''); // leave blank
+    }
+
+    // Build the injected content
+    const areaContent = `
+      <section class="section pt-xl" style="background-color: var(--bg); min-height: 60vh;">
+        <div class="container text-center-mobile" style="max-width: 800px; margin: 0 auto;">
+          <h1 class="font-lalezar" style="font-size: clamp(36px, 6vw, 64px); color: var(--accent); margin-bottom: var(--space-xs);">${areaData.headline || 'Halal Afghan Food in ' + (areaData.name || areaId)}</h1>
+          ${areaData.driveTime ? `<p style="color: var(--gray); font-family: 'Barlow Condensed'; font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: var(--space-m);">Just a ${areaData.driveTime} drive to Reseda</p>` : ''}
+          <div style="font-size: 1.1rem; line-height: 1.8; color: var(--gray-light); margin-bottom: var(--space-l);">
+            ${areaData.introText ? `<p>${areaData.introText}</p>` : '<p>Experience the authentic taste of the Silk Road right here in the San Fernando Valley.</p>'}
+          </div>
+          <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <a href="/menu.html" class="btn-primary">Order for Pickup</a>
+            <a href="/#delivery" class="btn-outline">Order Delivery</a>
+          </div>
+        </div>
+      </section>
+    `;
+
+    html = html.replace(/{{AREA_CONTENT}}/g, areaContent);
+
+    // Cache headers: 1 hour CDN cache
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    res.status(200).send(html);
+
+  } catch (error) {
+    console.error('Error rendering area page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
+// renderSitemap (SSR for /sitemap.xml)
+// ─────────────────────────────────────────────────────────────────
+exports.renderSitemap = functions.https.onRequest(async (req, res) => {
+  try {
+    const baseUrl = 'https://bigiawasaana.com';
+    const now = new Date().toISOString().split('T')[0];
+    
+    // Core static URLs
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/menu.html</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/specials.html</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/locations.html</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/catering.html</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+
+    // Fetch published areas dynamically
+    const areasSnapshot = await db.collection('serviceAreas')
+      .where('isPublished', '==', true)
+      .get();
+      
+    areasSnapshot.forEach(doc => {
+      xml += `
+  <url>
+    <loc>${baseUrl}/areas/${doc.id}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+    });
+
+    xml += `\n</urlset>`;
+
+    res.set('Content-Type', 'application/xml');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    res.status(200).send(xml);
+
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
