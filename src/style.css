@@ -613,7 +613,7 @@ body {
   .hero { 
     min-height: 100svh; 
     padding-top: 72px; 
-    background-position: center bottom !important; 
+    background-position: 80% bottom !important; 
   }
   .hero::before { background: rgba(6, 6, 6, 0.75); }
   .hero-content { padding: 40px 20px 48px; }
