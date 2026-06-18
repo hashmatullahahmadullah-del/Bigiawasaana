@@ -110,10 +110,27 @@ function processData() {
   const urlParams = new URLSearchParams(window.location.search);
   const screen = urlParams.get('screen');
 
-  if (screen === '1') {
-    categories = allCategories.slice(0, Math.ceil(allCategories.length / 2));
-  } else if (screen === '2') {
-    categories = allCategories.slice(Math.ceil(allCategories.length / 2));
+  if (screen === '1' || screen === '2') {
+    let screen1Cats = [];
+    let screen2Cats = [];
+    let itemsInScreen1 = 0;
+    const targetItemsPerScreen = menuItems.length / 2;
+
+    for (const cat of allCategories) {
+      const itemsInCat = menuItems.filter(i => i.category === cat).length;
+      // If we haven't reached the halfway point, or if adding this category 
+      // keeps us closer to the target than skipping it would:
+      if (itemsInScreen1 < targetItemsPerScreen && screen1Cats.length === 0) {
+        screen1Cats.push(cat);
+        itemsInScreen1 += itemsInCat;
+      } else if (itemsInScreen1 + (itemsInCat / 2) <= targetItemsPerScreen) {
+        screen1Cats.push(cat);
+        itemsInScreen1 += itemsInCat;
+      } else {
+        screen2Cats.push(cat);
+      }
+    }
+    categories = screen === '1' ? screen1Cats : screen2Cats;
   } else {
     categories = allCategories; // Fallback to showing everything
   }
