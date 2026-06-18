@@ -28,6 +28,7 @@ export default {
   'nav.specials': 'Specials',
   'nav.location': 'Location',
   'nav.catering': 'Catering',
+  'nav.delivery': 'Delivery',
 
   // Unit Economics specific
   'ue.tab.menuProfitability': 'Menu Profitability',

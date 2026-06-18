@@ -27,7 +27,8 @@ export default {
   'nav.menu': 'منو',
   'nav.specials': 'ویژه‌ها',
   'nav.location': 'آدرس',
-  'nav.catering': 'پذیرایی',
+  'nav.catering': 'کیترینگ',
+  'nav.delivery': 'تحویل',
 
   // Unit Economics specific
   'ue.tab.menuProfitability': 'سودآوری منو',

@@ -590,6 +590,57 @@ body {
 .stat-label { font-size: 11px; color: var(--gray); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
 
 /* --- FOOTER --- */
+/* Delivery Section */
+.delivery-section {
+  padding: clamp(60px, 8vw, 100px) 20px;
+  background: var(--bg);
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.delivery-title {
+  font-size: clamp(32px, 5vw, 48px);
+  margin-bottom: 16px;
+}
+.delivery-desc {
+  color: var(--gray);
+  font-size: clamp(16px, 2vw, 18px);
+  max-width: 600px;
+  margin: 0 auto 40px;
+}
+.delivery-buttons {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-delivery {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: var(--surface);
+  color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-delivery:hover {
+  background: var(--white);
+  color: var(--bg);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+.btn-delivery svg {
+  transition: transform 0.3s;
+}
+.btn-delivery:hover svg {
+  transform: scale(1.1);
+}
+
 .footer {
   padding-top: clamp(60px, 8vw, 100px);
   border-top: 1px solid var(--border);
