@@ -544,6 +544,22 @@ body {
   z-index: 2;
 }
 
+.halal-bg {
+  background: url('/halal-bg.png') center/cover repeat;
+  position: relative;
+}
+.halal-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 6, 6, 0.85);
+  z-index: 1;
+}
+.halal-bg .container {
+  position: relative;
+  z-index: 2;
+}
+
 .heritage-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
