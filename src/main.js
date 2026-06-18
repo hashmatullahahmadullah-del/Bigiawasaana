@@ -471,7 +471,7 @@ window.openItemModal = (id) => {
           <input type="radio" name="modal_variant" class="custom-radio" value="${index}" ${isChecked} onchange="updateModalPrice()">
           <span class="modal-option-label">${v.name}</span>
         </div>
-        <span class="modal-option-price">+$${(parseFloat(v.price) || 0).toFixed(2)}</span>
+        <span class="modal-option-price">$${(parseFloat(v.price) || 0).toFixed(2)}</span>
       `;
       group.appendChild(row);
     });
@@ -531,7 +531,7 @@ window.updateModalPrice = () => {
     const checkedVar = document.querySelector('input[name="modal_variant"]:checked');
     if (checkedVar) {
       const v = currentModalItem.variants[parseInt(checkedVar.value)];
-      basePrice += (parseFloat(v.price) || 0);
+      basePrice = (parseFloat(v.price) || 0);
     }
   }
 
@@ -560,7 +560,7 @@ window.addConfiguredItemToCart = () => {
     const checkedVar = document.querySelector('input[name="modal_variant"]:checked');
     if (checkedVar) {
       const v = currentModalItem.variants[parseInt(checkedVar.value)];
-      finalPrice += (parseFloat(v.price) || 0);
+      finalPrice = (parseFloat(v.price) || 0);
       variantText = v.name;
     }
   }
