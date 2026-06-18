@@ -137,11 +137,12 @@ body {
 }
 
 .tv-category-items {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18vw, 1fr));
   gap: 1.5vw;
   overflow-y: auto;
   padding-right: 0.5vw;
+  align-content: start;
 }
 
 /* Hide scrollbar */

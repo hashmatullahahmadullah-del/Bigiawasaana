@@ -100,11 +100,23 @@ function processData() {
 
   // Process Categories
   const catSet = new Set(menuItems.map(i => i.category));
-  categories = Array.from(catSet).sort((a, b) => {
+  let allCategories = Array.from(catSet).sort((a, b) => {
     if (a === 'platters') return -1;
     if (b === 'platters') return 1;
     return a.localeCompare(b);
   });
+
+  // Split categories based on URL ?screen= parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const screen = urlParams.get('screen');
+
+  if (screen === '1') {
+    categories = allCategories.slice(0, Math.ceil(allCategories.length / 2));
+  } else if (screen === '2') {
+    categories = allCategories.slice(Math.ceil(allCategories.length / 2));
+  } else {
+    categories = allCategories; // Fallback to showing everything
+  }
 
   renderAllCategories();
 
