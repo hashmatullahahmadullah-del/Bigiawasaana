@@ -854,30 +854,31 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
     const areaDoc = await db.collection('serviceAreas').doc(areaId).get();
     
     if (!areaDoc.exists) {
-      // Return hard 404 with fallback HTML as requested
-      const notFoundHtml = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Area Not Found | Bigi Awasaana</title>
-        <style>
-          body { background: #060606; color: #fff; font-family: 'Barlow Condensed', sans-serif; text-align: center; padding-top: 20vh; margin: 0; }
-          h1 { color: #ff4500; font-size: 3rem; text-transform: uppercase; margin-bottom: 1rem; }
-          p { color: #a0a0a0; font-family: 'Outfit', sans-serif; font-size: 1.1rem; }
-          a { color: #ff4500; text-decoration: none; border: 1px solid #ff4500; padding: 10px 20px; border-radius: 4px; display: inline-block; margin-top: 20px; }
-          a:hover { background: rgba(255, 69, 0, 0.1); }
-        </style>
-      </head>
-      <body>
-        <h1>Area Not Found</h1>
-        <p>We couldn't find the neighborhood page you're looking for.</p>
-        <p>Check out our authentic Halal Afghan menu instead!</p>
-        <a href="/menu.html">View Menu</a> <a href="/" style="margin-left: 10px; border-color: #333; color: #fff;">Homepage</a>
-      </body>
-      </html>`;
-      return res.status(404).send(notFoundHtml);
+      const templatePath = path.join(__dirname, 'area-template.html');
+      let html = fs.readFileSync(templatePath, 'utf8');
+
+      html = html.replace(/{{TITLE}}/g, 'Area Not Found | Bigi Awasaana');
+      html = html.replace(/{{META_DESC}}/g, "We couldn't find the neighborhood page you're looking for.");
+      html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
+
+      const notFoundContent = `
+        <section class="section pt-xl" style="background-color: var(--bg); min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+          <div class="container" style="max-width: 600px;">
+            <h1 class="font-lalezar" style="font-size: clamp(48px, 8vw, 80px); color: var(--accent); margin-bottom: var(--space-s);">404</h1>
+            <h2 style="font-family: 'Barlow Condensed'; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; color: var(--white); margin-bottom: var(--space-m);">Area Not Found</h2>
+            <p style="color: var(--gray-light); font-size: 1.1rem; line-height: 1.6; margin-bottom: var(--space-l);">
+              We couldn't find the neighborhood page you're looking for. It might have been moved or doesn't exist yet.
+            </p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+              <a href="/menu.html" class="btn-primary" style="min-width: 160px;">View Menu</a>
+              <a href="/" class="btn-outline" style="min-width: 160px;">Go Home</a>
+            </div>
+          </div>
+        </section>
+      `;
+
+      html = html.replace(/{{INJECT_CONTENT}}/g, notFoundContent);
+      return res.status(404).send(html);
     }
 
     const areaData = areaDoc.data();
