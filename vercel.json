@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/areas/:area",
+      "destination": "https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/renderAreaPage/:area"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/renderSitemap"
+    }
+  ]
+}
