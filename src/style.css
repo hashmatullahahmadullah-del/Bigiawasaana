@@ -84,8 +84,8 @@ body {
 .font-barlow { font-family: 'Barlow Condensed', sans-serif; }
 .mb-s { margin-bottom: var(--space-s); }
 .mb-m { margin-bottom: var(--space-m); }
-.py-l { padding-top: var(--space-l); padding-bottom: var(--space-l); }
-.py-xl { padding-top: var(--space-xl); padding-bottom: var(--space-xl); }
+.py-l { padding-top: clamp(40px, 6vw, 80px); padding-bottom: clamp(40px, 6vw, 80px); }
+.py-xl { padding-top: clamp(60px, 8vw, 120px); padding-bottom: clamp(60px, 8vw, 120px); }
 
 .container {
   width: 100%;
