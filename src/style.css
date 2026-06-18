@@ -610,7 +610,8 @@ body {
 
 /* --- BREAKPOINT: MOBILE (max 640px) --- */
 @media (max-width: 640px) {
-  .hero { min-height: calc(100svh); padding-top: 72px; }
+  .hero { min-height: 75svh; padding-top: 80px; }
+  .hero::before { background: rgba(6, 6, 6, 0.85); }
   .hero-content { padding: 40px 20px 48px; }
   .footer-grid { grid-template-columns: 1fr; gap: 24px; text-align: center; }
   .social-links { align-items: center; }
