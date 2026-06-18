@@ -728,6 +728,14 @@ window.openPaymentModal = async () => {
           try {
             const result = await applePay.tokenize();
             if (result.status === 'OK') {
+              // Show processing screen
+              document.getElementById('card-container').style.display = 'none';
+              document.getElementById('apple-pay-button').style.display = 'none';
+              document.getElementById('google-pay-button').style.display = 'none';
+              if (document.getElementById('fake-apple-pay-button')) document.getElementById('fake-apple-pay-button').style.display = 'none';
+              document.getElementById('pay-button').style.display = 'none';
+              document.getElementById('payment-processing').style.display = 'flex';
+
               await processSquareToken(result.token, {
                 customerName: document.getElementById('customer-name').value.trim(),
                 customerPhone: document.getElementById('customer-phone').value.trim(),
@@ -740,6 +748,7 @@ window.openPaymentModal = async () => {
             }
           } catch (e) {
             console.error('Apple Pay error:', e);
+            document.getElementById('card-errors').textContent = e.message || 'Apple Pay payment failed.';
           }
         });
       } catch (e) {
@@ -776,6 +785,14 @@ window.openPaymentModal = async () => {
           try {
             const result = await googlePay.tokenize();
             if (result.status === 'OK') {
+              // Show processing screen
+              document.getElementById('card-container').style.display = 'none';
+              document.getElementById('apple-pay-button').style.display = 'none';
+              document.getElementById('google-pay-button').style.display = 'none';
+              if (document.getElementById('fake-apple-pay-button')) document.getElementById('fake-apple-pay-button').style.display = 'none';
+              document.getElementById('pay-button').style.display = 'none';
+              document.getElementById('payment-processing').style.display = 'flex';
+
               await processSquareToken(result.token, {
                 customerName: document.getElementById('customer-name').value.trim(),
                 customerPhone: document.getElementById('customer-phone').value.trim(),
@@ -788,6 +805,7 @@ window.openPaymentModal = async () => {
             }
           } catch (e) {
             console.error('Google Pay error:', e);
+            document.getElementById('card-errors').textContent = e.message || 'Google Pay payment failed.';
           }
         });
       } catch (e) {
