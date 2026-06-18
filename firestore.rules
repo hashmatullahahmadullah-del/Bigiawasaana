@@ -10,16 +10,8 @@ service cloud.firestore {
     
     // Orders Collection
     match /orders/{order} {
-      // Anyone can create a validated order
-      allow create: if
-        request.resource.data.keys().hasAll(['items', 'total', 'status', 'createdAt', 'customerName', 'prepTime'])
-        && request.resource.data.status == 'pending'
-        && request.resource.data.items is list
-        && request.resource.data.items.size() > 0
-        && request.resource.data.items.size() <= 50
-        && request.resource.data.total is string
-        && request.resource.data.customerName is string
-        && request.resource.data.prepTime is number;
+      // Orders are created securely via the Cloud Function. Client creation is forbidden.
+      allow create: if false;
       
       // Anyone can read a SINGLE order (for tracking page)
       // But listing ALL orders requires auth

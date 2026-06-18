@@ -92,7 +92,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     
     if (cartItem.selectedVariant && Array.isArray(menuData.variants)) {
       const v = menuData.variants.find(va => va.name === cartItem.selectedVariant);
-      if (v) finalPrice += (parseFloat(v.price) || 0);
+      if (v) finalPrice = (parseFloat(v.price) || 0);
     }
 
     if (Array.isArray(cartItem.selectedAddOns) && Array.isArray(menuData.addOns)) {
