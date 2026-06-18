@@ -877,7 +877,7 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
         </section>
       `;
 
-      html = html.replace(/{{INJECT_CONTENT}}/g, notFoundContent);
+      html = html.replace(/{{AREA_CONTENT}}/g, notFoundContent);
       return res.status(404).send(html);
     }
 
@@ -918,7 +918,7 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
       </section>
     `;
 
-    html = html.replace(/{{INJECT_CONTENT}}/g, areaContent);
+    html = html.replace(/{{AREA_CONTENT}}/g, areaContent);
 
     // Cache headers: 1 hour CDN cache
     res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
