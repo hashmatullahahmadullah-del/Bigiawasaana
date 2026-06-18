@@ -83,20 +83,38 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     }
 
     const menuData = menuDoc.data();
-    const price = typeof menuData.price === 'number' ? menuData.price : parseFloat(menuData.price);
-    if (isNaN(price) || price <= 0) {
+    const basePrice = typeof menuData.price === 'number' ? menuData.price : parseFloat(menuData.price);
+    if (isNaN(basePrice) || basePrice <= 0) {
       throw new functions.https.HttpsError('internal', `Invalid price for item: ${menuData.name}`);
     }
 
-    menuItems.push({ id: cartItem.id, ...menuData, price });
+    let finalPrice = basePrice;
+    
+    if (cartItem.selectedVariant && Array.isArray(menuData.variants)) {
+      const v = menuData.variants.find(va => va.name === cartItem.selectedVariant);
+      if (v) finalPrice += (parseFloat(v.price) || 0);
+    }
 
-    const itemTotalCents = Math.round(price * 100) * cartItem.qty;
+    if (Array.isArray(cartItem.selectedAddOns) && Array.isArray(menuData.addOns)) {
+      cartItem.selectedAddOns.forEach(addonName => {
+        const a = menuData.addOns.find(ad => ad.name === addonName);
+        if (a) finalPrice += (parseFloat(a.price) || 0);
+      });
+    }
+
+    menuItems.push({ id: cartItem.id, ...menuData, price: finalPrice, originalPrice: basePrice });
+
+    const itemTotalCents = Math.round(finalPrice * 100) * cartItem.qty;
     subtotalCents += itemTotalCents;
 
+    let modsText = '';
+    if (cartItem.selectedVariant) modsText += ` (${cartItem.selectedVariant})`;
+    if (Array.isArray(cartItem.selectedAddOns) && cartItem.selectedAddOns.length > 0) modsText += ` [+${cartItem.selectedAddOns.join(', ')}]`;
+
     resolvedItems.push({
-      name: menuData.name,
+      name: menuData.name + modsText,
       quantity: cartItem.qty,
-      price: price,
+      price: finalPrice,
       totalCents: itemTotalCents,
     });
   }

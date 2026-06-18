@@ -215,7 +215,10 @@ async function loadMenuFromFirestore() {
           price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
           category: (data.category || 'platters').toLowerCase(),
           img: data.img || data.image || data.imageUrl || '',
-          featured: !!data.featured
+          featured: !!data.featured,
+          calories: data.calories || null,
+          variants: Array.isArray(data.variants) ? data.variants : [],
+          addOns: Array.isArray(data.addOns) ? data.addOns : []
         };
       });
 
@@ -305,13 +308,15 @@ function renderMenu(category) {
       : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">No Image</div>`;
     
     card.innerHTML = `
-      ${imgHtml}
+      <div onclick="openItemModal('${item.id}')" style="cursor: pointer;">
+        ${imgHtml}
+      </div>
       <div class="menu-card-content">
-        <h3 class="menu-card-title">${displayName}</h3>
+        <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${item.price.toFixed(2)}</span>
-          <button class="btn-primary btn-add-cart" onclick="addToCart('${item.id}')">+ Add</button>
+          <button class="btn-primary btn-add-cart" onclick="openItemModal('${item.id}')">+ Add</button>
         </div>
       </div>
     `;
@@ -347,13 +352,15 @@ function renderFeaturedMenu() {
       : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>`;
     
     card.innerHTML = `
-      ${imgHtml}
+      <div onclick="openItemModal('${item.id}')" style="cursor: pointer;">
+        ${imgHtml}
+      </div>
       <div class="menu-card-content">
-        <h3 class="menu-card-title">${displayName}</h3>
+        <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
-          <button class="btn-primary btn-add-cart" onclick="addToCart('${item.id}')">+ Add</button>
+          <button class="btn-primary btn-add-cart" onclick="openItemModal('${item.id}')">+ Add</button>
         </div>
       </div>
     `;
@@ -414,27 +421,195 @@ function renderDealsGrid() {
 // ─────────────────────────────────────────────────────────────────
 // CART LOGIC
 // ─────────────────────────────────────────────────────────────────
+let currentModalItem = null;
+let currentModalQty = 1;
+
+window.openItemModal = (id) => {
+  const item = menuItems.find(i => i.id === id);
+  if (!item) return;
+
+  currentModalItem = item;
+  currentModalQty = 1;
+
+  const modal = document.getElementById('item-details-modal');
+  if (!modal) return;
+
+  // Set Hero Image
+  const hero = document.getElementById('item-modal-hero');
+  if (item.img) {
+    hero.style.backgroundImage = `url('${item.img}')`;
+  } else {
+    hero.style.backgroundImage = 'none';
+  }
+
+  // Set Details
+  document.getElementById('item-modal-title').textContent = item.name;
+  
+  const calsEl = document.getElementById('item-modal-cals');
+  if (item.calories) {
+    calsEl.textContent = `${item.calories} Cal`;
+    calsEl.style.display = 'block';
+  } else {
+    calsEl.style.display = 'none';
+  }
+  
+  document.getElementById('item-modal-desc').textContent = item.desc;
+  
+  // Render Variants
+  const varContainer = document.getElementById('item-modal-variants-container');
+  varContainer.innerHTML = '';
+  if (item.variants && item.variants.length > 0) {
+    const group = document.createElement('div');
+    group.className = 'modal-option-group';
+    group.innerHTML = `<div class="modal-option-title">Options <span>Required</span></div>`;
+    item.variants.forEach((v, index) => {
+      const row = document.createElement('label');
+      row.className = 'modal-option-row';
+      const isChecked = index === 0 ? 'checked' : '';
+      row.innerHTML = `
+        <div>
+          <input type="radio" name="modal_variant" class="custom-radio" value="${index}" ${isChecked} onchange="updateModalPrice()">
+          <span class="modal-option-label">${v.name}</span>
+        </div>
+        <span class="modal-option-price">+$${(parseFloat(v.price) || 0).toFixed(2)}</span>
+      `;
+      group.appendChild(row);
+    });
+    varContainer.appendChild(group);
+  }
+
+  // Render Add-ons
+  const addContainer = document.getElementById('item-modal-addons-container');
+  addContainer.innerHTML = '';
+  if (item.addOns && item.addOns.length > 0) {
+    const group = document.createElement('div');
+    group.className = 'modal-option-group';
+    group.innerHTML = `<div class="modal-option-title">Add-ons <span>Optional</span></div>`;
+    item.addOns.forEach((a, index) => {
+      const row = document.createElement('label');
+      row.className = 'modal-option-row';
+      row.innerHTML = `
+        <div>
+          <input type="checkbox" name="modal_addon" class="custom-checkbox" value="${index}" onchange="updateModalPrice()">
+          <span class="modal-option-label">${a.name}</span>
+        </div>
+        <span class="modal-option-price">+$${(parseFloat(a.price) || 0).toFixed(2)}</span>
+      `;
+      group.appendChild(row);
+    });
+    addContainer.appendChild(group);
+  }
+
+  updateModalPrice();
+  
+  // Custom Add To Cart action
+  const addBtn = document.getElementById('item-modal-add-btn');
+  addBtn.onclick = () => {
+    addConfiguredItemToCart();
+  };
+
+  modal.style.display = 'flex';
+};
+
+window.closeItemModal = () => {
+  const modal = document.getElementById('item-details-modal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.changeItemQty = (delta) => {
+  currentModalQty += delta;
+  if (currentModalQty < 1) currentModalQty = 1;
+  updateModalPrice();
+};
+
+window.updateModalPrice = () => {
+  if (!currentModalItem) return;
+  
+  let basePrice = currentModalItem.price || 0;
+  
+  if (currentModalItem.variants && currentModalItem.variants.length > 0) {
+    const checkedVar = document.querySelector('input[name="modal_variant"]:checked');
+    if (checkedVar) {
+      const v = currentModalItem.variants[parseInt(checkedVar.value)];
+      basePrice += (parseFloat(v.price) || 0);
+    }
+  }
+
+  if (currentModalItem.addOns && currentModalItem.addOns.length > 0) {
+    const checkedAddOns = document.querySelectorAll('input[name="modal_addon"]:checked');
+    checkedAddOns.forEach(cb => {
+      const a = currentModalItem.addOns[parseInt(cb.value)];
+      basePrice += (parseFloat(a.price) || 0);
+    });
+  }
+
+  const total = basePrice * currentModalQty;
+  document.getElementById('item-modal-price').textContent = `$${basePrice.toFixed(2)}`;
+  document.getElementById('item-modal-qty').textContent = currentModalQty;
+  document.getElementById('item-modal-add-btn').textContent = `Add to Cart - $${total.toFixed(2)}`;
+};
+
+window.addConfiguredItemToCart = () => {
+  if (!currentModalItem) return;
+
+  let finalPrice = currentModalItem.price || 0;
+  let variantText = '';
+  let addOnsText = [];
+  
+  if (currentModalItem.variants && currentModalItem.variants.length > 0) {
+    const checkedVar = document.querySelector('input[name="modal_variant"]:checked');
+    if (checkedVar) {
+      const v = currentModalItem.variants[parseInt(checkedVar.value)];
+      finalPrice += (parseFloat(v.price) || 0);
+      variantText = v.name;
+    }
+  }
+
+  if (currentModalItem.addOns && currentModalItem.addOns.length > 0) {
+    const checkedAddOns = document.querySelectorAll('input[name="modal_addon"]:checked');
+    checkedAddOns.forEach(cb => {
+      const a = currentModalItem.addOns[parseInt(cb.value)];
+      finalPrice += (parseFloat(a.price) || 0);
+      addOnsText.push(a.name);
+    });
+  }
+
+  const cartKey = `${currentModalItem.id}|${variantText}|${addOnsText.join(',')}`;
+
+  const existing = cart.find(i => i.cartKey === cartKey);
+  if (existing) {
+    existing.qty += currentModalQty;
+  } else {
+    cart.push({
+      ...currentModalItem,
+      cartKey: cartKey,
+      qty: currentModalQty,
+      price: finalPrice, 
+      originalPrice: currentModalItem.price,
+      selectedVariant: variantText,
+      selectedAddOns: addOnsText
+    });
+  }
+  
+  closeItemModal();
+  updateCartUI();
+  showToast(`${currentModalItem.name} added to cart`);
+};
+
 window.addToCart = (id) => {
+  // Keeping this for generic items without variants/addons
   const item = menuItems.find(i => i.id === id);
   if (!item) return;
   
-  const existing = cart.find(i => i.id === id);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cart.push({ ...item, qty: 1 });
-  }
-  
-  updateCartUI();
-  showToast(`${item.name} added to cart`);
+  openItemModal(id);
 };
 
-window.updateQty = (id, delta) => {
-  const existing = cart.find(i => i.id === id);
+window.updateQty = (cartKey, delta) => {
+  const existing = cart.find(i => i.cartKey === cartKey);
   if (existing) {
     existing.qty += delta;
     if (existing.qty <= 0) {
-      cart = cart.filter(i => i.id !== id);
+      cart = cart.filter(i => i.cartKey !== cartKey);
     }
   }
   updateCartUI();
@@ -467,16 +642,25 @@ function updateCartUI() {
         ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img">`
         : `<div class="cart-item-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gray);">🍽</div>`;
 
+      let modsHtml = '';
+      if (item.selectedVariant) {
+        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 4px;">• ${item.selectedVariant}</div>`;
+      }
+      if (item.selectedAddOns && item.selectedAddOns.length > 0) {
+        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 2px;">• ${item.selectedAddOns.join(', ')}</div>`;
+      }
+
       el.innerHTML = `
         ${imgHtml}
         <div class="cart-item-details">
           <div class="cart-item-title">${item.name}</div>
-          <div class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</div>
+          ${modsHtml}
+          <div class="cart-item-price" style="margin-top: 6px;">$${(item.price * item.qty).toFixed(2)}</div>
         </div>
         <div class="cart-item-controls">
-          <button class="qty-btn" onclick="updateQty('${item.id}', -1)">-</button>
+          <button class="qty-btn" onclick="updateQty('${item.cartKey}', -1)">-</button>
           <span style="font-size: 14px; font-weight: 600;">${item.qty}</span>
-          <button class="qty-btn" onclick="updateQty('${item.id}', 1)">+</button>
+          <button class="qty-btn" onclick="updateQty('${item.cartKey}', 1)">+</button>
         </div>
       `;
       itemsContainer.appendChild(el);
