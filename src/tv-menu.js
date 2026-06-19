@@ -33,12 +33,20 @@ document.addEventListener('visibilitychange', async () => {
   }
 });
 
-document.body.addEventListener('click', () => {
+document.getElementById('tv-start-overlay')?.addEventListener('click', (e) => {
+  e.currentTarget.style.display = 'none';
+
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(() => {});
   }
+  
   requestWakeLock();
-}, { once: true });
+  
+  const video = document.getElementById('tv-nosleep');
+  if (video) {
+    video.play().catch(err => console.error('Video play error:', err));
+  }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   const fullscreenBtn = document.getElementById('tv-fullscreen-btn');
