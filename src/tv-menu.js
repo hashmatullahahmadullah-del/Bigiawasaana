@@ -74,7 +74,9 @@ function initMenuBoard() {
         price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
         category: (data.category || 'platters').toLowerCase(),
         img: data.img || data.image || data.imageUrl || '',
-        featured: !!data.featured
+        featured: !!data.featured,
+        variants: data.variants || [],
+        addOns: data.addOns || []
       });
     });
 
@@ -178,7 +180,20 @@ function renderAllCategories() {
   grid.innerHTML = categories.map((catName) => {
     const items = menuItems.filter(i => i.category === catName);
     
-    const itemsHtml = items.map((item, idx) => `
+    const itemsHtml = items.map((item, idx) => {
+      let detailsHtml = '';
+      if (item.variants && item.variants.length > 0) {
+        detailsHtml += `<div class="tv-item-variants">` + 
+          item.variants.map(v => `<span>${v.name} (+$${parseFloat(v.price).toFixed(2)})</span>`).join(', ') + 
+        `</div>`;
+      }
+      if (item.addOns && item.addOns.length > 0) {
+        detailsHtml += `<div class="tv-item-addons">Add-ons: ` + 
+          item.addOns.map(a => `<span>${a.name} (+$${parseFloat(a.price).toFixed(2)})</span>`).join(', ') + 
+        `</div>`;
+      }
+
+      return `
       <div class="tv-item-card" style="animation-delay: ${idx * 0.05}s">
         <div class="tv-item-img-wrapper">
           ${item.img 
@@ -193,10 +208,10 @@ function renderAllCategories() {
             <div class="tv-item-name">${item.name}</div>
             <div class="tv-item-price">${item.price.toFixed(2)}</div>
           </div>
-          ${item.desc ? `<div class="tv-item-desc">${item.desc}</div>` : ''}
+          ${detailsHtml}
         </div>
       </div>
-    `).join('');
+    `}).join('');
 
     return `
       <div class="tv-category-column">

@@ -230,15 +230,13 @@ body {
   color: var(--accent);
 }
 
-.tv-item-desc {
-  font-size: 1.2vw;
+.tv-item-variants, .tv-item-addons {
+  font-size: 1.1vw;
   color: var(--text-secondary);
   line-height: 1.3;
   text-align: center;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-family: 'Outfit', sans-serif;
+  opacity: 0.9;
 }
 
 /* ── Loading ── */
