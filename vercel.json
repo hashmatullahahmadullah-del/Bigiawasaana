@@ -7,6 +7,14 @@
     {
       "source": "/sitemap.xml",
       "destination": "https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/renderSitemap"
+    },
+    {
+      "source": "/tv1",
+      "destination": "/tv-menu.html?screen=1"
+    },
+    {
+      "source": "/tv2",
+      "destination": "/tv-menu.html?screen=2"
     }
   ]
 }
