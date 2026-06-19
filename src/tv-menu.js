@@ -64,6 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   initMenuBoard();
+
+  // Reload the page every 15 minutes. This clears memory and often resets 
+  // aggressive TV OS sleep timers that ignore background videos.
+  setTimeout(() => {
+    window.location.reload();
+  }, 15 * 60 * 1000);
 });
 
 // ─────────────────────────────────────────────────────────────────
