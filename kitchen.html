@@ -63,44 +63,19 @@
       </div>
       <div class="kds-header-right">
         <div class="kds-clock" id="kds-clock">12:00:00 PM</div>
+        <button id="kds-lang-btn" class="kds-icon-btn" aria-label="Toggle Persian" style="font-size: 20px;">🇮🇷</button>
         <button id="kds-mute-btn" class="kds-icon-btn" aria-label="Toggle Audio">🔔</button>
         <button id="kds-fullscreen-btn" class="kds-icon-btn" aria-label="Toggle Fullscreen">⛶</button>
       </div>
     </header>
 
-    <!-- 5 Columns Grid -->
-    <main class="kds-grid">
-      
-      <!-- 5 Columns -->
-      <div class="kds-col kds-col-pos">
-        <div class="kds-col-header">
-          <h2>🟠 SQUARE <span class="kds-count" id="count-pos">0</span></h2>
+    <!-- 1 Column Grid -->
+    <main class="kds-grid kds-grid-single">
+      <div class="kds-col kds-col-all">
+        <div class="kds-col-header" style="border-top-color: var(--accent);">
+          <h2>🔥 ALL ORDERS <span class="kds-count" id="count-all">0</span></h2>
         </div>
-        <div class="kds-col-body" id="col-pos"></div>
-      </div>
-      <div class="kds-col kds-col-website">
-        <div class="kds-col-header">
-          <h2>🔵 WEBSITE <span class="kds-count" id="count-website">0</span></h2>
-        </div>
-        <div class="kds-col-body" id="col-website"></div>
-      </div>
-      <div class="kds-col kds-col-doordash">
-        <div class="kds-col-header">
-          <h2>🟢 DOORDASH <span class="kds-count" id="count-doordash">0</span></h2>
-        </div>
-        <div class="kds-col-body" id="col-doordash"></div>
-      </div>
-      <div class="kds-col kds-col-ubereats">
-        <div class="kds-col-header">
-          <h2>🟡 UBER EATS <span class="kds-count" id="count-ubereats">0</span></h2>
-        </div>
-        <div class="kds-col-body" id="col-ubereats"></div>
-      </div>
-      <div class="kds-col kds-col-grubhub">
-        <div class="kds-col-header">
-          <h2>🔴 GRUBHUB <span class="kds-count" id="count-grubhub">0</span></h2>
-        </div>
-        <div class="kds-col-body" id="col-grubhub"></div>
+        <div class="kds-col-body" id="col-all"></div>
       </div>
     </main>
 

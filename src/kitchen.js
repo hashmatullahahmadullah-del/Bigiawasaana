@@ -218,7 +218,7 @@ function initPinScreen() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// State
+// State & Translations
 // ─────────────────────────────────────────────────────────────────
 const functions = getFunctions(app);
 const updateSquareOrderStatus = httpsCallable(functions, 'updateSquareOrderStatus');
@@ -226,6 +226,52 @@ const updateSquareOrderStatus = httpsCallable(functions, 'updateSquareOrderStatu
 let orders = [];
 let audioContext = null;
 let isMuted = false;
+let isPersian = false;
+
+const translations = {
+  // Menu Items
+  'Beef Tikka Kabob': 'کباب تکه گاو',
+  'Chicken Kabob': 'کباب مرغ',
+  'Chapli Kabob': 'کباب چپلی',
+  'Bolani (Potato & Green Onion)': 'بولانی (کچالو و پیاز)',
+  'Bolani (Pumpkin)': 'بولانی کدو',
+  'Bolani (Leek)': 'بولانی گندنه',
+  'Mantu': 'منتو',
+  'Qabili Palau': 'قابلی پلو',
+  'Hummus': 'حمص',
+  'Yogurt Dip': 'ماست',
+  'Salad': 'سالاد',
+  'Afghan Bread (Naan)': 'نان افغانی',
+  'Firnee': 'فرنی',
+  'Baklava': 'باقلوا',
+  'Afghan Green Tea': 'چای سبز',
+  'Afghan Black Tea': 'چای سیاه',
+  'Doogh (Yogurt Drink)': 'دوغ',
+  // Extras
+  'Extra Naan': 'نان اضافی',
+  'Extra White Sauce': 'سس سفید اضافی',
+  'Extra Green Sauce': 'سس سبز اضافی',
+  // UI & Times
+  'Done': 'تکمیل شد',
+  'Just now': 'همین الان',
+  'min': 'دقیقه',
+  'Guest': 'مهمان',
+  // Badges
+  'Delivery — driver will collect': 'تحویل — راننده می‌گیرد',
+  'SCHEDULED': 'برنامه‌ریزی شده',
+  'ASAP': 'هرچه زودتر'
+};
+
+function t(text) {
+  if (!isPersian || !text) return text;
+  if (translations[text]) return translations[text];
+  let res = text;
+  for (const [eng, per] of Object.entries(translations)) {
+    const regex = new RegExp(eng, 'gi');
+    res = res.replace(regex, per);
+  }
+  return res;
+}
 
 // Time formatting helpers
 function formatTime(date) {
@@ -285,6 +331,12 @@ document.getElementById('kds-mute-btn').addEventListener('click', (e) => {
   }
 });
 
+document.getElementById('kds-lang-btn')?.addEventListener('click', (e) => {
+  isPersian = !isPersian;
+  e.currentTarget.style.opacity = isPersian ? '1' : '0.4';
+  renderOrders();
+});
+
 // ─────────────────────────────────────────────────────────────────
 // Clock
 // ─────────────────────────────────────────────────────────────────
@@ -305,7 +357,7 @@ function initKDS() {
   const ordersRef = collection(db, 'orders');
   const q = query(
     ordersRef,
-    where('updatedAt', '>=', startOfDay)
+    where('createdAt', '>=', startOfDay)
   );
 
   onSnapshot(q, (snapshot) => {
@@ -355,18 +407,11 @@ async function pollSquareOrders() {
 // Render
 // ─────────────────────────────────────────────────────────────────
 function renderOrders() {
-  const columns = {
-    pos: document.getElementById('col-pos'),
-    website: document.getElementById('col-website'),
-    doordash: document.getElementById('col-doordash'),
-    ubereats: document.getElementById('col-ubereats'),
-    grubhub: document.getElementById('col-grubhub')
-  };
-
-  const counts = { pos: 0, website: 0, doordash: 0, ubereats: 0, grubhub: 0 };
-
-  // Clear columns
-  Object.values(columns).forEach(col => { if(col) col.innerHTML = ''; });
+  const colAll = document.getElementById('col-all');
+  if (!colAll) return;
+  colAll.innerHTML = '';
+  
+  let totalCount = 0;
 
   // Status weight for sorting
   const statusWeight = { pending: 1, preparing: 2, ready: 3, completed: 4 };
@@ -379,10 +424,6 @@ function renderOrders() {
   });
 
   sortedOrders.forEach(order => {
-    // Determine column
-    let colKey = order.source || 'pos';
-    if (!columns[colKey]) colKey = 'pos'; // Fallback
-    
     // Hide scheduled orders that haven't been released to the kitchen yet
     if (order.pickup && order.pickup.type === 'scheduled' && order.pickup.releasedToKitchen === false) {
       return;
@@ -394,58 +435,45 @@ function renderOrders() {
     }
 
     if (order.status !== 'completed') {
-      counts[colKey]++;
+      totalCount++;
     }
 
     const card = document.createElement('div');
     card.className = `kds-card status-${order.status}`;
     
     const elapsed = getElapsedMinutes(order.createdAt);
-    let timeDisplay = elapsed > 0 ? `${elapsed} min` : 'Just now';
-    if (order.status === 'completed') timeDisplay = 'Done';
+    let timeDisplay = elapsed > 0 ? `${elapsed} ${t('min')}` : t('Just now');
+    if (order.status === 'completed') timeDisplay = t('Done');
 
     // Platform badge for delivery orders
     const deliveryBadges = { doordash: 'DD · DoorDash', ubereats: 'UE · Uber Eats', grubhub: 'GH · Grubhub' };
     const badgeClasses = { doordash: 'badge-doordash', ubereats: 'badge-ubereats', grubhub: 'badge-grubhub' };
     let platformBadgeHtml = deliveryBadges[order.source]
       ? `<div class="kds-platform-badge ${badgeClasses[order.source]}">${deliveryBadges[order.source]}</div>
-         <p class="kds-delivery-note">📦 Delivery — driver will collect</p>`
+         <p class="kds-delivery-note">📦 ${t('Delivery — driver will collect')}</p>`
       : '';
       
     // Pickup Badge
     if (order.pickup) {
       if (order.pickup.type === 'scheduled') {
         const reqTimeStr = order.pickup.requestedTime?.toDate()?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) || '';
-        platformBadgeHtml += `<div class="kds-platform-badge" style="background: var(--accent); color: white; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 8px;">🕒 SCHEDULED: ${reqTimeStr}</div>`;
+        platformBadgeHtml += `<div class="kds-platform-badge" style="background: var(--accent); color: white; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 8px;">🕒 ${t('SCHEDULED')}: ${reqTimeStr}</div>`;
       } else {
-         platformBadgeHtml += `<div class="kds-platform-badge" style="background: rgba(255,255,255,0.2); color: white; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 8px;">🔥 ASAP</div>`;
+         platformBadgeHtml += `<div class="kds-platform-badge" style="background: rgba(255,255,255,0.2); color: white; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 8px;">🔥 ${t('ASAP')}</div>`;
       }
     }
 
     const itemsHtml = (order.items || []).map(item => `
       <li class="kds-card-item">
         <span class="kds-item-qty">${item.quantity}×</span>
-        <span>${item.name}</span>
+        <span>${t(item.name)}</span>
       </li>
     `).join('');
-
-    let actionBtnHtml = '';
-    if (order.status === 'pending') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-pending" onclick="updateOrder('${order.id}', 'preparing')">▶ START PREPARING</button>`;
-    } else if (order.status === 'preparing') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-preparing" onclick="updateOrder('${order.id}', 'ready')">✓ MARK READY</button>`;
-    } else if (order.status === 'ready') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-ready" onclick="updateOrder('${order.id}', 'completed')">✅ COMPLETE</button>`;
-    }
-
-    if (['doordash', 'ubereats', 'grubhub'].includes(order.source) && order.status !== 'completed') {
-      actionBtnHtml += `<button class="kds-card-action kds-btn-cancel" onclick="updateOrder('${order.id}', 'canceled')" style="margin-top: 8px;">✗ CANCEL</button>`;
-    }
 
     card.innerHTML = `
       <div class="kds-card-header">
         <div>
-          <h3 class="kds-card-name">${order.customerName || 'Guest'}</h3>
+          <h3 class="kds-card-name">${t(order.customerName || 'Guest')}</h3>
           <div class="kds-card-id">#${order.shortId}</div>
         </div>
         <div class="kds-card-time-box">
@@ -455,18 +483,14 @@ function renderOrders() {
       </div>
       ${platformBadgeHtml}
       <ul class="kds-card-items">${itemsHtml}</ul>
-      ${actionBtnHtml}
     `;
 
-    columns[colKey].appendChild(card);
+    colAll.appendChild(card);
   });
 
   // Update counts
-  document.getElementById('count-pos').textContent = counts.pos;
-  document.getElementById('count-website').textContent = counts.website;
-  document.getElementById('count-doordash').textContent = counts.doordash;
-  document.getElementById('count-ubereats').textContent = counts.ubereats;
-  document.getElementById('count-grubhub').textContent = counts.grubhub;
+  const countAll = document.getElementById('count-all');
+  if (countAll) countAll.textContent = totalCount;
 }
 
 // ─────────────────────────────────────────────────────────────────
