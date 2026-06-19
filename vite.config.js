@@ -19,7 +19,6 @@ export default defineConfig({
         kitchen: resolve(__dirname, 'kitchen.html'),
         orderStatus: resolve(__dirname, 'order-status.html'),
         customerDisplay: resolve(__dirname, 'customer-display.html'),
-        tvMenu: resolve(__dirname, 'tv-menu.html'),
         cateringJs: resolve(__dirname, 'src/catering.js'),
       },
     },
