@@ -226,4 +226,30 @@ function renderAllCategories() {
       </div>
     `;
   }).join('');
+
+  // Wait for images and DOM to settle, then scale
+  setTimeout(fitToScreen, 100);
 }
+
+function fitToScreen() {
+  const grid = document.getElementById('tv-grid');
+  const main = document.getElementById('tv-main');
+  if (!grid || !main) return;
+  
+  grid.style.transform = 'none';
+  grid.style.width = '100%';
+  
+  const aH = main.clientHeight;
+  const cH = grid.scrollHeight;
+  
+  if (cH > aH && aH > 0) {
+    const s = aH / cH;
+    grid.style.width = `${100 / s}%`;
+    grid.style.transform = `scale(${s})`;
+    grid.style.transformOrigin = 'top left';
+  }
+}
+
+window.addEventListener('resize', () => {
+  setTimeout(fitToScreen, 100);
+});
