@@ -1,0 +1,304 @@
+:root {
+  --bg: #000000;
+  --surface: #111111;
+  --surface-hover: #1c1c1c;
+  --border: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --accent: #ff4500; /* Orange */
+  --accent-glow: rgba(255, 69, 0, 0.15);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Base Sizing (Viewport Relative) ── */
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.tv-header {
+  height: 12vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2vh 2vw;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.95), rgba(0,0,0,0));
+  z-index: 10;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.tv-logo {
+  height: 8vh;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0.5vh 2vh rgba(0,0,0,0.5));
+}
+
+.tv-fullscreen-btn {
+  position: absolute;
+  right: 3vw;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 2vw;
+  width: 4vw;
+  height: 4vw;
+  border-radius: 0.5vw;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 20;
+}
+
+.tv-fullscreen-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Promo Strip ── */
+.tv-promo-strip {
+  background: var(--accent);
+  color: #000;
+  padding: 1vh 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 2.5vh;
+  font-weight: 600;
+  letter-spacing: 0.2vw;
+  text-transform: uppercase;
+  box-shadow: 0 0.5vh 1.5vh var(--accent-glow);
+  flex-shrink: 0;
+}
+
+.tv-promo-inner {
+  display: inline-block;
+  padding-left: 100%;
+  animation: promoScroll 20s linear infinite;
+}
+
+@keyframes promoScroll {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-100%, 0); }
+}
+
+/* ── Main Menu Area ── */
+.tv-main {
+  flex: 1;
+  padding: 0 2vw 1vh 2vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tv-grid {
+  display: flex;
+  gap: 1.5vw;
+  height: 100%;
+  overflow-y: hidden;
+  justify-content: space-between;
+}
+
+.tv-category-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tv-category-header {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 2.5vw;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.15vw;
+  margin-bottom: 1.5vh;
+  border-bottom: 0.2vh solid var(--border);
+  padding-bottom: 0.5vh;
+}
+
+.tv-category-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18vw, 1fr));
+  gap: 1.5vw;
+  overflow-y: auto;
+  padding-right: 0.5vw;
+  align-content: start;
+}
+
+/* Hide scrollbar */
+.tv-category-items::-webkit-scrollbar { width: 0; }
+
+/* ── Menu Item Card (Stacked Style) ── */
+.tv-item-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.8vw;
+  overflow: hidden;
+  box-shadow: 0 0.5vh 2vh rgba(0,0,0,0.3);
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(2vh); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Bulletproof 16:9 Image Wrapper ── */
+.tv-item-img-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  background-color: #1a1a1a;
+  border-bottom: 1px solid var(--border);
+}
+
+.tv-item-img, .tv-item-img-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tv-item-img {
+  object-fit: cover;
+}
+
+.tv-item-img-placeholder {
+  background: linear-gradient(135deg, #1a1a1a, #111);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tv-item-img-placeholder svg {
+  width: 3vw;
+  height: 3vw;
+  fill: rgba(255,255,255,0.1);
+}
+
+.tv-item-info {
+  padding: 1vw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8vw;
+}
+
+.tv-item-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4vw;
+}
+
+.tv-item-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 2.2vw;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: 0.05vw;
+  text-transform: uppercase;
+}
+
+.tv-item-price {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.8vw;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.tv-item-variants, .tv-item-addons {
+  font-size: 1.1vw;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  text-align: center;
+  font-family: 'Outfit', sans-serif;
+  opacity: 0.9;
+}
+
+/* ── Loading ── */
+.tv-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2vh;
+  color: var(--text-secondary);
+  font-size: 2vw;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.2vw;
+  text-transform: uppercase;
+}
+
+.tv-loading-spinner {
+  width: 4vw;
+  height: 4vw;
+  border: 0.3vw solid rgba(255, 69, 0, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Specials Bar (Bottom) ── */
+.tv-specials-bar {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 2vh 3vw;
+  display: flex;
+  align-items: center;
+  gap: 2vw;
+  flex-shrink: 0;
+}
+
+.tv-specials-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 2vw;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.15vw;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  background: var(--accent-glow);
+  padding: 0.8vh 1vw;
+  border-radius: 0.4vw;
+}
+
+.tv-specials-text {
+  font-size: 1.8vw;
+  color: var(--text-primary);
+  font-weight: 300;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.4s ease;
+}

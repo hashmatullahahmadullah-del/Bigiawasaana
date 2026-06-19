@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Board — Bigi Awasaana</title>
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lalezar&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/src/tv-menu.css">
+</head>
+<body>
+
+  <!-- ══════════ CENTERED LOGO HEADER ══════════ -->
+  <header class="tv-header">
+    <img src="/logo.png" alt="Bigi Awasaana" class="tv-logo">
+    <button id="tv-fullscreen-btn" class="tv-fullscreen-btn" title="Toggle Fullscreen">⛶</button>
+  </header>
+
+  <!-- ══════════ PROMO STRIP (from Firebase TV settings) ══════════ -->
+  <div class="tv-promo-strip" id="tv-promo-strip" style="display: none;">
+    <div class="tv-promo-inner" id="tv-promo-inner"></div>
+  </div>
+
+  <!-- ══════════ MAIN MENU GRID ══════════ -->
+  <main class="tv-main" id="tv-main">
+    <div class="tv-grid" id="tv-grid"></div>
+
+    <!-- Loading -->
+    <div class="tv-loading" id="tv-loading">
+      <div class="tv-loading-spinner"></div>
+      <p>Loading Menu…</p>
+    </div>
+  </main>
+
+  <!-- ══════════ SPECIALS BANNER (cycles through featured) ══════════ -->
+  <div class="tv-specials-bar" id="tv-specials-bar" style="display: none;">
+    <span class="tv-specials-label">TODAY'S SPECIAL</span>
+    <span class="tv-specials-text" id="tv-specials-text"></span>
+  </div>
+
+  <script type="module" src="/src/tv-menu.js"></script>
+</body>
+</html>
