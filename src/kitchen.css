@@ -269,7 +269,7 @@ body {
 .kds-card-elapsed {
   font-size: 24px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--white);
 }
 
 .kds-card-time {
@@ -320,7 +320,7 @@ body {
 
 .kds-item-qty {
   font-weight: 700;
-  color: var(--accent);
+  color: var(--white);
   min-width: 32px;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 32px;
