@@ -138,7 +138,7 @@ body {
 
 .tv-category-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18vw, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(14vw, 1fr));
   gap: 1.5vw;
   overflow-y: auto;
   padding-right: 0.5vw;
@@ -215,7 +215,7 @@ body {
 
 .tv-item-name {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 2.2vw;
+  font-size: 1.8vw;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.1;
@@ -225,13 +225,13 @@ body {
 
 .tv-item-price {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.8vw;
+  font-size: 1.5vw;
   font-weight: 400;
   color: var(--accent);
 }
 
 .tv-item-variants, .tv-item-addons {
-  font-size: 1.1vw;
+  font-size: 0.9vw;
   color: var(--text-secondary);
   line-height: 1.3;
   text-align: center;
