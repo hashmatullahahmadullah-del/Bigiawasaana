@@ -862,7 +862,7 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
       html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
 
       const notFoundContent = `
-        <section class="section pt-xl" style="background-color: var(--bg); min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+        <section class="section" style="padding-top: clamp(120px, 15vw, 160px); background-color: var(--bg); min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center;">
           <div class="container" style="max-width: 600px;">
             <h1 class="font-lalezar" style="font-size: clamp(48px, 8vw, 80px); color: var(--accent); margin-bottom: var(--space-s);">404</h1>
             <h2 style="font-family: 'Barlow Condensed'; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; color: var(--white); margin-bottom: var(--space-m);">Area Not Found</h2>
@@ -901,9 +901,8 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
       html = html.replace(/{{META_ROBOTS}}/g, ''); // leave blank
     }
 
-    // Build the injected content
     const areaContent = `
-      <section class="section pt-xl" style="background-color: var(--bg); min-height: 60vh;">
+      <section class="section" style="padding-top: clamp(120px, 15vw, 160px); background-color: var(--bg); min-height: 60vh;">
         <div class="container text-center-mobile" style="max-width: 800px; margin: 0 auto;">
           <h1 class="font-lalezar" style="font-size: clamp(36px, 6vw, 64px); color: var(--accent); margin-bottom: var(--space-xs);">${areaData.headline || 'Halal Afghan Food in ' + (areaData.name || areaId)}</h1>
           ${areaData.driveTime ? `<p style="color: var(--gray); font-family: 'Barlow Condensed'; font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: var(--space-m);">Just a ${areaData.driveTime} drive to Reseda</p>` : ''}
