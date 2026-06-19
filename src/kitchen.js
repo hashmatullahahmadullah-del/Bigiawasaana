@@ -1,5 +1,5 @@
 import { db, app } from './firebase.js';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
@@ -429,8 +429,8 @@ function renderOrders() {
       return;
     }
 
-    // Skip old completed orders (hide after 60s)
-    if (order.status === 'completed' && getElapsedMinutes(order.updatedAt?.toDate() || order.createdAt) > 1) {
+    // Only hide if explicitly dismissed by the kitchen staff
+    if (order.kdsHidden === true) {
       return; 
     }
 
@@ -476,9 +476,12 @@ function renderOrders() {
           <h3 class="kds-card-name">${t(order.customerName || 'Guest')}</h3>
           <div class="kds-card-id">#${order.shortId}</div>
         </div>
-        <div class="kds-card-time-box">
-          <div class="kds-card-elapsed">${timeDisplay}</div>
-          <div class="kds-card-time">${formatTime(order.createdAt)}</div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div class="kds-card-time-box">
+            <div class="kds-card-elapsed">${timeDisplay}</div>
+            <div class="kds-card-time">${formatTime(order.createdAt)}</div>
+          </div>
+          <button class="kds-card-remove-btn" onclick="hideOrder('${order.id}')" aria-label="Remove Order">✕</button>
         </div>
       </div>
       ${platformBadgeHtml}
@@ -496,20 +499,19 @@ function renderOrders() {
 // ─────────────────────────────────────────────────────────────────
 // Actions
 // ─────────────────────────────────────────────────────────────────
-window.updateOrder = async (orderId, newStatus) => {
+window.hideOrder = async (orderId) => {
   try {
     // Optimistic UI update
     const orderIndex = orders.findIndex(o => o.id === orderId);
     if (orderIndex > -1) {
-      orders[orderIndex].status = newStatus;
-      orders[orderIndex].updatedAt = { toDate: () => new Date() }; // mock timestamp
+      orders[orderIndex].kdsHidden = true;
       renderOrders();
     }
     
-    // Call Cloud Function to bypass client rules
-    await updateSquareOrderStatus({ orderId, status: newStatus });
+    // Persist to Firestore
+    await updateDoc(doc(db, 'orders', orderId), { kdsHidden: true });
   } catch (error) {
-    console.error("Failed to update status:", error);
-    alert("Failed to update status. Are you connected to the internet?");
+    console.error("Failed to hide order:", error);
+    alert("Failed to hide order. Are you connected to the internet?");
   }
 };

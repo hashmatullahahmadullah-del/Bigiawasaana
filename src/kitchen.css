@@ -214,9 +214,26 @@ body {
 .kds-card.status-pending   { border-left-color: var(--status-pending); }
 .kds-card.status-preparing { border-left-color: var(--status-preparing); }
 .kds-card.status-ready     { border-left-color: var(--status-ready); }
-.kds-card.status-completed {
-  border-left-color: var(--status-completed);
-  opacity: 0.4;
+.kds-card.status-completed { border-left-color: var(--status-completed); }
+
+.kds-card-remove-btn {
+  background: var(--kds-surface);
+  color: var(--gray);
+  border: 1px solid var(--kds-border);
+  border-radius: 4px;
+  width: 48px;
+  height: 48px;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.kds-card-remove-btn:hover {
+  background: #ff3333;
+  color: white;
+  border-color: #ff3333;
 }
 
 /* ── Card Header ── */
