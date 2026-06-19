@@ -108,9 +108,13 @@ function processData() {
     return a.localeCompare(b);
   });
 
-  // Split categories based on URL ?screen= parameter
+  // Split categories based on URL ?screen= parameter or pathname
   const urlParams = new URLSearchParams(window.location.search);
-  const screen = urlParams.get('screen');
+  let screen = urlParams.get('screen');
+  if (!screen) {
+    if (window.location.pathname.endsWith('/tv1')) screen = '1';
+    else if (window.location.pathname.endsWith('/tv2')) screen = '2';
+  }
 
   if (screen === '1' || screen === '2') {
     let screen1Cats = [];
