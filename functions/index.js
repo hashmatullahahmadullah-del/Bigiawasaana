@@ -1064,6 +1064,22 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
             <a href="/menu.html" class="btn-primary">Order for Pickup</a>
             <a href="/#delivery" class="btn-outline">Order Delivery</a>
           </div>
+          
+          <!-- Location and Contact -->
+          <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 40px;">
+            <h3 style="font-family: 'Barlow Condensed'; font-size: 24px; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Visit Us</h3>
+            <p style="color: var(--gray-light); font-size: 1.1rem; margin-bottom: 8px;">18411 Victory Blvd, Reseda, CA 91335</p>
+            <p style="margin-bottom: 24px;">
+              <a href="tel:+13239211646" style="color: var(--white); font-weight: bold; font-size: 1.2rem; text-decoration: none;">📞 (323) 921-1646</a>
+            </p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+              <a href="https://maps.app.goo.gl/HRWCNVDR8fsv5jzv8" target="_blank" rel="noopener" class="btn-outline" style="display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                Get Directions
+              </a>
+            </div>
+          </div>
+
           <div class="map-container" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
             <iframe width="100%" height="350" style="border:0;" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=18411+Victory+Blvd,+Reseda,+CA&t=&z=14&ie=UTF8&iwloc=&output=embed"></iframe>
           </div>
