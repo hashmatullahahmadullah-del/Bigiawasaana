@@ -840,6 +840,154 @@ exports.releaseScheduledOrders = functions.pubsub
   });
 
 // ─────────────────────────────────────────────────────────────────
+// renderItemPage (SSR for /item/**)
+// ─────────────────────────────────────────────────────────────────
+exports.renderItemPage = functions.https.onRequest(async (req, res) => {
+  try {
+    const urlParts = req.path.split('/').filter(Boolean);
+    const itemSlug = urlParts[urlParts.length - 1]; 
+
+    if (!itemSlug) {
+      return res.status(404).send('Not Found');
+    }
+
+    const snapshot = await db.collection('menu').get();
+    let selectedItem = null;
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const name = data.name || '';
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      if (slug === itemSlug) {
+        selectedItem = data;
+      }
+    });
+
+    const templatePath = path.join(__dirname, 'item-template.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+
+    if (!selectedItem) {
+      html = html.replace(/{{TITLE}}/g, 'Item Not Found | Bigi Awasaana');
+      html = html.replace(/{{META_DESC}}/g, "We couldn't find the menu item you're looking for.");
+      html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
+      html = html.replace(/{{SCHEMA_DATA}}/g, '');
+
+      const notFoundContent = `
+        <section class="section" style="padding-top: clamp(120px, 15vw, 160px); background-color: var(--bg); min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+          <div class="container" style="max-width: 600px;">
+            <h1 class="font-lalezar" style="font-size: clamp(48px, 8vw, 80px); color: var(--accent); margin-bottom: var(--space-s);">404</h1>
+            <h2 style="font-family: 'Barlow Condensed'; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; color: var(--white); margin-bottom: var(--space-m);">Item Not Found</h2>
+            <p style="color: var(--gray-light); font-size: 1.1rem; line-height: 1.6; margin-bottom: var(--space-l);">
+              We couldn't find the menu item you're looking for. It might have been removed or renamed.
+            </p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+              <a href="/menu.html" class="btn-primary" style="min-width: 160px;">View Menu</a>
+            </div>
+          </div>
+        </section>
+      `;
+      html = html.replace(/{{ITEM_CONTENT}}/g, notFoundContent);
+      return res.status(404).send(html);
+    }
+
+    const areasSnapshot = await db.collection('serviceAreas').where('isPublished', '==', true).get();
+    const areas = [];
+    areasSnapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.name) areas.push(data.name);
+    });
+
+    const priceFormatted = typeof selectedItem.price === 'number' ? selectedItem.price.toFixed(2) : parseFloat(selectedItem.price || 0).toFixed(2);
+    const itemName = selectedItem.name;
+    const itemDesc = selectedItem.desc || selectedItem.description || `Delicious ${itemName} prepared fresh.`;
+    const itemImg = selectedItem.img || selectedItem.image || selectedItem.imageUrl || '/assets/logo.png';
+    
+    // Create SEO title and desc
+    const title = `${itemName} Near Me in Reseda, CA | Bigi Awasaana`;
+    const description = `Order the best ${itemName} near you. ${itemDesc}`;
+    
+    html = html.replace(/{{TITLE}}/g, title);
+    html = html.replace(/{{META_DESC}}/g, description);
+    html = html.replace(/{{META_ROBOTS}}/g, '');
+
+    const schemaData = `
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MenuItem",
+      "name": "${itemName.replace(/"/g, '\\"')}",
+      "description": "${itemDesc.replace(/"/g, '\\"')}",
+      "image": "${itemImg}",
+      "offers": {
+        "@type": "Offer",
+        "price": "${priceFormatted}",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      }
+    }
+    </script>
+    `;
+    html = html.replace(/{{SCHEMA_DATA}}/g, schemaData);
+
+    const areasText = areas.length > 0 
+      ? `We proudly serve our famous ${itemName} to customers in Reseda and surrounding areas including ${areas.slice(0, -1).join(', ')}${areas.length > 1 ? ' and ' : ''}${areas[areas.length - 1]}. Stop by for pickup or order delivery today!` 
+      : `Stop by for pickup or order delivery today in Reseda, CA!`;
+
+    const itemContent = `
+      <section class="section" style="padding-top: clamp(120px, 15vw, 160px); background-color: var(--bg); min-height: 80vh;">
+        <div class="container" style="max-width: 1000px; margin: 0 auto;">
+          
+          <!-- Back button -->
+          <a href="/menu.html" style="display: inline-flex; align-items: center; gap: 8px; color: var(--gray); text-decoration: none; font-family: 'Barlow Condensed'; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 32px; font-weight: 600;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back to Menu
+          </a>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 48px; align-items: start;">
+            <!-- Image -->
+            <div style="width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--surface); border: 1px solid var(--border);">
+              <img src="${itemImg}" alt="${itemName.replace(/"/g, '&quot;')}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+
+            <!-- Content -->
+            <div>
+              <h1 class="font-lalezar" style="font-size: clamp(36px, 6vw, 56px); color: var(--accent); margin-bottom: 8px; line-height: 1.1;">${itemName}</h1>
+              <div style="font-size: 28px; color: var(--white); font-family: 'Barlow Condensed'; font-weight: 600; margin-bottom: 24px;">$${priceFormatted}</div>
+              
+              <div style="font-size: 1.1rem; line-height: 1.8; color: var(--gray-light); margin-bottom: 32px;">
+                <p>${itemDesc}</p>
+              </div>
+
+              <!-- SEO Local Text -->
+              <div style="background: rgba(255, 69, 0, 0.05); border: 1px solid rgba(255, 69, 0, 0.2); border-radius: 8px; padding: 20px; margin-bottom: 32px;">
+                <h3 style="color: var(--white); font-family: 'Barlow Condensed'; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Order ${itemName} Near Me</h3>
+                <p style="color: var(--gray); font-size: 14px; line-height: 1.6;">${areasText}</p>
+              </div>
+
+              <!-- CTA Buttons -->
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <a href="/menu.html" class="btn-primary" style="text-align: center; width: 100%;">Order for Pickup</a>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" class="btn-outline" style="text-align: center; padding: 12px; border-color: rgba(6, 193, 103, 0.5); background: rgba(6, 193, 103, 0.1);">Uber Eats</a>
+                  <a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" class="btn-outline" style="text-align: center; padding: 12px; border-color: rgba(255, 48, 8, 0.5); background: rgba(255, 48, 8, 0.1);">DoorDash</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+
+    html = html.replace(/{{ITEM_CONTENT}}/g, itemContent);
+
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    res.status(200).send(html);
+
+  } catch (error) {
+    console.error('Error rendering item page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 // renderAreaPage (SSR for /areas/**)
 // ─────────────────────────────────────────────────────────────────
 exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
@@ -984,6 +1132,22 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`;
+    });
+
+    // Fetch menu items for individual item pages
+    const menuSnapshot = await db.collection('menu').get();
+    menuSnapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.name) {
+        const itemSlug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        xml += `
+  <url>
+    <loc>${baseUrl}/item/${itemSlug}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+      }
     });
 
     xml += `\n</urlset>`;
