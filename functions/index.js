@@ -905,9 +905,11 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
     // Create SEO title and desc
     const title = `${itemName} Near Me in Reseda, CA | Bigi Awasaana`;
     const description = `Order the best ${itemName} near you. ${itemDesc}`;
+    const keywords = `best ${itemName} Reseda, ${itemName} near me, Afghan food Reseda, halal food Reseda, halal food truck Los Angeles, Afghan food truck near me, Zabiha Halal`;
     
     html = html.replace(/{{TITLE}}/g, title);
     html = html.replace(/{{META_DESC}}/g, description);
+    html = html.replace(/{{META_KEYWORDS}}/g, keywords);
     html = html.replace(/{{META_ROBOTS}}/g, '');
 
     const schemaData = `
