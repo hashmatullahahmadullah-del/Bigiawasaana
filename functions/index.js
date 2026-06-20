@@ -1052,16 +1052,20 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
     }
 
     const areaContent = `
-      <section class="section" style="padding-top: clamp(120px, 15vw, 160px); background-color: var(--bg); min-height: 60vh;">
-        <div class="container text-center-mobile" style="max-width: 800px; margin: 0 auto;">
-          <h1 class="font-lalezar" style="font-size: clamp(36px, 6vw, 64px); color: var(--accent); margin-bottom: var(--space-xs);">${areaData.headline || 'Halal Afghan Food in ' + (areaData.name || areaId)}</h1>
+      <section class="section" style="margin-top: 100px; padding-top: 60px; background-color: var(--bg); min-height: 60vh; position: relative;">
+        <div class="hero-watermark" style="position: absolute; top: -20px; left: 0; width: 100%; text-align: center; font-family: 'Lalezar', cursive; font-size: clamp(60px, 12vw, 150px); color: rgba(255,255,255,0.03); z-index: 0; pointer-events: none; white-space: nowrap; overflow: hidden;">Premium Halal Afghan</div>
+        <div class="container text-center-mobile" style="max-width: 800px; margin: 0 auto; position: relative; z-index: 1;">
+          <h1 class="font-lalezar" style="font-size: clamp(36px, 6vw, 64px); color: var(--accent); margin-bottom: var(--space-xs);">${areaData.headline || 'Takeout Near ' + (areaData.name || areaId)}</h1>
           ${areaData.driveTime ? `<p style="color: var(--gray); font-family: 'Barlow Condensed'; font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: var(--space-m);">Just a ${areaData.driveTime} drive to Reseda</p>` : ''}
           <div style="font-size: 1.1rem; line-height: 1.8; color: var(--gray-light); margin-bottom: var(--space-l);">
             ${areaData.introText ? `<p>${areaData.introText}</p>` : '<p>Experience the authentic taste of the Silk Road right here in the San Fernando Valley.</p>'}
           </div>
-          <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
             <a href="/menu.html" class="btn-primary">Order for Pickup</a>
             <a href="/#delivery" class="btn-outline">Order Delivery</a>
+          </div>
+          <div class="map-container" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            <iframe width="100%" height="350" style="border:0;" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=18411+Victory+Blvd,+Reseda,+CA&t=&z=14&ie=UTF8&iwloc=&output=embed"></iframe>
           </div>
         </div>
       </section>
