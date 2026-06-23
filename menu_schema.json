@@ -1,0 +1,181 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Menu",
+  "name": "Bigi Awasaana Menu",
+  "hasMenuSection": [
+    {
+      "@type": "MenuSection",
+      "name": "Kabobs",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Shami Kabob",
+          "description": "A softer, patty-style kabab made from finely minced meat blended with chickpeas, onion, and warm spices — pan-seared to a golden crust. Traditionally Afghan, deeply comforting. Enjoy the best Halal Shami Kabob (Shaami, Kebab, Kabab) in Reseda.",
+          "offers": {
+            "@type": "Offer",
+            "price": 19.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        },
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Tikka Kabob",
+          "description": "Chunks of marinated chicken or beef tikka — bathed overnight in yogurt, ginger, garlic, and a proprietary Afghan spice blend — charcoal-grilled to a caramelized char with a juicy interior. The best Halal Tikka Kabob in Los Angeles. Also known as Kebab, Kabab, Kebob, or Tekka.",
+          "offers": {
+            "@type": "Offer",
+            "price": 19.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "Soups",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Chicken Soup",
+          "description": "Warm and comforting Halal Chicken Soup from Reseda. A traditional Afghan Shorba with rich broth, slow-cooked chicken, and tender vegetables. Perfect for a cozy meal.",
+          "offers": {
+            "@type": "Offer",
+            "price": 5.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "platters",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Qabuli Palou",
+          "description": "Long-grain basmati rice slow-steamed in a lamb broth reduction, crowned with braised pull-apart lamb, caramelized carrots, and toasted raisins and pistachios. The dish served at every Afghan celebration. Also known as Kabuli Pulao, Qabili Palaw, or Qaboli Palau. Authentic Afghan food near you.",
+          "offers": {
+            "@type": "Offer",
+            "price": 19.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        },
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Smash Burger with Fries",
+          "description": "A beef patty smashed thin on a screaming-hot griddle, building a crispy lacey crust on every edge, stacked with classic American toppings — melted cheese, crisp lettuce, tomato, pickles, and Bigi's house sauce — on a toasted bun. Served with a side of fries. The best Halal Smashburger.",
+          "offers": {
+            "@type": "Offer",
+            "price": 14.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "wraps",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Afghan Burger",
+          "description": "Not a burger in the American sense — this is a loaded lavash wrap stuffed with a mix of charcoal-grilled kabobs, crispy fries, and fresh vegetables, all rolled tight with house sauces. The best Halal Afghan Burger (Afghani Burger wrap) in LA.",
+          "offers": {
+            "@type": "Offer",
+            "price": 11.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        },
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Shawarma",
+          "description": "Authentic, mouth-watering Halal Shawarma wrap in Reseda. Freshly carved, perfectly seasoned meat packed with fresh veggies and our signature sauce. Also known as Shawerma or Shwarma.",
+          "offers": {
+            "@type": "Offer",
+            "price": 13.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "Drinks",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "Cold Drinks",
+          "description": "A rotating selection of cold canned and bottled beverages to pair with your meal.",
+          "offers": {
+            "@type": "Offer",
+            "price": 2.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        },
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Doogh - Yogurt Drink",
+          "description": "A refreshing, savory, and minty Afghan yogurt drink. The perfect pairing for any kabob or spicy dish. If you love Turkish Ayran or Persian Dough (Dugh), you will love this.",
+          "offers": {
+            "@type": "Offer",
+            "price": 4.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        },
+        {
+          "@type": "MenuItem",
+          "name": "Bottled Water",
+          "description": "Cold bottled water. Always available.",
+          "offers": {
+            "@type": "Offer",
+            "price": 0.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "sides",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Samosa",
+          "description": "Crispy fried pastry pockets stuffed with spiced potatoes and peas, served with a tangy tamarind chutney. The street snack of the Subcontinent and Central Asia. The best Halal Samosa (Sambosa, Samoosa, Sambusa) in Reseda.",
+          "offers": {
+            "@type": "Offer",
+            "price": 2.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        }
+      ]
+    },
+    {
+      "@type": "MenuSection",
+      "name": "SIDES",
+      "hasMenuItem": [
+        {
+          "@type": "MenuItem",
+          "name": "Bigi's Bolani",
+          "description": "Thin Afghan flatbread filled with a seasoned blend of potato, leek, or pumpkin (seasonal), pan-fried until the outside is golden and crisp while the inside stays soft. A staple of every Afghan household and gathering. Often spelled Bulani, Boloni, or Afghan Stuffed Flatbread.",
+          "offers": {
+            "@type": "Offer",
+            "price": 7.99,
+            "priceCurrency": "USD"
+          },
+          "suitableForDiet": "https://schema.org/HalalDiet"
+        }
+      ]
+    }
+  ]
+}

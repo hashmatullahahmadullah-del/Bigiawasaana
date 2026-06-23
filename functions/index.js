@@ -853,11 +853,13 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
 
     const snapshot = await db.collection('menu').get();
     let selectedItem = null;
+    const allItems = [];
 
     snapshot.forEach(doc => {
       const data = doc.data();
       const name = data.name || '';
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      allItems.push({ name, slug });
       if (slug === itemSlug) {
         selectedItem = data;
       }
@@ -870,6 +872,8 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
       html = html.replace(/{{TITLE}}/g, 'Item Not Found | Bigi Awasaana');
       html = html.replace(/{{META_DESC}}/g, "We couldn't find the menu item you're looking for.");
       html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
+      html = html.replace(/{{OG_IMAGE}}/g, '/assets/logo.png');
+      html = html.replace(/{{ITEM_SLUG}}/g, itemSlug);
       html = html.replace(/{{SCHEMA_DATA}}/g, '');
 
       const notFoundContent = `
@@ -909,24 +913,46 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
     
     html = html.replace(/{{TITLE}}/g, title);
     html = html.replace(/{{META_DESC}}/g, description);
+
     html = html.replace(/{{META_KEYWORDS}}/g, keywords);
     html = html.replace(/{{META_ROBOTS}}/g, '');
-
+    html = html.replace(/{{OG_IMAGE}}/g, itemImg);
+    html = html.replace(/{{ITEM_SLUG}}/g, itemSlug);
     const schemaData = `
     <script type="application/ld+json">
-    {
+    [{
       "@context": "https://schema.org",
       "@type": "MenuItem",
       "name": "${itemName.replace(/"/g, '\\"')}",
       "description": "${itemDesc.replace(/"/g, '\\"')}",
       "image": "${itemImg}",
+      "suitableForDiet": "https://schema.org/HalalDiet",
       "offers": {
         "@type": "Offer",
         "price": "${priceFormatted}",
         "priceCurrency": "USD",
         "availability": "https://schema.org/InStock"
       }
-    }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "Is the ${itemName} halal?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, our ${itemName} is 100% Zabiha Halal, cooked to perfection at Bigi Awasaana."
+        }
+      }, {
+        "@type": "Question",
+        "name": "Do you deliver ${itemName} in Los Angeles?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, we deliver ${itemName} across Los Angeles via Uber Eats and DoorDash, and offer pickup in Reseda."
+        }
+      }]
+    }]
     </script>
     `;
     html = html.replace(/{{SCHEMA_DATA}}/g, schemaData);
@@ -953,7 +979,7 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
 
             <!-- Content -->
             <div>
-              <h1 class="font-lalezar" style="font-size: clamp(36px, 6vw, 56px); color: var(--accent); margin-bottom: 8px; line-height: 1.1;">${itemName}</h1>
+              <h1 class="font-lalezar" style="font-size: clamp(36px, 6vw, 56px); color: var(--accent); margin-bottom: 8px; line-height: 1.1;">Halal ${itemName} in Los Angeles</h1>
               <div style="font-size: 28px; color: var(--white); font-family: 'Barlow Condensed'; font-weight: 600; margin-bottom: 24px;">$${priceFormatted}</div>
               
               <div style="font-size: 1.1rem; line-height: 1.8; color: var(--gray-light); margin-bottom: 32px;">
@@ -975,7 +1001,20 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
                 </div>
               </div>
             </div>
+            </div>
           </div>
+          
+          <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border);">
+            <h3 style="font-family: 'Barlow Condensed'; font-size: 20px; color: var(--accent); margin-bottom: 16px;">Explore More Halal Afghan Food</h3>
+            <p style="font-size: 14px; line-height: 1.8; color: var(--gray);">
+              ${allItems.filter(i => i.slug !== itemSlug).map(i => `<a href="/item/${i.slug}" style="color: var(--gray); text-decoration: none;">Order Halal ${i.name}</a>`).join(' | ')}
+            </p>
+            <h3 style="font-family: 'Barlow Condensed'; font-size: 20px; color: var(--accent); margin-top: 32px; margin-bottom: 16px;">Delivery Service Areas</h3>
+            <p style="font-size: 14px; line-height: 1.8; color: var(--gray);">
+              ${areas.map(a => { const s = a.toLowerCase().replace(/\s+/g, '-'); return `<a href="/areas/${s}" style="color: var(--gray); text-decoration: none;">Halal Afghan Food Delivery in ${a}</a>`; }).join(' | ')}
+            </p>
+          </div>
+
         </div>
       </section>
     `;
@@ -1044,12 +1083,34 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
     html = html.replace(/{{TITLE}}/g, title);
     html = html.replace(/{{META_DESC}}/g, description);
 
+    // Generate area schema and inject
+    const areaSchemaData = `
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FoodEstablishment",
+      "name": "Bigi Awasaana",
+      "image": "https://bigiawasaana.com/logo.png",
+      "url": "https://bigiawasaana.com/areas/${areaId}",
+      "telephone": "+13239211646",
+      "servesCuisine": ["Afghan", "Middle Eastern", "Halal"],
+      "areaServed": {
+        "@type": "City",
+        "name": "${areaData.name || areaId}"
+      }
+    }
+    </script>
+    `;
+    html = html.replace(/{{SCHEMA_DATA}}/g, areaSchemaData);
+
+
     // Thin content safeguard
     if (areaData.isPublished === false) {
       html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
     } else {
       html = html.replace(/{{META_ROBOTS}}/g, ''); // leave blank
     }
+    html = html.replace(/{{AREA_ID}}/g, areaId);
 
     const areaContent = `
       <section class="section" style="margin-top: 100px; padding-top: 60px; background-color: var(--bg); min-height: 60vh; position: relative;">
@@ -1083,6 +1144,19 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
           <div class="map-container" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
             <iframe width="100%" height="350" style="border:0;" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=18411+Victory+Blvd,+Reseda,+CA&t=&z=14&ie=UTF8&iwloc=&output=embed"></iframe>
           </div>
+
+          <!-- Internal Menu Links for Area Pages -->
+          <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border); text-align: left;">
+            <h3 style="font-family: 'Barlow Condensed'; font-size: 20px; color: var(--accent); margin-bottom: 16px;">Popular Delivery Items in ${areaData.name || areaId}</h3>
+            <p style="font-size: 14px; line-height: 1.8; color: var(--gray);">
+              <a href="/item/bigi-s-tikka-kabob" style="color: var(--gray); text-decoration: none;">Order Halal Chicken Tikka Kabob in ${areaData.name || areaId}</a> | 
+              <a href="/item/bigi-s-shami-kabob" style="color: var(--gray); text-decoration: none;">Order Halal Shami Kabob in ${areaData.name || areaId}</a> | 
+              <a href="/item/bigi-s-qabuli-palou" style="color: var(--gray); text-decoration: none;">Order Halal Qabuli Palou in ${areaData.name || areaId}</a> | 
+              <a href="/item/bigi-s-samosa" style="color: var(--gray); text-decoration: none;">Order Halal Samosa in ${areaData.name || areaId}</a> | 
+              <a href="/item/bigi-s-bolani" style="color: var(--gray); text-decoration: none;">Order Halal Bolani in ${areaData.name || areaId}</a>
+            </p>
+          </div>
+
         </div>
       </section>
     `;
