@@ -2538,7 +2538,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
           } catch (e) {
             console.error(e);
-            showCrmToast('Image upload failed');
+            showToast('Image upload failed');
           }
         };
       });
@@ -2609,17 +2609,17 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       if (id) {
         await updateDoc(doc(db, 'posts', id), postData);
-        showCrmToast('Post updated!');
+        showToast('Post updated!');
       } else {
         postData.publishedAt = isPublished ? serverTimestamp() : null;
         await addDoc(collection(db, 'posts'), postData);
-        showCrmToast('Post created!');
+        showToast('Post created!');
       }
       blogEditorSection.style.display = 'none';
       loadBlogPosts();
     } catch (err) {
       console.error(err);
-      showCrmToast('Error saving post');
+      showToast('Error saving post');
     }
   });
 
@@ -2683,7 +2683,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.querySelector('.delete-post-btn').addEventListener('click', async () => {
           if(confirm('Are you sure you want to delete this post?')) {
             await deleteDoc(doc(db, 'posts', id));
-            showCrmToast('Post deleted');
+            showToast('Post deleted');
           }
         });
 
