@@ -13,6 +13,10 @@
       "destination": "https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/renderSitemap"
     },
     {
+      "source": "/blog/:slug",
+      "destination": "https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/renderBlogPage/blog/:slug"
+    },
+    {
       "source": "/tv1",
       "destination": "/tv-menu.html?screen=1"
     },

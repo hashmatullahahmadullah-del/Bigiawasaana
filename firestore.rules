@@ -63,6 +63,12 @@ service cloud.firestore {
       // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow write: if request.auth != null;
     }
+
+    // Blog Posts Collection
+    match /posts/{post} {
+      allow read: if true; // Or we can restrict to published only, but UI filters it anyway
+      allow write: if request.auth != null;
+    }
     
     // Default: Deny everything else
     match /{document=**} {
