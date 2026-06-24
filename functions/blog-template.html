@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+  <meta name="description" content="{{META_DESC}}">
+  {{META_ROBOTS}}
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:description" content="{{META_DESC}}">
+  <meta property="og:image" content="{{OG_IMAGE}}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://bigiawasaana.com/blog/{{POST_SLUG}}">
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+    {{SCHEMA_DATA}}
+  </script>
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
+  <style>
+    .blog-article {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: clamp(100px, 12vw, 140px) 20px 60px;
+      color: var(--white);
+    }
+    .blog-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .blog-title {
+      font-family: 'Lalezar', cursive;
+      font-size: clamp(40px, 6vw, 64px);
+      color: var(--accent);
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .blog-meta {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.2rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .blog-cover {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin-bottom: 40px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .blog-content {
+      font-size: 1.15rem;
+      line-height: 1.8;
+      color: var(--gray-light);
+    }
+    .blog-content h2, .blog-content h3 {
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--white);
+      margin-top: 40px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .blog-content p {
+      margin-bottom: 24px;
+    }
+    .blog-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .blog-content a {
+      color: var(--accent-light);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
+        <img src="/logo.webp" alt="Bigi Awasaana Logo" width="128" height="64">
+      </a>
+      <ul class="nav-links">
+        <li><a href="/menu.html">Menu</a></li>
+        <li><a href="/specials.html">Specials</a></li>
+        <li><a href="/locations.html">Location</a></li>
+        <li><a href="/catering.html">Catering</a></li>
+        <li><a href="/blog.html" class="active">Blog</a></li>
+        <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div class="nav-mobile-drawer" id="nav-mobile-drawer">
+    <a href="/menu.html">Menu</a>
+    <a href="/specials.html">Specials</a>
+    <a href="/locations.html">Location</a>
+    <a href="/catering.html">Catering</a>
+    <a href="/blog.html" class="active">Blog</a>
+    <a href="tel:+13239211646" class="btn-primary" style="margin-top: 16px;">(323) 921-1646</a>
+  </div>
+
+  <main id="main-content">
+    {{POST_CONTENT}}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="text-center-mobile">
+          <a href="/"><img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
+          <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Real food. Real flavor. Bigi Awasaana.</p>
+        </div>
+        <div class="text-center-mobile">
+          <div class="footer-label">Explore</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="/menu.html" class="footer-link">Menu</a>
+            <a href="/specials.html" class="footer-link">Specials</a>
+            <a href="/locations.html" class="footer-link">Location & Hours</a>
+            <a href="/catering.html" class="footer-link">Catering</a>
+            <a href="/blog.html" class="footer-link">Blog</a>
+          </div>
+        </div>
+        <div class="text-center-mobile">
+          <div class="footer-label">Contact</div>
+          <p style="color: var(--gray-light); margin-bottom: 8px;">18411 Victory Blvd, Reseda, CA</p>
+          <p style="margin-bottom: 16px;"><a href="tel:+13239211646" class="footer-link">(323) 921-1646</a></p>
+          <a href="/#delivery" class="btn-outline" style="padding: 8px 16px; display: inline-block;">Order Delivery</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 Bigi Awasaana. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script src="/src/nav.js"></script>
+</body>
+</html>

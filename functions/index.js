@@ -840,6 +840,120 @@ exports.releaseScheduledOrders = functions.pubsub
   });
 
 // ─────────────────────────────────────────────────────────────────
+// renderBlogPage (SSR for /blog/**)
+// ─────────────────────────────────────────────────────────────────
+exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
+  try {
+    const urlParts = req.path.split('/').filter(Boolean);
+    const postSlug = urlParts[urlParts.length - 1];
+
+    if (!postSlug) {
+      return res.status(404).send('Not Found');
+    }
+
+    const snapshot = await db.collection('posts').where('slug', '==', postSlug).limit(1).get();
+    
+    const templatePath = path.join(__dirname, 'blog-template.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+
+    if (snapshot.empty) {
+      html = html.replace(/{{TITLE}}/g, 'Blog Post Not Found | Bigi Awasaana');
+      html = html.replace(/{{META_DESC}}/g, "We couldn't find the article you're looking for.");
+      html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
+      html = html.replace(/{{OG_IMAGE}}/g, 'https://bigiawasaana.com/logo.webp');
+      html = html.replace(/{{POST_SLUG}}/g, postSlug);
+      html = html.replace(/{{SCHEMA_DATA}}/g, '');
+      
+      const notFoundContent = `
+        <section class="blog-article" style="text-align: center; padding-top: clamp(150px, 15vw, 200px); min-height: 60vh;">
+          <h1 class="blog-title">404</h1>
+          <h2 style="font-family: 'Barlow Condensed'; font-size: 24px; color: var(--white); margin-bottom: 24px;">Post Not Found</h2>
+          <p style="color: var(--gray); margin-bottom: 32px;">This post may have been removed or the URL is incorrect.</p>
+          <a href="/blog.html" class="btn-primary">View All Posts</a>
+        </section>
+      `;
+      html = html.replace(/{{POST_CONTENT}}/g, notFoundContent);
+      return res.status(404).send(html);
+    }
+
+    const postDoc = snapshot.docs[0];
+    const post = postDoc.data();
+
+    // Check if published
+    if (!post.isPublished) {
+      html = html.replace(/{{TITLE}}/g, 'Draft | Bigi Awasaana');
+      html = html.replace(/{{META_DESC}}/g, "Draft post.");
+      html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
+      html = html.replace(/{{OG_IMAGE}}/g, 'https://bigiawasaana.com/logo.webp');
+      html = html.replace(/{{POST_SLUG}}/g, postSlug);
+      html = html.replace(/{{SCHEMA_DATA}}/g, '');
+      html = html.replace(/{{POST_CONTENT}}/g, '<section class="blog-article"><h2>This post is not published yet.</h2></section>');
+      return res.status(404).send(html);
+    }
+
+    const title = post.title + ' | Bigi Awasaana Blog';
+    const desc = post.excerpt || `Read ${post.title} on the Bigi Awasaana Blog.`;
+    const image = post.coverImage || 'https://bigiawasaana.com/logo.webp';
+    const pubDate = post.publishedAt ? new Date(post.publishedAt.toMillis()).toISOString() : new Date().toISOString();
+    const formattedDate = new Date(pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    html = html.replace(/{{TITLE}}/g, title);
+    html = html.replace(/{{META_DESC}}/g, desc);
+    html = html.replace(/{{META_ROBOTS}}/g, '');
+    html = html.replace(/{{OG_IMAGE}}/g, image);
+    html = html.replace(/{{POST_SLUG}}/g, postSlug);
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": `https://bigiawasaana.com/blog/${postSlug}`
+      },
+      "headline": post.title,
+      "description": desc,
+      "image": image,  
+      "author": {
+        "@type": "Organization",
+        "name": "Bigi Awasaana"
+      },  
+      "publisher": {
+        "@type": "Organization",
+        "name": "Bigi Awasaana",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://bigiawasaana.com/logo.webp"
+        }
+      },
+      "datePublished": pubDate
+    };
+
+    html = html.replace(/{{SCHEMA_DATA}}/g, JSON.stringify(schema, null, 2));
+
+    const contentHtml = `
+      <article class="blog-article">
+        <header class="blog-header">
+          <h1 class="blog-title">${post.title}</h1>
+          <div class="blog-meta">${formattedDate}</div>
+        </header>
+        ${post.coverImage ? `<img src="${post.coverImage}" alt="${post.title}" class="blog-cover">` : ''}
+        <div class="blog-content">
+          ${post.content || ''}
+        </div>
+      </article>
+    `;
+
+    html = html.replace(/{{POST_CONTENT}}/g, contentHtml);
+
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    res.status(200).send(html);
+  } catch (error) {
+    console.error('Error rendering blog page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────
 // renderItemPage (SSR for /item/**)
 // ─────────────────────────────────────────────────────────────────
 exports.renderItemPage = functions.https.onRequest(async (req, res) => {

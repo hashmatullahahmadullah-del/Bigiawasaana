@@ -32,6 +32,8 @@
     ],
     "rewrites": [
       { "source": "/sitemap.xml", "function": "renderSitemap" },
+      { "source": "/blog/**", "function": "renderBlogPage" },
+      { "source": "/blog", "destination": "/blog.html" },
       { "source": "/areas/**", "function": "renderAreaPage" },
       { "source": "/item/**", "function": "renderItemPage" },
       { "source": "/menu", "destination": "/menu.html" },
