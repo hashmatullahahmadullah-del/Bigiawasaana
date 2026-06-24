@@ -2511,7 +2511,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const file = input.files[0];
           if (!file) return;
           try {
-            // Re-use our compressImage logic (from menu items)
+            const altText = prompt("Enter an image description for SEO (e.g. 'Halal chicken tikka kebab'):");
+            if (!altText) {
+              alert("SEO Warning: Image description is required to rank on Google Images.");
+              return; // cancel upload if no alt text to force good SEO habits
+            }
+            
+            // Re-use our compressImage logic
             const compressedFile = await compressImage(file, 1024);
             const storageRef = ref(storage, `img/blog/${Date.now()}_${compressedFile.name}`);
             await uploadBytes(storageRef, compressedFile);
@@ -2519,6 +2525,17 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const range = quill.getSelection();
             quill.insertEmbed(range.index, 'image', url);
+            
+            // Apply alt attribute to the newly inserted image
+            setTimeout(() => {
+              const images = document.querySelectorAll('#quill-editor img');
+              images.forEach(img => {
+                if (img.src === url) {
+                  img.setAttribute('alt', altText);
+                }
+              });
+            }, 100);
+            
           } catch (e) {
             console.error(e);
             showCrmToast('Image upload failed');
@@ -2539,6 +2556,7 @@ document.addEventListener('DOMContentLoaded', () => {
   addPostBtn?.addEventListener('click', () => {
     blogForm.reset();
     document.getElementById('post-id').value = '';
+    document.getElementById('post-keywords').value = '';
     document.getElementById('post-cover-preview').innerHTML = '';
     currentCoverUrl = '';
     if(quill) quill.root.innerHTML = '';
@@ -2573,14 +2591,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let slug = document.getElementById('post-slug').value.trim();
     if (!slug) slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const excerpt = document.getElementById('post-excerpt').value.trim();
+    const keywords = document.getElementById('post-keywords').value.trim();
     const isPublished = document.getElementById('post-published').checked;
-    const content = quill ? quill.root.innerHTML : '';
+    const editorContent = quill ? quill.root.innerHTML : '';
 
     const postData = {
       title,
       slug,
       excerpt,
-      content,
+      keywords,
+      content: editorContent,
       coverImage: currentCoverUrl,
       isPublished,
       updatedAt: serverTimestamp()
@@ -2646,6 +2666,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('post-title').value = post.title;
           document.getElementById('post-slug').value = post.slug;
           document.getElementById('post-excerpt').value = post.excerpt || '';
+          document.getElementById('post-keywords').value = post.keywords || '';
           document.getElementById('post-published').checked = post.isPublished;
           currentCoverUrl = post.coverImage || '';
           if (currentCoverUrl) {

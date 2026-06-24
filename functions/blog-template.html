@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{TITLE}}</title>
+  <link rel="canonical" href="https://bigiawasaana.com/blog/{{POST_SLUG}}">
   <meta name="description" content="{{META_DESC}}">
+  {{META_KEYWORDS}}
   {{META_ROBOTS}}
   
   <!-- Open Graph -->
@@ -17,6 +19,9 @@
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">
     {{SCHEMA_DATA}}
+  </script>
+  <script type="application/ld+json">
+    {{BREADCRUMB_SCHEMA}}
   </script>
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">

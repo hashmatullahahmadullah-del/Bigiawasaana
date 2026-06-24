@@ -863,6 +863,8 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
       html = html.replace(/{{OG_IMAGE}}/g, 'https://bigiawasaana.com/logo.webp');
       html = html.replace(/{{POST_SLUG}}/g, postSlug);
       html = html.replace(/{{SCHEMA_DATA}}/g, '');
+      html = html.replace(/{{META_KEYWORDS}}/g, '');
+      html = html.replace(/{{BREADCRUMB_SCHEMA}}/g, '');
       
       const notFoundContent = `
         <section class="blog-article" style="text-align: center; padding-top: clamp(150px, 15vw, 200px); min-height: 60vh;">
@@ -887,6 +889,8 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
       html = html.replace(/{{OG_IMAGE}}/g, 'https://bigiawasaana.com/logo.webp');
       html = html.replace(/{{POST_SLUG}}/g, postSlug);
       html = html.replace(/{{SCHEMA_DATA}}/g, '');
+      html = html.replace(/{{META_KEYWORDS}}/g, '');
+      html = html.replace(/{{BREADCRUMB_SCHEMA}}/g, '');
       html = html.replace(/{{POST_CONTENT}}/g, '<section class="blog-article"><h2>This post is not published yet.</h2></section>');
       return res.status(404).send(html);
     }
@@ -895,6 +899,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
     const desc = post.excerpt || `Read ${post.title} on the Bigi Awasaana Blog.`;
     const image = post.coverImage || 'https://bigiawasaana.com/logo.webp';
     const pubDate = post.publishedAt ? new Date(post.publishedAt.toMillis()).toISOString() : new Date().toISOString();
+    const modDate = post.updatedAt ? new Date(post.updatedAt.toMillis()).toISOString() : pubDate;
     const formattedDate = new Date(pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
     html = html.replace(/{{TITLE}}/g, title);
@@ -902,6 +907,13 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
     html = html.replace(/{{META_ROBOTS}}/g, '');
     html = html.replace(/{{OG_IMAGE}}/g, image);
     html = html.replace(/{{POST_SLUG}}/g, postSlug);
+    
+    // Keywords
+    if (post.keywords) {
+      html = html.replace(/{{META_KEYWORDS}}/g, `<meta name="keywords" content="${post.keywords}">`);
+    } else {
+      html = html.replace(/{{META_KEYWORDS}}/g, '');
+    }
 
     const schema = {
       "@context": "https://schema.org",
@@ -925,10 +937,40 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
           "url": "https://bigiawasaana.com/logo.webp"
         }
       },
-      "datePublished": pubDate
+      "datePublished": pubDate,
+      "dateModified": modDate
     };
+    if (post.keywords) {
+      schema.keywords = post.keywords;
+    }
 
     html = html.replace(/{{SCHEMA_DATA}}/g, JSON.stringify(schema, null, 2));
+
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://bigiawasaana.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://bigiawasaana.com/blog.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": post.title,
+          "item": `https://bigiawasaana.com/blog/${postSlug}`
+        }
+      ]
+    };
+    html = html.replace(/{{BREADCRUMB_SCHEMA}}/g, JSON.stringify(breadcrumbSchema, null, 2));
 
     const contentHtml = `
       <article class="blog-article">
@@ -989,6 +1031,8 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
       html = html.replace(/{{OG_IMAGE}}/g, '/assets/logo.png');
       html = html.replace(/{{ITEM_SLUG}}/g, itemSlug);
       html = html.replace(/{{SCHEMA_DATA}}/g, '');
+      html = html.replace(/{{META_KEYWORDS}}/g, '');
+      html = html.replace(/{{BREADCRUMB_SCHEMA}}/g, '');
 
       const notFoundContent = `
         <section class="section" style="padding-top: clamp(120px, 15vw, 160px); background-color: var(--bg); min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center;">
