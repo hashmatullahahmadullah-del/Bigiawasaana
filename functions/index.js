@@ -1479,10 +1479,10 @@ exports.onNewCateringInquiry = functions.firestore
     });
 
     const mailOptions = {
-      from: \`"Bigi Awasaana Catering" <\${gmailEmail}>\`,
+      from: `"Bigi Awasaana Catering" <${gmailEmail}>`,
       to: 'bigiawasaanallc@gmail.com',
       replyTo: data.email,
-      subject: \`New Catering Inquiry from \${data.name}\`,
+      subject: `New Catering Inquiry from ${data.name}`,
       html: generateCateringEmail(data)
     };
 
