@@ -900,7 +900,10 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
 
     const title = post.title + ' | Bigi Awasaana Blog';
     const desc = post.excerpt || `Read ${post.title} on the Bigi Awasaana Blog.`;
-    const image = post.coverImage || 'https://bigiawasaana.com/logo.webp';
+    let image = post.coverImage || 'https://bigiawasaana.com/logo.webp';
+    if (image.startsWith('/')) {
+      image = `https://bigiawasaana.com${image}`;
+    }
     const pubDate = post.publishedAt ? new Date(post.publishedAt.toMillis()).toISOString() : new Date().toISOString();
     const modDate = post.updatedAt ? new Date(post.updatedAt.toMillis()).toISOString() : pubDate;
     const formattedDate = new Date(pubDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -1100,7 +1103,10 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
     const priceFormatted = typeof selectedItem.price === 'number' ? selectedItem.price.toFixed(2) : parseFloat(selectedItem.price || 0).toFixed(2);
     const itemName = selectedItem.name;
     const itemDesc = selectedItem.desc || selectedItem.description || `Delicious ${itemName} prepared fresh.`;
-    const itemImg = selectedItem.img || selectedItem.image || selectedItem.imageUrl || '/assets/logo.png';
+    let itemImg = selectedItem.img || selectedItem.image || selectedItem.imageUrl || '/assets/logo.png';
+    if (itemImg.startsWith('/')) {
+      itemImg = `https://bigiawasaana.com${itemImg}`;
+    }
     
     // Create SEO title and desc
     const title = `${itemName} Near Me in Reseda, CA | Bigi Awasaana`;
