@@ -974,13 +974,39 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
 
     const contentHtml = `
       <article class="blog-article">
-        <header class="blog-header">
-          <h1 class="blog-title">${post.title}</h1>
-          <div class="blog-meta">${formattedDate}</div>
-        </header>
-        ${post.coverImage ? `<img src="${post.coverImage}" alt="${post.title}" class="blog-cover">` : ''}
-        <div class="blog-content">
-          ${post.content || ''}
+        <div class="container">
+          <header class="blog-header">
+            <a href="/blog.html" class="back-to-blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back to Blog</a>
+            <div class="blog-meta">
+              <span class="blog-date">${formattedDate}</span>
+              ${post.keywords ? `<span class="blog-category">${post.keywords.split(',')[0].trim()}</span>` : ''}
+            </div>
+            <h1 class="blog-title">${post.title}</h1>
+          </header>
+        </div>
+
+        ${post.coverImage ? `
+        <div class="blog-hero-image-wrapper">
+          <div class="container">
+            <img src="${post.coverImage}" alt="${post.title}" class="blog-cover">
+          </div>
+        </div>
+        ` : ''}
+
+        <div class="container">
+          <div class="blog-content-wrapper">
+            <div class="blog-content">
+              ${post.content || ''}
+            </div>
+            
+            <div class="blog-share">
+              <span class="share-text">Share this article</span>
+              <div class="share-buttons">
+                <a href="https://twitter.com/intent/tweet?url=https://bigiawasaana.com/blog/${postSlug}&text=${encodeURIComponent(post.title)}" target="_blank" class="share-btn">Twitter</a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=https://bigiawasaana.com/blog/${postSlug}" target="_blank" class="share-btn">Facebook</a>
+              </div>
+            </div>
+          </div>
         </div>
       </article>
     `;
