@@ -304,7 +304,7 @@ function renderMenu(category) {
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
     const imgHtml = item.img 
-      ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" loading="lazy">`
+      ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" loading="lazy" width="400" height="300">`
       : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">No Image</div>`;
     
     card.innerHTML = `
@@ -348,7 +348,7 @@ function renderFeaturedMenu() {
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
     const imgHtml = item.img 
-      ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" loading="lazy">`
+      ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" width="400" height="300">`
       : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>`;
     
     card.innerHTML = `

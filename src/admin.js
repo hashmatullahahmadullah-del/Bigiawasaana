@@ -598,12 +598,62 @@ if (editMenuUploadInput && editMenuFilename) {
   });
 }
 
+// Compress image before upload using Canvas
+async function compressImage(file, maxWidth = 800, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = event => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob(blob => {
+          if (!blob) {
+            reject(new Error('Canvas to Blob failed'));
+            return;
+          }
+          const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), {
+            type: 'image/webp',
+            lastModified: Date.now(),
+          });
+          resolve(compressedFile);
+        }, 'image/webp', quality);
+      };
+      img.onerror = error => reject(error);
+    };
+    reader.onerror = error => reject(error);
+  });
+}
+
 // Upload helper function
 async function uploadImageFile(file) {
-  const storageRef = ref(storage, `menu-images/${Date.now()}_${file.name}`);
-  const snapshot = await uploadBytes(storageRef, file);
-  const downloadUrl = await getDownloadURL(snapshot.ref);
-  return downloadUrl;
+  try {
+    const optimizedFile = await compressImage(file);
+    const storageRef = ref(storage, `menu-images/${Date.now()}_${optimizedFile.name}`);
+    const snapshot = await uploadBytes(storageRef, optimizedFile);
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+    return downloadUrl;
+  } catch (err) {
+    console.error("Image compression failed, falling back to original:", err);
+    const storageRef = ref(storage, `menu-images/${Date.now()}_${file.name}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+    return downloadUrl;
+  }
 }
 
 // Options Builder Helpers
