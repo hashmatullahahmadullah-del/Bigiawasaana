@@ -598,28 +598,38 @@ if (editMenuUploadInput && editMenuFilename) {
   });
 }
 
-// Compress image before upload using Canvas
-async function compressImage(file, maxWidth = 800, quality = 0.8) {
+// Compress and resize image to exactly 1200x675 (16:9) with padding
+async function compressImage(file, maxWidth = 1200, quality = 0.8) {
   return new Promise((resolve, reject) => {
+    const targetWidth = 1200;
+    const targetHeight = 675;
+    
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = event => {
       const img = new Image();
       img.src = event.target.result;
       img.onload = () => {
-        let width = img.width;
-        let height = img.height;
+        // Calculate scaling factor to fit within 1200x675
+        const scale = Math.min(targetWidth / img.width, targetHeight / img.height);
         
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
+        const scaledWidth = img.width * scale;
+        const scaledHeight = img.height * scale;
+        
+        const offsetX = (targetWidth - scaledWidth) / 2;
+        const offsetY = (targetHeight - scaledHeight) / 2;
         
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Fill background with dark theme color
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(0, 0, targetWidth, targetHeight);
+        
+        // Draw the image centered
+        ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
         
         canvas.toBlob(blob => {
           if (!blob) {
