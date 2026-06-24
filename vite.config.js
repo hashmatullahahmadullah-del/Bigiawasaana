@@ -20,6 +20,8 @@ export default defineConfig({
         orderStatus: resolve(__dirname, 'order-status.html'),
         customerDisplay: resolve(__dirname, 'customer-display.html'),
         tvMenu: resolve(__dirname, 'tv-menu.html'),
+        blog: resolve(__dirname, 'blog.html'),
+        review: resolve(__dirname, 'review.html'),
         cateringJs: resolve(__dirname, 'src/catering.js'),
       },
     },
