@@ -972,6 +972,15 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
     };
     html = html.replace(/{{BREADCRUMB_SCHEMA}}/g, JSON.stringify(breadcrumbSchema, null, 2));
 
+    let cleanContent = post.content || '';
+    if (post.coverImage) {
+      const escapedUrl = post.coverImage.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      // Remove the image if it's wrapped in a <p>
+      cleanContent = cleanContent.replace(new RegExp(`<p>\\s*<img[^>]*src=["']${escapedUrl}["'][^>]*>\\s*</p>`, 'gi'), '');
+      // Remove just the <img> tag if it wasn't caught above
+      cleanContent = cleanContent.replace(new RegExp(`<img[^>]*src=["']${escapedUrl}["'][^>]*>`, 'gi'), '');
+    }
+
     const contentHtml = `
       <article class="blog-article">
         <div class="container">
@@ -996,7 +1005,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
         <div class="container">
           <div class="blog-content-wrapper">
             <div class="blog-content">
-              ${post.content || ''}
+              ${cleanContent}
             </div>
             
             <div class="blog-share">
