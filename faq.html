@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Frequently Asked Questions about Bigi Awasaana. Learn about our Zabiha Halal menu, delivery options, catering services, and hours of operation in Reseda, CA.">
+  <title>FAQ | Bigi Awasaana - Zabiha Halal Afghan Food</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lalezar&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
+
+  <style>
+    .faq-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+    }
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      padding: 24px 0;
+      background: none;
+      border: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .faq-question:hover {
+      color: var(--accent);
+    }
+    .faq-icon {
+      width: 24px;
+      height: 24px;
+      position: relative;
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+    .faq-icon::before, .faq-icon::after {
+      content: '';
+      position: absolute;
+      background: currentColor;
+      border-radius: 2px;
+    }
+    .faq-icon::before {
+      top: 11px;
+      left: 4px;
+      width: 16px;
+      height: 2px;
+    }
+    .faq-icon::after {
+      top: 4px;
+      left: 11px;
+      width: 2px;
+      height: 16px;
+      transition: transform 0.3s ease;
+    }
+    .faq-item.active .faq-icon::after {
+      transform: scaleY(0);
+    }
+    .faq-item.active .faq-icon {
+      transform: rotate(180deg);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 16px 0 0;
+      color: var(--gray);
+      line-height: 1.6;
+    }
+    .faq-item.active .faq-answer {
+      max-height: 500px;
+      padding-bottom: 24px;
+    }
+  </style>
+
+  <!-- JSON-LD FAQ Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is all your meat Zabiha Halal?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, 100%. We source only certified hand-slaughtered Zabiha Halal meat. As a Muslim-owned and operated family business, this is a strict standard we never compromise on."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where are you located and what are your hours?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We are a food trailer located at 18411 Victory Blvd, Reseda, CA 91335. We are open every day of the week from 12:00 PM to 10:30 PM."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you offer delivery?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, we partner with major delivery apps so you can enjoy Bigi Awasaana at home. You can find us on Uber Eats and DoorDash."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you offer catering for events?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely! We provide catering for weddings, corporate events, family parties, and gatherings of all sizes. Please visit our Catering page to submit an inquiry."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are your most popular dishes?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "First-timers should definitely try our Tikka Kabob (juicy charcoal-grilled meat), Qabuli Palou (traditional Afghan rice with tender beef, sweet carrots, and raisins), and our fan-favorite Afghan Burger."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body class="dark-theme">
+
+  <!-- Desktop Nav -->
+  <nav class="nav-desktop hide-mobile" id="nav-desktop">
+    <div class="nav-desktop-inner">
+      <div class="nav-links">
+        <a href="/menu.html" data-i18n="nav.menu">Menu</a>
+        <a href="/specials.html" data-i18n="nav.specials">Specials</a>
+        <a href="/locations.html" data-i18n="nav.location">Location</a>
+      </div>
+      
+      <a href="/" class="nav-logo">
+        <img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain;">
+      </a>
+      
+      <div class="nav-links">
+        <a href="/catering.html" data-i18n="nav.catering">Catering</a>
+        <a href="/faq.html" class="active" data-i18n="nav.faq">FAQ</a>
+        <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
+        
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <button class="site-lang-toggle btn-outline" style="padding: 4px 8px; font-size: 13px; font-family: 'Outfit';">EN | فا</button>
+          <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Nav -->
+  <nav class="nav-mobile hide-desktop" id="nav-mobile">
+    <div class="nav-mobile-inner">
+      <a href="/" class="nav-logo">
+        <img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="80" height="40" style="height: 40px; width: auto; object-fit: contain;">
+      </a>
+      <button class="hamburger" id="hamburger-btn" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div class="nav-mobile-drawer" id="nav-mobile-drawer">
+    <a href="/menu.html" data-i18n="nav.menu">Menu</a>
+    <a href="/specials.html" data-i18n="nav.specials">Specials</a>
+    <a href="/locations.html" data-i18n="nav.location">Location</a>
+    <a href="/catering.html" data-i18n="nav.catering">Catering</a>
+    <a href="/faq.html" class="active" data-i18n="nav.faq">FAQ</a>
+    <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
+    <button class="site-lang-toggle btn-outline" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
+    <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
+  </div>
+
+  <main>
+    <!-- Header -->
+    <header style="padding-top: 120px; padding-bottom: 60px; text-align: center; border-bottom: 1px solid var(--border);">
+      <div class="container">
+        <div style="font-family: 'Barlow Condensed'; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; font-weight: 600;">HAVE QUESTIONS?</div>
+        <h1 class="font-lalezar" style="font-size: clamp(32px, 6vw, 64px); line-height: 1; margin-bottom: 16px;">FREQUENTLY ASKED QUESTIONS</h1>
+        <p style="color: var(--gray); font-size: 15px; max-width: 500px; margin: 0 auto;">Everything you need to know about our food, our ingredients, and how to find us.</p>
+      </div>
+    </header>
+
+    <!-- FAQ Content -->
+    <section class="py-xl">
+      <div class="container">
+        <div class="faq-container">
+          
+          <div class="faq-item active">
+            <button class="faq-question">
+              Is all your meat Zabiha Halal?
+              <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+              <p>Yes, 100%. We source only certified hand-slaughtered Zabiha Halal meat. As a Muslim-owned and operated family business, this is a strict standard we never compromise on. Whether it's our chicken, beef, or lamb, you can dine with complete peace of mind.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question">
+              Where are you located and what are your hours?
+              <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+              <p>We are a food trailer permanently located at <strong>18411 Victory Blvd, Reseda, CA 91335</strong>. We are open every day of the week from <strong>12:00 PM to 10:30 PM</strong>.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question">
+              Do you offer delivery?
+              <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+              <p>Yes, we partner with major delivery apps so you can enjoy Bigi Awasaana from the comfort of your home. You can find and order from us directly on <strong>Uber Eats</strong> and <strong>DoorDash</strong>. We serve Reseda, Canoga Park, Tarzana, Encino, and the surrounding San Fernando Valley.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question">
+              Do you offer catering for events?
+              <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+              <p>Absolutely! We provide catering for weddings, corporate events, family parties, and gatherings of all sizes. From large trays of Qabuli Palou to mountains of fresh Tikka Kabob, we can customize a menu for your event. Please visit our <a href="/catering.html" style="color: var(--accent);">Catering page</a> to submit an inquiry.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question">
+              What are your most popular dishes?
+              <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+              <p>First-timers should definitely try our <strong>Tikka Kabob</strong> (juicy, smoky charcoal-grilled meat), <strong>Qabuli Palou</strong> (traditional Afghan rice with tender beef, sweet carrots, and raisins), and our fan-favorite <strong>Afghan Burger</strong> (a wrap packed with meat, fresh veggies, and fries). We also highly recommend adding an order of Bolani to share!</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question">
+              Do you have vegetarian options?
+              <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+              <p>Yes! Our <strong>Bolani</strong> (stuffed flatbread with potato and leek) and our <strong>Veggie Samosas</strong> are fantastic vegetarian options. Our Afghan salads, hummus, and freshly baked naan also make for great meat-free sides.</p>
+            </div>
+          </div>
+
+        </div>
+        
+        <div style="text-align: center; margin-top: 64px;">
+          <h3 style="font-family: 'Barlow Condensed'; font-size: 24px; text-transform: uppercase; margin-bottom: 16px;">Still have questions?</h3>
+          <p style="color: var(--gray); margin-bottom: 24px;">We're happy to help. Give us a call or send us an email.</p>
+          <a href="tel:+13239211646" class="btn-primary" style="display: inline-block; text-decoration: none; margin-right: 12px;">Call (323) 921-1646</a>
+          <a href="mailto:bigiawasaana@gmail.com" class="btn-outline" style="display: inline-block; text-decoration: none;">Email Us</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- 1. Brand -->
+        <div class="text-center-mobile">
+          <a href="/"><img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
+          <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Real food. Real flavor. Bigi Awasaana.</p>
+        </div>
+        <!-- 2. Explore -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Explore</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="/menu.html" class="footer-link">Menu</a>
+            <a href="/specials.html" class="footer-link">Specials</a>
+            <a href="/locations.html" class="footer-link">Location & Hours</a>
+            <a href="/catering.html" class="footer-link">Catering</a>
+            <a href="/faq.html" class="footer-link">FAQ</a>
+            <a href="/blog.html" class="footer-link">Blog</a>
+          </div>
+        </div>
+        <!-- 3. Visit Us -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Visit Us</div>
+          <p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">18411 Victory Blvd<br>Reseda, CA 91335</p>
+          <p style="font-size: 13px; color: var(--gray);">Every Day 12PM–10:30PM</p>
+        </div>
+        <!-- 4. Connect -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Connect</div>
+          <p style="font-size: 13px; margin-bottom: 8px;"><a href="tel:+13239211646" class="footer-link">(323) 921-1646</a></p>
+          <p style="font-size: 13px; margin-bottom: 16px;"><a href="mailto:bigiawasaana@gmail.com" class="footer-link">bigiawasaana@gmail.com</a></p>
+          <div class="social-icons" style="display: flex; gap: 12px; justify-content: flex-start;">
+            <a href="https://www.instagram.com/bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+            <a href="https://www.tiktok.com/@bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="TikTok"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 15.68a6.34 6.34 0 0 0 6.27 6.36 6.34 6.34 0 0 0 6.25-6.36V7.98a8.51 8.51 0 0 0 4.33 1.15V5.55a4.93 4.93 0 0 1-2.26-.86z"/></svg></a>
+            <a href="https://www.facebook.com/bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.312h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg></a>
+            <a href="https://www.youtube.com/@bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.501 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.377.55 9.377.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+        <p style="margin: 0;">&copy; 2026 Bigi Awasaana. All rights reserved.</p>
+        <div style="display: flex; gap: 16px;">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { initNav } from '/src/nav.js';
+    initNav();
+    
+    // FAQ Accordion Logic
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.addEventListener('click', () => {
+        const item = button.parentElement;
+        
+        // Close others (optional)
+        document.querySelectorAll('.faq-item').forEach(otherItem => {
+          if (otherItem !== item) {
+            otherItem.classList.remove('active');
+          }
+        });
+        
+        item.classList.toggle('active');
+      });
+    });
+  </script>
+</body>
+</html>
