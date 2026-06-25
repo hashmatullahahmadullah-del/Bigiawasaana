@@ -13,6 +13,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         admin: resolve(__dirname, 'admin.html'),
         menu: resolve(__dirname, 'menu.html'),
+        faq: resolve(__dirname, 'faq.html'),
         specials: resolve(__dirname, 'specials.html'),
         locations: resolve(__dirname, 'locations.html'),
         catering: resolve(__dirname, 'catering.html'),

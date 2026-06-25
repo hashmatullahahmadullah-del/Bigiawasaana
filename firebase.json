@@ -37,6 +37,7 @@
       { "source": "/blog", "destination": "/blog.html" },
       { "source": "/areas/**", "function": "renderAreaPage" },
       { "source": "/item/**", "function": "renderItemPage" },
+      { "source": "/faq", "destination": "/faq.html" },
       { "source": "/menu", "destination": "/menu.html" },
       { "source": "/review", "destination": "/review.html" },
       { "source": "**", "destination": "/index.html" }
