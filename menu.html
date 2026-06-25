@@ -372,11 +372,11 @@
       <button onclick="toggleCart(false)" style="background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; padding: 10px;">&times;</button>
     </div>
     
-    <div id="cart-items" style="flex: 1; overflow-y: auto; padding: var(--space-m);">
+    <div id="cart-items" style="flex: 1; min-height: 0; overflow-y: auto; padding: var(--space-m);">
       <!-- Cart items injected here -->
     </div>
 
-    <div style="padding: 0 var(--space-m) var(--space-m); background: var(--bg); border-top: 1px solid var(--border); overflow-y: auto; max-height: 50vh;">
+    <div style="padding: 0 var(--space-m) var(--space-m); background: var(--bg); border-top: 1px solid var(--border); overflow-y: auto; max-height: 50vh; flex-shrink: 0;">
       <!-- Pickup Selection -->
       <div id="pickup-selection-container" style="margin-top: 16px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--surface);">
         <div class="pickup-toggles" style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
@@ -417,7 +417,7 @@
       </div>
     </div>
 
-    <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface);">
+    <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;">
 
       <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-m); font-size: 20px; font-weight: 700; font-family: 'Barlow Condensed'; letter-spacing: 1px;">
         <span>TOTAL</span>
@@ -539,7 +539,7 @@
     <div class="payment-modal item-modal" style="padding: 0; max-width: 500px;">
       <button onclick="closeItemModal()" style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.6); border: none; color: white; font-size: 24px; cursor: pointer; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
       <div id="item-modal-hero" style="height: 250px; background-size: cover; background-position: center; background-color: var(--surface);"></div>
-      <div style="padding: 24px;">
+      <div style="padding: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom));">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
           <h2 id="item-modal-title" style="font-family: 'Barlow Condensed'; font-size: 28px; font-weight: 700; margin: 0; text-transform: uppercase;"></h2>
           <span id="item-modal-price" style="font-size: 20px; font-weight: 700; color: var(--accent);"></span>
