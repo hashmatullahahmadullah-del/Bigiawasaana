@@ -1,5 +1,8 @@
 import { db } from './firebase.js';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { initNav } from './nav.js';
+
+initNav();
 
 document.addEventListener('DOMContentLoaded', async () => {
   const feedContainer = document.getElementById('blog-feed-container');
