@@ -139,50 +139,33 @@
 <body class="dark-theme">
 
   <!-- Desktop Nav -->
-  <nav class="nav-desktop hide-mobile" id="nav-desktop">
-    <div class="nav-desktop-inner">
-      <div class="nav-links">
-        <a href="/menu.html" data-i18n="nav.menu">Menu</a>
-        <a href="/specials.html" data-i18n="nav.specials">Specials</a>
-        <a href="/locations.html" data-i18n="nav.location">Location</a>
-      </div>
-      
-      <a href="/" class="nav-logo">
-        <img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain;">
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
+        <img src="/logo.webp" alt="Bigi Awasaana - Authentic Halal Afghan Food in Los Angeles Logo" width="128" height="64">
       </a>
-      
-      <div class="nav-links">
-        <a href="/catering.html" data-i18n="nav.catering">Catering</a>
-        <a href="/faq.html" class="active" data-i18n="nav.faq">FAQ</a>
-        <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
-        
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <button class="site-lang-toggle btn-outline" style="padding: 4px 8px; font-size: 13px; font-family: 'Outfit';">EN | فا</button>
-          <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Mobile Nav -->
-  <nav class="nav-mobile hide-desktop" id="nav-mobile">
-    <div class="nav-mobile-inner">
-      <a href="/" class="nav-logo">
-        <img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="80" height="40" style="height: 40px; width: auto; object-fit: contain;">
-      </a>
-      <button class="hamburger" id="hamburger-btn" aria-label="Menu">
+      <ul class="nav-links">
+        <li><a href="/menu.html" data-i18n="nav.menu">Halal Afghan Menu</a></li>
+        <li><a href="/specials.html" data-i18n="nav.specials">Specials</a></li>
+        <li><a href="/locations.html" data-i18n="nav.location">Location</a></li>
+        <li><a href="/catering.html" data-i18n="nav.catering">Catering</a></li>
+        <li><a href="/#delivery" data-i18n="nav.delivery">Delivery</a></li>
+        <li><button class="site-lang-toggle btn-outline" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
         <span></span><span></span><span></span>
       </button>
     </div>
   </nav>
 
+  <!-- Mobile Nav -->
   <!-- Mobile Drawer -->
   <div class="nav-mobile-drawer" id="nav-mobile-drawer">
-    <a href="/menu.html" data-i18n="nav.menu">Menu</a>
+    <a href="/menu.html" data-i18n="nav.menu">Halal Afghan Menu</a>
     <a href="/specials.html" data-i18n="nav.specials">Specials</a>
     <a href="/locations.html" data-i18n="nav.location">Location</a>
     <a href="/catering.html" data-i18n="nav.catering">Catering</a>
-    <a href="/faq.html" class="active" data-i18n="nav.faq">FAQ</a>
     <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
     <button class="site-lang-toggle btn-outline" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
     <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
@@ -281,7 +264,7 @@
       <div class="footer-grid">
         <!-- 1. Brand -->
         <div class="text-center-mobile">
-          <a href="/"><img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
+          <a href="/"><img loading="lazy" src="/logo.webp" alt="Bigi Awasaana - Authentic Halal Afghan Food in Los Angeles Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
           <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Real food. Real flavor. Bigi Awasaana.</p>
         </div>
         <!-- 2. Explore -->
