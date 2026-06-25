@@ -598,11 +598,11 @@ if (editMenuUploadInput && editMenuFilename) {
   });
 }
 
-// Compress and resize image to exactly 1200x675 (16:9) with padding
-async function compressImage(file, maxWidth = 1200, quality = 0.8) {
+// Compress and resize image to exactly 800x450 (16:9) with padding
+async function compressImage(file, maxWidth = 800, quality = 0.8) {
   return new Promise((resolve, reject) => {
-    const targetWidth = 1200;
-    const targetHeight = 675;
+    const targetWidth = 800;
+    const targetHeight = 450;
     
     const reader = new FileReader();
     reader.readAsDataURL(file);
