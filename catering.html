@@ -163,7 +163,14 @@
               <textarea id="cat-details" rows="4" placeholder="Tell us about your event..." style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px; resize: vertical;" required></textarea>
             </div>
   
-            <button type="submit" id="cat-submit-btn" class="btn-primary" style="margin-top: 16px;">Submit Inquiry</button>
+            
+              <div id="cat-quote-display" style="display: none; padding: 16px; background: rgba(255, 153, 0, 0.1); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; text-align: center; margin-top: 16px;">
+                <div style="font-family: 'Barlow Condensed'; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Estimated Quote</div>
+                <div id="cat-quote-amount" style="font-size: 28px; font-weight: 700; margin: 4px 0;">$0</div>
+                <div style="font-size: 12px; color: var(--gray);">Based on ~$18/guest (Customizable based on menu)</div>
+              </div>
+
+              <button type="submit" id="cat-submit-btn" class="btn-primary" style="margin-top: 16px;">Submit Inquiry</button>
             
             <div id="cat-status" style="display: none; padding: 16px; background: rgba(37, 211, 102, 0.1); border: 1px solid #25D366; color: #25D366; border-radius: 4px; text-align: center; margin-top: 16px; font-weight: bold;">
               Inquiry sent successfully! We will contact you soon.

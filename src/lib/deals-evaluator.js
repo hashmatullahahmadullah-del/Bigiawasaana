@@ -7,7 +7,7 @@
  * @param {Array} menuItems - Array of menu items [{ id, name, price, category }]
  * @returns {Object} { discountCents: number, appliedDeals: Array, itemDiscounts: Object, units: Array }
  */
-export function evaluateDeals(cart, activeDeals, menuItems) {
+export function evaluateDeals(cart, activeDeals, menuItems, appliedPromoCodes = []) {
   // 1. Flatten the cart into individual units for precise per-unit tracking
   const units = [];
   cart.forEach(item => {

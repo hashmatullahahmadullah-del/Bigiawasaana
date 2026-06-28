@@ -1569,6 +1569,7 @@ window.editDeal = (id) => {
   // Set basic form values
   document.getElementById('deal-id').value = deal.id;
   document.getElementById('deal-title').value = deal.title || '';
+    document.getElementById('deal-promo-code').value = deal.promoCode || '';
   document.getElementById('deal-badge').value = deal.badge || '';
   document.getElementById('deal-desc').value = deal.description || '';
   document.getElementById('deal-type').value = deal.type || 'percent_off';

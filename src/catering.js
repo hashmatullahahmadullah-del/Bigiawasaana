@@ -5,6 +5,25 @@ import { initNav } from './nav.js';
 // Init mobile nav
 initNav();
 
+
+// Auto-Quote Calculator
+const guestInput = document.getElementById('cat-guests');
+const quoteDisplay = document.getElementById('cat-quote-display');
+const quoteAmount = document.getElementById('cat-quote-amount');
+
+if (guestInput && quoteDisplay && quoteAmount) {
+  guestInput.addEventListener('input', (e) => {
+    const guests = parseInt(e.target.value) || 0;
+    if (guests > 0) {
+      const estimate = guests * 18;
+      quoteAmount.textContent = '$' + estimate.toLocaleString();
+      quoteDisplay.style.display = 'block';
+    } else {
+      quoteDisplay.style.display = 'none';
+    }
+  });
+}
+
 // Catering Form Logic
 const cateringForm = document.getElementById('catering-form');
 const catStatus = document.getElementById('cat-status');

@@ -417,7 +417,15 @@
       </div>
     </div>
 
-    <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;">
+          <div style="padding: 16px var(--space-m) 0; background: var(--bg);">
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="promo-input" placeholder="Promo Code" style="flex: 1; padding: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px; text-transform: uppercase;">
+          <button id="apply-promo-btn" class="btn-outline" style="padding: 0 16px;">Apply</button>
+        </div>
+        <div id="promo-msg" style="font-size: 12px; margin-top: 8px; display: none;"></div>
+      </div>
+
+      <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;">
 
       <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-m); font-size: 20px; font-weight: 700; font-family: 'Barlow Condensed'; letter-spacing: 1px;">
         <span>TOTAL</span>

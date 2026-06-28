@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const orderRef = doc(db, 'orders', orderId);
+  let previousStatus = null;
 
   onSnapshot(orderRef, (docSnap) => {
     if (!docSnap.exists()) {
@@ -27,6 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const order = docSnap.data();
     console.log("Firestore order status:", order.status);
+
+    // Trigger local HTML5 notification if status changes to ready
+    if (previousStatus && previousStatus !== 'ready' && order.status === 'ready') {
+      if (Notification.permission === 'granted') {
+        new Notification('Order Ready for Pickup!', {
+          body: 'Your Bigi Awasaana order is ready. Come and get it!',
+          icon: '/android-chrome-192x192.png'
+        });
+      }
+    }
+    previousStatus = order.status;
 
     // Security check: verify token
     if (order.accessToken !== token) {
@@ -56,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentToken = await getToken(messaging);
         if (currentToken && currentToken !== existingToken) {
           const orderRef = doc(db, 'orders', orderId);
+  let previousStatus = null;
           await updateDoc(orderRef, { fcmToken: currentToken });
           console.log('FCM token saved for order notifications');
         }

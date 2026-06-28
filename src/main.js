@@ -21,8 +21,11 @@ const processSquarePayment = httpsCallable(functions, 'processSquarePayment');
 
 // Menu data loaded from Firestore
 let menuItems = [];
+// State
 let cart = [];
 let activeDeals = [];
+let appliedPromoCodes = []; // list of manually applied codes
+
 let squareCard = null; // Square card payment method instance
 
 // Pickup State
@@ -667,7 +670,7 @@ function updateCartUI() {
     });
 
     // 2. Evaluate deals
-    const evalResult = evaluateDeals(cart, activeDeals, menuItems);
+    const evalResult = evaluateDeals(cart, activeDeals, menuItems, appliedPromoCodes);
     const discountAmount = evalResult.discountCents / 100;
     
     if (evalResult.appliedDeals.length > 0) {
@@ -791,7 +794,7 @@ window.openPaymentModal = async () => {
 
   // Build order summary with tax + tip
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const evalResult = evaluateDeals(cart, activeDeals, menuItems);
+  const evalResult = evaluateDeals(cart, activeDeals, menuItems, appliedPromoCodes);
   const discountAmount = evalResult.discountCents / 100;
   const discountedSubtotal = subtotal - discountAmount;
   
@@ -1040,7 +1043,8 @@ function getPickupPayload() {
     if (!dateStr || !timeStr || document.getElementById('pickup-time-select').disabled) {
       throw new Error('Please select a valid scheduled pickup time.');
     }
-    pickupTime = `${dateStr}T${timeStr}`;
+    // Parse as local time on the client, then convert to UTC ISO string for backend
+    pickupTime = new Date(`${dateStr}T${timeStr}`).toISOString();
   }
   return { pickupType, pickupTime };
 }
@@ -1182,7 +1186,7 @@ async function processSquareToken(token, { customerName, customerPhone, tipCents
       _payBtn.style.display = 'block';
       _payBtn.disabled = false;
       const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
-      const evalResult = evaluateDeals(cart, activeDeals, menuItems);
+      const evalResult = evaluateDeals(cart, activeDeals, menuItems, appliedPromoCodes);
       const discountAmount = evalResult.discountCents / 100;
       const discountedSubtotal = subtotal - discountAmount;
       const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;

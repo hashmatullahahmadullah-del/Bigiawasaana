@@ -141,7 +141,75 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
   const taxCents = Math.round(discountedSubtotalCents * TAX_RATE);
   const totalCents = discountedSubtotalCents + taxCents + tipCents;
 
-  // ── Step 3: Create Square Order ──
+  // ── Step 5.5: Validate Pickup & Calculate Dynamic Wait Time ──
+  const pickupConfigDoc = await db.collection('settings').doc('pickupConfig').get();
+  const config = pickupConfigDoc.exists ? pickupConfigDoc.data() : {
+    basePrepTimeMinutes: 15,
+    perOrderIncrementMinutes: 3,
+    maxWaitMinutes: 60,
+    minLeadTimeMinutes: 20,
+    maxScheduleDaysAhead: 3,
+    slotIntervalMinutes: 15,
+    prepBufferBeforeCloseMinutes: 30,
+    businessHours: { open: "12:00", close: "22:30" }
+  };
+
+  const pType = pickupType === 'scheduled' ? 'scheduled' : 'asap';
+  let requestedTime = null;
+  let estimatedReadyTime;
+  let releasedToKitchen = true;
+
+  const now = new Date();
+  
+  if (pType === 'scheduled') {
+    if (!pickupTime) {
+      throw new functions.https.HttpsError('invalid-argument', 'Scheduled pickup requires a pickupTime.');
+    }
+    const requestedDate = new Date(pickupTime);
+    if (isNaN(requestedDate.getTime())) {
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid pickupTime.');
+    }
+    
+    // Relaxed server-side validation - allow any time in the future, or up to 15 mins in the past (if they took a while to checkout)
+    if (requestedDate.getTime() < now.getTime() - 15 * 60000) {
+      throw new functions.https.HttpsError('invalid-argument', 'Pickup time is in the past. Please select a later time.');
+    }
+    
+    const maxDaysMs = config.maxScheduleDaysAhead * 24 * 60 * 60 * 1000;
+    if (requestedDate.getTime() > now.getTime() + maxDaysMs + 24 * 60 * 60 * 1000) { // 1 day grace
+      throw new functions.https.HttpsError('invalid-argument', 'Pickup time is too far in the future.');
+    }
+    
+    requestedTime = admin.firestore.Timestamp.fromDate(requestedDate);
+    estimatedReadyTime = requestedTime;
+    releasedToKitchen = false;
+  } else {
+    // ASAP
+    let activeAsapOrderCount = 0;
+    try {
+      const statsDoc = await db.collection('liveStats').doc('current').get();
+      if (statsDoc.exists) {
+        activeAsapOrderCount = statsDoc.data().activeAsapOrderCount || 0;
+      }
+    } catch (err) {
+      console.error('Failed to get liveStats:', err);
+    }
+    
+    const rawWait = config.basePrepTimeMinutes + (activeAsapOrderCount * config.perOrderIncrementMinutes) + (config.busyModeOffsetMinutes || 0);
+    const waitTimeMinutes = Math.min(rawWait, config.maxWaitMinutes);
+    estimatedReadyTime = admin.firestore.Timestamp.fromDate(new Date(now.getTime() + waitTimeMinutes * 60000));
+    releasedToKitchen = true;
+  }
+
+  const pickupObj = {
+    type: pType,
+    requestedTime,
+    estimatedReadyTime,
+    releasedToKitchen
+  };
+
+
+    // ── Step 3: Create Square Order ──
   const squareClient = getSquareClient();
   const locationId = getLocationId();
 
@@ -255,74 +323,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
   // ── Step 5: Generate access token for order status page ──
   const accessToken = crypto.randomBytes(8).toString('hex');
 
-  // ── Step 5.5: Validate Pickup & Calculate Dynamic Wait Time ──
-  const pickupConfigDoc = await db.collection('settings').doc('pickupConfig').get();
-  const config = pickupConfigDoc.exists ? pickupConfigDoc.data() : {
-    basePrepTimeMinutes: 15,
-    perOrderIncrementMinutes: 3,
-    maxWaitMinutes: 60,
-    minLeadTimeMinutes: 20,
-    maxScheduleDaysAhead: 3,
-    slotIntervalMinutes: 15,
-    prepBufferBeforeCloseMinutes: 30,
-    businessHours: { open: "12:00", close: "22:30" }
-  };
-
-  const pType = pickupType === 'scheduled' ? 'scheduled' : 'asap';
-  let requestedTime = null;
-  let estimatedReadyTime;
-  let releasedToKitchen = true;
-
-  const now = new Date();
   
-  if (pType === 'scheduled') {
-    if (!pickupTime) {
-      throw new functions.https.HttpsError('invalid-argument', 'Scheduled pickup requires a pickupTime.');
-    }
-    const requestedDate = new Date(pickupTime);
-    if (isNaN(requestedDate.getTime())) {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid pickupTime.');
-    }
-    
-    // Basic server-side validation
-    const leadMs = config.minLeadTimeMinutes * 60000;
-    if (requestedDate.getTime() < now.getTime() + leadMs - 5 * 60000) { // 5 min grace period for latency
-      throw new functions.https.HttpsError('invalid-argument', 'Pickup time is too soon.');
-    }
-    
-    const maxDaysMs = config.maxScheduleDaysAhead * 24 * 60 * 60 * 1000;
-    if (requestedDate.getTime() > now.getTime() + maxDaysMs + 24 * 60 * 60 * 1000) { // 1 day grace
-      throw new functions.https.HttpsError('invalid-argument', 'Pickup time is too far in the future.');
-    }
-    
-    requestedTime = admin.firestore.Timestamp.fromDate(requestedDate);
-    estimatedReadyTime = requestedTime;
-    releasedToKitchen = false;
-  } else {
-    // ASAP
-    let activeAsapOrderCount = 0;
-    try {
-      const statsDoc = await db.collection('liveStats').doc('current').get();
-      if (statsDoc.exists) {
-        activeAsapOrderCount = statsDoc.data().activeAsapOrderCount || 0;
-      }
-    } catch (err) {
-      console.error('Failed to get liveStats:', err);
-    }
-    
-    const rawWait = config.basePrepTimeMinutes + (activeAsapOrderCount * config.perOrderIncrementMinutes) + (config.busyModeOffsetMinutes || 0);
-    const waitTimeMinutes = Math.min(rawWait, config.maxWaitMinutes);
-    estimatedReadyTime = admin.firestore.Timestamp.fromDate(new Date(now.getTime() + waitTimeMinutes * 60000));
-    releasedToKitchen = true;
-  }
-
-  const pickupObj = {
-    type: pType,
-    requestedTime,
-    estimatedReadyTime,
-    releasedToKitchen
-  };
-
   // ── Step 6: Write order to Firestore ──
   const orderDoc = {
     squareOrderId,
