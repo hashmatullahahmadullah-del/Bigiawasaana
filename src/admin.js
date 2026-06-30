@@ -1,6 +1,6 @@
 import { auth, db, storage } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { t, getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
 
@@ -105,6 +105,7 @@ let ingredientsUnsub = null;
 let eventsUnsub = null;
 let unitSettingsUnsub = null;
 let unitPlatformsUnsub = null;
+let analyticsUnsub = null;
 
 // Auth State Observer
 onAuthStateChanged(auth, (user) => {
@@ -129,6 +130,7 @@ onAuthStateChanged(auth, (user) => {
     if (eventsUnsub) eventsUnsub();
     if (unitSettingsUnsub) unitSettingsUnsub();
     if (unitPlatformsUnsub) unitPlatformsUnsub();
+    if (analyticsUnsub) analyticsUnsub();
   }
 });
 
@@ -293,6 +295,8 @@ function initCRMData() {
     snapshot.forEach(d => state.events.push({ id: d.id, ...d.data(), date: d.data().date?.toDate() || new Date() }));
     if (typeof renderEconomics === 'function') renderEconomics();
   });
+
+  loadAnalytics();
 }
 
 async function loadTvPromoSettings() {
@@ -2711,3 +2715,88 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+
+// ==========================================
+// NATIVE ANALYTICS TRACKING
+// ==========================================
+
+function loadAnalytics() {
+  const aq = query(collection(db, 'page_views'), orderBy('timestamp', 'desc'), limit(5000));
+  
+  if (analyticsUnsub) analyticsUnsub();
+  
+  analyticsUnsub = onSnapshot(aq, (snapshot) => {
+    let totalViews = 0;
+    let blogViews = 0;
+    let menuViews = 0;
+    
+    const pageCounts = {};
+    const referrerCounts = {};
+    
+    snapshot.forEach(d => {
+      const data = d.data();
+      totalViews++;
+      
+      const path = data.path || '/';
+      const referrer = data.referrer || 'Direct';
+      
+      // Categorize
+      if (path.startsWith('/blog/')) {
+        blogViews++;
+      }
+      if (path.startsWith('/menu')) {
+        menuViews++;
+      }
+      
+      // Tally pages
+      pageCounts[path] = (pageCounts[path] || 0) + 1;
+      
+      // Tally referrers (clean up referrers a bit)
+      let cleanRef = referrer;
+      try {
+        if (referrer !== 'Direct' && referrer !== 'Internal') {
+          const url = new URL(referrer);
+          cleanRef = url.hostname; // e.g. www.google.com
+        }
+      } catch(e) {}
+      
+      referrerCounts[cleanRef] = (referrerCounts[cleanRef] || 0) + 1;
+    });
+    
+    // Update Stats
+    document.getElementById('analytics-total-views').textContent = totalViews;
+    document.getElementById('analytics-blog-views').textContent = blogViews;
+    document.getElementById('analytics-menu-views').textContent = menuViews;
+    
+    // Render Top Pages
+    const sortedPages = Object.keys(pageCounts).map(p => ({ path: p, count: pageCounts[p] })).sort((a, b) => b.count - a.count).slice(0, 10);
+    const topPagesTbody = document.getElementById('analytics-top-pages');
+    if (sortedPages.length === 0) {
+      topPagesTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">No data yet</td></tr>`;
+    } else {
+      topPagesTbody.innerHTML = sortedPages.map(sp => `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px 0;">${sp.path}</td>
+          <td style="padding: 12px 0; text-align: right; color: var(--accent); font-weight: 600;">${sp.count}</td>
+        </tr>
+      `).join('');
+    }
+    
+    // Render Top Referrers
+    const sortedRefs = Object.keys(referrerCounts).map(r => ({ ref: r, count: referrerCounts[r] })).sort((a, b) => b.count - a.count).slice(0, 10);
+    const topRefsTbody = document.getElementById('analytics-top-sources');
+    if (sortedRefs.length === 0) {
+      topRefsTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">No data yet</td></tr>`;
+    } else {
+      topRefsTbody.innerHTML = sortedRefs.map(sr => `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px 0; text-transform: capitalize;">${sr.ref.replace('www.', '')}</td>
+          <td style="padding: 12px 0; text-align: right; color: var(--accent); font-weight: 600;">${sr.count}</td>
+        </tr>
+      `).join('');
+    }
+  });
+}
+
+window.loadAnalytics = loadAnalytics;

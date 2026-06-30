@@ -52,6 +52,10 @@
       { "source": "/faq", "destination": "/faq.html" },
       { "source": "/menu", "destination": "/menu.html" },
       { "source": "/review", "destination": "/review.html" },
+      { "source": "/specials", "destination": "/specials.html" },
+      { "source": "/locations", "destination": "/locations.html" },
+      { "source": "/catering", "destination": "/catering.html" },
+      { "source": "/order-status", "destination": "/order-status.html" },
       { "source": "**", "destination": "/index.html" }
     ]
   }

@@ -5,6 +5,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from './firebase.js';
 import { evaluateDeals } from './lib/deals-evaluator.js';
 import { getLang, t } from './i18n/index.js';
+import './analytics.js';
 
 // ─────────────────────────────────────────────────────────────────
 // SQUARE CONFIGURATION

@@ -1416,6 +1416,18 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
     <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/faq.html</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/blog.html</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>`;
 
     // Fetch published areas dynamically
@@ -1445,6 +1457,23 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>`;
+      }
+    });
+
+    // Fetch published blog posts
+    const postsSnapshot = await db.collection('posts')
+      .where('isPublished', '==', true)
+      .get();
+    postsSnapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.slug) {
+        xml += `
+  <url>
+    <loc>${baseUrl}/blog/${data.slug}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>`;
       }
     });

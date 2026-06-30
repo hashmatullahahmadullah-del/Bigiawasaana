@@ -118,6 +118,10 @@
             <span class="icon">📈</span>
             <span class="label" data-i18n="admin.nav.unitEconomics">Unit Economics</span>
           </button>
+          <button class="crm-nav-item" data-target="analytics-view">
+            <span class="icon">📊</span>
+            <span class="label">Analytics</span>
+          </button>
           <button class="crm-nav-item" data-target="blog-management">
             <span class="icon">✍️</span>
             <span class="label">Blog</span>
@@ -699,6 +703,69 @@
             <!-- Rendered by JS -->
           </div>
         </section>
+
+        <!-- ============================================== -->
+        <!-- ANALYTICS -->
+        <!-- ============================================== -->
+        <div id="analytics-view" class="crm-view" style="display: none;">
+          <h1 class="crm-view-title">Analytics & Traffic</h1>
+          
+          <div class="crm-stats-grid" style="margin-bottom: 32px;">
+            <div class="crm-stat-card">
+              <div class="stat-title">Total Page Views</div>
+              <div class="stat-value" id="analytics-total-views">0</div>
+            </div>
+            <div class="crm-stat-card">
+              <div class="stat-title">Blog Post Views</div>
+              <div class="stat-value" id="analytics-blog-views">0</div>
+            </div>
+            <div class="crm-stat-card">
+              <div class="stat-title">Menu Page Views</div>
+              <div class="stat-value" id="analytics-menu-views">0</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Top Pages -->
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
+              <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Pages & Posts</h3>
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
+                    <th style="padding-bottom: 8px;">URL Path</th>
+                    <th style="padding-bottom: 8px; text-align: right;">Views</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-top-pages">
+                  <!-- JS injected -->
+                  <tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Top Referrers -->
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
+              <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Traffic Sources</h3>
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
+                    <th style="padding-bottom: 8px;">Source (Referrer)</th>
+                    <th style="padding-bottom: 8px; text-align: right;">Visits</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-top-sources">
+                  <!-- JS injected -->
+                  <tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div style="margin-top: 32px; padding: 16px; background: rgba(255,165,0,0.1); border: 1px solid var(--accent); border-radius: 8px;">
+            <h4 style="margin: 0 0 8px 0; color: var(--accent);">Advanced Analytics Setup Required</h4>
+            <p style="margin: 0; font-size: 14px; color: var(--gray-light); line-height: 1.5;">This native tracker measures raw traffic. To see <strong>exactly what keywords</strong> people search on Google to find you, you must set up <a href="https://search.google.com/search-console/about" target="_blank" style="color: var(--accent);">Google Search Console</a> and link your domain (bigiawasaana.com). Then setup <a href="https://analytics.google.com/" target="_blank" style="color: var(--accent);">Google Analytics 4</a>.</p>
+          </div>
+        </div>
 
         
         <!-- ============================================== -->
