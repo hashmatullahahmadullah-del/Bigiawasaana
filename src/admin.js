@@ -1,6 +1,6 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app, auth, db, storage } from './firebase.js';
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, verifyBeforeUpdateEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, getDoc, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { t, getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
@@ -116,8 +116,10 @@ onAuthStateChanged(auth, (user) => {
     loginSection.style.display = 'none';
     dashboardSection.style.display = 'block';
     logoutBtn.style.display = 'block';
-    const changePwdBtn = document.getElementById('change-pwd-btn');
-    if (changePwdBtn) changePwdBtn.style.display = 'block';
+    const currentEmailEl = document.getElementById('settings-current-email');
+    const currentUidEl = document.getElementById('settings-current-uid');
+    if (currentEmailEl) currentEmailEl.textContent = user.email || 'N/A';
+    if (currentUidEl) currentUidEl.textContent = user.uid || 'N/A';
     
     initCRMData();
     loadMenuAdmin();
@@ -125,8 +127,7 @@ onAuthStateChanged(auth, (user) => {
     loginSection.style.display = 'block';
     dashboardSection.style.display = 'none';
     logoutBtn.style.display = 'none';
-    const changePwdBtn = document.getElementById('change-pwd-btn');
-    if (changePwdBtn) changePwdBtn.style.display = 'none';
+
     
     if (ordersUnsub) ordersUnsub();
     if (reviewsUnsub) reviewsUnsub();
@@ -163,79 +164,118 @@ logoutBtn.addEventListener('click', () => {
   signOut(auth);
 });
 
-window.openChangePwdModal = function() {
-  console.log("Account settings clicked inline!");
-  try {
-     const changePwdModal = document.getElementById('change-pwd-modal');
-     const changePwdError = document.getElementById('change-pwd-error');
-     const newPwdInput = document.getElementById('new-password-input');
-     const newEmailInput = document.getElementById('new-email-input');
+// ==========================================
+// SETTINGS LOGIC
+// ==========================================
 
-     if (changePwdError) changePwdError.textContent = '';
-     if (newPwdInput) newPwdInput.value = '';
-     if (newEmailInput) newEmailInput.value = auth.currentUser ? auth.currentUser.email : '';
-     
-     if (changePwdModal) {
-        changePwdModal.style.display = 'flex';
-     } else {
-        alert("Error: changePwdModal not found in DOM");
-     }
-  } catch(err) {
-     alert("Error: " + err.message);
-  }
-};
+const settingsEmailForm = document.getElementById('settings-email-form');
+const settingsPwdForm = document.getElementById('settings-password-form');
+const reauthForm = document.getElementById('reauth-form');
 
-window.closeChangePwdModal = function() {
-  const modal = document.getElementById('change-pwd-modal');
-  if (modal) modal.style.display = 'none';
-};
+// Keep track of the pending action that requires re-auth
+let pendingReauthAction = null;
 
-const changePwdForm = document.getElementById('change-pwd-form');
-if (changePwdForm) {
-  changePwdForm.addEventListener('submit', async (e) => {
+if (settingsEmailForm) {
+  settingsEmailForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!auth.currentUser) return;
-    const changePwdError = document.getElementById('change-pwd-error');
-    const newPwdInput = document.getElementById('new-password-input');
-    const newEmailInput = document.getElementById('new-email-input');
-
-    try {
-      const btn = document.getElementById('btn-save-pwd');
+    const newEmail = document.getElementById('settings-new-email').value.trim();
+    
+    const action = async () => {
+      const btn = document.getElementById('btn-settings-email');
       btn.disabled = true;
-      btn.textContent = 'Saving...';
-      
-      let msg = '';
-      const newEmail = newEmailInput ? newEmailInput.value.trim() : '';
-      const newPwd = newPwdInput ? newPwdInput.value : '';
+      btn.textContent = 'Sending...';
+      try {
+        await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
+        showToast('Verification link sent. Please check your new email to confirm.');
+        document.getElementById('settings-new-email').value = '';
+      } catch (err) {
+        if (err.code === 'auth/requires-recent-login') {
+          pendingReauthAction = action;
+          document.getElementById('reauth-modal').classList.add('open');
+        } else {
+          showToast('Error: ' + err.message, true);
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Verification Link';
+      }
+    };
+    
+    await action();
+  });
+}
 
-      if (newPwd) {
-         await updatePassword(auth.currentUser, newPwd);
-         msg += 'Password changed. ';
-      }
+if (settingsPwdForm) {
+  settingsPwdForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+    
+    const newPwd = document.getElementById('settings-new-password').value;
+    const confirmPwd = document.getElementById('settings-confirm-password').value;
+    const errorEl = document.getElementById('settings-password-error');
+    errorEl.style.display = 'none';
 
-      if (newEmail && newEmail !== auth.currentUser.email) {
-         await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
-         msg += 'A verification link has been sent to the new email address. Please click it to confirm the email change. ';
+    if (newPwd !== confirmPwd) {
+      errorEl.textContent = 'Passwords do not match.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    
+    const action = async () => {
+      const btn = document.getElementById('btn-settings-password');
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+      try {
+        await updatePassword(auth.currentUser, newPwd);
+        showToast('Password updated successfully.');
+        document.getElementById('settings-new-password').value = '';
+        document.getElementById('settings-confirm-password').value = '';
+      } catch (err) {
+        if (err.code === 'auth/requires-recent-login') {
+          pendingReauthAction = action;
+          document.getElementById('reauth-modal').classList.add('open');
+        } else {
+          errorEl.textContent = err.message;
+          errorEl.style.display = 'block';
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Update Password';
       }
+    };
+    
+    await action();
+  });
+}
+
+if (reauthForm) {
+  reauthForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pwdInput = document.getElementById('reauth-password-input');
+    const errorEl = document.getElementById('reauth-error');
+    const btn = document.getElementById('btn-reauth-submit');
+    
+    errorEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+    
+    try {
+      const credential = EmailAuthProvider.credential(auth.currentUser.email, pwdInput.value);
+      await reauthenticateWithCredential(auth.currentUser, credential);
       
-      if (!msg) {
-         msg = 'No changes made.';
+      document.getElementById('reauth-modal').classList.remove('open');
+      pwdInput.value = '';
+      
+      if (pendingReauthAction) {
+        await pendingReauthAction();
+        pendingReauthAction = null;
       }
-      
-      showToast(msg);
-      closeChangePwdModal();
     } catch (err) {
-      if (err.code === 'auth/requires-recent-login') {
-         if (changePwdError) changePwdError.textContent = 'For security, please logout and log back in before making account changes.';
-      } else {
-         if (changePwdError) changePwdError.textContent = err.message;
-      }
+      errorEl.textContent = 'Incorrect password. Please try again.';
     } finally {
-      const btn = document.getElementById('btn-save-pwd');
-      if (btn) {
-          btn.disabled = false;
-          btn.textContent = 'Save Changes';
-      }
+      btn.disabled = false;
+      btn.textContent = 'Verify';
     }
   });
 }
@@ -3063,7 +3103,7 @@ window.closeExpenseModal = function() {
       }
     });
 
-    function escapeHtml(str) {
+    window.escapeHtml = function escapeHtml(str) {
       const div = document.createElement("div");
       div.textContent = str;
       return div.innerHTML;
@@ -3165,7 +3205,7 @@ window.closeExpenseModal = function() {
              itemsHtml += '<tbody>';
              (data.items || []).forEach(item => {
                 itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                   <td style="padding:8px;">${escapeHtml(item.name || 'Unknown')} <br><small style="color:var(--gray)">${escapeHtml(item.category || 'other')}</small></td>
+                   <td style="padding:8px;">${window.escapeHtml(item.name || 'Unknown')} <br><small style="color:var(--gray)">${window.escapeHtml(item.category || 'other')}</small></td>
                    <td style="padding:8px;">${item.quantity || 1}</td>
                    <td style="padding:8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
                    <td style="padding:8px; text-align:right; font-weight:bold;">$${(item.lineTotal || 0).toFixed(2)}</td>
