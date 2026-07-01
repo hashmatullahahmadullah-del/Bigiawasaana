@@ -194,9 +194,10 @@ function parseGenericItems(lines) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (skipKeywords.test(line)) continue;
-    if (/^\d+\s*@/.test(line)) continue; // skip quantity modifier lines
+    if (/^(\d+)\s*@\s*\$?(\d+\.\d{2})/.test(line)) continue;
     
-    const match = line.match(genericRegex);
+    // Check if name and price are on the same line
+    let match = line.match(genericRegex);
     if (match) {
       const [, name, priceStr] = match;
       const price = parseFloat(priceStr);
@@ -214,13 +215,49 @@ function parseGenericItems(lines) {
       }
 
       items.push({
-        rawText: line,
+        rawText: name,
         name: name.trim(),
         quantity,
         unitPrice,
         lineTotal: price,
         matchedMenuIngredient: null,
       });
+      continue;
+    }
+
+    // Check if this line is a name, and the NEXT line is a price
+    if (i + 1 < lines.length) {
+      const nextLine = lines[i + 1];
+      const nextLinePriceMatch = nextLine.match(/^\$?(\d+\.\d{2})(?:\s+[A-Za-z])?$/);
+      if (nextLinePriceMatch && !skipKeywords.test(nextLine) && !/^(\d+)\s*@\s*\$?(\d+\.\d{2})/.test(nextLine)) {
+         const priceStr = nextLinePriceMatch[1];
+         // Ensure the current line isn't just a number or weird symbol before making it a name
+         if (line.trim().length > 1 && !/^\d+$/.test(line.trim()) && !/^[@\$]/.test(line.trim())) {
+             const price = parseFloat(priceStr);
+             let quantity = 1;
+             let unitPrice = price;
+             
+             // Check the line after the price for quantity modifiers
+             if (i + 2 < lines.length) {
+               const qtyMatch = lines[i + 2].match(/^(\d+)\s*@\s*\$?(\d+\.\d{2})/);
+               if (qtyMatch) {
+                 quantity = parseInt(qtyMatch[1], 10);
+                 unitPrice = parseFloat(qtyMatch[2]);
+               }
+             }
+
+             items.push({
+                rawText: line,
+                name: line.trim(),
+                quantity,
+                unitPrice,
+                lineTotal: price,
+                matchedMenuIngredient: null,
+             });
+             i++; // skip the next line since we consumed it as price
+         }
+         continue;
+      }
     }
   }
   return items;
