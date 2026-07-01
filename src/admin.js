@@ -1,3 +1,4 @@
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app, auth, db, storage } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
