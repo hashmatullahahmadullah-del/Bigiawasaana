@@ -122,6 +122,10 @@
             <span class="icon">📊</span>
             <span class="label">Analytics</span>
           </button>
+          <button class="crm-nav-item" data-target="expense-view">
+            <span class="icon">🧾</span>
+            <span class="label">Expenses</span>
+          </button>
           <button class="crm-nav-item" data-target="blog-management">
             <span class="icon">✍️</span>
             <span class="label">Blog</span>
@@ -771,6 +775,44 @@
         <!-- ============================================== -->
         <!-- BLOG MANAGEMENT -->
         <!-- ============================================== -->
+        
+        <div id="expense-view" class="crm-view" style="display: none;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="margin-bottom: 8px;">Add Expense</h2>
+            <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">
+              Photograph a Restaurant Depot or Costco receipt to log it automatically.
+            </p>
+
+            <label for="receipt-input" class="btn-primary" style="display:block; padding: 16px; text-align:center; border-radius: 10px; font-weight:600; cursor:pointer; font-size: 16px;">
+              📷 Capture / Upload Receipt
+            </label>
+            <input id="receipt-input" type="file" accept="image/*" capture="environment" style="display:none;" />
+
+            <div id="upload-status" style="margin-top: 16px; font-size: 14px; color: var(--gray);"></div>
+
+            <div id="review-section" style="display:none; margin-top: 32px; background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+              <h3>Review Parsed Items</h3>
+              <div id="review-meta" style="font-size: 14px; color:var(--gray-light); margin-bottom: 16px;"></div>
+              <div style="overflow-x: auto;">
+                <table id="review-table" style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                      <th style="padding:8px;">Item</th>
+                      <th style="padding:8px;">Qty</th>
+                      <th style="padding:8px;">Unit $</th>
+                      <th style="padding:8px;">Total $</th>
+                    </tr>
+                  </thead>
+                  <tbody id="review-tbody"></tbody>
+                </table>
+              </div>
+              <button id="confirm-expense-btn" class="btn-primary" style="margin-top: 24px; width:100%; padding: 14px; font-weight:700; border-radius: 10px; font-size: 16px; cursor:pointer;">
+                Confirm & Save
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div id="blog-management" class="crm-view" style="display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <h2 style="font-family: 'Barlow Condensed'; font-size: 28px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase;">Blog Management</h2>

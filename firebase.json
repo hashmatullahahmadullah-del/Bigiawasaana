@@ -57,6 +57,18 @@
       { "source": "/catering", "destination": "/catering.html" },
       { "source": "/order-status", "destination": "/order-status.html" },
       { "source": "**", "destination": "/index.html" }
+    ],
+    "redirects": [
+      {
+        "source": "/images/blog/qabuli_palou.png",
+        "destination": "/images/blog/qabuli_palou.webp",
+        "type": 301
+      },
+      {
+        "source": "/images/blog/tikka_kabob.png",
+        "destination": "/images/blog/tikka_kabob.webp",
+        "type": 301
+      }
     ]
   }
 }

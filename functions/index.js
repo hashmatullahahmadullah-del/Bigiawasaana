@@ -7,8 +7,12 @@ const { evaluateDeals } = require('./deals-evaluator');
 const fs = require('fs');
 const path = require('path');
 
-admin.initializeApp();
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 const db = admin.firestore();
+
+exports.parseReceipt = require("./parseReceipt").parseReceipt;
 
 // CORS middleware
 const corsHandler = cors({ origin: true });
