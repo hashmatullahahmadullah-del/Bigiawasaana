@@ -1,6 +1,6 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app, auth, db, storage } from './firebase.js';
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword } from 'firebase/auth';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { t, getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
@@ -114,6 +114,8 @@ onAuthStateChanged(auth, (user) => {
     loginSection.style.display = 'none';
     dashboardSection.style.display = 'block';
     logoutBtn.style.display = 'block';
+    const changePwdBtn = document.getElementById('change-pwd-btn');
+    if (changePwdBtn) changePwdBtn.style.display = 'block';
     
     initCRMData();
     loadMenuAdmin();
@@ -121,6 +123,8 @@ onAuthStateChanged(auth, (user) => {
     loginSection.style.display = 'block';
     dashboardSection.style.display = 'none';
     logoutBtn.style.display = 'none';
+    const changePwdBtn = document.getElementById('change-pwd-btn');
+    if (changePwdBtn) changePwdBtn.style.display = 'none';
     
     if (ordersUnsub) ordersUnsub();
     if (reviewsUnsub) reviewsUnsub();
@@ -154,6 +158,52 @@ loginForm.addEventListener('submit', async (e) => {
 logoutBtn.addEventListener('click', () => {
   signOut(auth);
 });
+
+// Change Password Logic
+const changePwdBtn = document.getElementById('change-pwd-btn');
+const changePwdModal = document.getElementById('change-pwd-modal');
+const changePwdForm = document.getElementById('change-pwd-form');
+const changePwdError = document.getElementById('change-pwd-error');
+const newPwdInput = document.getElementById('new-password-input');
+
+if (changePwdBtn) {
+  changePwdBtn.addEventListener('click', () => {
+    changePwdError.textContent = '';
+    newPwdInput.value = '';
+    if (changePwdModal) changePwdModal.style.display = 'flex';
+  });
+}
+
+window.closeChangePwdModal = function() {
+  if (changePwdModal) changePwdModal.style.display = 'none';
+};
+
+if (changePwdForm) {
+  changePwdForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+    try {
+      const btn = document.getElementById('btn-save-pwd');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      
+      await updatePassword(auth.currentUser, newPwdInput.value);
+      
+      showToast('Password changed successfully');
+      closeChangePwdModal();
+    } catch (err) {
+      if (err.code === 'auth/requires-recent-login') {
+         changePwdError.textContent = 'For security, please logout and log back in before changing your password.';
+      } else {
+         changePwdError.textContent = err.message;
+      }
+    } finally {
+      const btn = document.getElementById('btn-save-pwd');
+      btn.disabled = false;
+      btn.textContent = 'Save';
+    }
+  });
+}
 
 
 // ==========================================
