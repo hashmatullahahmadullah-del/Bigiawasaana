@@ -2802,6 +2802,11 @@ function loadAnalytics() {
 
 window.loadAnalytics = loadAnalytics;
 
+window.closeExpenseModal = function() {
+   const modal = document.getElementById("expense-modal");
+   if (modal) modal.style.display = "none";
+};
+
 
 
 // Expense Capture Logic
@@ -3048,6 +3053,7 @@ window.loadAnalytics = loadAnalytics;
         
         const tr = document.createElement("tr");
         tr.style.borderBottom = "1px solid var(--border)";
+        tr.style.cursor = "pointer";
         tr.innerHTML = `
           <td style="padding: 12px;">${dateStr}</td>
           <td style="padding: 12px; font-weight: 600;">${escapeHtml(data.vendor || 'Unknown')}</td>
@@ -3059,6 +3065,28 @@ window.loadAnalytics = loadAnalytics;
             </span>
           </td>
         `;
+        
+        tr.addEventListener("click", () => {
+           const modal = document.getElementById("expense-modal");
+           const content = document.getElementById("modal-expense-content");
+           
+           let itemsHtml = '<table style="width:100%; border-collapse: collapse; margin-top: 10px;">';
+           itemsHtml += '<thead><tr style="border-bottom:1px solid var(--border); color:var(--gray);"><th style="text-align:left; padding:8px;">Item</th><th style="text-align:left; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit</th><th style="text-align:right; padding:8px;">Total</th></tr></thead>';
+           itemsHtml += '<tbody>';
+           (data.items || []).forEach(item => {
+              itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                 <td style="padding:8px;">${escapeHtml(item.name || 'Unknown')} <br><small style="color:var(--gray)">${escapeHtml(item.category || 'other')}</small></td>
+                 <td style="padding:8px;">${item.quantity || 1}</td>
+                 <td style="padding:8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
+                 <td style="padding:8px; text-align:right; font-weight:bold;">$${(item.lineTotal || 0).toFixed(2)}</td>
+              </tr>`;
+           });
+           itemsHtml += '</tbody></table>';
+           
+           content.innerHTML = itemsHtml;
+           modal.style.display = "flex";
+        });
+        
         savedExpensesTbody.appendChild(tr);
       });
     });
