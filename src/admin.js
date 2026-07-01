@@ -168,11 +168,22 @@ const newPwdInput = document.getElementById('new-password-input');
 const newEmailInput = document.getElementById('new-email-input');
 
 if (changePwdBtn) {
-  changePwdBtn.addEventListener('click', () => {
-    changePwdError.textContent = '';
-    newPwdInput.value = '';
-    if (newEmailInput) newEmailInput.value = auth.currentUser ? auth.currentUser.email : '';
-    if (changePwdModal) changePwdModal.style.display = 'flex';
+  changePwdBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    console.log("Account settings clicked!");
+    try {
+       changePwdError.textContent = '';
+       if (newPwdInput) newPwdInput.value = '';
+       if (newEmailInput) newEmailInput.value = auth.currentUser ? auth.currentUser.email : '';
+       if (changePwdModal) {
+          changePwdModal.style.display = 'flex';
+          console.log("Modal opened");
+       } else {
+          alert("Error: changePwdModal not found in DOM");
+       }
+    } catch(err) {
+       alert("Error: " + err.message);
+    }
   });
 }
 
