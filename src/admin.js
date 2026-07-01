@@ -1,6 +1,6 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app, auth, db, storage } from './firebase.js';
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, verifyBeforeUpdateEmail } from 'firebase/auth';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { t, getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
@@ -165,11 +165,13 @@ const changePwdModal = document.getElementById('change-pwd-modal');
 const changePwdForm = document.getElementById('change-pwd-form');
 const changePwdError = document.getElementById('change-pwd-error');
 const newPwdInput = document.getElementById('new-password-input');
+const newEmailInput = document.getElementById('new-email-input');
 
 if (changePwdBtn) {
   changePwdBtn.addEventListener('click', () => {
     changePwdError.textContent = '';
     newPwdInput.value = '';
+    if (newEmailInput) newEmailInput.value = auth.currentUser ? auth.currentUser.email : '';
     if (changePwdModal) changePwdModal.style.display = 'flex';
   });
 }
@@ -187,20 +189,36 @@ if (changePwdForm) {
       btn.disabled = true;
       btn.textContent = 'Saving...';
       
-      await updatePassword(auth.currentUser, newPwdInput.value);
+      let msg = '';
+      const newEmail = newEmailInput ? newEmailInput.value.trim() : '';
+      const newPwd = newPwdInput.value;
+
+      if (newPwd) {
+         await updatePassword(auth.currentUser, newPwd);
+         msg += 'Password changed. ';
+      }
+
+      if (newEmail && newEmail !== auth.currentUser.email) {
+         await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
+         msg += 'A verification link has been sent to the new email address. Please click it to confirm the email change. ';
+      }
       
-      showToast('Password changed successfully');
+      if (!msg) {
+         msg = 'No changes made.';
+      }
+      
+      showToast(msg);
       closeChangePwdModal();
     } catch (err) {
       if (err.code === 'auth/requires-recent-login') {
-         changePwdError.textContent = 'For security, please logout and log back in before changing your password.';
+         changePwdError.textContent = 'For security, please logout and log back in before making account changes.';
       } else {
          changePwdError.textContent = err.message;
       }
     } finally {
       const btn = document.getElementById('btn-save-pwd');
       btn.disabled = false;
-      btn.textContent = 'Save';
+      btn.textContent = 'Save Changes';
     }
   });
 }

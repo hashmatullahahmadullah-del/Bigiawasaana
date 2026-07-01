@@ -37,7 +37,7 @@
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
         <button id="lang-toggle" class="btn-outline" style="padding: 8px 16px; font-size: 12px; white-space: nowrap; font-family: 'Outfit', sans-serif;">EN | فا</button>
-        <button id="change-pwd-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none;">Change Password</button>
+        <button id="change-pwd-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none;">Account Settings</button>
         <button id="logout-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none;">Logout</button>
         <button id="pwa-install-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none; white-space: nowrap;">Install App</button>
         <button id="mobile-menu-btn" class="crm-btn-icon" style="display: none; padding: 8px; font-size: 24px;">☰</button>
@@ -1075,22 +1075,26 @@
     </div>
   </div>
 
-  <!-- Change Password Modal -->
+  <!-- Account Settings Modal -->
   <div class="crm-modal" id="change-pwd-modal">
     <div class="crm-modal-box" style="max-width: 400px;">
       <div class="crm-modal-header">
-        <h2 id="modal-pwd-title">Change Password</h2>
+        <h2 id="modal-pwd-title">Account Settings</h2>
         <button class="crm-btn-icon" onclick="closeChangePwdModal()">×</button>
       </div>
       <div class="crm-modal-content">
         <form id="change-pwd-form" style="display: flex; flex-direction: column; gap: 16px;">
           <div>
-            <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); margin-bottom: 8px;">New Password</label>
-            <input type="password" id="new-password-input" required class="crm-input" placeholder="Enter new password" minlength="6" />
+            <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); margin-bottom: 8px;">New Email (Optional)</label>
+            <input type="email" id="new-email-input" class="crm-input" placeholder="Leave blank to keep current email" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); margin-bottom: 8px;">New Password (Optional)</label>
+            <input type="password" id="new-password-input" class="crm-input" placeholder="Leave blank to keep current password" minlength="6" />
           </div>
           <p id="change-pwd-error" style="color: #f44336; font-size: 12px; margin: 0;"></p>
           <div style="display: flex; gap: 12px; margin-top: 8px;">
-            <button type="submit" class="btn-primary" style="flex: 1;" id="btn-save-pwd">Save</button>
+            <button type="submit" class="btn-primary" style="flex: 1;" id="btn-save-pwd">Save Changes</button>
             <button type="button" class="btn-outline" style="flex: 1;" onclick="closeChangePwdModal()">Cancel</button>
           </div>
         </form>
