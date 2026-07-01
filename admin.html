@@ -810,6 +810,26 @@
                 Confirm & Save
               </button>
             </div>
+
+            <div style="margin-top: 48px;">
+              <h2 style="margin-bottom: 16px;">Recent Expenses</h2>
+              <div style="overflow-x: auto;">
+                <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+                  <thead>
+                    <tr>
+                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Date</th>
+                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Vendor</th>
+                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Items</th>
+                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Total</th>
+                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="saved-expenses-tbody">
+                    <tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gray);">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -2911,4 +2911,45 @@ window.loadAnalytics = loadAnalytics;
       return div.innerHTML;
     }
   }
+
+  // Fetch and display saved expenses
+  const savedExpensesTbody = document.getElementById("saved-expenses-tbody");
+  if (savedExpensesTbody) {
+    const expensesQuery = query(collection(db, "expenses"), orderBy("createdAt", "desc"), limit(50));
+    onSnapshot(expensesQuery, (snapshot) => {
+      savedExpensesTbody.innerHTML = "";
+      if (snapshot.empty) {
+        savedExpensesTbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gray);">No saved expenses yet.</td></tr>';
+        return;
+      }
+
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'N/A';
+        const itemCount = data.items ? data.items.length : 0;
+        const totalStr = data.total != null ? `$${data.total.toFixed(2)}` : '—';
+        
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid var(--border)";
+        tr.innerHTML = `
+          <td style="padding: 12px;">${dateStr}</td>
+          <td style="padding: 12px; font-weight: 600;">${escapeHtml(data.vendor || 'Unknown')}</td>
+          <td style="padding: 12px;">${itemCount} items</td>
+          <td style="padding: 12px; font-weight: bold; color: var(--accent);">${totalStr}</td>
+          <td style="padding: 12px;">
+            <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
+              ${escapeHtml(data.status || 'pending')}
+            </span>
+          </td>
+        `;
+        savedExpensesTbody.appendChild(tr);
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
 }
