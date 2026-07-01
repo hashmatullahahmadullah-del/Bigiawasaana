@@ -1,4 +1,4 @@
-import { auth, db, storage } from './firebase.js';
+import { app, auth, db, storage } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -2800,3 +2800,114 @@ function loadAnalytics() {
 }
 
 window.loadAnalytics = loadAnalytics;
+
+
+
+// Expense Capture Logic
+{
+  const fileInput = document.getElementById("receipt-input");
+  const statusEl = document.getElementById("upload-status");
+  const reviewSection = document.getElementById("review-section");
+  const reviewMeta = document.getElementById("review-meta");
+  const reviewTbody = document.getElementById("review-tbody");
+  const confirmBtn = document.getElementById("confirm-expense-btn");
+
+  if (fileInput) {
+    let currentExpenseId = null;
+    let currentItems = [];
+
+    fileInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      statusEl.textContent = "Uploading...";
+      reviewSection.style.display = "none";
+
+      try {
+        const timestamp = Date.now();
+        const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+        const path = `receipts/unsorted/${timestamp}_${safeName}`;
+        const storageReference = ref(storage, path);
+
+        await uploadBytes(storageReference, file);
+        statusEl.textContent = "Parsing receipt (this can take a few seconds)...";
+
+        const functions = getFunctions(app);
+        const parseReceipt = httpsCallable(functions, "parseReceipt");
+        const result = await parseReceipt({ storagePath: path });
+        const data = result.data;
+
+        currentExpenseId = data.id;
+        currentItems = data.items || [];
+
+        renderReview(data);
+        statusEl.textContent = "Done. Review below before confirming.";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Error parsing receipt: " + err.message;
+      }
+    });
+
+    function renderReview(data) {
+      reviewMeta.innerHTML = `
+        <strong>Vendor:</strong> ${data.vendor || "Unknown"} &nbsp;
+        <strong>Total:</strong> $${data.total != null ? data.total.toFixed(2) : "—"} &nbsp;
+        ${data.needsReview ? '<span style="color:#b00;">⚠ Needs review</span>' : ""}
+      `;
+
+      reviewTbody.innerHTML = "";
+      currentItems.forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid var(--border)";
+        tr.innerHTML = `
+          <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="name" value="${escapeHtml(item.name)}" style="width:100%; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
+          <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="quantity" value="${item.quantity}" type="number" style="width:50px; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
+          <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="unitPrice" value="${item.unitPrice}" type="number" step="0.01" style="width:60px; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
+          <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="lineTotal" value="${item.lineTotal}" type="number" step="0.01" style="width:60px; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
+        `;
+        reviewTbody.appendChild(tr);
+      });
+
+      reviewTbody.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("change", (e) => {
+          const idx = parseInt(e.target.dataset.idx, 10);
+          const field = e.target.dataset.field;
+          const value = e.target.type === "number" ? parseFloat(e.target.value) : e.target.value;
+          currentItems[idx][field] = value;
+        });
+      });
+
+      reviewSection.style.display = "block";
+    }
+
+    confirmBtn.addEventListener("click", async () => {
+      if (!currentExpenseId) return;
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Saving...";
+
+      try {
+        await updateDoc(doc(db, "expenses", currentExpenseId), {
+          items: currentItems,
+          status: "confirmed",
+          confirmedAt: serverTimestamp(),
+        });
+
+        statusEl.textContent = "Expense confirmed and saved.";
+        reviewSection.style.display = "none";
+        fileInput.value = "";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Error saving: " + err.message;
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Confirm & Save";
+      }
+    });
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  }
+}
