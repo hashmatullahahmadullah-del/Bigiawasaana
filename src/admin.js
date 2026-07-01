@@ -3025,6 +3025,7 @@ window.loadAnalytics = loadAnalytics;
     });
   };
 
+  const savedExpensesTbody = document.getElementById("saved-expenses-tbody");
   if (savedExpensesTbody) {
     const expensesQuery = query(collection(db, "expenses"), orderBy("createdAt", "desc"), limit(100));
     onSnapshot(expensesQuery, (snapshot) => {
