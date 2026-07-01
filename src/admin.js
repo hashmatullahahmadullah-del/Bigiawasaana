@@ -29,6 +29,17 @@ if (langToggleBtn) {
   });
 }
 
+// Global escapeHtml utility
+window.escapeHtml = function escapeHtml(str) {
+  if (str == null) return '';
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+};
+function escapeHtml(str) {
+  return window.escapeHtml(str);
+}
+
 // PWA Installation Logic
 let deferredPrompt;
 
@@ -2928,10 +2939,7 @@ function loadAnalytics() {
 
 window.loadAnalytics = loadAnalytics;
 
-window.closeExpenseModal = function() {
-   const modal = document.getElementById("expense-modal");
-   if (modal) modal.style.display = "none";
-};
+
 
 
 
@@ -3103,11 +3111,7 @@ window.closeExpenseModal = function() {
       }
     });
 
-    window.escapeHtml = function escapeHtml(str) {
-      const div = document.createElement("div");
-      div.textContent = str;
-      return div.innerHTML;
-    }
+
   }
 
 
@@ -3159,6 +3163,25 @@ window.closeExpenseModal = function() {
   window.expensesUnsub = null;
   window.inventoryUnsub = null;
 
+  window.closeReceiptSlide = () => {
+      const slide = document.getElementById('receipt-slide-over');
+      const backdrop = document.getElementById('receipt-slide-backdrop');
+      if (slide) slide.style.transform = 'translateX(100%)';
+      if (backdrop) {
+          backdrop.style.opacity = '0';
+          backdrop.style.pointerEvents = 'none';
+      }
+  };
+  window.openReceiptSlide = () => {
+      const slide = document.getElementById('receipt-slide-over');
+      const backdrop = document.getElementById('receipt-slide-backdrop');
+      if (slide) slide.style.transform = 'translateX(0)';
+      if (backdrop) {
+          backdrop.style.opacity = '1';
+          backdrop.style.pointerEvents = 'auto';
+      }
+  };
+
   window.initEconomicsListeners = () => {
     const savedExpensesTbody = document.getElementById("saved-expenses-tbody");
     if (savedExpensesTbody) {
@@ -3181,93 +3204,162 @@ window.closeExpenseModal = function() {
           const itemCount = data.items ? data.items.length : 0;
           const totalStr = data.total != null ? `$${data.total.toFixed(2)}` : '—';
           
-          const tr = document.createElement("tr");
-          tr.style.borderBottom = "1px solid var(--border)";
-          tr.style.cursor = "pointer";
-          tr.innerHTML = `
+          const mainTr = document.createElement("tr");
+          mainTr.style.borderBottom = "1px solid var(--border)";
+          mainTr.style.cursor = "pointer";
+          mainTr.style.transition = "background 0.2s";
+          mainTr.onmouseover = () => mainTr.style.background = "rgba(255,255,255,0.05)";
+          mainTr.onmouseout = () => mainTr.style.background = "transparent";
+          mainTr.innerHTML = `
             <td style="padding: 12px;">${dateStr}</td>
-            <td style="padding: 12px; font-weight: 600;">${escapeHtml(data.vendor || 'Unknown')}</td>
+            <td style="padding: 12px; font-weight: 600;">${window.escapeHtml(data.vendor || 'Unknown')}</td>
             <td style="padding: 12px;">${itemCount} items</td>
             <td style="padding: 12px; font-weight: bold; color: var(--accent);">${totalStr}</td>
             <td style="padding: 12px;">
               <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
-                ${escapeHtml(data.status || 'pending')}
+                ${window.escapeHtml(data.status || 'pending')}
               </span>
             </td>
           `;
           
-          tr.addEventListener("click", () => {
-             const modal = document.getElementById("expense-modal");
-             const content = document.getElementById("modal-expense-content");
+          mainTr.addEventListener("click", () => {
+             document.getElementById('slide-vendor').textContent = data.vendor || 'Unknown';
+             document.getElementById('slide-date').textContent = dateStr;
+             document.getElementById('slide-total').textContent = totalStr;
              
-             let itemsHtml = '<table style="width:100%; border-collapse: collapse; margin-top: 10px;">';
-             itemsHtml += '<thead><tr style="border-bottom:1px solid var(--border); color:var(--gray);"><th style="text-align:left; padding:8px;">Item</th><th style="text-align:left; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit</th><th style="text-align:right; padding:8px;">Total</th></tr></thead>';
+             let itemsHtml = '<table style="width:100%; border-collapse: collapse;">';
+             itemsHtml += '<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--gray);"><th style="text-align:left; padding:8px;">Item</th><th style="text-align:center; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit</th><th style="text-align:right; padding:8px;">Total</th></tr></thead>';
              itemsHtml += '<tbody>';
              (data.items || []).forEach(item => {
                 itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                   <td style="padding:8px;">${window.escapeHtml(item.name || 'Unknown')} <br><small style="color:var(--gray)">${window.escapeHtml(item.category || 'other')}</small></td>
-                   <td style="padding:8px;">${item.quantity || 1}</td>
-                   <td style="padding:8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
-                   <td style="padding:8px; text-align:right; font-weight:bold;">$${(item.lineTotal || 0).toFixed(2)}</td>
+                   <td style="padding:12px 8px;">
+                     <div style="font-weight:600;">${window.escapeHtml(item.name || 'Unknown')}</div>
+                     <div style="font-size:12px; color:var(--gray); margin-top:4px;">${window.escapeHtml(item.category || 'other')}</div>
+                   </td>
+                   <td style="padding:12px 8px; text-align:center;">${item.quantity || 1}</td>
+                   <td style="padding:12px 8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
+                   <td style="padding:12px 8px; text-align:right; font-weight:bold; color:var(--white);">$${(item.lineTotal || 0).toFixed(2)}</td>
                 </tr>`;
              });
              itemsHtml += '</tbody></table>';
+             document.getElementById('slide-content').innerHTML = itemsHtml;
              
-             content.innerHTML = itemsHtml;
-             modal.style.display = "flex";
+             if (window.openReceiptSlide) window.openReceiptSlide();
           });
           
-          savedExpensesTbody.appendChild(tr);
+          savedExpensesTbody.appendChild(mainTr);
         });
       });
     }
 
     // Inventory Tracker Logic
-    const inventoryTbody = document.getElementById('inventory-table-body');
+    const inventoryTbody = document.getElementById('inventory-tbody');
+    const inventorySearch = document.getElementById('inventory-search');
+    let inventoryDataCache = [];
+
+    const renderInventory = (filter = "") => {
+      if (!inventoryTbody) return;
+      inventoryTbody.innerHTML = "";
+      if (inventoryDataCache.length === 0) {
+         inventoryTbody.innerHTML = '<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--gray);">No inventory tracked yet. Confirm receipts to auto-populate.</td></tr>';
+         return;
+      }
+      
+      const filtered = inventoryDataCache.filter(data => 
+         (data.name || "").toLowerCase().includes(filter.toLowerCase()) || 
+         (data.category || "").toLowerCase().includes(filter.toLowerCase())
+      );
+
+      if (filtered.length === 0) {
+         inventoryTbody.innerHTML = '<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--gray);">No ingredients found.</td></tr>';
+         return;
+      }
+
+      filtered.forEach(data => {
+         let priceTrendHtml = '-';
+         let avgPrice = data.lastPrice || 0;
+         if (data.priceHistory && data.priceHistory.length > 1) {
+            const history = data.priceHistory;
+            const current = history[history.length - 1].price;
+            const prev = history[history.length - 2].price;
+            const sum = history.reduce((acc, curr) => acc + curr.price, 0);
+            avgPrice = sum / history.length;
+            
+            if (current > prev) {
+               const pct = ((current - prev) / prev) * 100;
+               priceTrendHtml = `<span style="color:#f44336; font-weight:bold; background: rgba(244,67,54,0.1); padding: 4px 8px; border-radius: 4px;">↑ ${pct.toFixed(1)}%</span>`;
+            } else if (current < prev) {
+               const pct = ((prev - current) / prev) * 100;
+               priceTrendHtml = `<span style="color:#4caf50; font-weight:bold; background: rgba(76,175,80,0.1); padding: 4px 8px; border-radius: 4px;">↓ ${pct.toFixed(1)}%</span>`;
+            } else {
+               priceTrendHtml = `<span style="color:var(--gray);">—</span>`;
+            }
+         }
+
+         const qty = parseFloat(data.stockQuantity) || 0;
+         let stockLevelHtml = '';
+         if (qty < 10) {
+            stockLevelHtml = `<div style="display:flex; align-items:center; gap:8px;"><div style="flex:1; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width: ${Math.min(qty*10, 100)}%; height:100%; background:#f44336;"></div></div><span style="color:#f44336; font-size:11px; font-weight:bold;">LOW</span></div>`;
+         } else if (qty > 50) {
+            stockLevelHtml = `<div style="display:flex; align-items:center; gap:8px;"><div style="flex:1; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width: 100%; height:100%; background:#4caf50;"></div></div><span style="color:#4caf50; font-size:11px; font-weight:bold;">GOOD</span></div>`;
+         } else {
+            stockLevelHtml = `<div style="display:flex; align-items:center; gap:8px;"><div style="flex:1; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width: ${Math.min(qty*2, 100)}%; height:100%; background:#ffeb3b;"></div></div><span style="color:#ffeb3b; font-size:11px; font-weight:bold;">OK</span></div>`;
+         }
+         
+         const tr = document.createElement("tr");
+         tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+         tr.innerHTML = `
+            <td style="padding: 12px; font-weight: 600;">
+              <div>${window.escapeHtml(data.name || 'Unknown')}</div>
+              <div style="font-size:11px; color:var(--gray); text-transform:uppercase; margin-top:4px;">${window.escapeHtml(data.category || 'other')}</div>
+            </td>
+            <td style="padding: 12px; min-width: 120px;">
+              ${stockLevelHtml}
+            </td>
+            <td style="padding: 12px;">
+              <input type="number" class="inventory-stock-input" data-id="${data.id}" value="${qty}" step="0.01" style="width: 80px; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: var(--white); text-align: right; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+            </td>
+            <td style="padding: 12px; font-weight:bold; color:var(--white);">$${(data.lastPrice || 0).toFixed(2)}</td>
+            <td style="padding: 12px; color:var(--gray);">$${(avgPrice || 0).toFixed(2)}</td>
+            <td style="padding: 12px;">${priceTrendHtml}</td>
+         `;
+         inventoryTbody.appendChild(tr);
+      });
+
+      // Attach inline editing listeners
+      document.querySelectorAll('.inventory-stock-input').forEach(input => {
+         input.addEventListener('change', async (e) => {
+             const id = e.target.getAttribute('data-id');
+             const val = e.target.value;
+             try {
+                 await updateDoc(doc(db, 'inventory', id), { stockQuantity: parseFloat(val) || 0 });
+                 e.target.style.borderColor = "#4caf50";
+                 setTimeout(() => e.target.style.borderColor = "rgba(255,255,255,0.2)", 1500);
+             } catch (err) {
+                 console.error(err);
+                 alert("Failed to update stock");
+             }
+         });
+      });
+    };
+
     if (inventoryTbody) {
        window.inventoryUnsub = onSnapshot(collection(db, 'inventory'), (snapshot) => {
-          inventoryTbody.innerHTML = "";
-          if (snapshot.empty) {
-             inventoryTbody.innerHTML = '<tr><td colspan="6" style="padding: 16px; text-align: center; color: var(--gray);">No inventory tracked yet. Confirm receipts to auto-populate.</td></tr>';
-             return;
-          }
-          
+          inventoryDataCache = [];
           snapshot.forEach(docSnap => {
              const data = docSnap.data();
-             
-             let priceTrendHtml = '-';
-             let avgPrice = data.lastPrice || 0;
-             if (data.priceHistory && data.priceHistory.length > 1) {
-                const history = data.priceHistory;
-                const current = history[history.length - 1].price;
-                const prev = history[history.length - 2].price;
-                const sum = history.reduce((acc, curr) => acc + curr.price, 0);
-                avgPrice = sum / history.length;
-                
-                if (current > prev) {
-                   const pct = ((current - prev) / prev) * 100;
-                   priceTrendHtml = `<span style="color:#f44336; font-weight:bold;">↑ ${pct.toFixed(1)}%</span>`;
-                } else if (current < prev) {
-                   const pct = ((prev - current) / prev) * 100;
-                   priceTrendHtml = `<span style="color:#4caf50; font-weight:bold;">↓ ${pct.toFixed(1)}%</span>`;
-                } else {
-                   priceTrendHtml = `<span style="color:var(--gray);">—</span>`;
-                }
-             }
-             
-             const tr = document.createElement("tr");
-             tr.style.borderBottom = "1px solid var(--border)";
-             tr.innerHTML = `
-                <td style="padding: 12px; font-weight: 600;">${escapeHtml(data.name || 'Unknown')}</td>
-                <td style="padding: 12px;"><span style="background:rgba(255,255,255,0.1); padding: 4px 8px; border-radius:4px; font-size:11px;">${escapeHtml(data.category || 'other')}</span></td>
-                <td style="padding: 12px;">${data.stockQuantity || 0}</td>
-                <td style="padding: 12px; font-weight:bold; color:var(--white);">$${(data.lastPrice || 0).toFixed(2)}</td>
-                <td style="padding: 12px; color:var(--gray);">$${(avgPrice || 0).toFixed(2)}</td>
-                <td style="padding: 12px;">${priceTrendHtml}</td>
-             `;
-             inventoryTbody.appendChild(tr);
+             data.id = docSnap.id;
+             inventoryDataCache.push(data);
           });
+          const currentFilter = inventorySearch ? inventorySearch.value : "";
+          renderInventory(currentFilter);
        });
+
+       if (inventorySearch) {
+          inventorySearch.addEventListener('input', (e) => {
+             renderInventory(e.target.value);
+          });
+       }
     }
   };
   
@@ -3281,9 +3373,5 @@ window.closeExpenseModal = function() {
   };
 
 
-  function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-  }
+
 }
