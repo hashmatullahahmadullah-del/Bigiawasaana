@@ -1,7 +1,7 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app, auth, db, storage } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, verifyBeforeUpdateEmail } from 'firebase/auth';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, getDoc, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { t, getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
 
@@ -107,6 +107,8 @@ let eventsUnsub = null;
 let unitSettingsUnsub = null;
 let unitPlatformsUnsub = null;
 let analyticsUnsub = null;
+let expensesUnsub = null;
+let inventoryUnsub = null;
 
 // Auth State Observer
 onAuthStateChanged(auth, (user) => {
@@ -136,6 +138,8 @@ onAuthStateChanged(auth, (user) => {
     if (unitSettingsUnsub) unitSettingsUnsub();
     if (unitPlatformsUnsub) unitPlatformsUnsub();
     if (analyticsUnsub) analyticsUnsub();
+    if (expensesUnsub) expensesUnsub();
+    if (inventoryUnsub) inventoryUnsub();
   }
 });
 
@@ -159,31 +163,27 @@ logoutBtn.addEventListener('click', () => {
   signOut(auth);
 });
 
-document.addEventListener('click', (e) => {
-  if (e.target.closest('#change-pwd-btn')) {
-    e.preventDefault();
-    console.log("Account settings clicked!");
-    try {
-       const changePwdModal = document.getElementById('change-pwd-modal');
-       const changePwdError = document.getElementById('change-pwd-error');
-       const newPwdInput = document.getElementById('new-password-input');
-       const newEmailInput = document.getElementById('new-email-input');
+window.openChangePwdModal = function() {
+  console.log("Account settings clicked inline!");
+  try {
+     const changePwdModal = document.getElementById('change-pwd-modal');
+     const changePwdError = document.getElementById('change-pwd-error');
+     const newPwdInput = document.getElementById('new-password-input');
+     const newEmailInput = document.getElementById('new-email-input');
 
-       if (changePwdError) changePwdError.textContent = '';
-       if (newPwdInput) newPwdInput.value = '';
-       if (newEmailInput) newEmailInput.value = auth.currentUser ? auth.currentUser.email : '';
-       
-       if (changePwdModal) {
-          changePwdModal.style.display = 'flex';
-          console.log("Modal opened");
-       } else {
-          alert("Error: changePwdModal not found in DOM");
-       }
-    } catch(err) {
-       alert("Error: " + err.message);
-    }
+     if (changePwdError) changePwdError.textContent = '';
+     if (newPwdInput) newPwdInput.value = '';
+     if (newEmailInput) newEmailInput.value = auth.currentUser ? auth.currentUser.email : '';
+     
+     if (changePwdModal) {
+        changePwdModal.style.display = 'flex';
+     } else {
+        alert("Error: changePwdModal not found in DOM");
+     }
+  } catch(err) {
+     alert("Error: " + err.message);
   }
-});
+};
 
 window.closeChangePwdModal = function() {
   const modal = document.getElementById('change-pwd-modal');
@@ -383,6 +383,7 @@ function initCRMData() {
   });
 
   loadAnalytics();
+  initEconomicsListeners();
 }
 
 async function loadTvPromoSettings() {
@@ -3115,115 +3116,120 @@ window.closeExpenseModal = function() {
     });
   };
 
-  const savedExpensesTbody = document.getElementById("saved-expenses-tbody");
-  if (savedExpensesTbody) {
-    const expensesQuery = query(collection(db, "expenses"), orderBy("createdAt", "desc"), limit(100));
-    onSnapshot(expensesQuery, (snapshot) => {
-      savedExpensesTbody.innerHTML = "";
-      if (snapshot.empty) {
-        savedExpensesTbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gray);">No saved expenses yet.</td></tr>';
-        return;
-      }
+  window.expensesUnsub = null;
+  window.inventoryUnsub = null;
 
-      renderExpenseAnalytics(snapshot);
-
-      let rowCount = 0;
-      snapshot.forEach(docSnap => {
-        if (rowCount >= 50) return; // Only show 50 in table, but chart uses 100
-        rowCount++;
-        const data = docSnap.data();
-        const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'N/A';
-        const itemCount = data.items ? data.items.length : 0;
-        const totalStr = data.total != null ? `$${data.total.toFixed(2)}` : '—';
-        
-        const tr = document.createElement("tr");
-        tr.style.borderBottom = "1px solid var(--border)";
-        tr.style.cursor = "pointer";
-        tr.innerHTML = `
-          <td style="padding: 12px;">${dateStr}</td>
-          <td style="padding: 12px; font-weight: 600;">${escapeHtml(data.vendor || 'Unknown')}</td>
-          <td style="padding: 12px;">${itemCount} items</td>
-          <td style="padding: 12px; font-weight: bold; color: var(--accent);">${totalStr}</td>
-          <td style="padding: 12px;">
-            <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
-              ${escapeHtml(data.status || 'pending')}
-            </span>
-          </td>
-        `;
-        
-        tr.addEventListener("click", () => {
-           const modal = document.getElementById("expense-modal");
-           const content = document.getElementById("modal-expense-content");
-           
-           let itemsHtml = '<table style="width:100%; border-collapse: collapse; margin-top: 10px;">';
-           itemsHtml += '<thead><tr style="border-bottom:1px solid var(--border); color:var(--gray);"><th style="text-align:left; padding:8px;">Item</th><th style="text-align:left; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit</th><th style="text-align:right; padding:8px;">Total</th></tr></thead>';
-           itemsHtml += '<tbody>';
-           (data.items || []).forEach(item => {
-              itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                 <td style="padding:8px;">${escapeHtml(item.name || 'Unknown')} <br><small style="color:var(--gray)">${escapeHtml(item.category || 'other')}</small></td>
-                 <td style="padding:8px;">${item.quantity || 1}</td>
-                 <td style="padding:8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
-                 <td style="padding:8px; text-align:right; font-weight:bold;">$${(item.lineTotal || 0).toFixed(2)}</td>
-              </tr>`;
-           });
-           itemsHtml += '</tbody></table>';
-           
-           content.innerHTML = itemsHtml;
-           modal.style.display = "flex";
-        });
-        
-        savedExpensesTbody.appendChild(tr);
-      });
-    });
-  }
-
-  // Inventory Tracker Logic
-  const inventoryTbody = document.getElementById('inventory-table-body');
-  if (inventoryTbody) {
-     onSnapshot(collection(db, 'inventory'), (snapshot) => {
-        inventoryTbody.innerHTML = "";
+  window.initEconomicsListeners = () => {
+    const savedExpensesTbody = document.getElementById("saved-expenses-tbody");
+    if (savedExpensesTbody) {
+      const expensesQuery = query(collection(db, "expenses"), orderBy("createdAt", "desc"), limit(100));
+      window.expensesUnsub = onSnapshot(expensesQuery, (snapshot) => {
+        savedExpensesTbody.innerHTML = "";
         if (snapshot.empty) {
-           inventoryTbody.innerHTML = '<tr><td colspan="6" style="padding: 16px; text-align: center; color: var(--gray);">No inventory tracked yet. Confirm receipts to auto-populate.</td></tr>';
-           return;
+          savedExpensesTbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gray);">No saved expenses yet.</td></tr>';
+          return;
         }
-        
+
+        renderExpenseAnalytics(snapshot);
+
+        let rowCount = 0;
         snapshot.forEach(docSnap => {
-           const data = docSnap.data();
-           
-           let priceTrendHtml = '-';
-           let avgPrice = data.lastPrice;
-           if (data.priceHistory && data.priceHistory.length > 1) {
-              const history = data.priceHistory;
-              const current = history[history.length - 1].price;
-              const prev = history[history.length - 2].price;
-              const sum = history.reduce((acc, curr) => acc + curr.price, 0);
-              avgPrice = sum / history.length;
-              
-              if (current > prev) {
-                 const pct = ((current - prev) / prev) * 100;
-                 priceTrendHtml = `<span style="color:#f44336; font-weight:bold;">↑ ${pct.toFixed(1)}%</span>`;
-              } else if (current < prev) {
-                 const pct = ((prev - current) / prev) * 100;
-                 priceTrendHtml = `<span style="color:#4caf50; font-weight:bold;">↓ ${pct.toFixed(1)}%</span>`;
-              }
-           }
-           
-           const tr = document.createElement("tr");
-           tr.style.borderBottom = "1px solid var(--border)";
-           tr.innerHTML = `
-              <td style="padding: 12px; font-weight:600;">${escapeHtml(data.name)}</td>
-              <td style="padding: 12px;">${escapeHtml(data.category || 'other')}</td>
-              <td style="padding: 12px;">
-                 <input type="number" value="${data.stockQuantity || 0}" style="width: 60px; padding: 4px; border: 1px solid var(--border); background: var(--bg); color: var(--white); border-radius: 4px;" onchange="updateInventoryStock('${docSnap.id}', this.value)" />
-              </td>
-              <td style="padding: 12px;">$${(data.lastPrice||0).toFixed(2)}</td>
-              <td style="padding: 12px; color: var(--gray);">$${avgPrice.toFixed(2)}</td>
-              <td style="padding: 12px;">${priceTrendHtml}</td>
-           `;
-           inventoryTbody.appendChild(tr);
+          if (rowCount >= 50) return;
+          rowCount++;
+          const data = docSnap.data();
+          const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'N/A';
+          const itemCount = data.items ? data.items.length : 0;
+          const totalStr = data.total != null ? `$${data.total.toFixed(2)}` : '—';
+          
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid var(--border)";
+          tr.style.cursor = "pointer";
+          tr.innerHTML = `
+            <td style="padding: 12px;">${dateStr}</td>
+            <td style="padding: 12px; font-weight: 600;">${escapeHtml(data.vendor || 'Unknown')}</td>
+            <td style="padding: 12px;">${itemCount} items</td>
+            <td style="padding: 12px; font-weight: bold; color: var(--accent);">${totalStr}</td>
+            <td style="padding: 12px;">
+              <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
+                ${escapeHtml(data.status || 'pending')}
+              </span>
+            </td>
+          `;
+          
+          tr.addEventListener("click", () => {
+             const modal = document.getElementById("expense-modal");
+             const content = document.getElementById("modal-expense-content");
+             
+             let itemsHtml = '<table style="width:100%; border-collapse: collapse; margin-top: 10px;">';
+             itemsHtml += '<thead><tr style="border-bottom:1px solid var(--border); color:var(--gray);"><th style="text-align:left; padding:8px;">Item</th><th style="text-align:left; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit</th><th style="text-align:right; padding:8px;">Total</th></tr></thead>';
+             itemsHtml += '<tbody>';
+             (data.items || []).forEach(item => {
+                itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                   <td style="padding:8px;">${escapeHtml(item.name || 'Unknown')} <br><small style="color:var(--gray)">${escapeHtml(item.category || 'other')}</small></td>
+                   <td style="padding:8px;">${item.quantity || 1}</td>
+                   <td style="padding:8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
+                   <td style="padding:8px; text-align:right; font-weight:bold;">$${(item.lineTotal || 0).toFixed(2)}</td>
+                </tr>`;
+             });
+             itemsHtml += '</tbody></table>';
+             
+             content.innerHTML = itemsHtml;
+             modal.style.display = "flex";
+          });
+          
+          savedExpensesTbody.appendChild(tr);
         });
-     });
-  }
+      });
+    }
+
+    // Inventory Tracker Logic
+    const inventoryTbody = document.getElementById('inventory-table-body');
+    if (inventoryTbody) {
+       window.inventoryUnsub = onSnapshot(collection(db, 'inventory'), (snapshot) => {
+          inventoryTbody.innerHTML = "";
+          if (snapshot.empty) {
+             inventoryTbody.innerHTML = '<tr><td colspan="6" style="padding: 16px; text-align: center; color: var(--gray);">No inventory tracked yet. Confirm receipts to auto-populate.</td></tr>';
+             return;
+          }
+          
+          snapshot.forEach(docSnap => {
+             const data = docSnap.data();
+             
+             let priceTrendHtml = '-';
+             let avgPrice = data.lastPrice || 0;
+             if (data.priceHistory && data.priceHistory.length > 1) {
+                const history = data.priceHistory;
+                const current = history[history.length - 1].price;
+                const prev = history[history.length - 2].price;
+                const sum = history.reduce((acc, curr) => acc + curr.price, 0);
+                avgPrice = sum / history.length;
+                
+                if (current > prev) {
+                   const pct = ((current - prev) / prev) * 100;
+                   priceTrendHtml = `<span style="color:#f44336; font-weight:bold;">↑ ${pct.toFixed(1)}%</span>`;
+                } else if (current < prev) {
+                   const pct = ((prev - current) / prev) * 100;
+                   priceTrendHtml = `<span style="color:#4caf50; font-weight:bold;">↓ ${pct.toFixed(1)}%</span>`;
+                } else {
+                   priceTrendHtml = `<span style="color:var(--gray);">—</span>`;
+                }
+             }
+             
+             const tr = document.createElement("tr");
+             tr.style.borderBottom = "1px solid var(--border)";
+             tr.innerHTML = `
+                <td style="padding: 12px; font-weight: 600;">${escapeHtml(data.name || 'Unknown')}</td>
+                <td style="padding: 12px;"><span style="background:rgba(255,255,255,0.1); padding: 4px 8px; border-radius:4px; font-size:11px;">${escapeHtml(data.category || 'other')}</span></td>
+                <td style="padding: 12px;">${data.stockQuantity || 0}</td>
+                <td style="padding: 12px; font-weight:bold; color:var(--white);">$${(data.lastPrice || 0).toFixed(2)}</td>
+                <td style="padding: 12px; color:var(--gray);">$${(avgPrice || 0).toFixed(2)}</td>
+                <td style="padding: 12px;">${priceTrendHtml}</td>
+             `;
+             inventoryTbody.appendChild(tr);
+          });
+       });
+    }
+  };
   
   window.updateInventoryStock = async (id, val) => {
      try {

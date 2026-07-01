@@ -284,6 +284,17 @@ function parseReceiptText(rawText, mappings = {}) {
     items = parseGenericItems(lines);
   }
 
+  if (items.length === 0 && total !== null) {
+    items.push({
+      rawText: "Total Purchase",
+      name: "Total Purchase",
+      quantity: 1,
+      unitPrice: total,
+      lineTotal: total,
+      matchedMenuIngredient: null,
+    });
+  }
+
   items = items.map((item) => {
     let matchedMenuIngredient = null;
     let category = null;
