@@ -12,19 +12,19 @@ const VENDOR_SIGNATURES = [
 const CATEGORY_KEYWORDS = {
   protein: [
     "beef", "chicken", "lamb", "kabob", "koobideh", "ground", "thigh",
-    "breast", "steak", "meat", "halal",
+    "breast", "steak", "meat", "halal", "chx", "tender"
   ],
   produce: [
     "tomato", "onion", "lettuce", "cucumber", "pepper", "cilantro",
-    "lemon", "garlic", "parsley", "vegetable", "fruit",
+    "lemon", "garlic", "parsley", "vegetable", "fruit", "potato"
   ],
   packaging: [
     "container", "bag", "foil", "wrap", "cup", "lid", "napkin",
-    "to-go", "togo", "clamshell", "tray", "glove",
+    "to-go", "togo", "clamshell", "tray", "glove", "towel", "ppr", "ps", "cmb"
   ],
   "dry goods": [
     "rice", "flour", "oil", "salt", "sugar", "spice", "sauce",
-    "bread", "lavash", "pita", "canned", "bean",
+    "bread", "lavash", "pita", "canned", "bean", "dawn", "pump", "crinkle", "fries"
   ],
 };
 
@@ -52,20 +52,38 @@ function extractTotals(lines) {
   let tax = null;
   let total = null;
 
-  const moneyRegex = /(\d+\.\d{2})/;
+  const moneyRegex = /^\$?(\d+\.\d{2})$/;
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const lower = line.toLowerCase();
-    const moneyMatch = line.match(moneyRegex);
-    if (!moneyMatch) continue;
-    const value = parseFloat(moneyMatch[1]);
-
+    
+    if (/^tax|sales\s*tax|ca\s*tax/.test(lower) && tax === null) {
+      for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+         const m = lines[j].match(moneyRegex);
+         if (m) { tax = parseFloat(m[1]); break; }
+      }
+    }
+    
+    if (/total/.test(lower) && !/sub/.test(lower) && !/tax/.test(lower) && !/unit/.test(lower) && !/weighed/.test(lower) && !/item/.test(lower) && !/case/.test(lower)) {
+      let maxTotal = 0;
+      for (let j = i + 1; j < Math.min(i + 8, lines.length); j++) {
+         const m = lines[j].match(moneyRegex);
+         if (m) {
+            const val = parseFloat(m[1]);
+            if (val > maxTotal) maxTotal = val;
+         }
+      }
+      if (maxTotal > 0 && (total === null || maxTotal > total)) {
+         total = maxTotal;
+      }
+    }
+    
     if (/sub\s*-?\s*total/.test(lower) && subtotal === null) {
-      subtotal = value;
-    } else if (/^tax|sales\s*tax/.test(lower) && tax === null) {
-      tax = value;
-    } else if (/^total\b/.test(lower) && !/sub/.test(lower) && total === null) {
-      total = value;
+       for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+         const m = lines[j].match(moneyRegex);
+         if (m) { subtotal = parseFloat(m[1]); break; }
+      }
     }
   }
 
@@ -81,23 +99,63 @@ function guessCategory(itemName) {
 }
 
 function parseRestaurantDepotItems(lines) {
-  const items = [];
-  const itemLineRegex = /^(\d{1,3})\s+(.+?)\s+(\d+\.\d{2})\s+(\d+\.\d{2})$/;
+  const parsedNames = [];
+  const parsedPrices = [];
 
-  for (const line of lines) {
-    const match = line.match(itemLineRegex);
-    if (match) {
-      const [, qty, name, unitPrice, lineTotal] = match;
-      items.push({
-        rawText: line,
-        name: name.trim(),
-        quantity: parseFloat(qty),
-        unitPrice: parseFloat(unitPrice),
-        lineTotal: parseFloat(lineTotal),
-        matchedMenuIngredient: null,
-      });
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    if (/subtotal|total\b|ca tax|visa/i.test(line)) break;
+    
+    if (/^\d{11,13}$/.test(line)) {
+       let nameIndex = i - 1;
+       let name = lines[nameIndex] || "";
+       
+       while (nameIndex > 0 && (
+          name === "JMB" || 
+          name === "UNITS 1" || 
+          name === "(TA)" || 
+          name === "U(TA)" || 
+          name.match(/^[\d\s\#]+$/) || 
+          name.match(/^[A-Z]$/) ||
+          name.match(/^\$?(\d+\.\d{2})$/) ||
+          name.match(/CASE/i) ||
+          name.match(/40LB/i) ||
+          name.match(/SIZE/i) ||
+          name.match(/TA/)
+       )) {
+          nameIndex--;
+          name = lines[nameIndex] || "";
+       }
+       parsedNames.push({ name, upc: line, text: name + " " + line });
+    }
+    
+    const weightMatch = line.match(/@\s*\$?(\d+\.\d{2})\w*\s+\$?(\d+\.\d{2})/);
+    if (weightMatch) {
+       parsedPrices.push(parseFloat(weightMatch[2]));
+       continue;
+    }
+    
+    const singleMatch = line.match(/^\$?(\d+\.\d{2})$/);
+    if (singleMatch) {
+       parsedPrices.push(parseFloat(singleMatch[1]));
     }
   }
+
+  const items = [];
+  const minLen = Math.min(parsedNames.length, parsedPrices.length);
+  for (let i = 0; i < minLen; i++) {
+      items.push({
+          rawText: parsedNames[i].text,
+          name: parsedNames[i].name,
+          quantity: 1,
+          unitPrice: parsedPrices[i],
+          lineTotal: parsedPrices[i],
+          matchedMenuIngredient: null,
+          category: guessCategory(parsedNames[i].name)
+      });
+  }
+
   return items;
 }
 
