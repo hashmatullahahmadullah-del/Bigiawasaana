@@ -7,6 +7,7 @@
 const VENDOR_SIGNATURES = [
   { name: "Restaurant Depot", patterns: [/restaurant\s*depot/i, /jetro/i] },
   { name: "Costco", patterns: [/costco\s*wholesale/i, /costco/i] },
+  { name: "Q Market", patterns: [/q\s*market/i, /qmarket/i] },
 ];
 
 const CATEGORY_KEYWORDS = {
@@ -187,20 +188,37 @@ function parseCostcoItems(lines) {
 
 function parseGenericItems(lines) {
   const items = [];
-  const genericRegex = /^(.{3,40}?)\s+(\d+\.\d{2})$/;
-  const skipKeywords = /total|tax|subtotal|change|cash|visa|mastercard|debit|balance/i;
+  const genericRegex = /^(.{2,40}?)\s+\$?(\d+\.\d{2})(?:\s+[A-Za-z])?$/;
+  const skipKeywords = /total|tax|subtotal|change|cash|visa|mastercard|debit|balance|sale|acct|app name|aid:|tc:|entry|approval|item count/i;
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (skipKeywords.test(line)) continue;
+    if (/^\d+\s*@/.test(line)) continue; // skip quantity modifier lines
+    
     const match = line.match(genericRegex);
     if (match) {
-      const [, name, price] = match;
+      const [, name, priceStr] = match;
+      const price = parseFloat(priceStr);
+      let quantity = 1;
+      let unitPrice = price;
+
+      // Check the next line for quantity modifiers like "6 @ $0.49"
+      if (i + 1 < lines.length) {
+        const nextLine = lines[i + 1];
+        const qtyMatch = nextLine.match(/^(\d+)\s*@\s*\$?(\d+\.\d{2})/);
+        if (qtyMatch) {
+          quantity = parseInt(qtyMatch[1], 10);
+          unitPrice = parseFloat(qtyMatch[2]);
+        }
+      }
+
       items.push({
         rawText: line,
         name: name.trim(),
-        quantity: 1,
-        unitPrice: parseFloat(price),
-        lineTotal: parseFloat(price),
+        quantity,
+        unitPrice,
+        lineTotal: price,
         matchedMenuIngredient: null,
       });
     }
@@ -208,7 +226,7 @@ function parseGenericItems(lines) {
   return items;
 }
 
-function parseReceiptText(rawText) {
+function parseReceiptText(rawText, mappings = {}) {
   const lines = rawText
     .split("\n")
     .map((l) => l.trim())
@@ -229,11 +247,24 @@ function parseReceiptText(rawText) {
     items = parseGenericItems(lines);
   }
 
-  items = items.map((item) => ({
-    ...item,
-    matchedMenuIngredient: null,
-    category: guessCategory(item.name),
-  }));
+  items = items.map((item) => {
+    let matchedMenuIngredient = null;
+    let category = null;
+    const nameKey = item.name.toLowerCase().trim();
+    
+    if (mappings[nameKey]) {
+       matchedMenuIngredient = mappings[nameKey].matchedMenuIngredient || null;
+       category = mappings[nameKey].category || null;
+    }
+    
+    if (!category) category = guessCategory(item.name);
+    
+    return {
+      ...item,
+      matchedMenuIngredient,
+      category,
+    };
+  });
 
   const itemSum = items.reduce((sum, i) => sum + (i.lineTotal || 0), 0);
   const expectedSum = subtotal !== null ? subtotal : total;

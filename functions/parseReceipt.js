@@ -43,7 +43,15 @@ exports.parseReceipt = functions
       }
 
       const rawText = detections[0].description;
-      const parsed = parseReceiptText(rawText);
+      console.log("=== OCR RAW TEXT ===");
+      console.log(rawText);
+      console.log("====================");
+      
+      const mappingsSnap = await admin.firestore().collection('receipt_mappings').get();
+      const mappings = {};
+      mappingsSnap.forEach(doc => mappings[doc.id] = doc.data());
+
+      const parsed = parseReceiptText(rawText, mappings);
 
       const docRef = await admin.firestore().collection("expenses").add({
         vendor: parsed.vendor,

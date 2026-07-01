@@ -2856,24 +2856,52 @@ window.loadAnalytics = loadAnalytics;
         ${data.needsReview ? '<span style="color:#b00;">⚠ Needs review</span>' : ""}
       `;
 
+      // Build options for known menu ingredients
+      let ingredientOptions = `<option value="">-- No Link --</option>`;
+      if (window.adminMenuData) {
+        Object.keys(window.adminMenuData).forEach(key => {
+           ingredientOptions += `<option value="${key}">${escapeHtml(window.adminMenuData[key].name || key)}</option>`;
+        });
+      }
+
+      const categories = ['protein', 'produce', 'packaging', 'dry goods', 'other'];
+
       reviewTbody.innerHTML = "";
       currentItems.forEach((item, idx) => {
+        let catOptions = '';
+        categories.forEach(c => {
+           catOptions += `<option value="${c}" ${item.category === c ? 'selected' : ''}>${c}</option>`;
+        });
+
         const tr = document.createElement("tr");
         tr.style.borderBottom = "1px solid var(--border)";
         tr.innerHTML = `
-          <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="name" value="${escapeHtml(item.name)}" style="width:100%; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
+          <td style="padding:6px 4px;"><input class="item-name-input" data-idx="${idx}" data-field="name" value="${escapeHtml(item.name)}" style="width:100%; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
+          <td style="padding:6px 4px; display: flex; flex-direction: column; gap: 4px;">
+            <select class="item-cat-input" data-idx="${idx}" data-field="category" style="width:100%; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);">${catOptions}</select>
+            <select class="item-link-input" data-idx="${idx}" data-field="matchedMenuIngredient" style="width:100%; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);">${ingredientOptions}</select>
+          </td>
           <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="quantity" value="${item.quantity}" type="number" style="width:50px; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
           <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="unitPrice" value="${item.unitPrice}" type="number" step="0.01" style="width:60px; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
           <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="lineTotal" value="${item.lineTotal}" type="number" step="0.01" style="width:60px; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
         `;
+        
+        // Auto-select linked ingredient if available
+        if (item.matchedMenuIngredient) {
+            const select = tr.querySelector('.item-link-input');
+            if (select) select.value = item.matchedMenuIngredient;
+        }
+        
         reviewTbody.appendChild(tr);
       });
 
-      reviewTbody.querySelectorAll("input").forEach((input) => {
+      reviewTbody.querySelectorAll("input, select").forEach((input) => {
         input.addEventListener("change", (e) => {
           const idx = parseInt(e.target.dataset.idx, 10);
           const field = e.target.dataset.field;
-          const value = e.target.type === "number" ? parseFloat(e.target.value) : e.target.value;
+          let value = e.target.value;
+          if (e.target.type === "number") value = parseFloat(value);
+          if (value === "") value = null;
           currentItems[idx][field] = value;
         });
       });
@@ -2884,16 +2912,55 @@ window.loadAnalytics = loadAnalytics;
     confirmBtn.addEventListener("click", async () => {
       if (!currentExpenseId) return;
       confirmBtn.disabled = true;
-      confirmBtn.textContent = "Saving...";
+      confirmBtn.textContent = "Saving & Learning...";
 
       try {
+        // 1. Save mappings
+        for (const item of currentItems) {
+           if (item.name) {
+              const mapKey = item.name.toLowerCase().trim();
+              const mapData = {};
+              if (item.category) mapData.category = item.category;
+              if (item.matchedMenuIngredient) mapData.matchedMenuIngredient = item.matchedMenuIngredient;
+              
+              if (Object.keys(mapData).length > 0) {
+                 await setDoc(doc(db, 'receipt_mappings', mapKey), mapData, { merge: true });
+              }
+           }
+           
+           // 2. Update Inventory
+           if (item.name && item.quantity > 0) {
+              const invRef = doc(db, 'inventory', item.matchedMenuIngredient || item.name.toLowerCase().trim());
+              const invSnap = await getDoc(invRef);
+              
+              let newStock = item.quantity;
+              let priceHistory = [{ date: new Date().toISOString(), price: item.unitPrice, vendor: reviewMeta.innerText.includes('Vendor:') ? reviewMeta.innerText.split('Vendor:')[1].split('&nbsp;')[0].trim() : 'Unknown' }];
+              
+              if (invSnap.exists()) {
+                 const invData = invSnap.data();
+                 newStock += (invData.stockQuantity || 0);
+                 priceHistory = [...(invData.priceHistory || []), ...priceHistory].slice(-10); // Keep last 10
+              }
+              
+              await setDoc(invRef, {
+                 name: item.matchedMenuIngredient ? (window.adminMenuData[item.matchedMenuIngredient]?.name || item.name) : item.name,
+                 category: item.category || 'other',
+                 stockQuantity: newStock,
+                 lastPrice: item.unitPrice,
+                 priceHistory: priceHistory,
+                 updatedAt: serverTimestamp()
+              }, { merge: true });
+           }
+        }
+
+        // 3. Save Expense
         await updateDoc(doc(db, "expenses", currentExpenseId), {
           items: currentItems,
           status: "confirmed",
           confirmedAt: serverTimestamp(),
         });
 
-        statusEl.textContent = "Expense confirmed and saved.";
+        statusEl.textContent = "Expense confirmed, learned, and inventory updated.";
         reviewSection.style.display = "none";
         fileInput.value = "";
       } catch (err) {
@@ -2912,10 +2979,54 @@ window.loadAnalytics = loadAnalytics;
     }
   }
 
-  // Fetch and display saved expenses
-  const savedExpensesTbody = document.getElementById("saved-expenses-tbody");
+
+
+  // Setup Expense Analytics Chart
+  let expenseChartInst = null;
+  const renderExpenseAnalytics = (snapshot) => {
+    const ctx = document.getElementById('expenseChart');
+    if (!ctx) return;
+    
+    let catTotals = {};
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.status !== 'confirmed') return;
+      (data.items || []).forEach(item => {
+         const cat = item.category || 'other';
+         catTotals[cat] = (catTotals[cat] || 0) + (item.lineTotal || 0);
+      });
+    });
+
+    const labels = Object.keys(catTotals);
+    const data = Object.values(catTotals);
+    
+    if (expenseChartInst) {
+       expenseChartInst.destroy();
+    }
+    
+    expenseChartInst = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: ['#ff4d4d', '#4caf50', '#ffeb3b', '#2196f3', '#9c27b0', '#ff9800'],
+          borderColor: '#111',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { color: '#e0e0e0' } }
+        }
+      }
+    });
+  };
+
   if (savedExpensesTbody) {
-    const expensesQuery = query(collection(db, "expenses"), orderBy("createdAt", "desc"), limit(50));
+    const expensesQuery = query(collection(db, "expenses"), orderBy("createdAt", "desc"), limit(100));
     onSnapshot(expensesQuery, (snapshot) => {
       savedExpensesTbody.innerHTML = "";
       if (snapshot.empty) {
@@ -2923,7 +3034,12 @@ window.loadAnalytics = loadAnalytics;
         return;
       }
 
+      renderExpenseAnalytics(snapshot);
+
+      let rowCount = 0;
       snapshot.forEach(docSnap => {
+        if (rowCount >= 50) return; // Only show 50 in table, but chart uses 100
+        rowCount++;
         const data = docSnap.data();
         const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'N/A';
         const itemCount = data.items ? data.items.length : 0;
@@ -2946,6 +3062,64 @@ window.loadAnalytics = loadAnalytics;
       });
     });
   }
+
+  // Inventory Tracker Logic
+  const inventoryTbody = document.getElementById('inventory-table-body');
+  if (inventoryTbody) {
+     onSnapshot(collection(db, 'inventory'), (snapshot) => {
+        inventoryTbody.innerHTML = "";
+        if (snapshot.empty) {
+           inventoryTbody.innerHTML = '<tr><td colspan="6" style="padding: 16px; text-align: center; color: var(--gray);">No inventory tracked yet. Confirm receipts to auto-populate.</td></tr>';
+           return;
+        }
+        
+        snapshot.forEach(docSnap => {
+           const data = docSnap.data();
+           
+           let priceTrendHtml = '-';
+           let avgPrice = data.lastPrice;
+           if (data.priceHistory && data.priceHistory.length > 1) {
+              const history = data.priceHistory;
+              const current = history[history.length - 1].price;
+              const prev = history[history.length - 2].price;
+              const sum = history.reduce((acc, curr) => acc + curr.price, 0);
+              avgPrice = sum / history.length;
+              
+              if (current > prev) {
+                 const pct = ((current - prev) / prev) * 100;
+                 priceTrendHtml = `<span style="color:#f44336; font-weight:bold;">↑ ${pct.toFixed(1)}%</span>`;
+              } else if (current < prev) {
+                 const pct = ((prev - current) / prev) * 100;
+                 priceTrendHtml = `<span style="color:#4caf50; font-weight:bold;">↓ ${pct.toFixed(1)}%</span>`;
+              }
+           }
+           
+           const tr = document.createElement("tr");
+           tr.style.borderBottom = "1px solid var(--border)";
+           tr.innerHTML = `
+              <td style="padding: 12px; font-weight:600;">${escapeHtml(data.name)}</td>
+              <td style="padding: 12px;">${escapeHtml(data.category || 'other')}</td>
+              <td style="padding: 12px;">
+                 <input type="number" value="${data.stockQuantity || 0}" style="width: 60px; padding: 4px; border: 1px solid var(--border); background: var(--bg); color: var(--white); border-radius: 4px;" onchange="updateInventoryStock('${docSnap.id}', this.value)" />
+              </td>
+              <td style="padding: 12px;">$${(data.lastPrice||0).toFixed(2)}</td>
+              <td style="padding: 12px; color: var(--gray);">$${avgPrice.toFixed(2)}</td>
+              <td style="padding: 12px;">${priceTrendHtml}</td>
+           `;
+           inventoryTbody.appendChild(tr);
+        });
+     });
+  }
+  
+  window.updateInventoryStock = async (id, val) => {
+     try {
+        await updateDoc(doc(db, 'inventory', id), { stockQuantity: parseFloat(val) || 0 });
+     } catch (e) {
+        console.error(e);
+        alert("Failed to update stock");
+     }
+  };
+
 
   function escapeHtml(str) {
     const div = document.createElement("div");
