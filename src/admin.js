@@ -159,22 +159,20 @@ logoutBtn.addEventListener('click', () => {
   signOut(auth);
 });
 
-// Change Password Logic
-const changePwdBtn = document.getElementById('change-pwd-btn');
-const changePwdModal = document.getElementById('change-pwd-modal');
-const changePwdForm = document.getElementById('change-pwd-form');
-const changePwdError = document.getElementById('change-pwd-error');
-const newPwdInput = document.getElementById('new-password-input');
-const newEmailInput = document.getElementById('new-email-input');
-
-if (changePwdBtn) {
-  changePwdBtn.addEventListener('click', (e) => {
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#change-pwd-btn')) {
     e.preventDefault();
     console.log("Account settings clicked!");
     try {
-       changePwdError.textContent = '';
+       const changePwdModal = document.getElementById('change-pwd-modal');
+       const changePwdError = document.getElementById('change-pwd-error');
+       const newPwdInput = document.getElementById('new-password-input');
+       const newEmailInput = document.getElementById('new-email-input');
+
+       if (changePwdError) changePwdError.textContent = '';
        if (newPwdInput) newPwdInput.value = '';
        if (newEmailInput) newEmailInput.value = auth.currentUser ? auth.currentUser.email : '';
+       
        if (changePwdModal) {
           changePwdModal.style.display = 'flex';
           console.log("Modal opened");
@@ -184,17 +182,23 @@ if (changePwdBtn) {
     } catch(err) {
        alert("Error: " + err.message);
     }
-  });
-}
+  }
+});
 
 window.closeChangePwdModal = function() {
-  if (changePwdModal) changePwdModal.style.display = 'none';
+  const modal = document.getElementById('change-pwd-modal');
+  if (modal) modal.style.display = 'none';
 };
 
+const changePwdForm = document.getElementById('change-pwd-form');
 if (changePwdForm) {
   changePwdForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!auth.currentUser) return;
+    const changePwdError = document.getElementById('change-pwd-error');
+    const newPwdInput = document.getElementById('new-password-input');
+    const newEmailInput = document.getElementById('new-email-input');
+
     try {
       const btn = document.getElementById('btn-save-pwd');
       btn.disabled = true;
@@ -202,7 +206,7 @@ if (changePwdForm) {
       
       let msg = '';
       const newEmail = newEmailInput ? newEmailInput.value.trim() : '';
-      const newPwd = newPwdInput.value;
+      const newPwd = newPwdInput ? newPwdInput.value : '';
 
       if (newPwd) {
          await updatePassword(auth.currentUser, newPwd);
@@ -222,14 +226,16 @@ if (changePwdForm) {
       closeChangePwdModal();
     } catch (err) {
       if (err.code === 'auth/requires-recent-login') {
-         changePwdError.textContent = 'For security, please logout and log back in before making account changes.';
+         if (changePwdError) changePwdError.textContent = 'For security, please logout and log back in before making account changes.';
       } else {
-         changePwdError.textContent = err.message;
+         if (changePwdError) changePwdError.textContent = err.message;
       }
     } finally {
       const btn = document.getElementById('btn-save-pwd');
-      btn.disabled = false;
-      btn.textContent = 'Save Changes';
+      if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Save Changes';
+      }
     }
   });
 }
