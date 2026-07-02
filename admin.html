@@ -266,28 +266,46 @@
 
         <!-- Inventory View -->
         <section id="inventory-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Inventory & Pricing</h1>
-          <p style="color: var(--gray); margin-bottom: 24px;">Manage your stock levels and monitor ingredient price fluctuations in real-time.</p>
+          <div class="crm-header-action">
+            <h1 class="crm-view-title">Inventory & Pricing</h1>
+            <button class="btn-primary btn-small" id="btn-add-inventory">Add Item</button>
+          </div>
+          <p style="color: var(--gray); margin-bottom: 24px;">Manage stock levels, add items manually, or scan receipts to update.</p>
           
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="crm-stat-card" style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+              <div style="font-size: 13px; color: var(--gray); text-transform: uppercase;">Total Items Tracked</div>
+              <div id="inv-total-items" style="font-size: 28px; font-weight: bold; color: var(--white); margin-top: 8px;">0</div>
+            </div>
+            <div class="crm-stat-card" style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+              <div style="font-size: 13px; color: var(--gray); text-transform: uppercase;">Low Stock Alerts</div>
+              <div id="inv-low-stock" style="font-size: 28px; font-weight: bold; color: #f44336; margin-top: 8px;">0</div>
+            </div>
+            <div class="crm-stat-card" style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+              <div style="font-size: 13px; color: var(--gray); text-transform: uppercase;">Avg Cost Trend</div>
+              <div id="inv-cost-trend" style="font-size: 28px; font-weight: bold; color: var(--accent); margin-top: 8px;">--</div>
+            </div>
+          </div>
+
           <div class="crm-panel mt-m">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h3 style="margin: 0;">Live Stock Tracker</h3>
-              <input type="text" id="inventory-search" placeholder="Search ingredients..." style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--white); width: 250px;">
+            <div class="crm-filters">
+              <input type="text" id="inventory-search" class="crm-input" placeholder="Search inventory...">
             </div>
             <div class="crm-table-container">
               <table class="crm-table" style="width: 100%; border-collapse: collapse;">
                 <thead>
-                  <tr style="text-align: left; border-bottom: 2px solid var(--border);">
-                    <th style="padding: 12px;">Ingredient</th>
-                    <th style="padding: 12px;">Category</th>
-                    <th style="padding: 12px;">Stock (Units)</th>
-                    <th style="padding: 12px;">Last Price</th>
-                    <th style="padding: 12px;">Avg Price</th>
-                    <th style="padding: 12px;">Price Trend</th>
+                  <tr>
+                    <th>Item / Category</th>
+                    <th>Status</th>
+                    <th>Stock (Units)</th>
+                    <th>Last Price</th>
+                    <th>Avg Price</th>
+                    <th>Trend</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="inventory-tbody">
-                  <tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--gray);">Loading live inventory data...</td></tr>
+                  <tr><td colspan="7" style="padding: 24px; text-align: center; color: var(--gray);">Loading live inventory data...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -827,60 +845,64 @@
         <!-- ============================================== -->
         
         <div id="expense-view" class="crm-view" style="display: none;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="margin-bottom: 8px;">Add Expense</h2>
-            <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">
-              Photograph a Restaurant Depot or Costco receipt to log it automatically.
+          <div class="crm-header-action">
+            <h1 class="crm-view-title">Expenses & Receipts</h1>
+          </div>
+          
+          <div style="max-width: 800px; margin: 0 auto; padding: 20px 0;">
+            <p style="color: var(--gray); font-size: 15px; margin-bottom: 24px;">
+              Photograph a Restaurant Depot, Costco, or any vendor receipt to log it automatically.
             </p>
 
-            <label for="receipt-input" class="btn-primary" style="display:block; padding: 16px; text-align:center; border-radius: 10px; font-weight:600; cursor:pointer; font-size: 16px;">
-              📷 Capture / Upload Receipt
-            </label>
-            <input id="receipt-input" type="file" accept="image/*" capture="environment" style="display:none;" />
-
-            <div id="upload-status" style="margin-top: 16px; font-size: 14px; color: var(--gray);"></div>
+            <div style="background: var(--surface); border: 2px dashed var(--accent); border-radius: 12px; padding: 32px; text-align: center; margin-bottom: 32px; transition: background 0.3s;" onmouseover="this.style.background='rgba(233,171,0,0.1)'" onmouseout="this.style.background='var(--surface)'">
+              <label for="receipt-input" style="display:inline-block; padding: 16px 32px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 18px; background: var(--accent); color: var(--black);">
+                📷 Capture / Upload Receipt
+              </label>
+              <input id="receipt-input" type="file" accept="image/*" capture="environment" style="display:none;" />
+              <div id="upload-status" style="margin-top: 16px; font-size: 14px; color: var(--gray);"></div>
+            </div>
 
             <!-- Expense Analytics -->
-            <div id="expense-analytics-section" style="margin-top: 32px; background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
-              <h3 style="margin-top: 0; font-family: 'Barlow Condensed';">Monthly Expense Analytics</h3>
-              <div style="height: 250px; position: relative;">
+            <div id="expense-analytics-section" style="margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px;">Monthly Expense Analytics</h3>
+              <div style="height: 250px; position: relative; margin-top: 16px;">
                 <canvas id="expenseChart"></canvas>
               </div>
             </div>
 
-            <div id="review-section" style="display:none; margin-top: 32px; background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
-              <h3>Review Parsed Items</h3>
+            <div id="review-section" style="display:none; margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px; color: var(--accent);">Review Parsed Items</h3>
               <div id="review-meta" style="font-size: 14px; color:var(--gray-light); margin-bottom: 16px;"></div>
-              <div style="overflow-x: auto;">
+              <div class="crm-table-container">
                 <table class="crm-table" id="review-table" style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
                   <thead>
-                    <tr style="border-bottom: 1px solid var(--border);">
-                      <th style="padding:8px;">Item</th>
-                      <th style="padding:8px;">Category & Link</th>
-                      <th style="padding:8px;">Qty</th>
-                      <th style="padding:8px;">Unit $</th>
-                      <th style="padding:8px;">Total $</th>
+                    <tr>
+                      <th>Item</th>
+                      <th>Category & Link</th>
+                      <th>Qty</th>
+                      <th>Unit $</th>
+                      <th>Total $</th>
                     </tr>
                   </thead>
                   <tbody id="review-tbody"></tbody>
                 </table>
               </div>
               <button id="confirm-expense-btn" class="btn-primary" style="margin-top: 24px; width:100%; padding: 14px; font-weight:700; border-radius: 10px; font-size: 16px; cursor:pointer;">
-                Confirm & Save
+                Confirm & Save Expense
               </button>
             </div>
 
-            <div style="margin-top: 48px;">
-              <h2 style="margin-bottom: 16px;">Recent Expenses</h2>
-              <div style="overflow-x: auto;">
+            <div>
+              <h2 style="margin-bottom: 16px; font-family: 'Barlow Condensed'; font-size: 24px;">Recent Expenses</h2>
+              <div class="crm-table-container">
                 <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
                   <thead>
                     <tr>
-                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Date</th>
-                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Vendor</th>
-                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Items</th>
-                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Total</th>
-                      <th style="padding: 12px; border-bottom: 1px solid var(--border);">Status</th>
+                      <th>Date</th>
+                      <th>Vendor</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody id="saved-expenses-tbody">
@@ -1122,6 +1144,42 @@
         <div id="event-editor-container">
           <!-- Rendered by JS -->
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Inventory Modal -->
+  <div class="crm-modal" id="add-inventory-modal">
+    <div class="crm-modal-box" style="max-width: 400px;">
+      <div class="crm-modal-header">
+        <h2>Add Inventory Item</h2>
+        <button class="crm-btn-icon" onclick="document.getElementById('add-inventory-modal').classList.remove('open')">×</button>
+      </div>
+      <div class="crm-modal-content">
+        <form id="add-inventory-form" style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <label class="form-label">Item Name</label>
+            <input type="text" id="add-inv-name" class="form-input" required placeholder="e.g. Flour, Rice, Tomatoes">
+          </div>
+          <div>
+            <label class="form-label">Category</label>
+            <input type="text" id="add-inv-category" class="form-input" required placeholder="e.g. Produce, Dry Goods">
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div style="flex: 1;">
+              <label class="form-label">Initial Stock</label>
+              <input type="number" id="add-inv-stock" class="form-input" required step="0.01" min="0" value="0">
+            </div>
+            <div style="flex: 1;">
+              <label class="form-label">Price per Unit ($)</label>
+              <input type="number" id="add-inv-price" class="form-input" required step="0.01" min="0" value="0.00">
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; margin-top: 8px;">
+            <button type="submit" class="btn-primary" style="flex: 1;">Add Item</button>
+            <button type="button" class="btn-outline" style="flex: 1;" onclick="document.getElementById('add-inventory-modal').classList.remove('open')">Cancel</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

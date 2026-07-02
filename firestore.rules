@@ -84,6 +84,26 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
     
+    // Inventory and Unit Economics (Admin Only)
+    match /inventory/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /unitEconomics_ingredients/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /unitEconomics_events/{id} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Reviews
+    match /reviews/{id} {
+      // Anyone can read reviews
+      allow read: if true;
+      // Depending on your auth model, anyone might submit reviews, or only admins can manage them
+      // Assuming users submit reviews publicly without auth for now (or adjust as needed)
+      allow write: if true; 
+    }
+    
     // Default: Deny everything else
     match /{document=**} {
       allow read, write: if false;

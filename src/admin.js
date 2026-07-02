@@ -3253,6 +3253,9 @@ window.loadAnalytics = loadAnalytics;
           
           savedExpensesTbody.appendChild(mainTr);
         });
+      }, (err) => {
+        console.error("Expenses sync error:", err);
+        savedExpensesTbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: #f44336;">Error loading expenses. Check console.</td></tr>';
       });
     }
 
@@ -3264,8 +3267,22 @@ window.loadAnalytics = loadAnalytics;
     const renderInventory = (filter = "") => {
       if (!inventoryTbody) return;
       inventoryTbody.innerHTML = "";
+      
+      const totalItemsEl = document.getElementById('inv-total-items');
+      const lowStockEl = document.getElementById('inv-low-stock');
+      const costTrendEl = document.getElementById('inv-cost-trend');
+      
+      if (totalItemsEl) totalItemsEl.textContent = inventoryDataCache.length;
+      
+      let lowCount = 0;
+      inventoryDataCache.forEach(d => {
+         if ((parseFloat(d.stockQuantity) || 0) < 10) lowCount++;
+      });
+      if (lowStockEl) lowStockEl.textContent = lowCount;
+      if (costTrendEl) costTrendEl.textContent = "Stable"; // Placeholder, can be calculated dynamically
+
       if (inventoryDataCache.length === 0) {
-         inventoryTbody.innerHTML = '<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--gray);">No inventory tracked yet. Confirm receipts to auto-populate.</td></tr>';
+         inventoryTbody.innerHTML = '<tr><td colspan="7" style="padding: 24px; text-align: center; color: var(--gray);">No inventory tracked yet. Add items manually or confirm receipts.</td></tr>';
          return;
       }
       
@@ -3275,7 +3292,7 @@ window.loadAnalytics = loadAnalytics;
       );
 
       if (filtered.length === 0) {
-         inventoryTbody.innerHTML = '<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--gray);">No ingredients found.</td></tr>';
+         inventoryTbody.innerHTML = '<tr><td colspan="7" style="padding: 24px; text-align: center; color: var(--gray);">No ingredients found.</td></tr>';
          return;
       }
 
@@ -3313,7 +3330,7 @@ window.loadAnalytics = loadAnalytics;
          const tr = document.createElement("tr");
          tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
          tr.innerHTML = `
-            <td data-label="Item" style="padding: 12px; font-weight: 600;">
+            <td data-label="Item / Category" style="padding: 12px; font-weight: 600;">
               <div>${window.escapeHtml(data.name || 'Unknown')}</div>
               <div style="font-size:11px; color:var(--gray); text-transform:uppercase; margin-top:4px;">${window.escapeHtml(data.category || 'other')}</div>
             </td>
@@ -3326,6 +3343,9 @@ window.loadAnalytics = loadAnalytics;
             <td data-label="Last Price" style="padding: 12px; font-weight:bold; color:var(--white);">$${(data.lastPrice || 0).toFixed(2)}</td>
             <td data-label="Avg Price" style="padding: 12px; color:var(--gray);">$${(avgPrice || 0).toFixed(2)}</td>
             <td data-label="Trend" style="padding: 12px;">${priceTrendHtml}</td>
+            <td data-label="Actions" style="padding: 12px; text-align: right;">
+              <button class="btn-outline btn-small" onclick="deleteInventoryItem('${data.id}')" style="border-color: rgba(244,67,54,0.3); color: #f44336;">Del</button>
+            </td>
          `;
          inventoryTbody.appendChild(tr);
       });
@@ -3357,6 +3377,9 @@ window.loadAnalytics = loadAnalytics;
           });
           const currentFilter = inventorySearch ? inventorySearch.value : "";
           renderInventory(currentFilter);
+       }, (err) => {
+          console.error("Inventory sync error:", err);
+          inventoryTbody.innerHTML = '<tr><td colspan="7" style="padding: 24px; text-align: center; color: #f44336;">Error loading inventory. Check console.</td></tr>';
        });
 
        if (inventorySearch) {
@@ -3364,6 +3387,58 @@ window.loadAnalytics = loadAnalytics;
              renderInventory(e.target.value);
           });
        }
+
+       // Add Inventory Flow
+       const btnAddInventory = document.getElementById('btn-add-inventory');
+       const addInventoryModal = document.getElementById('add-inventory-modal');
+       const addInventoryForm = document.getElementById('add-inventory-form');
+       
+       if (btnAddInventory && addInventoryModal) {
+         btnAddInventory.addEventListener('click', () => {
+           addInventoryModal.classList.add('open');
+         });
+       }
+       
+       if (addInventoryForm) {
+         addInventoryForm.addEventListener('submit', async (e) => {
+           e.preventDefault();
+           const name = document.getElementById('add-inv-name').value.trim();
+           const cat = document.getElementById('add-inv-category').value.trim();
+           const stock = parseFloat(document.getElementById('add-inv-stock').value) || 0;
+           const price = parseFloat(document.getElementById('add-inv-price').value) || 0;
+           
+           if(!name) return alert("Item name is required.");
+           
+           const docId = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+           try {
+             await setDoc(doc(db, 'inventory', docId), {
+               name: name,
+               category: cat,
+               stockQuantity: stock,
+               lastPrice: price,
+               priceHistory: [{ date: new Date(), price: price }],
+               updatedAt: serverTimestamp()
+             });
+             addInventoryModal.classList.remove('open');
+             addInventoryForm.reset();
+             showToast("Item added successfully");
+           } catch(err) {
+             console.error(err);
+             alert("Failed to add inventory item.");
+           }
+         });
+       }
+    }
+  };
+  
+  window.deleteInventoryItem = async (id) => {
+    if(!confirm("Are you sure you want to delete this item?")) return;
+    try {
+      await deleteDoc(doc(db, 'inventory', id));
+      showToast("Item deleted");
+    } catch(err) {
+      console.error(err);
+      alert("Failed to delete item");
     }
   };
   
