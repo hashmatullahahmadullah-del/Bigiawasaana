@@ -8,7 +8,11 @@ import { t, getLang, setLang, toggleLang, applyTranslations } from './i18n/index
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
 const loginForm = document.getElementById('login-form');
+const crmNavLinks = document.querySelectorAll('.crm-nav-item');
 const logoutBtn = document.getElementById('logout-btn');
+const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+const langToggle = document.getElementById('lang-toggle');
+const mobileLangToggle = document.getElementById('mobile-lang-toggle');
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 const navOverlay = document.getElementById('crm-nav-overlay');
 const crmNav = document.querySelector('.crm-nav');
@@ -628,11 +632,11 @@ function renderUpcomingScheduledOrders() {
     
     return `
       <tr style="border-bottom: 1px solid var(--border);">
-        <td style="padding: 12px; font-weight: 600; color: var(--accent);">${requestedTimeStr}</td>
-        <td style="padding: 12px; font-weight: 500;">${o.customerName || 'N/A'}</td>
-        <td style="padding: 12px;">$${o.total.toFixed(2)}</td>
-        <td style="padding: 12px;">${qty} items</td>
-        <td style="padding: 12px;">
+        <td data-label="Requested Time" style="padding: 12px; font-weight: 600; color: var(--accent);">${requestedTimeStr}</td>
+        <td data-label="Customer" style="padding: 12px; font-weight: 500;">${o.customerName || 'N/A'}</td>
+        <td data-label="Total" style="padding: 12px;">$${o.total.toFixed(2)}</td>
+        <td data-label="Items" style="padding: 12px;">${qty} items</td>
+        <td data-label="Status" style="padding: 12px;">
           <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
             ${o.status}
           </span>
@@ -1113,11 +1117,11 @@ function renderCustomers() {
       const tr = document.createElement('tr');
       tr.style.cursor = 'pointer';
       tr.innerHTML = `
-        <td><strong>${c.name}</strong></td>
-        <td>${c.phone}</td>
-        <td>$${c.totalSpent.toFixed(2)}</td>
-        <td>${c.totalOrders}</td>
-        <td><span class="crm-badge" style="background: ${color}33; color: ${color}; border-color: ${color};">${tier}</span></td>
+        <td data-label="Name"><strong>${c.name}</strong></td>
+        <td data-label="Phone">${c.phone}</td>
+        <td data-label="Spent">$${c.totalSpent.toFixed(2)}</td>
+        <td data-label="Orders">${c.totalOrders}</td>
+        <td data-label="Tier"><span class="crm-badge" style="background: ${color}33; color: ${color}; border-color: ${color};">${tier}</span></td>
       `;
       tr.addEventListener('click', () => openCustomerDetail(c));
       tbody.appendChild(tr);
@@ -1167,11 +1171,11 @@ function renderAllOrders() {
       const tr = document.createElement('tr');
       tr.style.cursor = 'pointer';
       tr.innerHTML = `
-        <td>${o.id.substring(0,8)}</td>
-        <td><strong>${o.customerName}</strong></td>
-        <td>${o.date.toLocaleDateString()}</td>
-        <td>$${o.total.toFixed(2)}</td>
-        <td><span class="status-badge ${statusClass}">${o.status}</span></td>
+        <td data-label="ID">${o.id.substring(0,8)}</td>
+        <td data-label="Customer"><strong>${o.customerName}</strong></td>
+        <td data-label="Date">${o.date.toLocaleDateString()}</td>
+        <td data-label="Total">$${o.total.toFixed(2)}</td>
+        <td data-label="Status"><span class="status-badge ${statusClass}">${o.status}</span></td>
       `;
       tr.addEventListener('click', () => openMockOrderDetail(o));
       tbody.appendChild(tr);
@@ -1362,11 +1366,11 @@ function renderCatering() {
     tr.onclick = () => showCateringDetails(inquiry);
     
     tr.innerHTML = `
-      <td>${inquiry.createdAt.toLocaleDateString()}</td>
-      <td><strong>${inquiry.name}</strong><br><small style="color: var(--gray);">${inquiry.phone}</small></td>
-      <td>${inquiry.date}</td>
-      <td>${inquiry.guests}</td>
-      <td><span class="status-badge ${inquiry.status === 'new' ? 'status-pending' : 'status-completed'}">${inquiry.status.toUpperCase()}</span></td>
+      <td data-label="Added">${inquiry.createdAt.toLocaleDateString()}</td>
+      <td data-label="Customer"><strong>${inquiry.name}</strong><br><small style="color: var(--gray);">${inquiry.phone}</small></td>
+      <td data-label="Event Date">${inquiry.date}</td>
+      <td data-label="Guests">${inquiry.guests}</td>
+      <td data-label="Status"><span class="status-badge ${inquiry.status === 'new' ? 'status-pending' : 'status-completed'}">${inquiry.status.toUpperCase()}</span></td>
     `;
     tbody.appendChild(tr);
   });
@@ -2915,8 +2919,8 @@ function loadAnalytics() {
     } else {
       topPagesTbody.innerHTML = sortedPages.map(sp => `
         <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 12px 0;">${sp.path}</td>
-          <td style="padding: 12px 0; text-align: right; color: var(--accent); font-weight: 600;">${sp.count}</td>
+          <td data-label="URL Path" style="padding: 12px 0;">${sp.path}</td>
+          <td data-label="Views" style="padding: 12px 0; text-align: right; color: var(--accent); font-weight: 600;">${sp.count}</td>
         </tr>
       `).join('');
     }
@@ -2929,8 +2933,8 @@ function loadAnalytics() {
     } else {
       topRefsTbody.innerHTML = sortedRefs.map(sr => `
         <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 12px 0; text-transform: capitalize;">${sr.ref.replace('www.', '')}</td>
-          <td style="padding: 12px 0; text-align: right; color: var(--accent); font-weight: 600;">${sr.count}</td>
+          <td data-label="Source" style="padding: 12px 0; text-transform: capitalize;">${sr.ref.replace('www.', '')}</td>
+          <td data-label="Visits" style="padding: 12px 0; text-align: right; color: var(--accent); font-weight: 600;">${sr.count}</td>
         </tr>
       `).join('');
     }
@@ -3211,11 +3215,11 @@ window.loadAnalytics = loadAnalytics;
           mainTr.onmouseover = () => mainTr.style.background = "rgba(255,255,255,0.05)";
           mainTr.onmouseout = () => mainTr.style.background = "transparent";
           mainTr.innerHTML = `
-            <td style="padding: 12px;">${dateStr}</td>
-            <td style="padding: 12px; font-weight: 600;">${window.escapeHtml(data.vendor || 'Unknown')}</td>
-            <td style="padding: 12px;">${itemCount} items</td>
-            <td style="padding: 12px; font-weight: bold; color: var(--accent);">${totalStr}</td>
-            <td style="padding: 12px;">
+            <td data-label="Date" style="padding: 12px;">${dateStr}</td>
+            <td data-label="Vendor" style="padding: 12px; font-weight: 600;">${window.escapeHtml(data.vendor || 'Unknown')}</td>
+            <td data-label="Items" style="padding: 12px;">${itemCount} items</td>
+            <td data-label="Total" style="padding: 12px; font-weight: bold; color: var(--accent);">${totalStr}</td>
+            <td data-label="Status" style="padding: 12px;">
               <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
                 ${window.escapeHtml(data.status || 'pending')}
               </span>
@@ -3309,19 +3313,19 @@ window.loadAnalytics = loadAnalytics;
          const tr = document.createElement("tr");
          tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
          tr.innerHTML = `
-            <td style="padding: 12px; font-weight: 600;">
+            <td data-label="Item" style="padding: 12px; font-weight: 600;">
               <div>${window.escapeHtml(data.name || 'Unknown')}</div>
               <div style="font-size:11px; color:var(--gray); text-transform:uppercase; margin-top:4px;">${window.escapeHtml(data.category || 'other')}</div>
             </td>
-            <td style="padding: 12px; min-width: 120px;">
+            <td data-label="Status" style="padding: 12px; min-width: 120px;">
               ${stockLevelHtml}
             </td>
-            <td style="padding: 12px;">
+            <td data-label="Qty" style="padding: 12px;">
               <input type="number" class="inventory-stock-input" data-id="${data.id}" value="${qty}" step="0.01" style="width: 80px; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: var(--white); text-align: right; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
             </td>
-            <td style="padding: 12px; font-weight:bold; color:var(--white);">$${(data.lastPrice || 0).toFixed(2)}</td>
-            <td style="padding: 12px; color:var(--gray);">$${(avgPrice || 0).toFixed(2)}</td>
-            <td style="padding: 12px;">${priceTrendHtml}</td>
+            <td data-label="Last Price" style="padding: 12px; font-weight:bold; color:var(--white);">$${(data.lastPrice || 0).toFixed(2)}</td>
+            <td data-label="Avg Price" style="padding: 12px; color:var(--gray);">$${(avgPrice || 0).toFixed(2)}</td>
+            <td data-label="Trend" style="padding: 12px;">${priceTrendHtml}</td>
          `;
          inventoryTbody.appendChild(tr);
       });

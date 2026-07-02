@@ -32,14 +32,14 @@
       <a href="/" style="display: flex; align-items: center; text-decoration: none;">
         <img src="/logo.webp" alt="Bigi Awasaana Logo" style="height: 64px; width: auto; object-fit: contain;">
       </a>
-      <div style="font-family: 'Barlow Condensed'; font-weight: 600; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase;">
+      <div class="hide-on-mobile" style="font-family: 'Barlow Condensed'; font-weight: 600; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase;">
         <span style="color: var(--accent);">Admin Dashboard</span>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <button id="lang-toggle" class="btn-outline" style="padding: 8px 16px; font-size: 12px; white-space: nowrap; font-family: 'Outfit', sans-serif;">EN | فا</button>
-        <button id="logout-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none;">Logout</button>
-        <button id="pwa-install-btn" class="btn-outline" style="padding: 8px 16px; font-size: 12px; display: none; white-space: nowrap;">Install App</button>
-        <button id="mobile-menu-btn" class="crm-btn-icon" style="display: none; padding: 8px; font-size: 24px;">☰</button>
+        <button id="lang-toggle" class="btn-outline hide-on-mobile" style="padding: 8px 16px; font-size: 12px; white-space: nowrap; font-family: 'Outfit', sans-serif;">EN | فا</button>
+        <button id="logout-btn" class="btn-outline" style="padding: 6px 12px; font-size: 12px; display: none;">Logout</button>
+        <button id="pwa-install-btn" class="btn-outline hide-on-mobile" style="padding: 8px 16px; font-size: 12px; display: none; white-space: nowrap;">Install App</button>
+        <button id="mobile-menu-btn" class="crm-btn-icon" style="display: none; padding: 4px; font-size: 24px; margin-left: auto;">☰</button>
       </div>
     </div>
   </nav>
@@ -141,8 +141,15 @@
           </button>
           <button class="crm-nav-item" data-target="settings-view">
             <span class="icon">⚙️</span>
-            <span class="label">Settings</span>
+            <span class="label" data-i18n="admin.nav.settings">Settings</span>
           </button>
+          
+          <!-- Mobile Only Actions -->
+          <div style="margin-top: 24px; padding: 0 16px; display: flex; flex-direction: column; gap: 12px;" class="mobile-only-actions">
+            <button id="mobile-lang-toggle" class="btn-outline" style="width: 100%; justify-content: center; font-size: 12px; padding: 12px;">EN | فا</button>
+            <button id="mobile-pwa-install-btn" class="btn-outline" style="width: 100%; justify-content: center; font-size: 12px; padding: 12px; display: none;">Install App</button>
+            <button id="mobile-logout-btn" class="btn-outline" style="width: 100%; justify-content: center; font-size: 12px; padding: 12px; display: none; color: var(--accent); border-color: var(--accent);">Logout</button>
+          </div>
         </div>
       </nav>
 
@@ -776,7 +783,7 @@
             <!-- Top Pages -->
             <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
               <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Pages & Posts</h3>
-              <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
                 <thead>
                   <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
                     <th style="padding-bottom: 8px;">URL Path</th>
@@ -793,7 +800,7 @@
             <!-- Top Referrers -->
             <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
               <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Traffic Sources</h3>
-              <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
                 <thead>
                   <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
                     <th style="padding-bottom: 8px;">Source (Referrer)</th>
@@ -845,7 +852,7 @@
               <h3>Review Parsed Items</h3>
               <div id="review-meta" style="font-size: 14px; color:var(--gray-light); margin-bottom: 16px;"></div>
               <div style="overflow-x: auto;">
-                <table id="review-table" style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+                <table class="crm-table" id="review-table" style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
                   <thead>
                     <tr style="border-bottom: 1px solid var(--border);">
                       <th style="padding:8px;">Item</th>

@@ -1184,9 +1184,23 @@ body {
 }
 
 /* Responsive CRM Mobile Drawer Nav */
+@media (min-width: 769px) {
+  .mobile-only-actions {
+    display: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   #mobile-menu-btn {
     display: block !important;
+  }
+  
+  .hide-on-mobile {
+    display: none !important;
+  }
+  
+  .mobile-only-actions {
+    display: flex !important;
   }
 
   .crm-layout {
@@ -1195,7 +1209,7 @@ body {
   
   .crm-nav {
     position: fixed;
-    top: 72px;
+    top: 0;
     bottom: 0;
     left: -280px;
     width: 280px;
@@ -1279,7 +1293,7 @@ body {
   }
 
 
-  .crm-dashboard-grid {
+  .crm-dashboard-grid, .crm-stats-grid, .crm-reviews-grid {
     grid-template-columns: 1fr;
   }
   
@@ -1289,6 +1303,11 @@ body {
   
   .crm-input, .crm-select {
     max-width: 100%;
+  }
+
+  .crm-slide-over {
+    width: 100vw;
+    right: -100vw;
   }
 }
 
