@@ -1892,12 +1892,16 @@ if (dealForm) {
 // ==========================================
 
 window.switchEconomicsTab = (tabId) => {
-  ['menu', 'ingredients', 'labor', 'delivery'].forEach(id => {
+  ['menu', 'profit', 'ingredients', 'labor', 'delivery'].forEach(id => {
     document.getElementById(`eco-tab-${id}`).style.display = 'none';
     document.getElementById(`btn-eco-${id}`).classList.remove('active');
   });
   document.getElementById(`eco-tab-${tabId}`).style.display = 'block';
   document.getElementById(`btn-eco-${tabId}`).classList.add('active');
+  
+  if (tabId === 'profit') {
+    renderEconomicsProfit();
+  }
 };
 
 window.renderEconomics = () => {
@@ -1905,6 +1909,7 @@ window.renderEconomics = () => {
   
   renderEconomicsDashboardAlert();
   renderEconomicsMenu();
+  renderEconomicsProfit();
   renderEconomicsIngredients();
   renderEconomicsLaborEvents();
   renderEconomicsDelivery();
@@ -2633,6 +2638,256 @@ window.savePlatformRates = async () => {
   }
 };
 
+
+// ==========================================
+// PROFIT DASHBOARD LOGIC
+// ==========================================
+let profitChartInst = null;
+let profitDataCache = {
+  fixedCosts: { rent: 0, commissaryRent: 0, insurance: 0, other: 0 },
+  sales: [],
+  expenses: []
+};
+
+async function loadProfitData() {
+  // Load Fixed Costs
+  const fcSnap = await getDoc(doc(db, 'settings', 'fixed_costs'));
+  if (fcSnap.exists()) {
+    profitDataCache.fixedCosts = fcSnap.data();
+    document.getElementById('fc-home-rent').value = profitDataCache.fixedCosts.rent || 0;
+    document.getElementById('fc-commissary-rent').value = profitDataCache.fixedCosts.commissaryRent || 0;
+    document.getElementById('fc-insurance').value = profitDataCache.fixedCosts.insurance || 0;
+    document.getElementById('fc-other').value = profitDataCache.fixedCosts.other || 0;
+  }
+
+  // Set default date for sales entry
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('ds-date').value = today;
+
+  // Listen for Sales Logs
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const startTimestamp = thirtyDaysAgo.getTime();
+
+  const salesQ = query(collection(db, 'sales_logs'), orderBy('date', 'asc'));
+  onSnapshot(salesQ, (snapshot) => {
+    profitDataCache.sales = [];
+    snapshot.forEach(docSnap => {
+      profitDataCache.sales.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    updateProfitDashboard();
+  });
+
+  // Fetch expenses (from receipts)
+  const expQ = query(collection(db, 'expenses'), where('status', '==', 'confirmed'));
+  onSnapshot(expQ, (snapshot) => {
+    profitDataCache.expenses = [];
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const dateStr = (data.confirmedAt && data.confirmedAt.toDate) ? 
+                      data.confirmedAt.toDate().toISOString().split('T')[0] : 
+                      new Date().toISOString().split('T')[0];
+      
+      let total = 0;
+      (data.items || []).forEach(item => total += (item.lineTotal || 0));
+      profitDataCache.expenses.push({ id: docSnap.id, date: dateStr, amount: total });
+    });
+    updateProfitDashboard();
+  });
+}
+
+function updateProfitDashboard() {
+  const container = document.getElementById('eco-tab-profit');
+  if (!container || container.style.display === 'none') return;
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  // Aggregate daily data
+  const dailyData = {};
+  
+  // 1. Map Sales
+  profitDataCache.sales.forEach(s => {
+    const d = new Date(s.date);
+    if (d >= thirtyDaysAgo) {
+      if (!dailyData[s.date]) dailyData[s.date] = { sales: 0, expenses: 0 };
+      dailyData[s.date].sales += (s.amount || 0);
+    }
+  });
+
+  // 2. Map Variable Expenses
+  profitDataCache.expenses.forEach(e => {
+    const d = new Date(e.date);
+    if (d >= thirtyDaysAgo) {
+      if (!dailyData[e.date]) dailyData[e.date] = { sales: 0, expenses: 0 };
+      dailyData[e.date].expenses += (e.amount || 0);
+    }
+  });
+
+  // 3. Calculate Fixed Costs per day
+  const fc = profitDataCache.fixedCosts;
+  const totalMonthlyFC = (parseFloat(fc.rent)||0) + (parseFloat(fc.commissaryRent)||0) + (parseFloat(fc.insurance)||0) + (parseFloat(fc.other)||0);
+  const dailyFixedCost = totalMonthlyFC / 30;
+
+  // Ensure last 30 days exist in the map, even if 0
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    if (!dailyData[dateStr]) dailyData[dateStr] = { sales: 0, expenses: 0 };
+  }
+
+  // Sort dates
+  const sortedDates = Object.keys(dailyData).sort();
+  
+  let totalSales = 0;
+  let totalExpenses = 0;
+  let totalProfit = 0;
+
+  const labels = [];
+  const salesDataset = [];
+  const expensesDataset = [];
+  const profitDataset = [];
+
+  sortedDates.forEach(date => {
+    labels.push(date.substring(5)); // MM-DD
+    const dSales = dailyData[date].sales;
+    const dExp = dailyData[date].expenses + dailyFixedCost;
+    const dProfit = dSales - dExp;
+    
+    totalSales += dSales;
+    totalExpenses += dExp;
+    totalProfit += dProfit;
+
+    salesDataset.push(dSales);
+    expensesDataset.push(dExp);
+    profitDataset.push(dProfit);
+  });
+
+  // Update UI Stats
+  document.getElementById('dash-30d-sales').textContent = '$' + totalSales.toFixed(2);
+  document.getElementById('dash-30d-expenses').textContent = '$' + totalExpenses.toFixed(2);
+  const profitEl = document.getElementById('dash-30d-profit');
+  profitEl.textContent = '$' + totalProfit.toFixed(2);
+  profitEl.style.color = totalProfit >= 0 ? 'var(--accent)' : '#f44336';
+
+  // Render Chart
+  const ctx = document.getElementById('profitChart');
+  if (!ctx) return;
+
+  if (profitChartInst) {
+    profitChartInst.destroy();
+  }
+
+  profitChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Sales ($)',
+          data: salesDataset,
+          borderColor: '#4caf50',
+          backgroundColor: 'rgba(76,175,80,0.1)',
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'Total Expenses ($)',
+          data: expensesDataset,
+          borderColor: '#f44336',
+          backgroundColor: 'transparent',
+          borderDash: [5, 5],
+          tension: 0.4
+        },
+        {
+          label: 'Net Profit ($)',
+          data: profitDataset,
+          borderColor: '#2196f3',
+          backgroundColor: 'rgba(33,150,243,0.1)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: { labels: { color: '#ccc' } }
+      },
+      scales: {
+        y: { grid: { color: '#333' }, ticks: { color: '#aaa' } },
+        x: { grid: { color: '#333' }, ticks: { color: '#aaa' } }
+      }
+    }
+  });
+}
+
+window.renderEconomicsProfit = () => {
+  const container = document.getElementById('eco-tab-profit');
+  if (!container) return;
+  loadProfitData(); // Initial load
+};
+
+// Form Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const fixedForm = document.getElementById('fixed-costs-form');
+  if (fixedForm) {
+    fixedForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rent = parseFloat(document.getElementById('fc-home-rent').value) || 0;
+      const commissaryRent = parseFloat(document.getElementById('fc-commissary-rent').value) || 0;
+      const insurance = parseFloat(document.getElementById('fc-insurance').value) || 0;
+      const other = parseFloat(document.getElementById('fc-other').value) || 0;
+      
+      try {
+        await setDoc(doc(db, 'settings', 'fixed_costs'), {
+          rent, commissaryRent, insurance, other,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        
+        document.getElementById('fc-status').textContent = "Fixed costs saved!";
+        setTimeout(() => document.getElementById('fc-status').textContent = "", 3000);
+        showToast("Fixed Costs Saved");
+        loadProfitData();
+      } catch(err) {
+        console.error(err);
+        document.getElementById('fc-status').textContent = "Error saving.";
+      }
+    });
+  }
+
+  const salesForm = document.getElementById('daily-sales-form');
+  if (salesForm) {
+    salesForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const date = document.getElementById('ds-date').value;
+      const amount = parseFloat(document.getElementById('ds-amount').value) || 0;
+      const notes = document.getElementById('ds-notes').value;
+      
+      try {
+        await setDoc(doc(db, 'sales_logs', date), {
+          date, amount, notes,
+          loggedAt: serverTimestamp()
+        });
+        
+        document.getElementById('ds-status').textContent = "Daily sales logged!";
+        setTimeout(() => document.getElementById('ds-status').textContent = "", 3000);
+        showToast("Daily Sales Saved");
+        loadProfitData();
+      } catch(err) {
+        console.error(err);
+        document.getElementById('ds-status').textContent = "Error saving.";
+      }
+    });
+  }
+});
 
 // ==========================================
 // BLOG MANAGEMENT LOGIC

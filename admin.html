@@ -754,6 +754,7 @@
           
           <div class="crm-subnav" style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
             <button class="btn-outline active" id="btn-eco-menu" onclick="switchEconomicsTab('menu')" data-i18n="ue.tab.menuProfitability">Menu Profitability</button>
+            <button class="btn-outline" id="btn-eco-profit" onclick="switchEconomicsTab('profit')">Daily Profit</button>
             <button class="btn-outline" id="btn-eco-ingredients" onclick="switchEconomicsTab('ingredients')" data-i18n="ue.tab.ingredients">Ingredients</button>
             <button class="btn-outline" id="btn-eco-labor" onclick="switchEconomicsTab('labor')" data-i18n="ue.tab.laborEvents">Labor & Events</button>
             <button class="btn-outline" id="btn-eco-delivery" onclick="switchEconomicsTab('delivery')" data-i18n="ue.tab.deliveryImpact">Delivery Impact</button>
@@ -763,6 +764,83 @@
             <!-- Rendered by JS -->
           </div>
           
+          <div id="eco-tab-profit" class="eco-tab" style="display: none;">
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+              <div style="display: flex; flex-direction: column; gap: 24px;">
+                <!-- Fixed Costs Setup -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
+                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Fixed Monthly Costs</h3>
+                  <form id="fixed-costs-form" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="crm-form-group">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Home Rent ($)</label>
+                      <input type="number" id="fc-home-rent" class="crm-input" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="crm-form-group">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Commissary Rent ($)</label>
+                      <input type="number" id="fc-commissary-rent" class="crm-input" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="crm-form-group">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Insurance ($)</label>
+                      <input type="number" id="fc-insurance" class="crm-input" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="crm-form-group">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Other Fixed Costs ($)</label>
+                      <input type="number" id="fc-other" class="crm-input" step="0.01" placeholder="0.00">
+                    </div>
+                    <button type="submit" class="btn-primary">Save Fixed Costs</button>
+                    <p id="fc-status" style="margin:0; font-size: 12px; color: var(--accent);"></p>
+                  </form>
+                </div>
+                
+                <!-- Daily Sales Entry -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
+                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Log Daily Sales</h3>
+                  <form id="daily-sales-form" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="crm-form-group">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Date</label>
+                      <input type="date" id="ds-date" class="crm-input" required>
+                    </div>
+                    <div class="crm-form-group">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Total Sales ($)</label>
+                      <input type="number" id="ds-amount" class="crm-input" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="crm-form-group">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Notes (Optional)</label>
+                      <input type="text" id="ds-notes" class="crm-input" placeholder="e.g. Busy Friday, Festival...">
+                    </div>
+                    <button type="submit" class="btn-primary">Save Daily Sales</button>
+                    <p id="ds-status" style="margin:0; font-size: 12px; color: var(--accent);"></p>
+                  </form>
+                </div>
+              </div>
+              
+              <!-- Dashboard -->
+              <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="crm-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                  <div class="crm-stat-card" style="padding: 16px;">
+                    <div class="stat-title" style="font-size: 12px;">30-Day Sales</div>
+                    <div class="stat-value" id="dash-30d-sales" style="font-size: 24px;">$0.00</div>
+                  </div>
+                  <div class="crm-stat-card" style="padding: 16px;">
+                    <div class="stat-title" style="font-size: 12px;">30-Day Expenses (Var + Fixed)</div>
+                    <div class="stat-value" id="dash-30d-expenses" style="font-size: 24px;">$0.00</div>
+                  </div>
+                  <div class="crm-stat-card" style="padding: 16px;">
+                    <div class="stat-title" style="font-size: 12px;">30-Day Net Profit</div>
+                    <div class="stat-value" id="dash-30d-profit" style="font-size: 24px;">$0.00</div>
+                  </div>
+                </div>
+                
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; flex-grow: 1;">
+                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">30-Day Profit Trend</h3>
+                  <div style="position: relative; height: 350px; width: 100%;">
+                    <canvas id="profitChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div id="eco-tab-ingredients" class="eco-tab" style="display: none;">
             <!-- Rendered by JS -->
           </div>
