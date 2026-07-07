@@ -2835,59 +2835,56 @@ window.renderEconomicsProfit = () => {
   loadProfitData(); // Initial load
 };
 
-// Form Listeners
-document.addEventListener('DOMContentLoaded', () => {
-  const fixedForm = document.getElementById('fixed-costs-form');
-  if (fixedForm) {
-    fixedForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const rent = parseFloat(document.getElementById('fc-home-rent').value) || 0;
-      const commissaryRent = parseFloat(document.getElementById('fc-commissary-rent').value) || 0;
-      const insurance = parseFloat(document.getElementById('fc-insurance').value) || 0;
-      const other = parseFloat(document.getElementById('fc-other').value) || 0;
+const fixedForm = document.getElementById('fixed-costs-form');
+if (fixedForm) {
+  fixedForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const rent = parseFloat(document.getElementById('fc-home-rent').value) || 0;
+    const commissaryRent = parseFloat(document.getElementById('fc-commissary-rent').value) || 0;
+    const insurance = parseFloat(document.getElementById('fc-insurance').value) || 0;
+    const other = parseFloat(document.getElementById('fc-other').value) || 0;
+    
+    try {
+      await setDoc(doc(db, 'settings', 'fixed_costs'), {
+        rent, commissaryRent, insurance, other,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
       
-      try {
-        await setDoc(doc(db, 'settings', 'fixed_costs'), {
-          rent, commissaryRent, insurance, other,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-        
-        document.getElementById('fc-status').textContent = "Fixed costs saved!";
-        setTimeout(() => document.getElementById('fc-status').textContent = "", 3000);
-        showToast("Fixed Costs Saved");
-        loadProfitData();
-      } catch(err) {
-        console.error(err);
-        document.getElementById('fc-status').textContent = "Error saving.";
-      }
-    });
-  }
+      document.getElementById('fc-status').textContent = "Fixed costs saved!";
+      setTimeout(() => document.getElementById('fc-status').textContent = "", 3000);
+      showToast("Fixed Costs Saved");
+      loadProfitData();
+    } catch(err) {
+      console.error(err);
+      document.getElementById('fc-status').textContent = "Error saving.";
+    }
+  });
+}
 
-  const salesForm = document.getElementById('daily-sales-form');
-  if (salesForm) {
-    salesForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const date = document.getElementById('ds-date').value;
-      const amount = parseFloat(document.getElementById('ds-amount').value) || 0;
-      const notes = document.getElementById('ds-notes').value;
+const salesForm = document.getElementById('daily-sales-form');
+if (salesForm) {
+  salesForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const date = document.getElementById('ds-date').value;
+    const amount = parseFloat(document.getElementById('ds-amount').value) || 0;
+    const notes = document.getElementById('ds-notes').value;
+    
+    try {
+      await setDoc(doc(db, 'sales_logs', date), {
+        date, amount, notes,
+        loggedAt: serverTimestamp()
+      });
       
-      try {
-        await setDoc(doc(db, 'sales_logs', date), {
-          date, amount, notes,
-          loggedAt: serverTimestamp()
-        });
-        
-        document.getElementById('ds-status').textContent = "Daily sales logged!";
-        setTimeout(() => document.getElementById('ds-status').textContent = "", 3000);
-        showToast("Daily Sales Saved");
-        loadProfitData();
-      } catch(err) {
-        console.error(err);
-        document.getElementById('ds-status').textContent = "Error saving.";
-      }
-    });
-  }
-});
+      document.getElementById('ds-status').textContent = "Daily sales logged!";
+      setTimeout(() => document.getElementById('ds-status').textContent = "", 3000);
+      showToast("Daily Sales Saved");
+      loadProfitData();
+    } catch(err) {
+      console.error(err);
+      document.getElementById('ds-status').textContent = "Error saving.";
+    }
+  });
+}
 
 // ==========================================
 // BLOG MANAGEMENT LOGIC
