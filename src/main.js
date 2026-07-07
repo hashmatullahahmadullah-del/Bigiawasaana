@@ -818,14 +818,15 @@ window.openPaymentModal = async () => {
   }
 
   summaryEl.innerHTML = `
-    <div style="margin-bottom: 16px;">
+    <div style="margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 8px;" class="custom-scrollbar">
       ${cart.map(item => `
         <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px;">
           <span style="color: var(--white);">${item.qty}× ${item.name}</span>
           <span style="color: var(--gray);">$${(item.price * item.qty).toFixed(2)}</span>
         </div>
       `).join('')}
-      <div style="border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px;">
+    </div>
+    <div style="border-top: 1px solid var(--border); padding-top: 10px;">
         <div style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; color: var(--gray);">
           <span>Subtotal</span><span id="modal-subtotal">$${subtotal.toFixed(2)}</span>
         </div>
