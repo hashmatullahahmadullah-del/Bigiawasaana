@@ -1343,6 +1343,23 @@ body {
     font-size: 12px !important;
     padding: 8px 12px !important;
   }
+  
+  #eco-tab-profit > div[style*="grid-template-columns: 1fr 2fr"],
+  #eco-tab-labor > div[style*="grid-template-columns: 1fr 2fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  #eco-tab-profit .crm-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  #recipe-editor-container div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  #eco-tab-delivery div[style*="display: flex; gap: 16px; align-items: flex-end;"] {
+    flex-wrap: wrap;
+  }
 
   /* ─── BLOG EDITOR: Stack title/slug row ─── */
   #blog-form > div[style*="display: flex; gap: 16px"] {
