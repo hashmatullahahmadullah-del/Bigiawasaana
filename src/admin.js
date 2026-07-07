@@ -2943,38 +2943,76 @@ function loadAnalytics() {
 
 window.loadAnalytics = loadAnalytics;
 
-
-
-
-
 // Expense Capture Logic
 {
-  const fileInput = document.getElementById("receipt-input");
+  const cameraInput = document.getElementById("receipt-input-camera");
+  const galleryInput = document.getElementById("receipt-input-gallery");
   const statusEl = document.getElementById("upload-status");
   const reviewSection = document.getElementById("review-section");
   const reviewMeta = document.getElementById("review-meta");
   const reviewTbody = document.getElementById("review-tbody");
   const confirmBtn = document.getElementById("confirm-expense-btn");
+  const receiptActions = document.getElementById("receipt-actions");
+  const retakeBtn = document.getElementById("receipt-retake-btn");
+  const deleteBtn = document.getElementById("receipt-delete-btn");
 
-  if (fileInput) {
+  // Compress image client-side before uploading (faster transfer + faster Gemini parsing)
+  function compressImage(file, maxWidth = 1600, quality = 0.7) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if (w > maxWidth) {
+            h = Math.round((h * maxWidth) / w);
+            w = maxWidth;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob((blob) => {
+            resolve(blob);
+          }, 'image/jpeg', quality);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (cameraInput || galleryInput) {
     let currentExpenseId = null;
     let currentItems = [];
+    let currentStoragePath = null;
 
-    fileInput.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
+    const handleFileSelected = async (file) => {
       if (!file) return;
 
-      statusEl.textContent = "Uploading...";
+      // Hide actions while processing
+      if (receiptActions) receiptActions.style.display = "none";
       reviewSection.style.display = "none";
+      currentExpenseId = null;
+      currentItems = [];
+      currentStoragePath = null;
+
+      statusEl.textContent = "Compressing image...";
 
       try {
+        // Compress the image first (speeds up upload + Gemini processing)
+        const compressed = await compressImage(file);
+        const compressedSize = (compressed.size / 1024).toFixed(0);
+        statusEl.textContent = `Uploading (${compressedSize} KB)...`;
+
         const timestamp = Date.now();
-        const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
-        const path = `receipts/unsorted/${timestamp}_${safeName}`;
+        const path = `receipts/unsorted/${timestamp}_receipt.jpg`;
+        currentStoragePath = path;
         const storageReference = ref(storage, path);
 
-        await uploadBytes(storageReference, file);
-        statusEl.textContent = "Parsing receipt (this can take a few seconds)...";
+        await uploadBytes(storageReference, compressed);
+        statusEl.textContent = "Parsing receipt with AI (this can take a few seconds)...";
 
         const functions = getFunctions(app);
         const parseReceipt = httpsCallable(functions, "parseReceipt");
@@ -2985,18 +3023,86 @@ window.loadAnalytics = loadAnalytics;
         currentItems = data.items || [];
 
         renderReview(data);
-        statusEl.textContent = "Done. Review below before confirming.";
+        statusEl.textContent = "✅ Parsed! Review the items below, then click Confirm & Save.";
+
+        // Show retake/delete actions
+        if (receiptActions) receiptActions.style.display = "flex";
       } catch (err) {
         console.error(err);
         statusEl.textContent = "Error parsing receipt: " + err.message;
+        if (receiptActions) receiptActions.style.display = "flex";
       }
-    });
+    };
+
+    if (cameraInput) {
+      cameraInput.addEventListener("change", (e) => {
+        handleFileSelected(e.target.files[0]);
+        cameraInput.value = "";
+      });
+    }
+    if (galleryInput) {
+      galleryInput.addEventListener("change", (e) => {
+        handleFileSelected(e.target.files[0]);
+        galleryInput.value = "";
+      });
+    }
+
+    // Retake: reset the form and let user pick a new file
+    if (retakeBtn) {
+      retakeBtn.addEventListener("click", async () => {
+        // If there's a draft, delete it first
+        if (currentExpenseId) {
+          try {
+            await deleteDoc(doc(db, "expenses", currentExpenseId));
+          } catch(e) { console.warn("Could not delete draft:", e); }
+        }
+        // If there's an uploaded file, attempt to delete from storage
+        if (currentStoragePath) {
+          try {
+            await deleteObject(ref(storage, currentStoragePath));
+          } catch(e) { console.warn("Could not delete storage file:", e); }
+        }
+        currentExpenseId = null;
+        currentItems = [];
+        currentStoragePath = null;
+        reviewSection.style.display = "none";
+        if (receiptActions) receiptActions.style.display = "none";
+        statusEl.textContent = "Draft cleared. Select a new receipt above.";
+      });
+    }
+
+    // Delete draft
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", async () => {
+        if (!currentExpenseId) {
+          statusEl.textContent = "Nothing to delete.";
+          return;
+        }
+        if (!confirm("Delete this receipt draft?")) return;
+        try {
+          await deleteDoc(doc(db, "expenses", currentExpenseId));
+          if (currentStoragePath) {
+            try { await deleteObject(ref(storage, currentStoragePath)); } catch(e) {}
+          }
+          currentExpenseId = null;
+          currentItems = [];
+          currentStoragePath = null;
+          reviewSection.style.display = "none";
+          if (receiptActions) receiptActions.style.display = "none";
+          statusEl.textContent = "Draft deleted.";
+          showToast("Draft deleted");
+        } catch(err) {
+          console.error(err);
+          statusEl.textContent = "Error deleting draft: " + err.message;
+        }
+      });
+    }
 
     function renderReview(data) {
       reviewMeta.innerHTML = `
         <strong>Vendor:</strong> ${data.vendor || "Unknown"} &nbsp;
-        <strong>Total:</strong> $${data.total != null ? data.total.toFixed(2) : "—"} &nbsp;
-        ${data.needsReview ? '<span style="color:#b00;">⚠ Needs review</span>' : ""}
+        <strong>Total:</strong> $${data.total != null ? data.total.toFixed(2) : "\u2014"} &nbsp;
+        ${data.needsReview ? '<span style="color:#b00;">\u26a0 Needs review</span>' : ""}
       `;
 
       // Build options for known menu ingredients
@@ -3077,7 +3183,7 @@ window.loadAnalytics = loadAnalytics;
               const invSnap = await getDoc(invRef);
               
               let newStock = item.quantity;
-              let priceHistory = [{ date: new Date().toISOString(), price: item.unitPrice, vendor: reviewMeta.innerText.includes('Vendor:') ? reviewMeta.innerText.split('Vendor:')[1].split('&nbsp;')[0].trim() : 'Unknown' }];
+              let priceHistory = [{ date: new Date().toISOString(), price: item.unitPrice, vendor: reviewMeta.innerText.includes('Vendor:') ? reviewMeta.innerText.split('Vendor:')[1].split('\u00a0')[0].trim() : 'Unknown' }];
               
               if (invSnap.exists()) {
                  const invData = invSnap.data();
@@ -3096,28 +3202,32 @@ window.loadAnalytics = loadAnalytics;
            }
         }
 
-        // 3. Save Expense
+        // 3. Save Expense as confirmed
         await updateDoc(doc(db, "expenses", currentExpenseId), {
           items: currentItems,
           status: "confirmed",
           confirmedAt: serverTimestamp(),
         });
 
-        statusEl.textContent = "Expense confirmed, learned, and inventory updated.";
+        statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
         reviewSection.style.display = "none";
-        fileInput.value = "";
+        if (receiptActions) receiptActions.style.display = "none";
+        currentExpenseId = null;
+        currentItems = [];
+        currentStoragePath = null;
+        showToast("Expense confirmed!");
       } catch (err) {
         console.error(err);
         statusEl.textContent = "Error saving: " + err.message;
       } finally {
         confirmBtn.disabled = false;
-        confirmBtn.textContent = "Confirm & Save";
+        confirmBtn.textContent = "Confirm & Save Expense";
       }
     });
 
 
   }
-
+}
 
 
   // Setup Expense Analytics Chart

@@ -102,7 +102,7 @@ exports.parseReceipt = functions
         total: parsed.total || null,
         rawImageUrl: storagePath,
         rawOcrText: "Parsed via Gemini Vision API",
-        status: parsed.needsReview ? "needs_review" : "confirmed_candidate",
+        status: "draft",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 

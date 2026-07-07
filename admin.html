@@ -854,12 +854,23 @@
               Photograph a Restaurant Depot, Costco, or any vendor receipt to log it automatically.
             </p>
 
-            <div style="background: var(--surface); border: 2px dashed var(--accent); border-radius: 12px; padding: 32px; text-align: center; margin-bottom: 32px; transition: background 0.3s;" onmouseover="this.style.background='rgba(233,171,0,0.1)'" onmouseout="this.style.background='var(--surface)'">
-              <label for="receipt-input" style="display:inline-block; padding: 16px 32px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 18px; background: var(--accent); color: var(--black);">
-                📷 Capture / Upload Receipt
-              </label>
-              <input id="receipt-input" type="file" accept="image/*" capture="environment" style="display:none;" />
+            <div id="receipt-upload-zone" style="background: var(--surface); border: 2px dashed var(--accent); border-radius: 12px; padding: 32px; text-align: center; margin-bottom: 32px; transition: background 0.3s;" onmouseover="this.style.background='rgba(233,171,0,0.1)'" onmouseout="this.style.background='var(--surface)'">
+              <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
+                <label for="receipt-input-camera" style="display:inline-flex; align-items:center; gap:8px; padding: 14px 24px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 16px; background: var(--accent); color: var(--black);">
+                  📷 Take Photo
+                </label>
+                <label for="receipt-input-gallery" style="display:inline-flex; align-items:center; gap:8px; padding: 14px 24px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 16px; background: rgba(255,255,255,0.15); color: var(--white); border: 1px solid var(--border);">
+                  🖼️ Upload from Gallery
+                </label>
+              </div>
+              <input id="receipt-input-camera" type="file" accept="image/*" capture="environment" style="display:none;" />
+              <input id="receipt-input-gallery" type="file" accept="image/*" style="display:none;" />
               <div id="upload-status" style="margin-top: 16px; font-size: 14px; color: var(--gray);"></div>
+              <!-- Retake / Delete Actions (hidden until a receipt is parsed) -->
+              <div id="receipt-actions" style="display: none; margin-top: 16px; display: none; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" id="receipt-retake-btn" class="btn-outline btn-small" style="color: var(--white);">🔄 Retake / Re-upload</button>
+                <button type="button" id="receipt-delete-btn" class="btn-outline btn-small" style="color: #f44336; border-color: rgba(244,67,54,0.4);">🗑️ Delete Draft</button>
+              </div>
             </div>
 
             <!-- Expense Analytics -->
