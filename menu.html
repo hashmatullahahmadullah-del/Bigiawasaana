@@ -416,18 +416,18 @@
           <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Phone Number</label>
           <input type="tel" id="customer-phone" placeholder="(123) 456-7890" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
         </div>
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--border);">
+          <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Promo Code</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="promo-input" placeholder="Enter code" style="flex: 1; padding: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px; text-transform: uppercase;">
+            <button id="apply-promo-btn" class="btn-outline" style="padding: 0 16px;">Apply</button>
+          </div>
+          <div id="promo-msg" style="font-size: 12px; margin-top: 8px; display: none;"></div>
+        </div>
       </div>
     </div>
 
-          <div style="padding: 16px var(--space-m) 0; background: var(--bg);">
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="promo-input" placeholder="Promo Code" style="flex: 1; padding: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-family: 'Outfit'; font-size: 14px; text-transform: uppercase;">
-          <button id="apply-promo-btn" class="btn-outline" style="padding: 0 16px;">Apply</button>
-        </div>
-        <div id="promo-msg" style="font-size: 12px; margin-top: 8px; display: none;"></div>
-      </div>
-
-      <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;">
+    <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;">
 
       <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-m); font-size: 20px; font-weight: 700; font-family: 'Barlow Condensed'; letter-spacing: 1px;">
         <span>TOTAL</span>
