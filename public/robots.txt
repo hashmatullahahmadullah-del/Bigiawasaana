@@ -7,4 +7,4 @@ Disallow: /tv-menu.html
 Disallow: /order-status.html
 Disallow: /square-test.html
 
-Sitemap: https://bigiawasaana.com/sitemap.xml
+Sitemap: https://www.bigiawasaana.com/sitemap.xml
