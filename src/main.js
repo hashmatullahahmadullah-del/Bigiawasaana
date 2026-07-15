@@ -317,10 +317,11 @@ function renderMenu(category) {
       </div>
       <div class="menu-card-content">
         <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
+        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 INCLUDES FRIES & DRINK</div>` : ''}
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${item.price.toFixed(2)}</span>
-          <button class="btn-primary btn-add-cart" onclick="openItemModal('${item.id}')">+ Add</button>
+          <button class="add-to-cart-btn btn-add-cart" onclick="openItemModal('${item.id}')">ADD</button>
         </div>
       </div>
     `;
@@ -361,10 +362,11 @@ function renderFeaturedMenu() {
       </div>
       <div class="menu-card-content">
         <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
+        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 INCLUDES FRIES & DRINK</div>` : ''}
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
-          <button class="btn-primary btn-add-cart" onclick="openItemModal('${item.id}')">+ Add</button>
+          <button class="add-to-cart-btn btn-add-cart" onclick="openItemModal('${item.id}')">ADD</button>
         </div>
       </div>
     `;

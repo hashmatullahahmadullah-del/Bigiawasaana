@@ -168,7 +168,7 @@ body {
 .menu-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s;
   display: flex;
@@ -176,9 +176,9 @@ body {
 }
 
 .menu-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-  border-color: var(--gray-light);
+  transform: translateY(-4px) rotate(-1deg);
+  box-shadow: 0 12px 30px rgba(255, 69, 0, 0.15);
+  border-color: var(--accent);
 }
 
 .menu-card-img {
@@ -186,6 +186,12 @@ body {
   height: 200px;
   object-fit: cover;
   background: var(--surface-light);
+  transition: filter 0.3s var(--ease);
+  filter: brightness(0.9) contrast(1.1);
+}
+
+.menu-card:hover .menu-card-img {
+  filter: brightness(1.0) contrast(1.1);
 }
 
 .menu-card-content {
@@ -196,11 +202,13 @@ body {
 }
 
 .menu-card-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   margin-bottom: 8px;
-  font-family: 'Lalezar', cursive;
-  letter-spacing: 0.5px;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--white);
 }
 
 .menu-card-desc {
@@ -215,34 +223,39 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid var(--border);
+  border-top: 1px dashed var(--border);
   padding-top: 16px;
 }
 
 .menu-card-price {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
 }
 
 .add-to-cart-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--white);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #111;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .add-to-cart-btn:hover {
-  background: var(--white);
-  color: var(--bg);
-  border-color: var(--white);
+  background: #fff;
+  border-color: #fff;
+  color: #111;
 }
 
 /* Cart Item */
@@ -490,22 +503,26 @@ body {
 .category-pill {
   white-space: nowrap;
   padding: 10px 24px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 2px solid transparent;
+  border-bottom: 2px solid var(--border);
   color: var(--gray);
   font-family: 'Barlow Condensed';
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: 700;
+  font-size: 16px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s;
-  border-radius: 2px;
+  border-radius: 0;
+}
+.category-pill:hover {
+  color: var(--white);
+  border-bottom-color: var(--white);
 }
 .category-pill.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 /* --- CART FAB --- */
