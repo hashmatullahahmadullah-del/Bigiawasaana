@@ -231,6 +231,11 @@ async function loadMenuFromFirestore() {
       
       // Render featured menu on home page if element exists
       renderFeaturedMenu();
+      
+      // Render specials on specials page if element exists
+      if (typeof window.renderSpecials === 'function') {
+        window.renderSpecials();
+      }
     }
   } catch (error) {
     console.error('Error loading menu from Firestore:', error);
@@ -254,7 +259,7 @@ function buildCategoryPills() {
   const scrollContainer = document.querySelector('.cat-scroll');
   if (!scrollContainer) return;
 
-  const categories = [...new Set(menuItems.map(i => i.category))];
+  const categories = [...new Set(menuItems.map(i => i.category))].filter(c => c !== 'bigi street meals');
   
   scrollContainer.innerHTML = '';
   
@@ -291,7 +296,7 @@ function renderMenu(category) {
   grid.innerHTML = '';
   
   const itemsToRender = category === 'all' 
-    ? menuItems 
+    ? menuItems.filter(item => item.category !== 'bigi street meals')
     : menuItems.filter(item => item.category === category);
 
   if (itemsToRender.length === 0) {
@@ -374,6 +379,46 @@ function renderFeaturedMenu() {
   });
 }
 window.renderFeaturedMenu = renderFeaturedMenu;
+
+// Render Specials
+function renderSpecials() {
+  const grid = document.getElementById('specials-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  let specialItems = menuItems.filter(item => item.category === 'bigi street meals');
+
+  specialItems.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'menu-card';
+    card.style.borderColor = 'var(--accent)';
+    
+    const lang = getLang();
+    const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
+    const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
+    
+    const imgHtml = item.img 
+      ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" width="400" height="300">`
+      : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>`;
+    
+    card.innerHTML = `
+      <div onclick="openItemModal('${item.id}')" style="cursor: pointer;">
+        ${imgHtml}
+      </div>
+      <div class="menu-card-content">
+        <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
+        <div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 LIMITED TIME SPECIAL</div>
+        <p class="menu-card-desc">${displayDesc}</p>
+        <div class="menu-card-footer">
+          <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
+          <button class="add-to-cart-btn btn-add-cart" onclick="openItemModal('${item.id}')">ADD</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+window.renderSpecials = renderSpecials;
 
 // ─────────────────────────────────────────────────────────────────
 // DEALS RENDERING & LISTENER
