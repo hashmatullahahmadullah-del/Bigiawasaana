@@ -631,7 +631,7 @@ function updateCartUI() {
   let count = 0;
   
   if (cart.length === 0) {
-    itemsContainer.innerHTML = '<p style="color: var(--gray); text-align: center; margin-top: 40px;">Your cart is empty.</p>';
+    itemsContainer.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 250px; color: var(--gray); text-align: center;"><p>Your bag is empty.</p></div>';
     countBadge.textContent = 0;
     totalEl.textContent = `$0.00`;
   } else {
@@ -1244,6 +1244,42 @@ function initReveal() {
 document.addEventListener('DOMContentLoaded', () => {
   loadMenuFromFirestore();
   updateCartUI();
+
+  const applyPromoBtn = document.getElementById('apply-promo-btn');
+  if (applyPromoBtn) {
+    applyPromoBtn.addEventListener('click', () => {
+      const input = document.getElementById('promo-input');
+      const msg = document.getElementById('promo-msg');
+      if (!input || !msg) return;
+      
+      const code = input.value.trim().toUpperCase();
+      if (!code) return;
+      
+      const deal = activeDeals.find(d => d.promoCode === code && d.active !== false);
+      
+      if (!deal) {
+        msg.textContent = 'Invalid or expired promo code.';
+        msg.style.color = '#ff4444';
+        msg.style.display = 'block';
+        return;
+      }
+      
+      if (appliedPromoCodes.includes(code)) {
+        msg.textContent = 'Promo code already applied.';
+        msg.style.color = '#ff4444';
+        msg.style.display = 'block';
+        return;
+      }
+      
+      appliedPromoCodes.push(code);
+      input.value = '';
+      msg.textContent = 'Promo code applied!';
+      msg.style.color = 'var(--accent)';
+      msg.style.display = 'block';
+      
+      updateCartUI();
+    });
+  }
 
   initReveal();
   initSquarePayments();
