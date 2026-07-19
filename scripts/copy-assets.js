@@ -7,7 +7,9 @@ const filesToCopy = [
   { src: 'src/nav.js', dest: 'dist/src/nav.js' },
   { src: 'logo.webp', dest: 'dist/logo.webp' },
   { src: 'logo.png', dest: 'dist/logo.png' },
-  { src: 'favicon.jpg', dest: 'dist/favicon.jpg' }
+  { src: 'favicon.jpg', dest: 'dist/favicon.jpg' },
+  { src: 'dist/item-template.html', dest: 'functions/item-template.html' },
+  { src: 'dist/blog-template.html', dest: 'functions/blog-template.html' }
 ];
 
 filesToCopy.forEach(({ src, dest }) => {

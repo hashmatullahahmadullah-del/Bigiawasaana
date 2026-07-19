@@ -862,6 +862,7 @@ if (addMenuForm) {
     const desc = document.getElementById("menu-desc").value;
     const desc_fa = document.getElementById("menu-desc_fa").value;
     const category = document.getElementById("menu-category").value;
+    const mealLinkId = document.getElementById("menu-meal-link").value;
     let img = document.getElementById("menu-img").value;
     const featured = document.getElementById("menu-featured").checked;
     
@@ -892,6 +893,34 @@ if (addMenuForm) {
     }
   });
 }
+
+async function populateMealLinks() {
+  const addSelect = document.getElementById('menu-meal-link');
+  const editSelect = document.getElementById('edit-menu-meal-link');
+  if (!addSelect && !editSelect) return;
+  
+  const q = query(collection(db, "menu"));
+  const snapshot = await getDocs(q);
+  const meals = [];
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.category === 'bigi street meals') {
+      meals.push({ id: doc.id, name: data.name });
+    }
+  });
+  
+  meals.sort((a, b) => a.name.localeCompare(b.name));
+  
+  const optionsHtml = '<option value="">No Meal Upgrade (or auto-match)</option>' + 
+    meals.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+    
+  if (addSelect) addSelect.innerHTML = optionsHtml;
+  if (editSelect) editSelect.innerHTML = optionsHtml;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  populateMealLinks();
+});
 
 async function loadMenuAdmin() {
   if (!adminMenuList) return;
@@ -959,6 +988,9 @@ window.openEditMenuModal = (id) => {
   document.getElementById("edit-menu-name_fa").value = data.name_fa || "";
   document.getElementById("edit-menu-price").value = data.price || "";
   document.getElementById("edit-menu-category").value = data.category || "platters";
+  if (document.getElementById("edit-menu-meal-link")) {
+    document.getElementById("edit-menu-meal-link").value = data.mealLinkId || "";
+  }
   document.getElementById("edit-menu-img").value = data.img || data.image || data.imageUrl || "";
   document.getElementById("edit-menu-desc").value = data.desc || data.description || "";
   document.getElementById("edit-menu-desc_fa").value = data.desc_fa || "";
@@ -1012,6 +1044,7 @@ if (editMenuForm) {
     const name_fa = document.getElementById("edit-menu-name_fa").value;
     const price = parseFloat(document.getElementById("edit-menu-price").value);
     const category = document.getElementById("edit-menu-category").value;
+    const mealLinkId = document.getElementById("edit-menu-meal-link").value;
     let img = document.getElementById("edit-menu-img").value;
     const desc = document.getElementById("edit-menu-desc").value;
     const desc_fa = document.getElementById("edit-menu-desc_fa").value;
@@ -1032,6 +1065,7 @@ if (editMenuForm) {
         name_fa,
         price,
         category,
+        mealLinkId,
         img,
         desc,
         desc_fa,
@@ -2953,6 +2987,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }, 100);
+
+
 
   const addPostBtn = document.getElementById('add-post-btn');
   const cancelPostBtn = document.getElementById('cancel-post-btn');

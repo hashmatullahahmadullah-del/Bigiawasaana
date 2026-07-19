@@ -7,7 +7,6 @@ if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-const bucket = admin.storage().bucket();
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 exports.parseReceipt = functions
@@ -20,6 +19,7 @@ exports.parseReceipt = functions
     }
 
     try {
+      const bucket = admin.storage().bucket();
       // 1. Download image from Google Cloud Storage to a local buffer
       const file = bucket.file(storagePath);
       const [metadata] = await file.getMetadata();

@@ -474,6 +474,7 @@ function renderDealsGrid() {
 // ─────────────────────────────────────────────────────────────────
 let currentModalItem = null;
 let currentModalQty = 1;
+let currentMealUpgrade = null; // the matching meal item from 'meals' category
 
 window.openItemModal = (id) => {
   const item = menuItems.find(i => i.id === id);
@@ -497,58 +498,130 @@ window.openItemModal = (id) => {
   document.getElementById('item-modal-title').textContent = item.name;
   
   const calsEl = document.getElementById('item-modal-cals');
-  if (item.calories) {
-    calsEl.textContent = `${item.calories} Cal`;
-    calsEl.style.display = 'block';
-  } else {
-    calsEl.style.display = 'none';
+  if (calsEl) {
+    if (item.calories) {
+      calsEl.textContent = `${item.calories} Cal`;
+      calsEl.style.display = 'block';
+    } else {
+      calsEl.style.display = 'none';
+    }
   }
   
   document.getElementById('item-modal-desc').textContent = item.desc;
   
   // Render Variants
   const varContainer = document.getElementById('item-modal-variants-container');
-  varContainer.innerHTML = '';
-  if (item.variants && item.variants.length > 0) {
-    const group = document.createElement('div');
-    group.className = 'modal-option-group';
-    group.innerHTML = `<div class="modal-option-title">Options <span>Required</span></div>`;
-    item.variants.forEach((v, index) => {
-      const row = document.createElement('label');
-      row.className = 'modal-option-row';
-      const isChecked = index === 0 ? 'checked' : '';
-      row.innerHTML = `
-        <div>
-          <input type="radio" name="modal_variant" class="custom-radio" value="${index}" ${isChecked} onchange="updateModalPrice()">
-          <span class="modal-option-label">${v.name}</span>
-        </div>
-        <span class="modal-option-price">$${(parseFloat(v.price) || 0).toFixed(2)}</span>
-      `;
-      group.appendChild(row);
-    });
-    varContainer.appendChild(group);
+  if (varContainer) {
+    varContainer.innerHTML = '';
+    if (item.variants && item.variants.length > 0) {
+      const group = document.createElement('div');
+      group.className = 'modal-option-group';
+      group.innerHTML = `<div class="modal-option-title">Options <span>Required</span></div>`;
+      item.variants.forEach((v, index) => {
+        const row = document.createElement('label');
+        row.className = 'modal-option-row';
+        const isChecked = index === 0 ? 'checked' : '';
+        row.innerHTML = `
+          <div>
+            <input type="radio" name="modal_variant" class="custom-radio" value="${index}" ${isChecked} onchange="updateModalPrice()">
+            <span class="modal-option-label">${v.name}</span>
+          </div>
+          <span class="modal-option-price">$${(parseFloat(v.price) || 0).toFixed(2)}</span>
+        `;
+        group.appendChild(row);
+      });
+      varContainer.appendChild(group);
+    }
   }
 
   // Render Add-ons
   const addContainer = document.getElementById('item-modal-addons-container');
-  addContainer.innerHTML = '';
-  if (item.addOns && item.addOns.length > 0) {
-    const group = document.createElement('div');
-    group.className = 'modal-option-group';
-    group.innerHTML = `<div class="modal-option-title">Add-ons <span>Optional</span></div>`;
-    item.addOns.forEach((a, index) => {
-      const row = document.createElement('label');
-      row.className = 'modal-option-row';
-      row.innerHTML = `
-        <div>
-          <input type="checkbox" name="modal_addon" class="custom-checkbox" value="${index}" onchange="updateModalPrice()">
-          <span class="modal-option-label">${a.name}</span>
+  if (addContainer) {
+    addContainer.innerHTML = '';
+    if (item.addOns && item.addOns.length > 0) {
+      const group = document.createElement('div');
+      group.className = 'modal-option-group';
+      group.innerHTML = `<div class="modal-option-title">Add-ons <span>Optional</span></div>`;
+      item.addOns.forEach((a, index) => {
+        const row = document.createElement('label');
+        row.className = 'modal-option-row';
+        row.innerHTML = `
+          <div>
+            <input type="checkbox" name="modal_addon" class="custom-checkbox" value="${index}" onchange="updateModalPrice()">
+            <span class="modal-option-label">${a.name}</span>
+          </div>
+          <span class="modal-option-price">+$${(parseFloat(a.price) || 0).toFixed(2)}</span>
+        `;
+        group.appendChild(row);
+      });
+      addContainer.appendChild(group);
+    }
+  }
+
+  // ── "Make it a Meal" Upgrade ──
+  let mealContainer = document.getElementById('item-modal-meal-container');
+  if (!mealContainer) {
+    mealContainer = document.createElement('div');
+    mealContainer.id = 'item-modal-meal-container';
+    if (addContainer && addContainer.parentNode) {
+      addContainer.parentNode.insertBefore(mealContainer, addContainer.nextSibling);
+    } else {
+      document.querySelector('#item-details-modal > div:last-child').appendChild(mealContainer);
+    }
+  }
+  mealContainer.innerHTML = '';
+  currentMealUpgrade = null;
+
+  // Only show for non-meal items
+  if (item.category !== 'bigi street meals') {
+    let matchingMeal = null;
+    if (item.mealLinkId) {
+      matchingMeal = menuItems.find(m => m.id === item.mealLinkId);
+    }
+    
+    if (!matchingMeal) {
+      // Find a matching meal by name similarity as fallback
+      const itemNameClean = item.name.toLowerCase()
+        .replace(/bigi'?s?\s*/gi, '')
+        .replace(/\s*(plate|wrap|platter|with fries)\s*/gi, '')
+        .trim();
+
+      matchingMeal = menuItems.find(m => {
+        if (m.category !== 'bigi street meals') return false;
+        const mealNameClean = m.name.toLowerCase()
+          .replace(/bigi'?s?\s*/gi, '')
+          .replace(/\s*meal\s*/gi, '')
+          .trim();
+        return mealNameClean === itemNameClean || 
+               mealNameClean.includes(itemNameClean) || 
+               itemNameClean.includes(mealNameClean);
+      });
+    }
+
+    if (matchingMeal) {
+      currentMealUpgrade = matchingMeal;
+      const priceDiff = (matchingMeal.price - item.price).toFixed(2);
+      const upgradeLabel = priceDiff > 0 ? `+$${priceDiff}` : 'FREE';
+
+      mealContainer.innerHTML = `
+        <div class="meal-upgrade-card">
+          <div class="meal-upgrade-header">
+            <span class="meal-upgrade-icon">🍟🥤</span>
+            <span class="meal-upgrade-title">MAKE IT A MEAL</span>
+          </div>
+          <label class="meal-upgrade-toggle-row">
+            <div class="meal-upgrade-info">
+              <span class="meal-upgrade-desc">Add fries & a drink</span>
+              <span class="meal-upgrade-price">${upgradeLabel}</span>
+            </div>
+            <div class="meal-upgrade-switch">
+              <input type="checkbox" id="meal-upgrade-check" onchange="updateModalPrice()">
+              <span class="meal-upgrade-slider"></span>
+            </div>
+          </label>
         </div>
-        <span class="modal-option-price">+$${(parseFloat(a.price) || 0).toFixed(2)}</span>
       `;
-      group.appendChild(row);
-    });
-    addContainer.appendChild(group);
+    }
   }
 
   updateModalPrice();
@@ -594,6 +667,12 @@ window.updateModalPrice = () => {
     });
   }
 
+  // Check meal upgrade toggle
+  const mealCheck = document.getElementById('meal-upgrade-check');
+  if (mealCheck && mealCheck.checked && currentMealUpgrade) {
+    basePrice = currentMealUpgrade.price || basePrice;
+  }
+
   const total = basePrice * currentModalQty;
   document.getElementById('item-modal-price').textContent = `$${basePrice.toFixed(2)}`;
   document.getElementById('item-modal-qty').textContent = currentModalQty;
@@ -603,7 +682,14 @@ window.updateModalPrice = () => {
 window.addConfiguredItemToCart = () => {
   if (!currentModalItem) return;
 
-  let finalPrice = currentModalItem.price || 0;
+  // Check if meal upgrade is toggled on
+  const mealCheck = document.getElementById('meal-upgrade-check');
+  const isMealUpgrade = mealCheck && mealCheck.checked && currentMealUpgrade;
+
+  // Use the meal item if upgrade is toggled
+  const itemToAdd = isMealUpgrade ? currentMealUpgrade : currentModalItem;
+
+  let finalPrice = itemToAdd.price || 0;
   let variantText = '';
   let addOnsText = [];
   
@@ -611,7 +697,9 @@ window.addConfiguredItemToCart = () => {
     const checkedVar = document.querySelector('input[name="modal_variant"]:checked');
     if (checkedVar) {
       const v = currentModalItem.variants[parseInt(checkedVar.value)];
-      finalPrice = (parseFloat(v.price) || 0);
+      if (!isMealUpgrade) {
+        finalPrice = (parseFloat(v.price) || 0);
+      }
       variantText = v.name;
     }
   }
@@ -620,31 +708,36 @@ window.addConfiguredItemToCart = () => {
     const checkedAddOns = document.querySelectorAll('input[name="modal_addon"]:checked');
     checkedAddOns.forEach(cb => {
       const a = currentModalItem.addOns[parseInt(cb.value)];
-      finalPrice += (parseFloat(a.price) || 0);
+      if (!isMealUpgrade) {
+        finalPrice += (parseFloat(a.price) || 0);
+      }
       addOnsText.push(a.name);
     });
   }
 
-  const cartKey = `${currentModalItem.id}|${variantText}|${addOnsText.join(',')}`;
+  const mealSuffix = isMealUpgrade ? '|MEAL' : '';
+  const cartKey = `${itemToAdd.id}|${variantText}|${addOnsText.join(',')}${mealSuffix}`;
 
   const existing = cart.find(i => i.cartKey === cartKey);
   if (existing) {
     existing.qty += currentModalQty;
   } else {
     cart.push({
-      ...currentModalItem,
+      ...itemToAdd,
       cartKey: cartKey,
       qty: currentModalQty,
       price: finalPrice, 
-      originalPrice: currentModalItem.price,
+      originalPrice: itemToAdd.price,
       selectedVariant: variantText,
-      selectedAddOns: addOnsText
+      selectedAddOns: addOnsText,
+      isMeal: isMealUpgrade
     });
   }
   
   closeItemModal();
   updateCartUI();
-  showToast(`${currentModalItem.name} added to cart`);
+  const mealLabel = isMealUpgrade ? ' (Meal)' : '';
+  showToast(`${currentModalItem.name}${mealLabel} added to cart`);
 };
 
 window.addToCart = (id) => {

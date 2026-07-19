@@ -1061,11 +1061,37 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
       const data = doc.data();
       const name = data.name || '';
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      allItems.push({ name, slug });
+      allItems.push({ name, slug, data });
       if (slug === itemSlug) {
         selectedItem = data;
       }
     });
+
+    if (!selectedItem) {
+      // Fallback matching for old SEO links
+      let strippedSlug = itemSlug.replace(/^bigi-s-/, '');
+      const oldToNew = {
+        'shami-kabob': 'shami-kabab-plate',
+        'qabuli-palou': 'qabuli-palaw',
+        'doogh-yogurt-drink': 'doogh',
+        'shawarma': 'chicken-shawarma-wrap',
+        'samosa': 'chicken-samosa',
+        'smash-burger-with-fries': 'smash-burger-meal',
+        'tikka-kabob': 'tikka-kabab-plate'
+      };
+      if (oldToNew[strippedSlug]) {
+        strippedSlug = oldToNew[strippedSlug];
+      }
+      
+      selectedItem = allItems.find(i => i.slug === strippedSlug)?.data;
+
+      if (!selectedItem) {
+        const partialMatch = allItems.find(i => i.slug.includes(strippedSlug) || strippedSlug.includes(i.slug));
+        if (partialMatch) {
+          selectedItem = partialMatch.data;
+        }
+      }
+    }
 
     const templatePath = path.join(__dirname, 'item-template.html');
     let html = fs.readFileSync(templatePath, 'utf8');

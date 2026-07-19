@@ -18,11 +18,11 @@
     },
     {
       "source": "/tv1",
-      "destination": "/tv-menu.html?screen=1"
+      "destination": "/tv1.html"
     },
     {
       "source": "/tv2",
-      "destination": "/tv-menu.html?screen=2"
+      "destination": "/tv2.html"
     }
   ]
 }
