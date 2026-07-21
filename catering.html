@@ -67,7 +67,7 @@
         <li><a href="/locations.html" data-i18n="nav.location">Location</a></li>
         <li><a href="/catering.html" class="active" data-i18n="nav.catering">Catering</a></li>
         <li><a href="/#delivery" data-i18n="nav.delivery">Delivery</a></li>
-        <li><button class="site-lang-toggle btn-outline" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
         <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
       </ul>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
@@ -83,7 +83,7 @@
     <a href="/locations.html" data-i18n="nav.location">Location</a>
     <a href="/catering.html" class="active" data-i18n="nav.catering">Catering</a>
     <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
-    <button class="site-lang-toggle btn-outline" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
+    <button class="site-lang-toggle btn-outline" aria-label="Switch language" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
     <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
   </div>
 
@@ -138,33 +138,33 @@
             
             <div style="display: flex; gap: var(--space-m); flex-wrap: wrap;">
               <div style="flex: 1; min-width: 200px;">
-                <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Name</label>
+                <label for="cat-name" style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Name</label>
                 <input type="text" id="cat-name" placeholder="John Doe" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
               </div>
               <div style="flex: 1; min-width: 200px;">
-                <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Email</label>
+                <label for="cat-email" style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Email</label>
                 <input type="email" id="cat-email" placeholder="john@example.com" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
               </div>
             </div>
   
             <div style="display: flex; gap: var(--space-m); flex-wrap: wrap;">
               <div style="flex: 1; min-width: 200px;">
-                <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Phone Number</label>
+                <label for="cat-phone" style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Phone Number</label>
                 <input type="tel" id="cat-phone" placeholder="(123) 456-7890" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
               </div>
               <div style="flex: 1; min-width: 200px;">
-                <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Event Date</label>
+                <label for="cat-date" style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Event Date</label>
                 <input type="date" id="cat-date" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
               </div>
             </div>
   
             <div>
-              <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Guest Count (Approx.)</label>
+              <label for="cat-guests" style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Guest Count (Approx.)</label>
               <input type="number" id="cat-guests" placeholder="e.g. 50" min="1" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
             </div>
   
             <div>
-              <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Event Details / Special Requests</label>
+              <label for="cat-details" style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Event Details / Special Requests</label>
               <textarea id="cat-details" rows="4" placeholder="Tell us about your event..." style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px; resize: vertical;" required></textarea>
             </div>
   

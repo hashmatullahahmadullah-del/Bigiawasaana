@@ -259,7 +259,7 @@ function buildCategoryPills() {
   const scrollContainer = document.querySelector('.cat-scroll');
   if (!scrollContainer) return;
 
-  const categories = [...new Set(menuItems.map(i => i.category))].filter(c => c !== 'bigi street meals');
+  const categories = [...new Set(menuItems.map(i => i.category))];
   
   scrollContainer.innerHTML = '';
   
@@ -277,7 +277,7 @@ function buildCategoryPills() {
   categories.forEach(cat => {
     const pill = document.createElement('button');
     pill.className = 'category-pill';
-    pill.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+    pill.textContent = cat.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     pill.onclick = () => {
       document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
@@ -296,7 +296,7 @@ function renderMenu(category) {
   grid.innerHTML = '';
   
   const itemsToRender = category === 'all' 
-    ? menuItems.filter(item => item.category !== 'bigi street meals')
+    ? menuItems
     : menuItems.filter(item => item.category === category);
 
   if (itemsToRender.length === 0) {
@@ -592,6 +592,9 @@ window.openItemModal = (id) => {
           .replace(/bigi'?s?\s*/gi, '')
           .replace(/\s*meal\s*/gi, '')
           .trim();
+        
+        if (itemNameClean === 'afghan burger' && mealNameClean.includes('silk road wrap')) return true;
+
         return mealNameClean === itemNameClean || 
                mealNameClean.includes(itemNameClean) || 
                itemNameClean.includes(mealNameClean);

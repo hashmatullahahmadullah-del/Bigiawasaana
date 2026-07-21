@@ -18,7 +18,7 @@
   <meta property="og:title" content="{{TITLE}}">
   <meta property="og:description" content="{{META_DESC}}">
   <meta property="og:type" content="restaurant">
-  <meta property="og:url" content="https://bigiawasaana.com">
+  <meta property="og:url" content="https://bigiawasaana.com/item/{{ITEM_SLUG}}">
   <meta property="og:locale" content="en_US">
   <meta property="og:image" content="{{OG_IMAGE}}">
   
@@ -45,7 +45,7 @@
   <nav class="site-nav">
     <div class="container">
       <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
-        <img src="/assets/logo-BhOyypqj.png" alt="Bigi Awasaana Logo">
+        <img src="/assets/logo-BbR-BXI6.webp" alt="Bigi Awasaana Logo" width="128" height="64">
       </a>
       <ul class="nav-links">
         <li><a href="/menu.html" data-i18n="nav.menu">Menu</a></li>
@@ -53,7 +53,7 @@
         <li><a href="/locations.html" data-i18n="nav.location">Location</a></li>
         <li><a href="/catering.html" data-i18n="nav.catering">Catering</a></li>
         <li><a href="/#delivery" data-i18n="nav.delivery">Delivery</a></li>
-        <li><button class="site-lang-toggle btn-outline" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
         <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
       </ul>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
@@ -69,12 +69,14 @@
     <a href="/locations.html" data-i18n="nav.location">Location</a>
     <a href="/catering.html" data-i18n="nav.catering">Catering</a>
     <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
-    <button class="site-lang-toggle btn-outline" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
+    <button class="site-lang-toggle btn-outline" aria-label="Switch language" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
     <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
   </div>
 
+  <main id="main-content">
   <!-- Item Content Injected Here -->
   {{ITEM_CONTENT}}
+  </main>
 
   <!-- Footer -->
   <footer class="footer">
@@ -82,7 +84,7 @@
       <div class="footer-grid">
         <!-- 1. Brand -->
         <div class="text-center-mobile">
-          <a href="/"><img src="/assets/logo-BhOyypqj.png" alt="Bigi Awasaana Logo" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
+          <a href="/"><img src="/assets/logo-BbR-BXI6.webp" alt="Bigi Awasaana Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
           <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Real food. Real flavor. Bigi Awasaana.</p>
         </div>
         <!-- 2. Explore -->
@@ -120,15 +122,15 @@
       <div class="container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
         <p style="margin: 0;">&copy; 2026 Bigi Awasaana. All rights reserved.</p>
         <div style="display: flex; gap: 16px;">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
+          <a href="/faq.html#privacy">Privacy Policy</a>
+          <a href="/faq.html#terms">Terms of Service</a>
         </div>
       </div>
     </div>
   </footer>
 
   <!-- Cart FAB (hidden until launch) -->
-  <button class="btn-primary cart-fab" onclick="toggleCart(true)" id="cart-fab" style="display: none;">
+  <button class="btn-primary cart-fab" onclick="toggleCart(true)" id="cart-fab" aria-label="Open cart" style="display: none;">
     <span style="font-size: 16px;">BAG</span>
     <span id="cart-count-badge" class="cart-badge">0</span>
   </button>
@@ -137,7 +139,7 @@
   <div id="cart-drawer" style="position: fixed; top: 0; bottom: 0; right: -100%; width: 100%; max-width: 460px; height: 100%; z-index: 2000; transition: right 0.4s var(--ease); display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,0.5);">
     <div style="padding: var(--space-m); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
       <h2 style="font-size: 18px; letter-spacing: 2px;">YOUR ORDER</h2>
-      <button onclick="toggleCart(false)" style="background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; padding: 10px;">&times;</button>
+      <button onclick="toggleCart(false)" aria-label="Close cart" style="background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; padding: 10px;">&times;</button>
     </div>
     
     <div id="cart-items" style="flex: 1; overflow-y: auto; padding: var(--space-m);"></div>
@@ -180,7 +182,7 @@
   <!-- Item Details Modal -->
   <div id="item-details-modal" class="payment-modal-overlay" style="display: none;">
     <div class="payment-modal item-modal" style="padding: 0; overflow: hidden; max-width: 500px;">
-      <button onclick="closeItemModal()" style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.6); border: none; color: white; font-size: 24px; cursor: pointer; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
+      <button onclick="closeItemModal()" aria-label="Close item modal" style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.6); border: none; color: white; font-size: 24px; cursor: pointer; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
       <div id="item-modal-hero" style="height: 250px; background-size: cover; background-position: center; background-color: var(--surface);"></div>
       <div style="padding: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">

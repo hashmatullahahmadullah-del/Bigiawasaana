@@ -116,8 +116,6 @@
 </head>
 <body>
 
-  <!-- Main Content wrapped in a main landmark for accessibility -->
-  <main id="main-content">
   <!-- Nav -->
   <nav class="site-nav">
     <div class="container">
@@ -130,7 +128,7 @@
         <li><a href="/locations.html" data-i18n="nav.location">Location</a></li>
         <li><a href="/catering.html" data-i18n="nav.catering">Catering</a></li>
         <li><a href="/#delivery" data-i18n="nav.delivery">Delivery</a></li>
-        <li><button class="site-lang-toggle btn-outline" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
         <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
       </ul>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
@@ -146,10 +144,11 @@
     <a href="/locations.html" data-i18n="nav.location">Location</a>
     <a href="/catering.html" data-i18n="nav.catering">Catering</a>
     <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
-    <button class="site-lang-toggle btn-outline" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
+    <button class="site-lang-toggle btn-outline" aria-label="Switch language" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
     <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
   </div>
 
+  <main id="main-content">
   <section class="blog-hero">
     <div class="container">
       <h1 class="font-lalezar" style="font-size: clamp(48px, 8vw, 80px); color: var(--accent); margin-bottom: 16px;">The Bigi Blog</h1>
@@ -187,7 +186,7 @@
             <a href="/locations.html" class="footer-link">Location & Hours</a>
             <a href="/catering.html" class="footer-link">Catering</a>
             <a href="/faq.html" class="footer-link">FAQ</a>
-            <a href="/blog.html" class="footer-link" class="active">Blog</a>
+            <a href="/blog.html" class="footer-link active">Blog</a>
           </div>
         </div>
         <!-- 3. Visit Us -->

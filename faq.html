@@ -145,6 +145,14 @@
           "@type": "Answer",
           "text": "First-timers should definitely try our Tikka Kabob (juicy charcoal-grilled meat), Qabuli Palou (traditional Afghan rice with tender beef, sweet carrots, and raisins), and our fan-favorite Afghan Burger."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you have vegetarian options?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Our Bolani (stuffed flatbread with potato and leek) and our Veggie Samosas are fantastic vegetarian options. Our Afghan salads, hummus, and freshly baked naan also make for great meat-free sides."
+        }
       }
     ]
   }
@@ -165,7 +173,7 @@
         <li><a href="/locations.html" data-i18n="nav.location">Location</a></li>
         <li><a href="/catering.html" data-i18n="nav.catering">Catering</a></li>
         <li><a href="/#delivery" data-i18n="nav.delivery">Delivery</a></li>
-        <li><button class="site-lang-toggle btn-outline" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
         <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
       </ul>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
@@ -182,7 +190,7 @@
     <a href="/locations.html" data-i18n="nav.location">Location</a>
     <a href="/catering.html" data-i18n="nav.catering">Catering</a>
     <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
-    <button class="site-lang-toggle btn-outline" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
+    <button class="site-lang-toggle btn-outline" aria-label="Switch language" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
     <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
   </div>
 
@@ -202,61 +210,73 @@
         <div class="faq-container">
           
           <div class="faq-item active">
-            <button class="faq-question">
-              Is all your meat Zabiha Halal?
-              <div class="faq-icon"></div>
-            </button>
-            <div class="faq-answer">
+            <h2 style="margin: 0; font-weight: normal;">
+              <button class="faq-question" aria-expanded="true" aria-controls="faq-ans-1">
+                Is all your meat Zabiha Halal?
+                <div class="faq-icon"></div>
+              </button>
+            </h2>
+            <div id="faq-ans-1" class="faq-answer">
               <p>Yes, 100%. We source only certified hand-slaughtered Zabiha Halal meat. As a Muslim-owned and operated family business, this is a strict standard we never compromise on. Whether it's our chicken, beef, or lamb, you can dine with complete peace of mind.</p>
             </div>
           </div>
 
           <div class="faq-item">
-            <button class="faq-question">
-              Where are you located and what are your hours?
-              <div class="faq-icon"></div>
-            </button>
-            <div class="faq-answer">
+            <h2 style="margin: 0; font-weight: normal;">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-2">
+                Where are you located and what are your hours?
+                <div class="faq-icon"></div>
+              </button>
+            </h2>
+            <div id="faq-ans-2" class="faq-answer">
               <p>We are a food trailer permanently located at <strong>18411 Victory Blvd, Reseda, CA 91335</strong>. We are open every day of the week from <strong>12:00 PM to 10:30 PM</strong>.</p>
             </div>
           </div>
 
           <div class="faq-item">
-            <button class="faq-question">
-              Do you offer delivery?
-              <div class="faq-icon"></div>
-            </button>
-            <div class="faq-answer">
+            <h2 style="margin: 0; font-weight: normal;">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-3">
+                Do you offer delivery?
+                <div class="faq-icon"></div>
+              </button>
+            </h2>
+            <div id="faq-ans-3" class="faq-answer">
               <p>Yes, we partner with major delivery apps so you can enjoy Bigi Awasaana from the comfort of your home. You can find and order from us directly on <strong>Uber Eats</strong> and <strong>DoorDash</strong>. We serve Reseda, Canoga Park, Tarzana, Encino, and the surrounding San Fernando Valley.</p>
             </div>
           </div>
 
           <div class="faq-item">
-            <button class="faq-question">
-              Do you offer catering for events?
-              <div class="faq-icon"></div>
-            </button>
-            <div class="faq-answer">
+            <h2 style="margin: 0; font-weight: normal;">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-4">
+                Do you offer catering for events?
+                <div class="faq-icon"></div>
+              </button>
+            </h2>
+            <div id="faq-ans-4" class="faq-answer">
               <p>Absolutely! We provide catering for weddings, corporate events, family parties, and gatherings of all sizes. From large trays of Qabuli Palou to mountains of fresh Tikka Kabob, we can customize a menu for your event. Please visit our <a href="/catering.html" style="color: var(--accent);">Catering page</a> to submit an inquiry.</p>
             </div>
           </div>
 
           <div class="faq-item">
-            <button class="faq-question">
-              What are your most popular dishes?
-              <div class="faq-icon"></div>
-            </button>
-            <div class="faq-answer">
+            <h2 style="margin: 0; font-weight: normal;">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-5">
+                What are your most popular dishes?
+                <div class="faq-icon"></div>
+              </button>
+            </h2>
+            <div id="faq-ans-5" class="faq-answer">
               <p>First-timers should definitely try our <strong>Tikka Kabob</strong> (juicy, smoky charcoal-grilled meat), <strong>Qabuli Palou</strong> (traditional Afghan rice with tender beef, sweet carrots, and raisins), and our fan-favorite <strong>Afghan Burger</strong> (a wrap packed with meat, fresh veggies, and fries). We also highly recommend adding an order of Bolani to share!</p>
             </div>
           </div>
 
           <div class="faq-item">
-            <button class="faq-question">
-              Do you have vegetarian options?
-              <div class="faq-icon"></div>
-            </button>
-            <div class="faq-answer">
+            <h2 style="margin: 0; font-weight: normal;">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-6">
+                Do you have vegetarian options?
+                <div class="faq-icon"></div>
+              </button>
+            </h2>
+            <div id="faq-ans-6" class="faq-answer">
               <p>Yes! Our <strong>Bolani</strong> (stuffed flatbread with potato and leek) and our <strong>Veggie Samosas</strong> are fantastic vegetarian options. Our Afghan salads, hummus, and freshly baked naan also make for great meat-free sides.</p>
             </div>
           </div>
