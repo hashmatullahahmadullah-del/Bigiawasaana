@@ -18,7 +18,16 @@ filesToCopy.forEach(({ src, dest }) => {
     fs.mkdirSync(destDir, { recursive: true });
   }
   if (fs.existsSync(src)) {
-    fs.copyFileSync(src, dest);
-    console.log(`Copied ${src} to ${dest}`);
+    // If copying an HTML template, rewrite the hashed CSS links to the unhashed stable paths
+    if (src.endsWith('.html') && dest.startsWith('functions/')) {
+      let content = fs.readFileSync(src, 'utf8');
+      content = content.replace(/href="\/assets\/style-[a-zA-Z0-9-_]+\.css"/g, 'href="/src/style.css"');
+      content = content.replace(/href="\/assets\/mobile-nav-[a-zA-Z0-9-_]+\.css"/g, 'href="/src/mobile-nav.css"');
+      fs.writeFileSync(dest, content);
+      console.log(`Copied and rewrote CSS links in ${src} to ${dest}`);
+    } else {
+      fs.copyFileSync(src, dest);
+      console.log(`Copied ${src} to ${dest}`);
+    }
   }
 });
