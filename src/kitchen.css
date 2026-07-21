@@ -33,6 +33,32 @@ body {
 /* Hide fullscreen elements when active */
 :fullscreen .kds-icon-btn[aria-label="Toggle Fullscreen"] { /* handled by JS */ }
 
+/* ── Alarm Banner ── */
+#kds-alarm-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: #ff2020;
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 18px 24px;
+  cursor: pointer;
+  animation: alarm-pulse 0.5s ease-in-out infinite alternate;
+  user-select: none;
+}
+
+@keyframes alarm-pulse {
+  0%   { background: #ff2020; }
+  100% { background: #cc0000; box-shadow: 0 0 40px rgba(255, 32, 32, 0.8); }
+}
+
 /* ── Header ── */
 .kds-header {
   height: 80px;
@@ -293,6 +319,9 @@ body {
 .badge-doordash { background: var(--kds-doordash); color: #fff; }
 .badge-ubereats  { background: var(--kds-ubereats);  color: #fff; }
 .badge-grubhub   { background: var(--kds-grubhub);   color: #fff; }
+.badge-squareonline { background: #006AFF; color: #fff; }
+.badge-website   { background: var(--kds-website); color: #fff; }
+.badge-pos       { background: var(--kds-pos); color: #fff; }
 
 .kds-delivery-note {
   font-size: 16px;
@@ -363,6 +392,23 @@ body {
   background: transparent;
   border: 2px solid #ff3008;
   color: #ff3008;
+}
+
+.kds-card-done-label {
+  width: 100%;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--status-completed);
+  border: 2px solid var(--status-completed);
+  border-radius: 4px;
+  opacity: 0.6;
 }
 
 /* ── Responsive ── */

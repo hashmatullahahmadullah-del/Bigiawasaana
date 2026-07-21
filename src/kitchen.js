@@ -1,5 +1,5 @@
 import { db, app } from './firebase.js';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy as fsOrderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
@@ -286,32 +286,124 @@ function getElapsedMinutes(createdAt) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Audio Alerts
+// Audio Alerts — 15-second loud alarm for new orders
 // ─────────────────────────────────────────────────────────────────
-function playChime() {
+let alarmTimeout = null;
+let alarmOscillators = [];
+let alarmGainNode = null;
+let alarmBanner = null;
+
+function playAlarm() {
   if (isMuted) return;
+  // Don't stack alarms
+  if (alarmOscillators.length > 0) return;
+
   try {
     if (!audioContext) {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
-    const osc = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, audioContext.currentTime); // A5
-    osc.frequency.exponentialRampToValueAtTime(1760, audioContext.currentTime + 0.1); // Slide up to A6
-    
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
-    osc.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    osc.start();
-    osc.stop(audioContext.currentTime + 0.5);
+
+    // Master gain — LOUD
+    alarmGainNode = audioContext.createGain();
+    alarmGainNode.gain.setValueAtTime(0.9, audioContext.currentTime);
+    alarmGainNode.connect(audioContext.destination);
+
+    const now = audioContext.currentTime;
+    const duration = 15; // 15 seconds
+
+    // Create a pulsing two-tone siren (alternates between two frequencies)
+    // Each pulse is 0.3s, repeating for 15 seconds = ~25 pulses
+    const pulseInterval = 0.3;
+    const freqHigh = 1400; // High tone
+    const freqLow = 900;   // Low tone
+
+    for (let t = 0; t < duration; t += pulseInterval * 2) {
+      // High tone pulse
+      const oscHigh = audioContext.createOscillator();
+      const gainHigh = audioContext.createGain();
+      oscHigh.type = 'square';
+      oscHigh.frequency.setValueAtTime(freqHigh, now + t);
+      gainHigh.gain.setValueAtTime(0, now + t);
+      gainHigh.gain.linearRampToValueAtTime(1, now + t + 0.02);
+      gainHigh.gain.setValueAtTime(1, now + t + pulseInterval - 0.02);
+      gainHigh.gain.linearRampToValueAtTime(0, now + t + pulseInterval);
+      oscHigh.connect(gainHigh);
+      gainHigh.connect(alarmGainNode);
+      oscHigh.start(now + t);
+      oscHigh.stop(now + t + pulseInterval);
+      alarmOscillators.push(oscHigh);
+
+      // Low tone pulse
+      if (t + pulseInterval < duration) {
+        const oscLow = audioContext.createOscillator();
+        const gainLow = audioContext.createGain();
+        oscLow.type = 'square';
+        oscLow.frequency.setValueAtTime(freqLow, now + t + pulseInterval);
+        gainLow.gain.setValueAtTime(0, now + t + pulseInterval);
+        gainLow.gain.linearRampToValueAtTime(1, now + t + pulseInterval + 0.02);
+        gainLow.gain.setValueAtTime(1, now + t + pulseInterval * 2 - 0.02);
+        gainLow.gain.linearRampToValueAtTime(0, now + t + pulseInterval * 2);
+        oscLow.connect(gainLow);
+        gainLow.connect(alarmGainNode);
+        oscLow.start(now + t + pulseInterval);
+        oscLow.stop(now + t + pulseInterval * 2);
+        alarmOscillators.push(oscLow);
+      }
+    }
+
+    // Show the silence banner
+    showAlarmBanner();
+
+    // Auto-stop after 15 seconds
+    alarmTimeout = setTimeout(() => {
+      stopAlarm();
+    }, duration * 1000);
+
   } catch(e) {
-    console.error('Audio play failed:', e);
+    console.error('Alarm play failed:', e);
+  }
+}
+
+function stopAlarm() {
+  // Stop all oscillators
+  alarmOscillators.forEach(osc => {
+    try { osc.stop(); } catch(e) { /* already stopped */ }
+  });
+  alarmOscillators = [];
+
+  // Fade out gain
+  if (alarmGainNode) {
+    try {
+      alarmGainNode.gain.cancelScheduledValues(audioContext.currentTime);
+      alarmGainNode.gain.setValueAtTime(alarmGainNode.gain.value, audioContext.currentTime);
+      alarmGainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.1);
+    } catch(e) { /* ignore */ }
+    alarmGainNode = null;
+  }
+
+  // Clear timeout
+  if (alarmTimeout) {
+    clearTimeout(alarmTimeout);
+    alarmTimeout = null;
+  }
+
+  // Hide banner
+  hideAlarmBanner();
+}
+
+function showAlarmBanner() {
+  if (alarmBanner) return;
+  alarmBanner = document.createElement('div');
+  alarmBanner.id = 'kds-alarm-banner';
+  alarmBanner.innerHTML = '🔔 NEW ORDER — TAP TO SILENCE';
+  alarmBanner.addEventListener('click', stopAlarm);
+  document.body.appendChild(alarmBanner);
+}
+
+function hideAlarmBanner() {
+  if (alarmBanner) {
+    alarmBanner.remove();
+    alarmBanner = null;
   }
 }
 
@@ -357,7 +449,8 @@ function initKDS() {
   const ordersRef = collection(db, 'orders');
   const q = query(
     ordersRef,
-    where('createdAt', '>=', startOfDay)
+    where('createdAt', '>=', startOfDay),
+    fsOrderBy('createdAt', 'asc')
   );
 
   onSnapshot(q, (snapshot) => {
@@ -365,7 +458,7 @@ function initKDS() {
     
     // Only play chime if it's a real new order (not initial load, unless there's many, but mostly for running system)
     if (newOrdersCount > 0 && orders.length > 0) {
-      playChime();
+      playAlarm();
     }
 
     orders = snapshot.docs.map(doc => {
@@ -374,7 +467,8 @@ function initKDS() {
         id: doc.id,
         shortId: doc.id.slice(-4).toUpperCase(),
         ...data,
-        createdAt: data.createdAt ? data.createdAt.toDate() : new Date()
+        createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+        updatedAt: data.updatedAt ? data.updatedAt.toDate() : null
       };
     });
 
@@ -390,22 +484,29 @@ function initKDS() {
 // ─────────────────────────────────────────────────────────────────
 // Square API Polling
 // ─────────────────────────────────────────────────────────────────
+let pollFailCount = 0;
 async function pollSquareOrders() {
   try {
     console.log("Polling Square orders...");
-    // Call the deployed HTTP function (CORS is enabled on backend)
-    await fetch('https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/syncSquareOrders');
+    const resp = await fetch('https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/syncSquareOrders');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    pollFailCount = 0; // Reset on success
   } catch (err) {
-    console.error("Error polling Square orders:", err);
+    pollFailCount++;
+    console.error(`Error polling Square orders (attempt ${pollFailCount}):`, err);
   } finally {
-    // Poll again in 30 seconds
-    setTimeout(pollSquareOrders, 30000);
+    // Retry sooner on failure (10s), normal interval on success (30s)
+    const nextInterval = pollFailCount > 0 ? 10000 : 30000;
+    setTimeout(pollSquareOrders, nextInterval);
   }
 }
 
 // ─────────────────────────────────────────────────────────────────
 // Render
 // ─────────────────────────────────────────────────────────────────
+// Auto-hide completed orders after this many minutes
+const COMPLETED_AUTO_HIDE_MINUTES = 5;
+
 function renderOrders() {
   const colAll = document.getElementById('col-all');
   if (!colAll) return;
@@ -423,6 +524,8 @@ function renderOrders() {
     return a.createdAt - b.createdAt; // Oldest first within same status
   });
 
+  const now = new Date();
+
   sortedOrders.forEach(order => {
     // Hide scheduled orders that haven't been released to the kitchen yet
     if (order.pickup && order.pickup.type === 'scheduled' && order.pickup.releasedToKitchen === false) {
@@ -432,6 +535,14 @@ function renderOrders() {
     // Only hide if explicitly dismissed by the kitchen staff
     if (order.kdsHidden === true) {
       return; 
+    }
+
+    // Auto-hide completed orders after COMPLETED_AUTO_HIDE_MINUTES
+    if (order.status === 'completed') {
+      const completedElapsed = getElapsedMinutes(order.updatedAt || order.createdAt);
+      if (completedElapsed >= COMPLETED_AUTO_HIDE_MINUTES) {
+        return;
+      }
     }
 
     if (order.status !== 'completed') {
@@ -445,13 +556,24 @@ function renderOrders() {
     let timeDisplay = elapsed > 0 ? `${elapsed} ${t('min')}` : t('Just now');
     if (order.status === 'completed') timeDisplay = t('Done');
 
-    // Platform badge for delivery orders
-    const deliveryBadges = { doordash: 'DD · DoorDash', ubereats: 'UE · Uber Eats', grubhub: 'GH · Grubhub' };
-    const badgeClasses = { doordash: 'badge-doordash', ubereats: 'badge-ubereats', grubhub: 'badge-grubhub' };
-    let platformBadgeHtml = deliveryBadges[order.source]
-      ? `<div class="kds-platform-badge ${badgeClasses[order.source]}">${deliveryBadges[order.source]}</div>
-         <p class="kds-delivery-note">📦 ${t('Delivery — driver will collect')}</p>`
-      : '';
+    // Platform badge for ALL sources
+    const platformBadges = {
+      doordash:     { label: 'DD · DoorDash',      cls: 'badge-doordash',     isDelivery: true },
+      ubereats:     { label: 'UE · Uber Eats',      cls: 'badge-ubereats',     isDelivery: true },
+      grubhub:      { label: 'GH · Grubhub',        cls: 'badge-grubhub',      isDelivery: true },
+      squareonline: { label: 'SQ · Square Online',   cls: 'badge-squareonline', isDelivery: false },
+      website:      { label: '🌐 Website',           cls: 'badge-website',      isDelivery: false },
+      pos:          { label: '📱 POS',               cls: 'badge-pos',          isDelivery: false },
+    };
+
+    const badge = platformBadges[order.source];
+    let platformBadgeHtml = '';
+    if (badge) {
+      platformBadgeHtml = `<div class="kds-platform-badge ${badge.cls}">${badge.label}</div>`;
+      if (badge.isDelivery) {
+        platformBadgeHtml += `<p class="kds-delivery-note">📦 ${t('Delivery — driver will collect')}</p>`;
+      }
+    }
       
     // Pickup Badge
     if (order.pickup) {
@@ -470,6 +592,18 @@ function renderOrders() {
       </li>
     `).join('');
 
+    // Status action button
+    let actionBtnHtml = '';
+    if (order.status === 'pending') {
+      actionBtnHtml = `<button class="kds-card-action kds-btn-pending" onclick="changeOrderStatus('${order.id}', 'preparing')">▶ START COOKING</button>`;
+    } else if (order.status === 'preparing') {
+      actionBtnHtml = `<button class="kds-card-action kds-btn-preparing" onclick="changeOrderStatus('${order.id}', 'ready')">✓ MARK READY</button>`;
+    } else if (order.status === 'ready') {
+      actionBtnHtml = `<button class="kds-card-action kds-btn-ready" onclick="changeOrderStatus('${order.id}', 'completed')">✓ COMPLETE</button>`;
+    } else if (order.status === 'completed') {
+      actionBtnHtml = `<div class="kds-card-done-label">✓ DONE</div>`;
+    }
+
     card.innerHTML = `
       <div class="kds-card-header">
         <div>
@@ -486,6 +620,7 @@ function renderOrders() {
       </div>
       ${platformBadgeHtml}
       <ul class="kds-card-items">${itemsHtml}</ul>
+      ${actionBtnHtml}
     `;
 
     colAll.appendChild(card);
@@ -513,5 +648,32 @@ window.hideOrder = async (orderId) => {
   } catch (error) {
     console.error("Failed to hide order:", error);
     alert("Failed to hide order. Are you connected to the internet?");
+  }
+};
+
+window.changeOrderStatus = async (orderId, newStatus) => {
+  const orderIndex = orders.findIndex(o => o.id === orderId);
+  const prevStatus = orderIndex > -1 ? orders[orderIndex].status : null;
+
+  try {
+    // Optimistic UI update
+    if (orderIndex > -1) {
+      orders[orderIndex].status = newStatus;
+      if (newStatus === 'completed' || newStatus === 'ready') {
+        orders[orderIndex].updatedAt = new Date();
+      }
+      renderOrders();
+    }
+
+    // Call the backend to update Square + Firestore
+    await updateSquareOrderStatus({ orderId, status: newStatus });
+  } catch (error) {
+    console.error("Failed to update order status:", error);
+    // Revert optimistic update
+    if (orderIndex > -1 && prevStatus) {
+      orders[orderIndex].status = prevStatus;
+      renderOrders();
+    }
+    alert("Failed to update order status. Please try again.");
   }
 };

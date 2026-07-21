@@ -21,9 +21,11 @@ service cloud.firestore {
       allow list: if request.auth != null;
       
       // Only authenticated admins can update or delete
+      // Allow status changes OR kdsHidden toggle (used by KDS dismiss button)
       // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow update: if request.auth != null
-        && request.resource.data.status in ['pending', 'preparing', 'ready', 'completed'];
+        && (request.resource.data.status in ['pending', 'preparing', 'ready', 'completed']
+            || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['kdsHidden', 'updatedAt']));
       // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
       allow delete: if request.auth != null;
     }

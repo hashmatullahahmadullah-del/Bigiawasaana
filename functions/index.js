@@ -429,7 +429,8 @@ exports.syncSquareOrders = functions.https.onRequest((req, res) => {
         const sourceName = (order.source?.name || '').toLowerCase();
 
         // ── SKIP: Website orders (already written by processSquarePayment with full data) ──
-        if (metadata.source === 'website' || sourceName.includes('website') || sourceName.includes('bigi')) {
+        // Only skip orders explicitly tagged by our processSquarePayment function
+        if (metadata.source === 'website') {
           continue;
         }
 
@@ -453,6 +454,8 @@ exports.syncSquareOrders = functions.https.onRequest((req, res) => {
           source = 'ubereats';
         } else if (sourceName.includes('grubhub') || sourceName.includes('grub hub')) {
           source = 'grubhub';
+        } else if (sourceName.includes('square online') || sourceName.includes('online store') || sourceName.includes('online')) {
+          source = 'squareonline';
         }
 
         // Map Square order state to our status
@@ -559,8 +562,8 @@ exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
     const metadata = orderData.metadata || {};
     const sourceName = (orderData.source?.name || '').toLowerCase();
 
-    // Skip website orders and unpaid drafts
-    if (metadata.source === 'website' || sourceName.includes('website')) {
+    // Skip website orders (only those explicitly tagged by processSquarePayment)
+    if (metadata.source === 'website') {
       return res.status(200).send('Website order handled by processSquarePayment, ignoring.');
     }
     if (!orderData.tenders || orderData.tenders.length === 0) {
@@ -572,6 +575,7 @@ exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
     if (sourceName.includes('doordash')) source = 'doordash';
     else if (sourceName.includes('uber')) source = 'ubereats';
     else if (sourceName.includes('grubhub')) source = 'grubhub';
+    else if (sourceName.includes('square online') || sourceName.includes('online store') || sourceName.includes('online')) source = 'squareonline';
 
     // Map state
     let status = 'pending';
