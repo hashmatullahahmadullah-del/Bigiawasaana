@@ -865,6 +865,7 @@ if (addMenuForm) {
     const mealLinkId = document.getElementById("menu-meal-link").value;
     let img = document.getElementById("menu-img").value;
     const featured = document.getElementById("menu-featured").checked;
+    const hidden = document.getElementById("menu-hidden").checked;
     
     try {
       const fileInput = document.getElementById('menu-img-upload');
@@ -876,7 +877,7 @@ if (addMenuForm) {
       const variants = getBuilderOptions('variants');
       const addOns = getBuilderOptions('addons');
 
-      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, img, featured: !!featured, variants, addOns });
+      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, img, featured: !!featured, hidden: !!hidden, variants, addOns });
       document.getElementById("menu-status").style.display = "block";
       addMenuForm.reset();
       document.getElementById('variants-container').innerHTML = '';
@@ -995,6 +996,7 @@ window.openEditMenuModal = (id) => {
   document.getElementById("edit-menu-desc").value = data.desc || data.description || "";
   document.getElementById("edit-menu-desc_fa").value = data.desc_fa || "";
   document.getElementById("edit-menu-featured").checked = !!data.featured;
+  document.getElementById("edit-menu-hidden").checked = !!data.hidden;
   
   const vContainer = document.getElementById('edit-variants-container');
   if (vContainer) {
@@ -1049,6 +1051,7 @@ if (editMenuForm) {
     const desc = document.getElementById("edit-menu-desc").value;
     const desc_fa = document.getElementById("edit-menu-desc_fa").value;
     const featured = document.getElementById("edit-menu-featured").checked;
+    const hidden = document.getElementById("edit-menu-hidden").checked;
     
     try {
       const fileInput = document.getElementById('edit-menu-img-upload');
@@ -1070,6 +1073,7 @@ if (editMenuForm) {
         desc,
         desc_fa,
         featured: !!featured,
+        hidden: !!hidden,
         variants,
         addOns
       });

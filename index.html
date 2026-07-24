@@ -485,27 +485,31 @@
 
   <!-- Item Details Modal -->
   <div id="item-details-modal" class="payment-modal-overlay" style="display: none;">
-    <div class="payment-modal item-modal" style="padding: 0; max-width: 500px;">
+    <div class="payment-modal item-modal" style="padding: 0;">
       <button onclick="closeItemModal()" aria-label="Close item modal" style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.6); border: none; color: white; font-size: 24px; cursor: pointer; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
-      <div id="item-modal-hero" style="height: 250px; background-size: cover; background-position: center; background-color: var(--surface);"></div>
-      <div style="padding: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-          <h2 id="item-modal-title" style="font-family: 'Barlow Condensed'; font-size: 28px; font-weight: 700; margin: 0; text-transform: uppercase;"></h2>
-          <span id="item-modal-price" style="font-size: 20px; font-weight: 700; color: var(--accent);"></span>
-        </div>
-        <div id="item-modal-cals" style="font-size: 13px; color: var(--gray); margin-bottom: 12px; display: none;"></div>
-        <p id="item-modal-desc" style="color: var(--gray); font-size: 15px; margin-bottom: 24px; line-height: 1.5;"></p>
-        
-        <div id="item-modal-variants-container" style="margin-bottom: 24px;"></div>
-        <div id="item-modal-addons-container" style="margin-bottom: 24px;"></div>
-        
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
-          <div style="display: flex; align-items: center; gap: 16px; background: var(--surface); padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border);">
-            <button onclick="changeItemQty(-1)" style="background: none; border: none; color: var(--white); font-size: 20px; cursor: pointer;">-</button>
-            <span id="item-modal-qty" style="font-weight: 700; font-size: 16px;">1</span>
-            <button onclick="changeItemQty(1)" style="background: none; border: none; color: var(--white); font-size: 20px; cursor: pointer;">+</button>
+      
+      <div class="item-modal-left" id="item-modal-hero"></div>
+      
+      <div class="item-modal-right">
+        <div class="item-modal-scrollable">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <h2 id="item-modal-title" style="font-family: 'Barlow Condensed'; font-size: 32px; font-weight: 700; margin: 0; text-transform: uppercase;"></h2>
+            <span id="item-modal-price" style="font-size: 24px; font-weight: 700; color: var(--accent);"></span>
           </div>
-          <button id="item-modal-add-btn" class="btn-primary" style="flex: 1; margin-left: 16px; padding: 16px; border-radius: 100px;">Add to Cart - $0.00</button>
+          <div id="item-modal-cals" style="font-size: 14px; color: var(--gray); margin-bottom: 12px; display: none;"></div>
+          <p id="item-modal-desc" style="color: var(--gray); font-size: 16px; margin-bottom: 32px; line-height: 1.6;"></p>
+          
+          <div id="item-modal-variants-container"></div>
+          <div id="item-modal-addons-container"></div>
+        </div>
+        
+        <div class="item-modal-footer">
+          <div style="display: flex; align-items: center; gap: 16px; background: var(--bg); padding: 12px 20px; border-radius: 100px; border: 1px solid var(--border);">
+            <button onclick="changeItemQty(-1)" style="background: none; border: none; color: var(--white); font-size: 24px; cursor: pointer; font-weight: bold;">-</button>
+            <span id="item-modal-qty" style="font-weight: 700; font-size: 18px;">1</span>
+            <button onclick="changeItemQty(1)" style="background: none; border: none; color: var(--white); font-size: 24px; cursor: pointer; font-weight: bold;">+</button>
+          </div>
+          <button id="item-modal-add-btn" class="btn-primary" style="flex: 1; margin-left: 20px; padding: 18px; border-radius: 100px; font-size: 18px; letter-spacing: 1px;">Add to Cart - $0.00</button>
         </div>
       </div>
     </div>

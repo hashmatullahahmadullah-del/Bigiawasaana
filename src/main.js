@@ -296,8 +296,8 @@ function renderMenu(category) {
   grid.innerHTML = '';
   
   const itemsToRender = category === 'all' 
-    ? menuItems
-    : menuItems.filter(item => item.category === category);
+    ? menuItems.filter(item => !item.hidden)
+    : menuItems.filter(item => item.category === category && !item.hidden);
 
   if (itemsToRender.length === 0) {
     grid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px 0;">No items in this category.</p>';
@@ -341,11 +341,11 @@ function renderFeaturedMenu() {
   if (!grid) return;
   grid.innerHTML = '';
 
-  let featuredItems = menuItems.filter(item => item.featured);
+  let featuredItems = menuItems.filter(item => item.featured && !item.hidden);
   
   // Fallback to first 3 items if no items are explicitly featured
   if (featuredItems.length === 0) {
-    featuredItems = menuItems.slice(0, 3);
+    featuredItems = menuItems.filter(item => !item.hidden).slice(0, 3);
   }
 
   featuredItems.forEach(item => {
@@ -515,21 +515,26 @@ window.openItemModal = (id) => {
     varContainer.innerHTML = '';
     if (item.variants && item.variants.length > 0) {
       const group = document.createElement('div');
-      group.className = 'modal-option-group';
-      group.innerHTML = `<div class="modal-option-title">Options <span>Required</span></div>`;
+      group.className = 'kiosk-option-group';
+      group.innerHTML = `<div class="kiosk-option-title">Options <span>Required</span></div>`;
+      
+      const grid = document.createElement('div');
+      grid.className = 'kiosk-option-grid';
+      
       item.variants.forEach((v, index) => {
         const row = document.createElement('label');
-        row.className = 'modal-option-row';
+        row.className = 'kiosk-card';
         const isChecked = index === 0 ? 'checked' : '';
         row.innerHTML = `
-          <div>
-            <input type="radio" name="modal_variant" class="custom-radio" value="${index}" ${isChecked} onchange="updateModalPrice()">
-            <span class="modal-option-label">${v.name}</span>
+          <input type="radio" name="modal_variant" class="custom-radio" value="${index}" ${isChecked} onchange="updateModalPrice()">
+          <div class="kiosk-card-info">
+            <span class="kiosk-card-title">${v.name}</span>
+            <span class="kiosk-card-price">$${(parseFloat(v.price) || 0).toFixed(2)}</span>
           </div>
-          <span class="modal-option-price">$${(parseFloat(v.price) || 0).toFixed(2)}</span>
         `;
-        group.appendChild(row);
+        grid.appendChild(row);
       });
+      group.appendChild(grid);
       varContainer.appendChild(group);
     }
   }
@@ -540,20 +545,25 @@ window.openItemModal = (id) => {
     addContainer.innerHTML = '';
     if (item.addOns && item.addOns.length > 0) {
       const group = document.createElement('div');
-      group.className = 'modal-option-group';
-      group.innerHTML = `<div class="modal-option-title">Add-ons <span>Optional</span></div>`;
+      group.className = 'kiosk-option-group';
+      group.innerHTML = `<div class="kiosk-option-title">Add-ons <span>Optional</span></div>`;
+      
+      const grid = document.createElement('div');
+      grid.className = 'kiosk-option-grid';
+      
       item.addOns.forEach((a, index) => {
         const row = document.createElement('label');
-        row.className = 'modal-option-row';
+        row.className = 'kiosk-card';
         row.innerHTML = `
-          <div>
-            <input type="checkbox" name="modal_addon" class="custom-checkbox" value="${index}" onchange="updateModalPrice()">
-            <span class="modal-option-label">${a.name}</span>
+          <input type="checkbox" name="modal_addon" class="custom-checkbox" value="${index}" onchange="updateModalPrice()">
+          <div class="kiosk-card-info">
+            <span class="kiosk-card-title">${a.name}</span>
+            <span class="kiosk-card-price">+$${(parseFloat(a.price) || 0).toFixed(2)}</span>
           </div>
-          <span class="modal-option-price">+$${(parseFloat(a.price) || 0).toFixed(2)}</span>
         `;
-        group.appendChild(row);
+        grid.appendChild(row);
       });
+      group.appendChild(grid);
       addContainer.appendChild(group);
     }
   }
@@ -607,22 +617,18 @@ window.openItemModal = (id) => {
       const upgradeLabel = priceDiff > 0 ? `+$${priceDiff}` : 'FREE';
 
       mealContainer.innerHTML = `
-        <div class="meal-upgrade-card">
-          <div class="meal-upgrade-header">
-            <span class="meal-upgrade-icon">🍟🥤</span>
-            <span class="meal-upgrade-title">MAKE IT A MEAL</span>
+        <label class="kiosk-meal-upgrade">
+          <input type="checkbox" id="meal-upgrade-check" class="kiosk-hidden-input" onchange="updateModalPrice()">
+          <div class="kiosk-meal-content">
+            <div class="kiosk-meal-icon">🍟🥤</div>
+            <div class="kiosk-meal-text">
+              <div class="kiosk-meal-title">MAKE IT A MEAL</div>
+              <div class="kiosk-meal-desc">Add fries & a refreshing drink</div>
+              <div class="kiosk-meal-price-badge">${upgradeLabel}</div>
+            </div>
+            <div class="kiosk-meal-checkbox-wrapper"></div>
           </div>
-          <label class="meal-upgrade-toggle-row">
-            <div class="meal-upgrade-info">
-              <span class="meal-upgrade-desc">Add fries & a drink</span>
-              <span class="meal-upgrade-price">${upgradeLabel}</span>
-            </div>
-            <div class="meal-upgrade-switch">
-              <input type="checkbox" id="meal-upgrade-check" onchange="updateModalPrice()">
-              <span class="meal-upgrade-slider"></span>
-            </div>
-          </label>
-        </div>
+        </label>
       `;
     }
   }

@@ -76,15 +76,30 @@ if (localStorage.getItem('bigi_admin') !== 'true') {
   
   if (sessionStorage.getItem('kds_authenticated') === 'true') {
     document.getElementById('kds-pin-screen').style.display = 'none';
-    document.getElementById('kds-app').style.display = 'block';
-    // Initialize Auth then KDS
-    const auth = getAuth(app);
-    signInAnonymously(auth).then(() => {
-      initKDS();
-    }).catch(err => {
-      console.error("Auth failed:", err);
-      alert("Auth failed. Check console.");
-    });
+    const unlockOverlay = document.getElementById('kds-unlock-overlay');
+    if (unlockOverlay) {
+      unlockOverlay.style.display = 'flex';
+      unlockOverlay.addEventListener('click', () => {
+        unlockOverlay.style.display = 'none';
+        document.getElementById('kds-app').style.display = 'block';
+        
+        // Init audio context on this user gesture
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        document.documentElement.requestFullscreen().catch(() => {});
+
+        // Initialize Auth then KDS
+        const auth = getAuth(app);
+        signInAnonymously(auth).then(() => {
+          initKDS();
+        }).catch(err => {
+          console.error("Auth failed:", err);
+          alert("Auth failed. Check console.");
+        });
+      }, { once: true });
+    }
   } else {
     document.getElementById('kds-app').style.display = 'none';
     document.getElementById('kds-pin-screen').style.display = 'flex';
@@ -147,6 +162,11 @@ function initPinScreen() {
 
   keys.forEach(key => {
     key.addEventListener('click', () => {
+      // Initialize AudioContext immediately on user tap (prevents iOS blocking after async network calls)
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
       if (isVerifying || lockoutTimer) return;
       
       const val = key.textContent;

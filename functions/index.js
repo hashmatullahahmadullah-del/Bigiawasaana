@@ -436,8 +436,21 @@ exports.syncSquareOrders = functions.https.onRequest((req, res) => {
 
         // ── SKIP: Unpaid draft orders (Square creates a draft when card form initializes) ──
         // An order with no tenders has not been paid — don't show it on KDS yet
+        // EXCEPTION: Third-party integrators may not attach tenders immediately.
         if (!order.tenders || order.tenders.length === 0) {
-          continue;
+          const isThirdParty = sourceName.includes('doordash') || 
+                               sourceName.includes('door dash') ||
+                               sourceName.includes('uber') || 
+                               sourceName.includes('ubereats') ||
+                               sourceName.includes('grubhub') || 
+                               sourceName.includes('grub hub') ||
+                               sourceName.includes('square online') || 
+                               sourceName.includes('online store') || 
+                               sourceName.includes('online');
+
+          if (!isThirdParty) {
+            continue;
+          }
         }
 
         // ── SKIP: Already completed orders in Firestore ──
@@ -634,6 +647,11 @@ exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
 // Callable function — used by KDS to change order status & sync to Square
 // ─────────────────────────────────────────────────────────────────
 exports.updateSquareOrderStatus = functions.https.onCall(async (data, context) => {
+  // Security Check: Only admins can update Square order status
+  if (!context.auth || !context.auth.token || context.auth.token.email !== 'bigiawasaana@gmail.com') {
+    throw new functions.https.HttpsError('permission-denied', 'Only admins can update Square orders.');
+  }
+
   const { orderId, status } = data;
 
   if (!orderId || typeof orderId !== 'string') {
@@ -744,6 +762,10 @@ exports.verifyKdsPin = functions.https.onCall(async (data, context) => {
 
   const kdsData = doc.data();
   if (kdsData.pin === pin) {
+    // If context.auth exists, set custom user claim kds: true
+    if (context.auth && context.auth.uid) {
+      await admin.auth().setCustomUserClaims(context.auth.uid, { kds: true });
+    }
     return { success: true };
   } else {
     return { success: false };

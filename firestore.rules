@@ -2,11 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'bigiawasaana@gmail.com';
+    }
+
+    function isKds() {
+      return request.auth != null && request.auth.token.kds == true;
+    }
+
+    function isAdminOrKds() {
+      return isAdmin() || isKds();
+    }
+    
     // Menu Collection: Public read, Authenticated Admin write
     match /menu/{item} {
       allow read: if true;
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
     
     // Orders Collection
@@ -15,101 +26,92 @@ service cloud.firestore {
       allow create: if false;
       
       // Anyone can read a SINGLE order (for tracking page)
-      // But listing ALL orders requires auth
+      // But listing ALL orders requires admin or kds
       allow get: if true;
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow list: if request.auth != null;
+      allow list: if isAdminOrKds();
       
-      // Only authenticated admins can update or delete
+      // Only admins or KDS can update or delete
       // Allow status changes OR kdsHidden toggle (used by KDS dismiss button)
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow update: if request.auth != null
-        && (request.resource.data.status in ['pending', 'preparing', 'ready', 'completed']
+      allow update: if isAdminOrKds()
+        && (request.resource.data.status in ['pending', 'preparing', 'ready', 'completed', 'scheduled', 'canceled']
             || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['kdsHidden', 'updatedAt']));
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow delete: if request.auth != null;
+            
+      allow delete: if isAdmin();
     }
 
     // Settings Collection
     match /settings/{doc} {
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow read: if doc == 'pickupConfig' || doc == 'popup' || request.auth != null;
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow write: if request.auth != null;
+      allow read: if doc == 'pickupConfig' || doc == 'popup' || isAdmin();
+      allow write: if isAdmin();
     }
     
     // Live Stats
     match /liveStats/{doc} {
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow read: if doc == 'current' || request.auth != null;
+      allow read: if doc == 'current' || isAdmin();
       allow write: if false; // Only Cloud Functions can write
     }
     
     // Catering Inquiries Collection
     match /catering_inquiries/{inquiry} {
       allow create: if true; // Anyone can submit an inquiry
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow read, update, delete: if request.auth != null; // Only admins can view and manage
+      allow read, update, delete: if isAdmin(); // Only admins can view and manage
     }
     
     // Deals Collection
     match /deals/{deal} {
       allow read: if true;
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     // Service Areas Collection (Local SEO)
     match /serviceAreas/{area} {
       allow read: if true;
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     // Blog Posts Collection
     match /posts/{post} {
       allow read: if true; // Or we can restrict to published only, but UI filters it anyway
-      allow write: if request.auth != null; // Only admins can create/edit posts
+      allow write: if isAdmin(); // Only admins can create/edit posts
     }
     
     // Analytics Page Views Collection
     match /page_views/{view} {
       // Anyone can log a page view
       allow create: if true;
-      // Only authenticated admins can read, update, or delete views
-      // TODO: SECURITY - If customer accounts are added, change this to require custom admin claims instead of just checking if logged in
-      allow read, update, delete: if request.auth != null;
+      allow read, update, delete: if isAdmin();
     }
     
     // Expenses
     match /expenses/{id} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
     
     // Inventory and Unit Economics (Admin Only)
     match /inventory/{id} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
     match /unitEconomics_ingredients/{id} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
     match /unitEconomics_events/{id} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
     match /unitEconomics_platforms/{id} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
     match /sales_logs/{id} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAdmin();
     }
     
     // Reviews
     match /reviews/{id} {
       // Anyone can read reviews
       allow read: if true;
-      // Depending on your auth model, anyone might submit reviews, or only admins can manage them
-      // Assuming users submit reviews publicly without auth for now (or adjust as needed)
-      allow write: if true; 
+      // Anyone can submit a review
+      allow create: if true;
+      // Only admins can edit or delete them
+      allow update, delete: if isAdmin(); 
     }
     
     // Default: Deny everything else
