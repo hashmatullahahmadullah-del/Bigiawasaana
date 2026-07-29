@@ -4,6 +4,14 @@ import path from 'path';
 // Local data for all 20 cities to ensure unique, localized content
 const areas = {
   // --- TIER 1 (Highly Custom) ---
+  'reseda': {
+    name: 'Reseda',
+    tier: 1,
+    distance: '0 minutes (Local Headquarters)',
+    landmark: 'Reseda Park',
+    customHero: 'Your neighborhood destination in Reseda for premium Halal Kabobs and Afghan Street Food.',
+    customStory: 'As proud members of the Reseda community, our flagship kitchen at 18411 Victory Blvd is the heart of Bigi Awasaana. We don\'t just serve the valley; we are a local Reseda establishment dedicated to bringing 100% Zabiha Halal, authentic Afghan cuisine right to your table. Whether you are walking in for a fresh Bolani or ordering delivery down the street, you get the absolute freshest, coal-fired kabobs in town.'
+  },
   'encino': {
     name: 'Encino',
     tier: 1,
