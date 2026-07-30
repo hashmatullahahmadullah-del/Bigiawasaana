@@ -158,20 +158,57 @@
     <style>
       .area-hero {
         position: relative;
-        padding: clamp(80px, 15vw, 120px) 0;
+        padding: clamp(100px, 20vw, 160px) 0;
         overflow: hidden;
-        background: linear-gradient(135deg, var(--bg) 0%, #111 100%);
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        background: url('/hero-food-spread.webp') center/cover no-repeat;
       }
       .area-hero::before {
         content: '';
         position: absolute;
-        top: -50%; left: -50%; width: 200%; height: 200%;
-        background: radial-gradient(circle at center, rgba(255, 69, 0, 0.04) 0%, transparent 40%);
-        animation: rotateSlow 30s linear infinite;
-        pointer-events: none;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(17,17,17,0.7) 0%, rgba(17,17,17,0.95) 100%);
       }
-      @keyframes rotateSlow { 100% { transform: rotate(360deg); } }
+      .area-hero-content {
+        position: relative;
+        z-index: 2;
+      }
+      
+      .story-section {
+        padding: clamp(60px, 10vw, 96px) 0;
+        background: var(--bg);
+      }
+      .story-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 48px;
+        align-items: center;
+      }
+      @media (min-width: 900px) {
+        .story-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .story-img-container {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      }
+      .story-img-container img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.5s ease;
+      }
+      .story-img-container:hover img {
+        transform: scale(1.05);
+      }
+      
+      .highlights-section {
+        padding: clamp(60px, 10vw, 96px) 0;
+        background: #151515;
+      }
+      
       .glass-card {
         background: rgba(255, 255, 255, 0.02);
         backdrop-filter: blur(16px);
@@ -181,11 +218,19 @@
         padding: 40px 32px;
         transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease, border-color 0.4s ease;
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
       }
       .glass-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 15px 40px rgba(255, 69, 0, 0.08);
         border: 1px solid rgba(255, 69, 0, 0.2);
+      }
+      .glass-card-icon {
+        font-size: 40px;
+        margin-bottom: 24px;
+        display: inline-block;
       }
       .glass-card h2 {
         color: var(--accent);
@@ -194,30 +239,65 @@
         margin-bottom: 16px;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
       }
-      .glass-card h2::after {
-        content: '';
-        height: 1px;
-        flex: 1;
-        background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
-        opacity: 0.3;
+      
+      .faq-section {
+        padding: clamp(60px, 10vw, 96px) 0;
+        background: var(--bg);
       }
-      .faq-item {
-        background: rgba(255, 255, 255, 0.01);
-        border-left: 3px solid rgba(255, 255, 255, 0.1);
-        padding: 24px;
+      
+      details.faq-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
         margin-bottom: 16px;
-        border-radius: 0 12px 12px 0;
+        overflow: hidden;
         transition: all 0.3s ease;
       }
-      .faq-item:hover {
-        background: rgba(255, 255, 255, 0.03);
-        border-left-color: var(--accent);
-        transform: translateX(8px);
+      details.faq-item:hover {
+        border-color: rgba(255, 69, 0, 0.3);
       }
+      details.faq-item[open] {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: var(--accent);
+      }
+      summary.faq-summary {
+        padding: 24px;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--white);
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      summary.faq-summary::-webkit-details-marker {
+        display: none;
+      }
+      summary.faq-summary::after {
+        content: '+';
+        font-size: 24px;
+        color: var(--accent);
+        transition: transform 0.3s ease;
+      }
+      details.faq-item[open] summary.faq-summary::after {
+        content: '−';
+        transform: rotate(180deg);
+      }
+      .faq-content {
+        padding: 0 24px 24px 24px;
+        color: var(--gray);
+        line-height: 1.7;
+      }
+      
+      .cta-section {
+        padding: clamp(60px, 10vw, 96px) 0;
+        background: radial-gradient(circle at center, rgba(255, 69, 0, 0.1) 0%, var(--bg) 70%);
+        text-align: center;
+        border-top: 1px solid rgba(255,255,255,0.05);
+      }
+      
       .reveal-animate {
         opacity: 0;
         transform: translateY(30px);
@@ -229,66 +309,115 @@
       @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
     </style>
 
-    <!-- Hero Section -->
+    <!-- 1. Hero Section -->
     <section class="area-hero">
-      <div class="container text-center-mobile" style="position: relative; z-index: 2;">
+      <div class="container text-center-mobile area-hero-content">
         <div class="reveal-animate" style="font-family: 'Barlow Condensed'; font-size: 16px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 700;">YOUR LOCAL AFGHAN RESTAURANT</div>
         <h1 class="font-lalezar reveal-animate delay-1" style="font-size: clamp(40px, 6vw, 64px); margin-bottom: 24px; line-height: 1.1; text-shadow: 0 10px 30px rgba(0,0,0,0.5);">FRESH AFGHAN FOOD IN SUN VALLEY</h1>
         
-        <div style="color: var(--gray); font-size: 18px; margin-bottom: 64px; line-height: 1.8; max-width: 800px; margin-left: auto; margin-right: auto; text-align: left;">
-          
-          <!-- Story / Intro -->
-          <p class="reveal-animate delay-2" style="margin-bottom: 48px; font-size: 20px; color: var(--white); text-align: center;">
-            When residents of Sun Valley want incredible, coal-fired kabobs, they turn to Bigi Awasaana. Our chefs bring the night markets of Kabul right to Sun Valley with our specialized delivery and catering services. We are a 100% Zabiha Halal restaurant committed to quality and tradition.
-          </p>
-          
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px; margin-bottom: 64px;">
-            <!-- Bakery Section -->
-            <div class="glass-card reveal-animate delay-1">
-              <h2>Fresh Afghan Bakery</h2>
-              <p style="margin: 0; line-height: 1.7;">Our in-house bakery ensures that every meal delivered to Sun Valley comes with piping hot, oven-fresh bread. From sweet Afghan desserts to our savory signature flatbreads, everything is made from scratch.</p>
-            </div>
-            
-            <!-- Halal Smash Burger Section -->
-            <div class="glass-card reveal-animate delay-2">
-              <h2>The Smash Burger</h2>
-              <p style="margin: 0; line-height: 1.7;">Looking for the best Halal Smash Burger in Sun Valley? Our famous Bigi's Smash Burger is made with 100% Zabiha Halal beef, smashed thin on a screaming-hot griddle for perfect crispy, lacey edges. Stacked with melted cheese, fresh veggies, and our house sauce, it's the ultimate Halal burger experience near the Sun Valley area.</p>
-            </div>
-            
-            <!-- Delivery & Catering Section -->
-            <div class="glass-card reveal-animate delay-3">
-              <h2>Delivery & Catering</h2>
-              <p style="margin: 0; line-height: 1.7;">We know you don't want to wait when you're hungry. We offer fast delivery to Sun Valley (typically 25 minutes drive from our kitchen). Planning an event near the Sun Valley area? We provide premium Halal catering trays for corporate events, weddings, and family gatherings.</p>
-            </div>
-          </div>
-
-          <!-- Local FAQ -->
-          <div class="reveal-animate">
-            <h2 style="color: var(--white); font-family: 'Barlow Condensed'; font-size: 32px; margin-bottom: 32px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Frequently Asked Questions in Sun Valley</h2>
-            
-            <div class="faq-item">
-              <strong style="color: var(--white); font-size: 18px; display: block; margin-bottom: 8px;">Is your meat 100% Halal?</strong>
-              Yes, all of our meat, including our beef, chicken, and lamb, is strictly 100% Zabiha Halal. We are proud to be a trusted Halal source for the Sun Valley community.
-            </div>
-            <div class="faq-item">
-              <strong style="color: var(--white); font-size: 18px; display: block; margin-bottom: 8px;">Do you deliver to Sun Valley?</strong>
-              Yes! We deliver our fresh kabobs and bakery items directly to Sun Valley. You can order directly through our website or via UberEats and DoorDash.
-            </div>
-            <div class="faq-item">
-              <strong style="color: var(--white); font-size: 18px; display: block; margin-bottom: 8px;">What is your most popular dish?</strong>
-              Our Chapli Kabob Wrap, Saffron Qabuli Palou, and our fresh-baked Bolani are massive hits.
-            </div>
-            <div class="faq-item">
-              <strong style="color: var(--white); font-size: 18px; display: block; margin-bottom: 8px;">Do you serve Halal Smash Burgers?</strong>
-              Yes! Our Bigi's Smash Burger is completely Zabiha Halal, featuring a crispy-edged beef patty, melted cheese, and house sauce, served fresh to the Sun Valley area.
-            </div>
-          </div>
-        </div>
-
-        <div class="reveal-animate delay-3" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 10;">
-          <a href="/menu.html" class="btn-primary" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px; box-shadow: 0 10px 20px rgba(255,69,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 25px rgba(255,69,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 20px rgba(255,69,0,0.2)';" onmousedown="this.style.transform='translateY(0)';" ontouchstart="this.style.transform='translateY(0)';" >Order Online Now</a>
+        <div class="reveal-animate delay-3" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 48px;">
+          <a href="/menu.html" class="btn-primary" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px; box-shadow: 0 10px 20px rgba(255,69,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 25px rgba(255,69,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 20px rgba(255,69,0,0.2)';">Order Online Now</a>
           <a href="https://maps.app.goo.gl/HRWCNVDR8fsv5jzv8" target="_blank" rel="noopener" class="btn-outline" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px;">Get Directions</a>
         </div>
+      </div>
+    </section>
+    
+    <!-- 2. Story Section -->
+    <section class="story-section">
+      <div class="container">
+        <div class="story-grid">
+          <div class="reveal-animate delay-1">
+            <h2 style="font-family: 'Barlow Condensed'; font-size: 40px; text-transform: uppercase; color: var(--white); margin-bottom: 24px;">Authentic Flavors, Delivered to Sun Valley</h2>
+            <p style="font-size: 20px; color: var(--gray); line-height: 1.8; margin-bottom: 24px;">
+              When residents of Sun Valley want incredible, coal-fired kabobs, they turn to Bigi Awasaana. Our chefs bring the night markets of Kabul right to Sun Valley with our specialized delivery and catering services. We are a 100% Zabiha Halal restaurant committed to quality and tradition.
+            </p>
+            <p style="font-size: 18px; color: var(--white); border-left: 4px solid var(--accent); padding-left: 16px;">
+              "The best Afghan food in the valley, right here."
+            </p>
+          </div>
+          <div class="story-img-container reveal-animate delay-2">
+            <img src="/halal-afghan-restaurant-reseda.webp" alt="Bigi Awasaana Food Truck and Grill" loading="lazy">
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 3. Menu Highlights Section -->
+    <section class="highlights-section">
+      <div class="container">
+        <div class="text-center-mobile reveal-animate" style="margin-bottom: 64px;">
+          <h2 style="font-family: 'Barlow Condensed'; font-size: 48px; text-transform: uppercase; color: var(--white); margin-bottom: 16px;">Why Sun Valley Loves Us</h2>
+          <p style="color: var(--gray); font-size: 20px; max-width: 600px; margin: 0 auto;">Everything is made from scratch, baked fresh, and grilled to order.</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;">
+          <!-- Bakery Section -->
+          <div class="glass-card reveal-animate delay-1">
+            <div class="glass-card-icon">🫓</div>
+            <h2>Fresh Afghan Bakery</h2>
+            <p style="margin: 0; line-height: 1.7; color: var(--gray); flex: 1;">Our in-house bakery ensures that every meal delivered to Sun Valley comes with piping hot, oven-fresh bread. From sweet Afghan desserts to our savory signature flatbreads, everything is made from scratch.</p>
+          </div>
+          
+          <!-- Halal Smash Burger Section -->
+          <div class="glass-card reveal-animate delay-2">
+            <div class="glass-card-icon">🍔</div>
+            <h2>The Smash Burger</h2>
+            <p style="margin: 0; line-height: 1.7; color: var(--gray); flex: 1;">Looking for the best Halal Smash Burger in Sun Valley? Our famous Bigi's Smash Burger is made with 100% Zabiha Halal beef, smashed thin on a screaming-hot griddle for perfect crispy, lacey edges. Stacked with melted cheese, fresh veggies, and our house sauce, it's the ultimate Halal burger experience near the Sun Valley area.</p>
+          </div>
+          
+          <!-- Delivery & Catering Section -->
+          <div class="glass-card reveal-animate delay-3">
+            <div class="glass-card-icon">🚙</div>
+            <h2>Delivery & Catering</h2>
+            <p style="margin: 0; line-height: 1.7; color: var(--gray); flex: 1;">We know you don't want to wait when you're hungry. We offer fast delivery to Sun Valley (typically 25 minutes drive from our kitchen). Planning an event near the Sun Valley area? We provide premium Halal catering trays for corporate events, weddings, and family gatherings.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Local FAQ Section -->
+    <section class="faq-section">
+      <div class="container" style="max-width: 800px;">
+        <h2 class="reveal-animate" style="color: var(--white); font-family: 'Barlow Condensed'; font-size: 40px; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Frequently Asked Questions in Sun Valley</h2>
+        
+        <div class="reveal-animate delay-1">
+          <details class="faq-item">
+            <summary class="faq-summary">Is your meat 100% Halal?</summary>
+            <div class="faq-content">
+              Yes, all of our meat, including our beef, chicken, and lamb, is strictly 100% Zabiha Halal. We are proud to be a trusted Halal source for the Sun Valley community.
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary class="faq-summary">Do you deliver to Sun Valley?</summary>
+            <div class="faq-content">
+              Yes! We deliver our fresh kabobs and bakery items directly to Sun Valley. You can order directly through our website or via UberEats and DoorDash.
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary class="faq-summary">What is your most popular dish?</summary>
+            <div class="faq-content">
+              Our Chapli Kabob Wrap, Saffron Qabuli Palou, and our fresh-baked Bolani are massive hits across the valley.
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary class="faq-summary">Do you serve Halal Smash Burgers?</summary>
+            <div class="faq-content">
+              Yes! Our Bigi's Smash Burger is completely Zabiha Halal, featuring a crispy-edged beef patty, melted cheese, and house sauce, served fresh to the Sun Valley area.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 5. CTA Section -->
+    <section class="cta-section">
+      <div class="container text-center-mobile reveal-animate">
+        <h2 style="font-family: 'Barlow Condensed'; font-size: 48px; text-transform: uppercase; color: var(--white); margin-bottom: 16px;">Hungry yet?</h2>
+        <p style="color: var(--gray); font-size: 20px; max-width: 600px; margin: 0 auto 40px auto;">Experience the best Halal food in the valley today. Pick up in Reseda or get it delivered to Sun Valley.</p>
+        <a href="/menu.html" class="btn-primary" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px; box-shadow: 0 10px 20px rgba(255,69,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 25px rgba(255,69,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 20px rgba(255,69,0,0.2)';">View Full Menu</a>
       </div>
     </section>
   
