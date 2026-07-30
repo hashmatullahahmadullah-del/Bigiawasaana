@@ -1,10 +1,13 @@
 User-agent: *
 Allow: /
-Disallow: /admin.html
-Disallow: /kitchen.html
-Disallow: /customer-display.html
-Disallow: /tv-menu.html
-Disallow: /order-status.html
-Disallow: /square-test.html
 
-Sitemap: https://www.bigiawasaana.com/sitemap.xml
+Sitemap: https://bigiawasaana.com/sitemap.xml
+
+# Block admin and internal pages
+Disallow: /admin
+Disallow: /kitchen
+Disallow: /customer-display
+Disallow: /tv-menu
+Disallow: /tv1
+Disallow: /tv2
+Disallow: /order-status

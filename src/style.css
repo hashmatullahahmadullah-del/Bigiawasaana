@@ -2350,3 +2350,17 @@ body {
 .service-area-pill:hover svg {
   color: var(--accent);
 }
+
+@media (max-width: 768px) {
+  .loc-grid {
+    flex-direction: column !important;
+    gap: 32px !important;
+  }
+  .loc-grid > div {
+    min-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .loc-grid iframe {
+    height: 300px !important;
+  }
+}

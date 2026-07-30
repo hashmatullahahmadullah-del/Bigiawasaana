@@ -230,7 +230,8 @@ for (const [id, data] of Object.entries(areas)) {
     .replace(/{{AREA_ID}}/g, id)
     .replace(/{{AREA_CONTENT}}/g, content)
     .replace(/{{META_ROBOTS}}/g, '')
-    .replace(/{{SCHEMA}}/g, schema);
+    .replace(/{{SCHEMA}}/g, schema)
+    .replace(/{{SCHEMA_DATA}}/g, schema);
 
   fs.writeFileSync(path.join(outDir, `${id}.html`), html);
   console.log(`✅ Generated advanced SEO page: ${data.name} (Tier ${data.tier})`);
