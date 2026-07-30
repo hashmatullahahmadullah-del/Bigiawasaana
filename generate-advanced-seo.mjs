@@ -119,6 +119,8 @@ for (const [id, data] of Object.entries(areas)) {
 
   let bakeryText = getRandom(phrases.bakeryIntro, id).replace('{CITY}', data.name) + 
                    getRandom(phrases.bakeryMid, id).replace('{CITY}', data.name);
+                   
+  let burgerText = `Looking for the best Halal Smash Burger in ${data.name}? Our famous Bigi's Smash Burger is made with 100% Zabiha Halal beef, smashed thin on a screaming-hot griddle for perfect crispy, lacey edges. Stacked with melted cheese, fresh veggies, and our house sauce, it's the ultimate Halal burger experience near ${data.landmark}.`;
 
   // Generate a robust, 500+ word HTML structure
   const content = `
@@ -142,6 +144,12 @@ for (const [id, data] of Object.entries(areas)) {
               <p>${bakeryText}</p>
             </div>
             
+            <!-- Halal Smash Burger Section -->
+            <div style="background: var(--surface); padding: 32px; border-radius: 8px; border: 1px solid var(--border);">
+              <h2 style="color: var(--accent); font-family: 'Barlow Condensed'; font-size: 24px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">The Halal Smash Burger</h2>
+              <p>${burgerText}</p>
+            </div>
+            
             <!-- Delivery & Catering Section -->
             <div style="background: var(--surface); padding: 32px; border-radius: 8px; border: 1px solid var(--border);">
               <h2 style="color: var(--accent); font-family: 'Barlow Condensed'; font-size: 24px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Delivery & Catering</h2>
@@ -160,9 +168,13 @@ for (const [id, data] of Object.entries(areas)) {
             <strong style="color: var(--accent);">Q: Do you deliver to ${data.name}?</strong><br>
             A: Yes! We deliver our fresh kabobs and bakery items directly to ${data.name}. You can order directly through our website or via UberEats and DoorDash.
           </div>
-          <div style="margin-bottom: 32px;">
+          <div style="margin-bottom: 16px;">
             <strong style="color: var(--accent);">Q: What is your most popular dish?</strong><br>
             A: Our Chapli Kabob Wrap, Saffron Qabuli Palou, and our fresh-baked Bolani are massive hits.
+          </div>
+          <div style="margin-bottom: 32px;">
+            <strong style="color: var(--accent);">Q: Do you serve Halal Smash Burgers?</strong><br>
+            A: Yes! Our Bigi's Smash Burger is completely Zabiha Halal, featuring a crispy-edged beef patty, melted cheese, and house sauce, served fresh to the ${data.name} area.
           </div>
         </div>
 
@@ -195,6 +207,14 @@ for (const [id, data] of Object.entries(areas)) {
             "@type": "Answer",
             "text": "Yes! We deliver our fresh kabobs and bakery items directly to ${data.name}."
           }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you serve Halal Smash Burgers in ${data.name}?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Our Bigi's Smash Burger is completely Zabiha Halal, featuring a crispy-edged beef patty, melted cheese, and house sauce, served fresh to the ${data.name} area."
+          }
         }
       ]
     }
@@ -221,7 +241,7 @@ for (const [id, data] of Object.entries(areas)) {
   `;
 
   // Generate unique meta keywords per city
-  const keywords = `halal food ${data.name}, afghan food ${data.name}, kabobs ${data.name}, halal delivery ${data.name}, afghan bakery ${data.name}, zabiha halal ${data.name}, halal catering ${data.name}, bolani ${data.name}, qabuli palou ${data.name}, bigi awasaana`;
+  const keywords = `halal smash burger ${data.name}, halal food ${data.name}, afghan food ${data.name}, kabobs ${data.name}, halal delivery ${data.name}, afghan bakery ${data.name}, zabiha halal ${data.name}, halal catering ${data.name}, bolani ${data.name}, qabuli palou ${data.name}, bigi awasaana`;
 
   let html = template
     .replace(/{{TITLE}}/g, title)
