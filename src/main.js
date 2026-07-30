@@ -312,11 +312,24 @@ function renderMenu(category) {
     const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
+    let badgeHtml = '';
+    if (item.featured) {
+      badgeHtml = `<div class="menu-badge">⭐ Featured</div>`;
+    } else if (item.category === 'bigi street meals') {
+      badgeHtml = `<div class="menu-badge">🔥 Special</div>`;
+    }
+
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" loading="lazy" width="400" height="300">`
-      : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">No Image</div>`;
+      : `<div class="premium-fallback">
+           <div class="premium-fallback-icon">🍽</div>
+         </div>`;
+         
+    const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
+    const clickAction = isSimple ? `addToCartDirect('${item.id}', event)` : `openItemModal('${item.id}')`;
     
     card.innerHTML = `
+      ${badgeHtml}
       <div onclick="openItemModal('${item.id}')" style="cursor: pointer;">
         ${imgHtml}
       </div>
@@ -326,7 +339,7 @@ function renderMenu(category) {
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${item.price.toFixed(2)}</span>
-          <button class="add-to-cart-btn btn-add-cart" onclick="openItemModal('${item.id}')">ADD</button>
+          <button class="add-to-cart-btn btn-add-cart" onclick="${clickAction}">ADD</button>
         </div>
       </div>
     `;
@@ -357,11 +370,19 @@ function renderFeaturedMenu() {
     const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
+    let badgeHtml = `<div class="menu-badge">⭐ Featured</div>`;
+    
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" width="400" height="300">`
-      : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>`;
+      : `<div class="premium-fallback">
+           <div class="premium-fallback-icon">🍽</div>
+         </div>`;
+         
+    const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
+    const clickAction = isSimple ? `addToCartDirect('${item.id}', event)` : `openItemModal('${item.id}')`;
     
     card.innerHTML = `
+      ${badgeHtml}
       <div onclick="openItemModal('${item.id}')" style="cursor: pointer;">
         ${imgHtml}
       </div>
@@ -371,7 +392,7 @@ function renderFeaturedMenu() {
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
-          <button class="add-to-cart-btn btn-add-cart" onclick="openItemModal('${item.id}')">ADD</button>
+          <button class="add-to-cart-btn btn-add-cart" onclick="${clickAction}">ADD</button>
         </div>
       </div>
     `;
@@ -397,11 +418,19 @@ function renderSpecials() {
     const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
+    let badgeHtml = `<div class="menu-badge">🔥 Special</div>`;
+    
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" width="400" height="300">`
-      : `<div class="menu-card-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px;">🍽</div>`;
+      : `<div class="premium-fallback">
+           <div class="premium-fallback-icon">🍽</div>
+         </div>`;
+         
+    const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
+    const clickAction = isSimple ? `addToCartDirect('${item.id}', event)` : `openItemModal('${item.id}')`;
     
     card.innerHTML = `
+      ${badgeHtml}
       <div onclick="openItemModal('${item.id}')" style="cursor: pointer;">
         ${imgHtml}
       </div>
@@ -411,7 +440,7 @@ function renderSpecials() {
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
-          <button class="add-to-cart-btn btn-add-cart" onclick="openItemModal('${item.id}')">ADD</button>
+          <button class="add-to-cart-btn btn-add-cart" onclick="${clickAction}">ADD</button>
         </div>
       </div>
     `;
@@ -620,7 +649,7 @@ window.openItemModal = (id) => {
         <label class="kiosk-meal-upgrade">
           <input type="checkbox" id="meal-upgrade-check" class="kiosk-hidden-input" onchange="updateModalPrice()">
           <div class="kiosk-meal-content">
-            <div class="kiosk-meal-icon">🍟🥤</div>
+            <div class="kiosk-meal-icon" style="font-size: 32px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">🍔🍟</div>
             <div class="kiosk-meal-text">
               <div class="kiosk-meal-title">MAKE IT A MEAL</div>
               <div class="kiosk-meal-desc">Add fries & a refreshing drink</div>
@@ -749,6 +778,32 @@ window.addConfiguredItemToCart = () => {
   showToast(`${currentModalItem.name}${mealLabel} added to cart`);
 };
 
+window.addToCartDirect = (id, event) => {
+  if (event) event.stopPropagation();
+  const item = menuItems.find(i => i.id === id);
+  if (!item) return;
+  
+  const cartKey = `${item.id}||`;
+  const existing = cart.find(i => i.cartKey === cartKey);
+  
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({
+      ...item,
+      cartKey: cartKey,
+      qty: 1,
+      price: item.price, 
+      originalPrice: item.price,
+      selectedVariant: '',
+      selectedAddOns: [],
+      isMeal: false
+    });
+  }
+  updateCartUI();
+  showToast(`${item.name} added to bag`);
+};
+
 window.addToCart = (id) => {
   // Keeping this for generic items without variants/addons
   const item = menuItems.find(i => i.id === id);
@@ -784,10 +839,29 @@ function updateCartUI() {
     countBadge.textContent = 0;
     totalEl.textContent = `$0.00`;
   } else {
-    // 1. Render items first
+    // Calculate subtotal and count first
     cart.forEach(item => {
       subtotal += item.price * item.qty;
       count += item.qty;
+    });
+
+    const targetAmount = 30.00;
+    const progress = Math.min(100, (subtotal / targetAmount) * 100);
+    const progressText = subtotal >= targetAmount 
+      ? `🎉 You've unlocked a Free Doogh!` 
+      : `Add $${(targetAmount - subtotal).toFixed(2)} more for a Free Doogh!`;
+
+    itemsContainer.innerHTML = `
+      <div class="cart-progress-container">
+        <div class="cart-progress-text">${progressText}</div>
+        <div class="cart-progress-bar-bg">
+          <div class="cart-progress-bar-fill" style="width: ${progress}%"></div>
+        </div>
+      </div>
+    `;
+
+    // 1. Render items
+    cart.forEach(item => {
       const el = document.createElement('div');
       el.className = 'cart-item';
 
