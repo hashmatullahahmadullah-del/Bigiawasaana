@@ -1486,15 +1486,29 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
     <priority>0.7</priority>
   </url>`;
 
-    // Fetch published areas dynamically
-    const areasSnapshot = await db.collection('serviceAreas')
-      .where('isPublished', '==', true)
-      .get();
-      
-    areasSnapshot.forEach(doc => {
+    // Static area pages (always present as generated HTML files)
+    const staticAreaSlugs = [
+      'reseda', 'encino', 'sherman-oaks', 'woodland-hills', 'tarzana', 'calabasas',
+      'canoga-park', 'chatsworth', 'granada-hills', 'lake-balboa', 'mission-hills',
+      'north-hills', 'north-hollywood', 'northridge', 'porter-ranch', 'studio-city',
+      'sun-valley', 'sylmar', 'van-nuys', 'west-hills', 'winnetka'
+    ];
+
+    // Merge with any Firestore-published areas (deduplication)
+    const allAreaSlugs = new Set(staticAreaSlugs);
+    try {
+      const areasSnapshot = await db.collection('serviceAreas')
+        .where('isPublished', '==', true)
+        .get();
+      areasSnapshot.forEach(doc => allAreaSlugs.add(doc.id));
+    } catch (e) {
+      // Firestore may be empty — that's fine, we have the static list
+    }
+
+    allAreaSlugs.forEach(slug => {
       xml += `
   <url>
-    <loc>${baseUrl}/areas/${doc.id}</loc>
+    <loc>${baseUrl}/areas/${slug}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

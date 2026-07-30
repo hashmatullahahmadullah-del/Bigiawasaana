@@ -220,9 +220,14 @@ for (const [id, data] of Object.entries(areas)) {
     </script>
   `;
 
+  // Generate unique meta keywords per city
+  const keywords = `halal food ${data.name}, afghan food ${data.name}, kabobs ${data.name}, halal delivery ${data.name}, afghan bakery ${data.name}, zabiha halal ${data.name}, halal catering ${data.name}, bolani ${data.name}, qabuli palou ${data.name}, bigi awasaana`;
+
   let html = template
     .replace(/{{TITLE}}/g, title)
     .replace(/{{META_DESC}}/g, description)
+    .replace(/{{META_KEYWORDS}}/g, keywords)
+    .replace(/{{AREA_ID}}/g, id)
     .replace(/{{AREA_CONTENT}}/g, content)
     .replace(/{{META_ROBOTS}}/g, '')
     .replace(/{{SCHEMA}}/g, schema);
