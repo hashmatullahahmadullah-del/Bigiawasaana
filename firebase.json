@@ -17,12 +17,7 @@
       "firestore.rules",
       "functions/**",
       "node_modules/**",
-      ".git/**",
-      "admin.js",
-      "admin.html",
-      "login.html",
-      "display.html",
-      "display.js"
+      ".git/**"
     ],
     "headers": [
       {
