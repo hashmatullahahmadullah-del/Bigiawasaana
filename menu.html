@@ -9,6 +9,9 @@
   <meta name="keywords" content="Bigi Awasaana menu, Afghan food menu Reseda, order kabobs online, halal food menu Los Angeles">
 
   <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#111111">
+  <link rel="apple-touch-icon" href="/logo.webp">
   <!-- Open Graph -->
   <meta property="og:title" content="Koobideh, Kabob & Mantu | Bigi Awasaana, Reseda | Kabobs Near Me">
   <meta property="og:description" content="Explore Bigi Awasaana's authentic Afghan menu in Reseda, CA. Featuring fresh Koobideh, sizzling Kabobs, Mantu, and more. Order delivery or pickup now!">
@@ -27,6 +30,7 @@
   "@context": "https://schema.org",
   "@type": "Menu",
   "name": "Bigi Awasaana Menu",
+  "isPartOf": { "@type": "Restaurant", "name": "Bigi Awasaana", "url": "https://bigiawasaana.com/" },
   "hasMenuSection": [
     {
       "@type": "MenuSection",
@@ -204,6 +208,18 @@
     }
   ]
 }
+  </script>
+
+  <!-- Breadcrumb Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bigiawasaana.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Menu", "item": "https://bigiawasaana.com/menu.html" }
+    ]
+  }
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">

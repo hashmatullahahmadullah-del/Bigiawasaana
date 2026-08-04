@@ -22,6 +22,10 @@ const pwaInstallBtn = document.getElementById('pwa-install-btn');
 const iosInstallHint = document.getElementById('ios-install-hint');
 const langToggleBtn = document.getElementById('lang-toggle');
 
+// Chart instances
+let overviewRevenueChart = null;
+let overviewTopItemsChart = null;
+
 // Init Language
 setLang(getLang());
 applyTranslations();
@@ -323,8 +327,26 @@ function initCRMData() {
   });
 
   // 3. Listen to Orders (builds state.orders and state.customers)
+  let firstOrdersLoad = true;
   const oq = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
   ordersUnsub = onSnapshot(oq, (snapshot) => {
+    
+    // Play sound on new incoming orders
+    if (!firstOrdersLoad) {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          try {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+            audio.play();
+            showToast('New Order Received!', 'success');
+          } catch (e) {
+            console.log('Audio playback failed', e);
+          }
+        }
+      });
+    }
+    firstOrdersLoad = false;
+
     state.orders = [];
     const custMap = {};
 
@@ -956,6 +978,7 @@ async function loadMenuAdmin() {
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
               <strong style="font-size: 16px; color: var(--white);">${data.name}</strong>
               ${data.featured ? '<span style="background: rgba(255,215,0,0.15); color: #FFD700; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,215,0,0.3); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">⭐ Featured</span>' : ''}
+              ${data.hidden ? '<span style="background: rgba(128,128,128,0.15); color: #ccc; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(128,128,128,0.3); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">🙈 Hidden</span>' : ''}
             </div>
             <div style="color: var(--gray); font-size: 12px; margin-bottom: 6px;">
               $${typeof data.price === "number" ? data.price.toFixed(2) : data.price} • <span style="text-transform: capitalize;">${data.category}</span>
@@ -1112,10 +1135,100 @@ function renderDashboard() {
   const repeatCustomers = state.customers.filter(c => c.totalOrders > 1).length;
   const repeatRate = state.customers.length > 0 ? (repeatCustomers / state.customers.length) * 100 : 0;
 
+  const revEl = document.getElementById('dash-total-revenue');
+  if (revEl) revEl.textContent = `$${totalRevenue.toFixed(2)}`;
+  
   document.getElementById('dash-total-customers').textContent = state.customers.length;
   document.getElementById('dash-total-orders').textContent = state.orders.length;
   document.getElementById('dash-aov').textContent = `$${aov.toFixed(2)}`;
   document.getElementById('dash-repeat-rate').textContent = `${Math.round(repeatRate)}%`;
+
+  // --- Charts Rendering ---
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  // 1. Revenue Over Time (Last 30 Days)
+  const recentCompleted = completedOrders.filter(o => o.date >= thirtyDaysAgo);
+  const salesByDate = {};
+  for(let i=29; i>=0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    salesByDate[d.toLocaleDateString()] = 0;
+  }
+  recentCompleted.forEach(o => {
+    const dStr = o.date.toLocaleDateString();
+    if(salesByDate[dStr] !== undefined) {
+      salesByDate[dStr] += o.total;
+    }
+  });
+  
+  const revLabels = Object.keys(salesByDate);
+  const revData = Object.values(salesByDate);
+  
+  const revCtx = document.getElementById('revenueChart');
+  if (revCtx) {
+    if (overviewRevenueChart) overviewRevenueChart.destroy();
+    overviewRevenueChart = new Chart(revCtx, {
+      type: 'line',
+      data: {
+        labels: revLabels,
+        datasets: [{
+          label: 'Daily Revenue ($)',
+          data: revData,
+          borderColor: '#FF4500',
+          backgroundColor: 'rgba(255, 69, 0, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#888' } },
+          x: { grid: { display: false }, ticks: { color: '#888', maxTicksLimit: 10 } }
+        }
+      }
+    });
+  }
+
+  // 2. Top Items Sold
+  const itemCounts = {};
+  completedOrders.forEach(o => {
+    if(!o.items) return;
+    o.items.forEach(i => {
+      itemCounts[i.name] = (itemCounts[i.name] || 0) + i.qty;
+    });
+  });
+  const sortedItems = Object.entries(itemCounts).sort((a,b) => b[1] - a[1]).slice(0, 7);
+  
+  const topCtx = document.getElementById('topItemsChart');
+  if (topCtx) {
+    if (overviewTopItemsChart) overviewTopItemsChart.destroy();
+    overviewTopItemsChart = new Chart(topCtx, {
+      type: 'bar',
+      data: {
+        labels: sortedItems.map(i => i[0].substring(0, 15) + (i[0].length > 15 ? '...' : '')),
+        datasets: [{
+          label: 'Quantity Sold',
+          data: sortedItems.map(i => i[1]),
+          backgroundColor: '#FF4500',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#888', stepSize: 1 } },
+          x: { grid: { display: false }, ticks: { color: '#888' } }
+        }
+      }
+    });
+  }
+
 
   const feedEl = document.getElementById('dash-activity-feed');
   feedEl.innerHTML = '';
@@ -1218,6 +1331,36 @@ function renderAllOrders() {
       tr.addEventListener('click', () => openMockOrderDetail(o));
       tbody.appendChild(tr);
     });
+}
+
+// CSV Export for Orders
+const exportOrdersBtn = document.getElementById('export-orders-btn');
+if (exportOrdersBtn) {
+  exportOrdersBtn.addEventListener('click', () => {
+    if (state.orders.length === 0) return alert('No orders to export.');
+    
+    const headers = ['Order ID', 'Customer', 'Date', 'Status', 'Total', 'Items'];
+    const rows = state.orders.map(o => {
+      const itemsStr = (o.items || []).map(i => `${i.qty}x ${i.name}`).join('; ');
+      return [
+        o.id,
+        o.customerName || 'Unknown',
+        o.date.toISOString(),
+        o.status,
+        o.total.toFixed(2),
+        `"${itemsStr}"`
+      ];
+    });
+    
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 
 window.openMockOrderDetail = (order) => {

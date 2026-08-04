@@ -386,150 +386,161 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
 // parses source/channel, writes/updates Firestore
 // Skips: unpaid draft orders (no tenders) and website orders (handled by processSquarePayment)
 // ─────────────────────────────────────────────────────────────────
+async function performSquareSync() {
+  const squareClient = getSquareClient();
+  const locationId = getLocationId();
+
+  if (!locationId) {
+    throw new Error('Square location ID not configured.');
+  }
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const searchResponse = await squareClient.ordersApi.searchOrders({
+    locationIds: [locationId],
+    query: {
+      filter: {
+        dateTimeFilter: {
+          createdAt: {
+            startAt: startOfDay.toISOString(),
+          },
+        },
+        stateFilter: {
+          states: ['OPEN', 'COMPLETED'],
+        },
+      },
+      sort: {
+        sortField: 'CREATED_AT',
+        sortOrder: 'DESC',
+      },
+    },
+  });
+
+  const orders = searchResponse.result.orders || [];
+  const batch = db.batch();
+  const syncedOrders = [];
+
+  for (const order of orders) {
+    const metadata = order.metadata || {};
+    const sourceName = (order.source?.name || '').toLowerCase();
+
+    // ── HANDLE WEBSITE ORDERS SEPARATELY ──
+    if (metadata.source === 'website') {
+      let status = 'pending';
+      if (order.state === 'COMPLETED') {
+        status = 'completed';
+      } else if (order.fulfillments && order.fulfillments.length > 0) {
+        const fulfillmentState = order.fulfillments[0].state;
+        if (fulfillmentState === 'PROPOSED') status = 'pending';
+        else if (fulfillmentState === 'RESERVED') status = 'preparing';
+        else if (fulfillmentState === 'PREPARED') status = 'ready';
+        else if (fulfillmentState === 'COMPLETED') status = 'completed';
+      }
+      
+      const docRef = db.collection('orders').doc(order.id);
+      batch.set(docRef, {
+        status,
+        syncedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      
+      syncedOrders.push({
+        id: order.id,
+        source: 'website',
+        customerName: metadata.customerName || 'Guest',
+        status,
+        itemCount: order.lineItems ? order.lineItems.length : 0,
+      });
+      continue;
+    }
+
+    if (!order.tenders || order.tenders.length === 0) {
+      const isThirdParty = sourceName.includes('doordash') || 
+                           sourceName.includes('door dash') ||
+                           sourceName.includes('uber') || 
+                           sourceName.includes('ubereats') ||
+                           sourceName.includes('grubhub') || 
+                           sourceName.includes('grub hub') ||
+                           sourceName.includes('square online') || 
+                           sourceName.includes('online store') || 
+                           sourceName.includes('online');
+      if (!isThirdParty) {
+        continue;
+      }
+    }
+
+    const existingDoc = await db.collection('orders').doc(order.id).get();
+    if (existingDoc.exists && existingDoc.data().status === 'completed') {
+      continue;
+    }
+
+    let source = 'pos';
+    if (sourceName.includes('doordash') || sourceName.includes('door dash')) source = 'doordash';
+    else if (sourceName.includes('uber') || sourceName.includes('ubereats')) source = 'ubereats';
+    else if (sourceName.includes('grubhub') || sourceName.includes('grub hub')) source = 'grubhub';
+    else if (sourceName.includes('square online') || sourceName.includes('online store') || sourceName.includes('online')) source = 'squareonline';
+
+    let status = 'pending';
+    if (order.state === 'COMPLETED') {
+      status = 'completed';
+    } else if (order.fulfillments && order.fulfillments.length > 0) {
+      const fulfillmentState = order.fulfillments[0].state;
+      if (fulfillmentState === 'PROPOSED') status = 'pending';
+      else if (fulfillmentState === 'RESERVED') status = 'preparing';
+      else if (fulfillmentState === 'PREPARED') status = 'ready';
+      else if (fulfillmentState === 'COMPLETED') status = 'completed';
+    }
+
+    let customerName = 'Guest';
+    if (metadata.customerName) {
+      customerName = metadata.customerName;
+    } else if (order.fulfillments?.[0]?.pickupDetails?.recipient?.displayName) {
+      customerName = order.fulfillments[0].pickupDetails.recipient.displayName;
+    } else if (order.fulfillments?.[0]?.deliveryDetails?.recipient?.displayName) {
+      customerName = order.fulfillments[0].deliveryDetails.recipient.displayName;
+    }
+
+    const items = (order.lineItems || []).map(li => ({
+      name: li.name || 'Unknown Item',
+      quantity: parseInt(li.quantity || '1', 10),
+      price: li.basePriceMoney ? Number(li.basePriceMoney.amount) / 100 : 0,
+    }));
+
+    const totalCents = order.totalMoney ? Number(order.totalMoney.amount) : 0;
+
+    const orderData = {
+      squareOrderId: order.id,
+      source,
+      customerName,
+      customerPhone: metadata.customerPhone || '',
+      items,
+      total: totalCents / 100,
+      totalCents,
+      status,
+      createdAt: admin.firestore.Timestamp.fromDate(new Date(order.createdAt)),
+      syncedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    const docRef = db.collection('orders').doc(order.id);
+    batch.set(docRef, orderData, { merge: true });
+
+    syncedOrders.push({
+      id: order.id,
+      source,
+      customerName,
+      status,
+      itemCount: items.length,
+    });
+  }
+
+  await batch.commit();
+  return syncedOrders;
+}
+
 exports.syncSquareOrders = functions.https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
     try {
-      const squareClient = getSquareClient();
-      const locationId = getLocationId();
-
-      if (!locationId) {
-        return res.status(500).json({ error: 'Square location ID not configured.' });
-      }
-
-      // Get start of today (UTC)
-      const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-      const searchResponse = await squareClient.ordersApi.searchOrders({
-        locationIds: [locationId],
-        query: {
-          filter: {
-            dateTimeFilter: {
-              createdAt: {
-                startAt: startOfDay.toISOString(),
-              },
-            },
-            stateFilter: {
-              states: ['OPEN', 'COMPLETED'],
-            },
-          },
-          sort: {
-            sortField: 'CREATED_AT',
-            sortOrder: 'DESC',
-          },
-        },
-      });
-
-      const orders = searchResponse.result.orders || [];
-      const batch = db.batch();
-      const syncedOrders = [];
-
-      for (const order of orders) {
-        const metadata = order.metadata || {};
-        const sourceName = (order.source?.name || '').toLowerCase();
-
-        // ── SKIP: Website orders (already written by processSquarePayment with full data) ──
-        // Only skip orders explicitly tagged by our processSquarePayment function
-        if (metadata.source === 'website') {
-          continue;
-        }
-
-        // ── SKIP: Unpaid draft orders (Square creates a draft when card form initializes) ──
-        // An order with no tenders has not been paid — don't show it on KDS yet
-        // EXCEPTION: Third-party integrators may not attach tenders immediately.
-        if (!order.tenders || order.tenders.length === 0) {
-          const isThirdParty = sourceName.includes('doordash') || 
-                               sourceName.includes('door dash') ||
-                               sourceName.includes('uber') || 
-                               sourceName.includes('ubereats') ||
-                               sourceName.includes('grubhub') || 
-                               sourceName.includes('grub hub') ||
-                               sourceName.includes('square online') || 
-                               sourceName.includes('online store') || 
-                               sourceName.includes('online');
-
-          if (!isThirdParty) {
-            continue;
-          }
-        }
-
-        // ── SKIP: Already completed orders in Firestore ──
-        const existingDoc = await db.collection('orders').doc(order.id).get();
-        if (existingDoc.exists && existingDoc.data().status === 'completed') {
-          continue;
-        }
-
-        // Determine source
-        let source = 'pos'; // default = Square POS
-        if (sourceName.includes('doordash') || sourceName.includes('door dash')) {
-          source = 'doordash';
-        } else if (sourceName.includes('uber') || sourceName.includes('ubereats')) {
-          source = 'ubereats';
-        } else if (sourceName.includes('grubhub') || sourceName.includes('grub hub')) {
-          source = 'grubhub';
-        } else if (sourceName.includes('square online') || sourceName.includes('online store') || sourceName.includes('online')) {
-          source = 'squareonline';
-        }
-
-        // Map Square order state to our status
-        let status = 'pending';
-        if (order.state === 'COMPLETED') {
-          status = 'completed';
-        } else if (order.fulfillments && order.fulfillments.length > 0) {
-          const fulfillmentState = order.fulfillments[0].state;
-          if (fulfillmentState === 'PROPOSED') status = 'pending';
-          else if (fulfillmentState === 'RESERVED' || fulfillmentState === 'PREPARED') status = 'preparing';
-          else if (fulfillmentState === 'COMPLETED') status = 'ready';
-        }
-
-        // Extract customer name
-        let customerName = 'Guest';
-        if (metadata.customerName) {
-          customerName = metadata.customerName;
-        } else if (order.fulfillments?.[0]?.pickupDetails?.recipient?.displayName) {
-          customerName = order.fulfillments[0].pickupDetails.recipient.displayName;
-        } else if (order.fulfillments?.[0]?.deliveryDetails?.recipient?.displayName) {
-          customerName = order.fulfillments[0].deliveryDetails.recipient.displayName;
-        }
-
-        // Extract items
-        const items = (order.lineItems || []).map(li => ({
-          name: li.name || 'Unknown Item',
-          quantity: parseInt(li.quantity || '1', 10),
-          price: li.basePriceMoney ? Number(li.basePriceMoney.amount) / 100 : 0,
-        }));
-
-        // Total
-        const totalCents = order.totalMoney ? Number(order.totalMoney.amount) : 0;
-
-        const orderData = {
-          squareOrderId: order.id,
-          source,
-          customerName,
-          customerPhone: metadata.customerPhone || '',
-          items,
-          total: totalCents / 100,
-          totalCents,
-          status,
-          createdAt: admin.firestore.Timestamp.fromDate(new Date(order.createdAt)),
-          syncedAt: admin.firestore.FieldValue.serverTimestamp(),
-        };
-
-        // Use squareOrderId as doc ID for natural dedup
-        const docRef = db.collection('orders').doc(order.id);
-        batch.set(docRef, orderData, { merge: true });
-
-        syncedOrders.push({
-          id: order.id,
-          source,
-          customerName,
-          status,
-          itemCount: items.length,
-        });
-      }
-
-      await batch.commit();
-
+      const syncedOrders = await performSquareSync();
       return res.json({
         success: true,
         synced: syncedOrders.length,
@@ -540,6 +551,15 @@ exports.syncSquareOrders = functions.https.onRequest((req, res) => {
       return res.status(500).json({ error: err.message });
     }
   });
+});
+
+exports.syncSquareOrdersCron = functions.pubsub.schedule('every 1 minutes').onRun(async (context) => {
+  try {
+    await performSquareSync();
+    console.log('Cron: Synced Square orders successfully');
+  } catch (err) {
+    console.error('Cron syncSquareOrders failed:', err);
+  }
 });
 
 
@@ -575,9 +595,26 @@ exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
     const metadata = orderData.metadata || {};
     const sourceName = (orderData.source?.name || '').toLowerCase();
 
-    // Skip website orders (only those explicitly tagged by processSquarePayment)
+    // ── HANDLE WEBSITE ORDERS SEPARATELY ──
     if (metadata.source === 'website') {
-      return res.status(200).send('Website order handled by processSquarePayment, ignoring.');
+      let status = 'pending';
+      if (orderData.state === 'COMPLETED') {
+        status = 'completed';
+      } else if (orderData.fulfillments?.length > 0) {
+        const fState = orderData.fulfillments[0].state;
+        if (fState === 'PROPOSED') status = 'pending';
+        else if (fState === 'RESERVED') status = 'preparing';
+        else if (fState === 'PREPARED') status = 'ready';
+        else if (fState === 'COMPLETED') status = 'completed';
+      }
+      
+      await db.collection('orders').doc(orderData.id).set({
+        status,
+        webhookUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      
+      console.log(`Webhook processed for WEBSITE order ${orderData.id}: status=${status}`);
+      return res.status(200).send('OK (Website order status updated)');
     }
     if (!orderData.tenders || orderData.tenders.length === 0) {
       return res.status(200).send('Unpaid draft order, ignoring.');
@@ -596,8 +633,10 @@ exports.handleSquareWebhook = functions.https.onRequest(async (req, res) => {
       status = 'completed';
     } else if (orderData.fulfillments?.length > 0) {
       const fState = orderData.fulfillments[0].state;
-      if (fState === 'RESERVED' || fState === 'PREPARED') status = 'preparing';
-      else if (fState === 'COMPLETED') status = 'ready';
+      if (fState === 'PROPOSED') status = 'pending';
+      else if (fState === 'RESERVED') status = 'preparing';
+      else if (fState === 'PREPARED') status = 'ready';
+      else if (fState === 'COMPLETED') status = 'completed';
     }
 
     // Customer name
@@ -1349,7 +1388,7 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
       "@context": "https://schema.org",
       "@type": "FoodEstablishment",
       "name": "Bigi Awasaana",
-      "image": "https://bigiawasaana.com/logo.png",
+      "image": "https://bigiawasaana.com/logo.webp",
       "url": "https://bigiawasaana.com/areas/${areaId}",
       "telephone": "+13239211646",
       "servesCuisine": ["Afghan", "Middle Eastern", "Halal"],

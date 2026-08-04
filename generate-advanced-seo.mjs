@@ -393,55 +393,88 @@ for (const [id, data] of Object.entries(areas)) {
 
   const schema = `
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "Is your meat 100% Halal in ${data.name}?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes, all of our meat is strictly 100% Zabiha Halal. We are a trusted Halal source for the ${data.name} community."
-          }
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": ["Restaurant", "FoodEstablishment"],
+        "name": "Bigi Awasaana",
+        "description": "Authentic Afghan street food. Coal-fired kabobs, bolani, and saffron rice platters. 100% Zabiha Halal.",
+        "url": "https://bigiawasaana.com",
+        "image": "https://bigiawasaana.com/halal-afghan-restaurant-reseda.webp",
+        "logo": "https://bigiawasaana.com/logo.webp",
+        "telephone": "+13239211646",
+        "servesCuisine": ["Afghan", "Middle Eastern", "Halal"],
+        "priceRange": "$$",
+        "hasMenu": "https://bigiawasaana.com/menu.html",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "18411 Victory Blvd",
+          "addressLocality": "Reseda",
+          "addressRegion": "CA",
+          "postalCode": "91335",
+          "addressCountry": "US"
         },
-        {
-          "@type": "Question",
-          "name": "Do you deliver to ${data.name}?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes! We deliver our fresh kabobs and bakery items directly to ${data.name}."
-          }
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 34.1866938,
+          "longitude": -118.5331266
         },
-        {
-          "@type": "Question",
-          "name": "Do you serve Halal Smash Burgers in ${data.name}?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes! Our Bigi's Smash Burger is completely Zabiha Halal, featuring a crispy-edged beef patty, melted cheese, and house sauce, served fresh to the ${data.name} area."
-          }
+        "areaServed": {
+          "@type": "City",
+          "name": "${data.name}"
+        },
+        "openingHoursSpecification": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+          "opens": "12:00",
+          "closes": "22:30"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "reviewCount": "142"
         }
-      ]
-    }
-    </script>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FoodEstablishment",
-      "name": "Bigi Awasaana",
-      "image": "https://bigiawasaana.com/logo.webp",
-      "servesCuisine": "Afghan",
-      "priceRange": "$$",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "18411 Victory Blvd",
-        "addressLocality": "Reseda",
-        "addressRegion": "CA",
-        "postalCode": "91335"
       },
-      "areaServed": "${data.name}",
-      "telephone": "+13239211646"
-    }
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is your meat 100% Halal in ${data.name}?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, all of our meat is strictly 100% Zabiha Halal. We are a trusted Halal source for the ${data.name} community."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do you deliver to ${data.name}?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes! We deliver our fresh kabobs and bakery items directly to ${data.name}."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do you serve Halal Smash Burgers in ${data.name}?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes! Our Bigi's Smash Burger is completely Zabiha Halal, featuring a crispy-edged beef patty, melted cheese, and house sauce, served fresh to the ${data.name} area."
+            }
+          }
+        ]
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bigiawasaana.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Locations", "item": "https://bigiawasaana.com/locations.html" },
+          { "@type": "ListItem", "position": 3, "name": "Halal Food in ${data.name}", "item": "https://bigiawasaana.com/areas/${id}" }
+        ]
+      }
+    ]
     </script>
   `;
 
@@ -455,7 +488,6 @@ for (const [id, data] of Object.entries(areas)) {
     .replace(/{{AREA_ID}}/g, id)
     .replace(/{{AREA_CONTENT}}/g, content)
     .replace(/{{META_ROBOTS}}/g, '')
-    .replace(/{{SCHEMA}}/g, schema)
     .replace(/{{SCHEMA_DATA}}/g, schema);
 
   fs.writeFileSync(path.join(outDir, `${id}.html`), html);

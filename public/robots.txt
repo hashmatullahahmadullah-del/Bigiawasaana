@@ -3,11 +3,18 @@ Allow: /
 
 Sitemap: https://bigiawasaana.com/sitemap.xml
 
-# Block admin and internal pages
 Disallow: /admin
+Disallow: /admin.html
 Disallow: /kitchen
+Disallow: /kitchen.html
 Disallow: /customer-display
+Disallow: /customer-display.html
 Disallow: /tv-menu
+Disallow: /tv-menu.html
 Disallow: /tv1
+Disallow: /tv1.html
 Disallow: /tv2
+Disallow: /tv2.html
 Disallow: /order-status
+Disallow: /order-status.html
+Disallow: /review.html

@@ -2453,11 +2453,32 @@ body {
   padding-bottom: 24px;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;  /* IE and Edge */
+  scroll-snap-type: x mandatory;
 }
 .featured-carousel::-webkit-scrollbar {
   display: none;
 }
 .featured-carousel .menu-card {
   min-width: 300px;
+  max-width: 340px;
   flex-shrink: 0;
+  scroll-snap-align: start;
+}
+.featured-carousel .menu-card .menu-card-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+/* Mobile: featured cards fill viewport width */
+@media (max-width: 768px) {
+  .featured-carousel {
+    gap: 16px;
+    scroll-padding-left: 16px;
+  }
+  .featured-carousel .menu-card {
+    min-width: calc(100vw - 64px);
+    max-width: calc(100vw - 64px);
+  }
 }

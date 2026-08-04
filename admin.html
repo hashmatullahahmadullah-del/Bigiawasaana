@@ -186,10 +186,15 @@
           </div>
 
           <div class="crm-dashboard-grid mt-m">
-              <div class="crm-panel">
-                <h2 class="crm-panel-title">Top Selling Items</h2>
-                <div id="dash-top-items" class="crm-list"></div>
-              </div>
+            <div class="crm-panel" style="grid-column: 1 / -1;">
+              <h2 class="crm-panel-title">Revenue Over Time (Last 30 Days)</h2>
+              <canvas id="revenueChart" style="width:100%; height:250px;"></canvas>
+            </div>
+            <div class="crm-panel">
+              <h2 class="crm-panel-title">Top Selling Items</h2>
+              <canvas id="topItemsChart" style="width:100%; height:200px; margin-bottom: 16px;"></canvas>
+              <div id="dash-top-items" class="crm-list"></div>
+            </div>
             <div class="crm-panel">
               <h2 class="crm-panel-title">Recent Activity</h2>
               <div id="dash-activity-feed" class="crm-feed"></div>
@@ -349,14 +354,17 @@
         <section id="orders-view" class="crm-view" style="display: none;">
           <h1 class="crm-view-title">All Orders</h1>
           <div class="crm-panel mt-m">
-            <div class="crm-filters">
-              <input type="text" id="order-search" class="crm-input" placeholder="Search orders...">
-              <select id="order-status-filter" class="crm-select">
-                <option value="all">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+            <div class="crm-filters" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; gap: 12px; flex: 1;">
+                <input type="text" id="order-search" class="crm-input" placeholder="Search orders..." style="max-width: 300px;">
+                <select id="order-status-filter" class="crm-select" style="max-width: 200px;">
+                  <option value="all">All Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <button id="export-orders-btn" class="btn-outline btn-small">Export to CSV</button>
             </div>
             <div class="crm-table-container">
               <table class="crm-table">

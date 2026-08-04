@@ -27,40 +27,9 @@
   <meta name="twitter:description" content="{{META_DESC}}">
   <meta name="twitter:image" content="https://bigiawasaana.com/hero-food-spread.jpg">
 
-  <!-- Local Business Schema -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": ["Restaurant", "FoodEstablishment"],
-    "name": "Bigi Awasaana",
-    "description": "Authentic Afghan street food. Coal-fired kabobs, bolani, and saffron rice platters. 100% Zabiha Halal.",
-    "url": "https://bigiawasaana.com",
-    "image": "https://bigiawasaana.com/halal-afghan-restaurant-reseda.webp",
-    "telephone": "+13239211646",
-    "servesCuisine": "Afghan",
-    "priceRange": "$$",
-    "hasMenu": "https://bigiawasaana.com/menu.html",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "18411 Victory Blvd",
-      "addressLocality": "Reseda",
-      "addressRegion": "CA",
-      "postalCode": "91335",
-      "addressCountry": "US"
-    },
-    "openingHoursSpecification": {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
-      "opens": "12:00",
-      "closes": "22:30"
-    },
-    "founder": {
-      "@type": "Person",
-      "name": "Ahmadullah Hashmatullah"
-    }
-  }
-  </script>
-  {{SCHEMA}}
+  <!-- Dynamic Schema injected by SSR / generator -->
+  {{SCHEMA_DATA}}
+
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/mobile-nav.css">

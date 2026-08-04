@@ -1,0 +1,13 @@
+{
+  "name": "Bigi Awasaana — Halal Afghan Street Food",
+  "short_name": "Bigi Awasaana",
+  "description": "Authentic Halal Afghan street food. Coal-fired kabobs, bolani, and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#111111",
+  "background_color": "#111111",
+  "icons": [
+    { "src": "/logo.webp", "sizes": "512x512", "type": "image/webp" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
