@@ -4206,8 +4206,10 @@ window.loadAnalytics = loadAnalytics;
         }
 
         // 3. Save Expense as confirmed
+        const newTotal = currentItems.reduce((sum, item) => sum + (parseFloat(item.lineTotal) || (parseFloat(item.quantity) * parseFloat(item.unitPrice)) || 0), 0);
         await updateDoc(doc(db, "expenses", currentExpenseId), {
           items: currentItems,
+          total: newTotal > 0 ? newTotal : (parseFloat(document.querySelector('#review-meta').innerText.split('$')[1]) || 0), // Fallback to parsed total if items empty/0
           status: "confirmed",
           confirmedAt: serverTimestamp(),
         });
@@ -4251,7 +4253,7 @@ window.loadAnalytics = loadAnalytics;
       const data = docSnap.data();
       if (data.status !== 'confirmed') return;
       
-      const total = data.total || 0;
+      const total = parseFloat(data.total) || 0;
       allTimeSpent += total;
       
       const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
