@@ -395,7 +395,7 @@ async function performSquareSync() {
   }
 
   const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
   const searchResponse = await squareClient.ordersApi.searchOrders({
     locationIds: [locationId],
@@ -403,7 +403,7 @@ async function performSquareSync() {
       filter: {
         dateTimeFilter: {
           createdAt: {
-            startAt: startOfDay.toISOString(),
+            startAt: last24Hours.toISOString(),
           },
         },
         stateFilter: {
@@ -428,15 +428,19 @@ async function performSquareSync() {
     // ── HANDLE WEBSITE ORDERS SEPARATELY ──
     if (metadata.source === 'website') {
       let status = 'pending';
+      const fState = order.fulfillments && order.fulfillments.length > 0 ? order.fulfillments[0].state : 'NONE';
+      console.log(`[Sync] Website Order ${order.id} | Square State: ${order.state} | Fulfillment: ${fState}`);
+      
       if (order.state === 'COMPLETED') {
         status = 'completed';
-      } else if (order.fulfillments && order.fulfillments.length > 0) {
-        const fulfillmentState = order.fulfillments[0].state;
-        if (fulfillmentState === 'PROPOSED') status = 'pending';
-        else if (fulfillmentState === 'RESERVED') status = 'preparing';
-        else if (fulfillmentState === 'PREPARED') status = 'ready';
-        else if (fulfillmentState === 'COMPLETED') status = 'completed';
+      } else if (fState !== 'NONE') {
+        if (fState === 'PROPOSED') status = 'pending';
+        else if (fState === 'RESERVED') status = 'preparing';
+        else if (fState === 'PREPARED') status = 'ready';
+        else if (fState === 'COMPLETED') status = 'completed';
       }
+      
+      console.log(`[Sync] Website Order ${order.id} | Mapped to Firestore Status: ${status}`);
       
       const docRef = db.collection('orders').doc(order.id);
       batch.set(docRef, {

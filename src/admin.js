@@ -673,6 +673,19 @@ function renderUpcomingScheduledOrders() {
 // ==========================================
 
 function renderLiveOrders(snapshot) {
+  // Update pending badge
+  const badge = document.getElementById('pending-orders-badge');
+  if (badge) {
+    let pendingCount = 0;
+    snapshot.forEach(d => { if (d.data().status === 'pending') pendingCount++; });
+    if (pendingCount > 0) {
+      badge.textContent = pendingCount;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  
   ordersList.innerHTML = '';
   if (snapshot.empty) {
     ordersList.innerHTML = '<p style="color: var(--gray);">No orders found.</p>';
@@ -700,7 +713,11 @@ function renderLiveOrders(snapshot) {
       <div class="order-header">
         <div>
           <div class="order-title">${order.customerName} <span style="font-size: 12px; color: var(--gray); font-weight: normal; margin-left: 8px;">${order.customerPhone || ''}</span></div>
-          <div class="order-meta">${date} &middot; via ${order.method || 'Web'}</div>
+          <div class="order-meta">${date} &middot; via ${order.method || 'Web'} ${order.status === 'pending' ? (() => {
+  const mins = Math.floor((Date.now() - (order.createdAt ? order.createdAt.toDate().getTime() : Date.now())) / 60000);
+  const color = mins > 15 ? '#f44336' : mins > 7 ? '#ff9800' : '#4caf50';
+  return `<span style="display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; background: ${color}22; color: ${color};">${mins} min ago</span>`;
+})() : ''}</div>
         </div>
         <div class="status-badge ${statusClass}">${order.status}</div>
       </div>
@@ -1143,6 +1160,29 @@ function renderDashboard() {
   document.getElementById('dash-aov').textContent = `$${aov.toFixed(2)}`;
   document.getElementById('dash-repeat-rate').textContent = `${Math.round(repeatRate)}%`;
 
+  // --- Today at a Glance ---
+  const todayStr = new Date().toLocaleDateString();
+  const todayOrders = state.orders.filter(o => o.date.toLocaleDateString() === todayStr);
+  const todayCompleted = todayOrders.filter(o => o.status === 'completed');
+  const todayPending = todayOrders.filter(o => o.status === 'pending');
+  const todayRevenue = todayCompleted.reduce((sum, o) => sum + o.total, 0);
+  let todayItemsSold = 0;
+  todayCompleted.forEach(o => {
+    (o.items || []).forEach(i => { todayItemsSold += (i.qty || 1); });
+  });
+
+  const todayRevEl = document.getElementById('today-revenue');
+  if (todayRevEl) todayRevEl.textContent = '$' + todayRevenue.toFixed(2);
+  const todayOrdEl = document.getElementById('today-orders');
+  if (todayOrdEl) todayOrdEl.textContent = todayOrders.length;
+  const todayItemsEl = document.getElementById('today-items-sold');
+  if (todayItemsEl) todayItemsEl.textContent = todayItemsSold;
+  const todayPendEl = document.getElementById('today-pending');
+  if (todayPendEl) {
+    todayPendEl.textContent = todayPending.length;
+    todayPendEl.style.color = todayPending.length > 0 ? '#ff9800' : '#4caf50';
+  }
+
   // --- Charts Rendering ---
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -1258,13 +1298,32 @@ function renderCustomers() {
   const tbody = document.getElementById('customers-table-body');
   if(!tbody) return;
   const term = document.getElementById('customer-search').value.toLowerCase();
+  const tierFilter = document.getElementById('customer-tier-filter');
+  const selectedTier = tierFilter ? tierFilter.value : 'all';
   
   tbody.innerHTML = '';
   state.customers
     .filter(c => c.name.toLowerCase().includes(term) || c.phone.includes(term))
+    .filter(c => {
+      if (selectedTier === 'all') return true;
+      return getTier(c.totalSpent) === selectedTier;
+    })
     .forEach(c => {
       const tier = getTier(c.totalSpent);
       const color = getTierColor(tier);
+      
+      // Last ordered + at-risk calculation
+      let lastOrderedStr = 'Never';
+      let lastOrderBadgeColor = 'var(--gray)';
+      if (c.lastVisit) {
+        const daysSince = Math.floor((Date.now() - c.lastVisit.getTime()) / (1000 * 60 * 60 * 24));
+        lastOrderedStr = c.lastVisit.toLocaleDateString();
+        if (daysSince <= 14) lastOrderBadgeColor = '#4caf50';
+        else if (daysSince <= 30) lastOrderBadgeColor = '#ff9800';
+        else lastOrderBadgeColor = '#f44336';
+        if (daysSince > 30) lastOrderedStr += ' ⚠️';
+      }
+      
       const tr = document.createElement('tr');
       tr.style.cursor = 'pointer';
       tr.innerHTML = `
@@ -1272,6 +1331,7 @@ function renderCustomers() {
         <td data-label="Phone">${c.phone}</td>
         <td data-label="Spent">$${c.totalSpent.toFixed(2)}</td>
         <td data-label="Orders">${c.totalOrders}</td>
+        <td data-label="Last Ordered"><span style="color: ${lastOrderBadgeColor};">${lastOrderedStr}</span></td>
         <td data-label="Tier"><span class="crm-badge" style="background: ${color}33; color: ${color}; border-color: ${color};">${tier}</span></td>
       `;
       tr.addEventListener('click', () => openCustomerDetail(c));
@@ -1394,6 +1454,22 @@ window.closeOrderModal = () => {
 function renderReviews() {
   const container = document.getElementById('reviews-container');
   if(!container) return;
+
+// Review stats
+const avgRatingEl = document.getElementById('review-avg-rating');
+if (avgRatingEl && state.reviews.length > 0) {
+  const avgRating = state.reviews.reduce((sum, r) => sum + parseInt(r.stars), 0) / state.reviews.length;
+  avgRatingEl.textContent = avgRating.toFixed(1) + ' ★';
+  document.getElementById('review-total-count').textContent = state.reviews.length;
+  document.getElementById('review-5star-count').textContent = state.reviews.filter(r => parseInt(r.stars) === 5).length;
+  document.getElementById('review-unresponded-count').textContent = state.reviews.filter(r => !r.responded).length;
+} else if (avgRatingEl) {
+  avgRatingEl.textContent = '0.0 ★';
+  document.getElementById('review-total-count').textContent = '0';
+  document.getElementById('review-5star-count').textContent = '0';
+  document.getElementById('review-unresponded-count').textContent = '0';
+}
+
   const statusFilter = document.getElementById('review-status-filter').value;
   
   container.innerHTML = '';
@@ -1519,6 +1595,9 @@ if (saveTiersBtn) {
 const customerSearch = document.getElementById('customer-search');
 if (customerSearch) customerSearch.addEventListener('input', renderCustomers);
 
+const customerTierFilter = document.getElementById('customer-tier-filter');
+if (customerTierFilter) customerTierFilter.addEventListener('change', renderCustomers);
+
 const orderSearch = document.getElementById('order-search');
 if (orderSearch) orderSearch.addEventListener('input', renderAllOrders);
 
@@ -1534,6 +1613,16 @@ if (reviewStatusFilter) reviewStatusFilter.addEventListener('change', renderRevi
 function renderCatering() {
   const tbody = document.getElementById('catering-table-body');
   if (!tbody) return;
+
+// Catering stats
+const totalEl = document.getElementById('catering-total');
+if (totalEl) {
+  totalEl.textContent = state.catering.length;
+  document.getElementById('catering-new').textContent = state.catering.filter(c => c.status === 'new').length;
+  document.getElementById('catering-contacted').textContent = state.catering.filter(c => c.status === 'contacted').length;
+  document.getElementById('catering-resolved').textContent = state.catering.filter(c => c.status === 'resolved').length;
+}
+
   tbody.innerHTML = '';
   
   if (state.catering.length === 0) {
@@ -1551,7 +1640,7 @@ function renderCatering() {
       <td data-label="Customer"><strong>${inquiry.name}</strong><br><small style="color: var(--gray);">${inquiry.phone}</small></td>
       <td data-label="Event Date">${inquiry.date}</td>
       <td data-label="Guests">${inquiry.guests}</td>
-      <td data-label="Status"><span class="status-badge ${inquiry.status === 'new' ? 'status-pending' : 'status-completed'}">${inquiry.status.toUpperCase()}</span></td>
+      <td data-label="Status"><span class="status-badge" style="${inquiry.status === 'new' ? 'background: rgba(255,152,0,0.15); color: #ff9800; border: 1px solid rgba(255,152,0,0.3);' : inquiry.status === 'contacted' ? 'background: rgba(33,150,243,0.15); color: #2196f3; border: 1px solid rgba(33,150,243,0.3);' : 'background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.3);'} padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">${inquiry.status}</span></td>
     `;
     tbody.appendChild(tr);
   });
@@ -2824,6 +2913,7 @@ window.savePlatformRates = async () => {
 // PROFIT DASHBOARD LOGIC
 // ==========================================
 let profitChartInst = null;
+let dayOfWeekChartInst = null;
 let profitDataCache = {
   fixedCosts: { rent: 0, commissaryRent: 0, insurance: 0, other: 0 },
   sales: [],
@@ -2850,13 +2940,16 @@ async function loadProfitData() {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const startTimestamp = thirtyDaysAgo.getTime();
 
-  const salesQ = query(collection(db, 'sales_logs'), orderBy('date', 'asc'));
+  const salesQ = query(collection(db, 'sales_logs'), orderBy('date', 'desc'));
   onSnapshot(salesQ, (snapshot) => {
     profitDataCache.sales = [];
     snapshot.forEach(docSnap => {
       profitDataCache.sales.push({ id: docSnap.id, ...docSnap.data() });
     });
+    // Sort ascending for chart after fetching descending (so we have most recent first in table but chronologically sorted for chart)
+    profitDataCache.sales.sort((a, b) => a.date.localeCompare(b.date));
     updateProfitDashboard();
+    renderRecentDailySales();
   });
 
   // Fetch expenses (from receipts)
@@ -2952,6 +3045,42 @@ function updateProfitDashboard() {
   profitEl.textContent = '$' + totalProfit.toFixed(2);
   profitEl.style.color = totalProfit >= 0 ? 'var(--accent)' : '#f44336';
 
+  // 1. Profit Margin
+  let profitMargin = 0;
+  if (totalSales > 0) {
+    profitMargin = (totalProfit / totalSales) * 100;
+  }
+  const pmEl = document.getElementById('dash-profit-margin');
+  if (pmEl) {
+    pmEl.textContent = profitMargin.toFixed(1) + '%';
+    if (profitMargin >= 15) pmEl.style.color = '#4caf50'; // green
+    else if (profitMargin >= 5) pmEl.style.color = '#ff9800'; // orange
+    else pmEl.style.color = '#f44336'; // red
+  }
+
+  // 2. Avg Daily Sales (only days with >0 sales)
+  let daysWithSales = 0;
+  let bestDayLabel = '--';
+  let bestDaySales = -1;
+  sortedDates.forEach(date => {
+    const s = dailyData[date].sales;
+    if (s > 0) daysWithSales++;
+    if (s > bestDaySales) {
+      bestDaySales = s;
+      bestDayLabel = date.substring(5) + ' ($' + s.toFixed(0) + ')';
+    }
+  });
+
+  const avgSalesEl = document.getElementById('dash-avg-daily-sales');
+  if (avgSalesEl) {
+    avgSalesEl.textContent = daysWithSales > 0 ? '$' + (totalSales / daysWithSales).toFixed(2) : '$0.00';
+  }
+
+  const bestDayEl = document.getElementById('dash-best-day');
+  if (bestDayEl) {
+    bestDayEl.textContent = bestDaySales > 0 ? bestDayLabel : '--';
+  }
+
   // Render Chart
   const ctx = document.getElementById('profitChart');
   if (!ctx) return;
@@ -3008,7 +3137,172 @@ function updateProfitDashboard() {
       }
     }
   });
+
+  // === NEW: Day of Week Performance ===
+  const dowSales = [0, 0, 0, 0, 0, 0, 0]; // Mon, Tue, Wed, Thu, Fri, Sat, Sun
+  const dowCount = [0, 0, 0, 0, 0, 0, 0];
+  
+  sortedDates.forEach(dateStr => {
+    const d = new Date(dateStr + 'T12:00:00');
+    // getDay(): 0=Sun, 1=Mon, ..., 6=Sat
+    // We want 0=Mon, 6=Sun
+    let dayIdx = d.getDay() - 1;
+    if (dayIdx === -1) dayIdx = 6;
+    dowSales[dayIdx] += dailyData[dateStr].sales;
+    if (dailyData[dateStr].sales > 0 || dailyData[dateStr].expenses > 0 || d <= new Date()) {
+      dowCount[dayIdx]++;
+    }
+  });
+
+  const dowAverages = dowSales.map((sales, i) => {
+    return dowCount[i] > 0 ? sales / dowCount[i] : 0;
+  });
+
+  const dowCtx = document.getElementById('dayOfWeekChart');
+  if (dowCtx) {
+    if (dayOfWeekChartInst) {
+      dayOfWeekChartInst.destroy();
+    }
+    
+    // Varying opacity for accent color #00e676
+    const barColors = [
+      'rgba(0, 230, 118, 0.4)',
+      'rgba(0, 230, 118, 0.5)',
+      'rgba(0, 230, 118, 0.6)',
+      'rgba(0, 230, 118, 0.7)',
+      'rgba(0, 230, 118, 0.8)',
+      'rgba(0, 230, 118, 0.9)',
+      'rgba(0, 230, 118, 1.0)'
+    ];
+
+    dayOfWeekChartInst = new Chart(dowCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Avg Sales ($)',
+          data: dowAverages,
+          backgroundColor: barColors,
+          borderColor: '#00e676',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { grid: { color: '#333' }, ticks: { color: '#aaa' } },
+          x: { grid: { color: '#333' }, ticks: { color: '#aaa' } }
+        }
+      }
+    });
+  }
+
+  // === NEW: Week over Week Comparison ===
+  const now = new Date();
+  const currentDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+  
+  const thisWeekStart = new Date(now);
+  thisWeekStart.setDate(now.getDate() - (currentDayOfWeek - 1));
+  thisWeekStart.setHours(0,0,0,0);
+
+  const lastWeekStart = new Date(thisWeekStart);
+  lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+  
+  const lastWeekEnd = new Date(thisWeekStart);
+  lastWeekEnd.setDate(thisWeekStart.getDate() - 1);
+  lastWeekEnd.setHours(23,59,59,999);
+
+  let thisSales = 0, thisExp = 0, lastSales = 0, lastExp = 0;
+
+  Object.keys(dailyData).forEach(dateStr => {
+    const d = new Date(dateStr + 'T12:00:00');
+    if (d >= thisWeekStart) {
+      thisSales += dailyData[dateStr].sales;
+      thisExp += dailyData[dateStr].expenses + dailyFixedCost;
+    } else if (d >= lastWeekStart && d <= lastWeekEnd) {
+      lastSales += dailyData[dateStr].sales;
+      lastExp += dailyData[dateStr].expenses + dailyFixedCost;
+    }
+  });
+
+  const thisProfit = thisSales - thisExp;
+  const lastProfit = lastSales - lastExp;
+
+  const getDiffHtml = (current, previous) => {
+    if (previous === 0) return '';
+    const pct = ((current - previous) / previous) * 100;
+    if (pct > 0) return `<span style="color: #4caf50;">&#9650; ${pct.toFixed(1)}%</span>`;
+    if (pct < 0) return `<span style="color: #f44336;">&#9660; ${Math.abs(pct).toFixed(1)}%</span>`;
+    return `<span style="color: var(--gray);">0.0%</span>`;
+  };
+
+  const wwThisSalesEl = document.getElementById('ww-this-sales');
+  if (wwThisSalesEl) {
+    wwThisSalesEl.textContent = '$' + thisSales.toFixed(2);
+    document.getElementById('ww-last-sales').textContent = '$' + lastSales.toFixed(2);
+    document.getElementById('ww-diff-sales').innerHTML = getDiffHtml(thisSales, lastSales);
+    
+    document.getElementById('ww-this-expenses').textContent = '$' + thisExp.toFixed(2);
+    document.getElementById('ww-last-expenses').textContent = '$' + lastExp.toFixed(2);
+
+    document.getElementById('ww-this-profit').textContent = '$' + thisProfit.toFixed(2);
+    document.getElementById('ww-last-profit').textContent = '$' + lastProfit.toFixed(2);
+    document.getElementById('ww-this-profit').style.color = thisProfit >= 0 ? 'var(--accent)' : '#f44336';
+    document.getElementById('ww-diff-profit').innerHTML = getDiffHtml(thisProfit, lastProfit);
+  }
 }
+
+function renderRecentDailySales() {
+  const tbody = document.getElementById('recent-sales-tbody');
+  if (!tbody) return;
+  
+  if (profitDataCache.sales.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--gray);">No sales logged yet.</td></tr>';
+    return;
+  }
+  
+  // profitDataCache.sales is sorted ascending for chart. Let's show newest first in table.
+  const recentSales = [...profitDataCache.sales].reverse().slice(0, 30);
+  
+  tbody.innerHTML = '';
+  recentSales.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.innerHTML = `
+      <td style="padding: 12px 8px;">${s.date}</td>
+      <td style="padding: 12px 8px;">$${(s.amount || 0).toFixed(2)}</td>
+      <td style="padding: 12px 8px; color: var(--gray);">${s.notes || '-'}</td>
+      <td style="padding: 12px 8px; text-align: right;">
+        <button class="btn-outline btn-small" onclick="editDailySale('${s.date}', ${s.amount}, '${(s.notes || '').replace(/'/g, "\\'")}')" style="margin-right: 8px;">Edit</button>
+        <button class="btn-outline btn-small" onclick="deleteDailySale('${s.date}')" style="color: #f44336; border-color: rgba(244,67,54,0.4);">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.editDailySale = (date, amount, notes) => {
+  document.getElementById('ds-date').value = date;
+  document.getElementById('ds-amount').value = amount;
+  document.getElementById('ds-notes').value = notes;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.deleteDailySale = async (date) => {
+  if (!confirm(`Delete sales log for ${date}?`)) return;
+  try {
+    await deleteDoc(doc(db, 'sales_logs', date));
+    showToast('Sales log deleted');
+  } catch (err) {
+    console.error('Error deleting daily sale:', err);
+    showToast('Error deleting sales log', true);
+  }
+};
 
 window.renderEconomicsProfit = () => {
   const container = document.getElementById('eco-tab-profit');
@@ -3667,33 +3961,172 @@ window.loadAnalytics = loadAnalytics;
 
   // Setup Expense Analytics Chart
   let expenseChartInst = null;
-  const renderExpenseAnalytics = (snapshot) => {
-    const ctx = document.getElementById('expenseChart');
-    if (!ctx) return;
-    
-    let catTotals = {};
+  let expenseTopItemsChartInst = null;
+  let expenseVendorChartInst = null;
+  let priceTrendChartInst = null;
+
+  const renderExpenseStats = (snapshot) => {
+    let totalSpent = 0;
+    let receiptCount = 0;
+    let mostExpensiveReceipt = { total: 0, vendor: '-' };
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       if (data.status !== 'confirmed') return;
+      const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
+      if (expenseDate < thirtyDaysAgo) return;
+
+      const total = data.total || 0;
+      totalSpent += total;
+      receiptCount++;
+      if (total > mostExpensiveReceipt.total) {
+        mostExpensiveReceipt = { total, vendor: data.vendor || 'Unknown' };
+      }
+    });
+
+    const avgReceipt = receiptCount > 0 ? (totalSpent / receiptCount) : 0;
+
+    const elTotal = document.getElementById('exp-30d-total');
+    const elAvg = document.getElementById('exp-avg-receipt');
+    const elCount = document.getElementById('exp-receipt-count');
+    const elMax = document.getElementById('exp-most-expensive');
+
+    if (elTotal) elTotal.textContent = `$${totalSpent.toFixed(2)}`;
+    if (elAvg) elAvg.textContent = `$${avgReceipt.toFixed(2)}`;
+    if (elCount) elCount.textContent = receiptCount.toString();
+    if (elMax) elMax.textContent = mostExpensiveReceipt.total > 0 ? `$${mostExpensiveReceipt.total.toFixed(2)} (${mostExpensiveReceipt.vendor})` : '-';
+  };
+
+  const initPriceTrends = (snapshot) => {
+    const selectEl = document.getElementById('price-trend-item-select');
+    const ctxTrend = document.getElementById('priceTrendChart');
+    if (!selectEl || !ctxTrend) return;
+
+    let itemsData = {};
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.status !== 'confirmed') return;
+      const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
+
       (data.items || []).forEach(item => {
-         const cat = item.category || 'other';
-         catTotals[cat] = (catTotals[cat] || 0) + (item.lineTotal || 0);
+        if (item.name && item.unitPrice) {
+          const name = item.name.trim();
+          if (!itemsData[name]) itemsData[name] = [];
+          itemsData[name].push({ date: expenseDate, price: item.unitPrice });
+        }
       });
     });
 
-    const labels = Object.keys(catTotals);
-    const data = Object.values(catTotals);
+    const currentVal = selectEl.value;
+    selectEl.innerHTML = '<option value="">Select an item to track...</option>';
+    const itemNames = Object.keys(itemsData).sort();
+    itemNames.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      selectEl.appendChild(opt);
+    });
+    if (itemsData[currentVal]) {
+      selectEl.value = currentVal;
+    }
+
+    const renderChart = () => {
+      const selectedItem = selectEl.value;
+      if (priceTrendChartInst) priceTrendChartInst.destroy();
+      
+      if (!selectedItem || !itemsData[selectedItem]) {
+        priceTrendChartInst = new Chart(ctxTrend, {
+          type: 'line',
+          data: { labels: [], datasets: [] },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+        return;
+      }
+
+      const points = itemsData[selectedItem].sort((a, b) => a.date - b.date);
+      
+      priceTrendChartInst = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: points.map(p => p.date.toLocaleDateString()),
+          datasets: [{
+            label: `Unit Price for ${selectedItem}`,
+            data: points.map(p => p.price),
+            borderColor: '#ff6b35',
+            backgroundColor: 'rgba(255,107,53,0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#aaa' } },
+            x: { grid: { display: false }, ticks: { color: '#aaa' } }
+          }
+        }
+      });
+    };
+
+    selectEl.onchange = renderChart;
+    
+    // Initial render
+    renderChart();
+  };
+
+  const renderExpenseAnalytics = (snapshot) => {
+    const ctxCategory = document.getElementById('expenseChart');
+    const ctxTopItems = document.getElementById('expenseTopItemsChart');
+    const ctxVendor = document.getElementById('expenseVendorChart');
+    if (!ctxCategory) return;
+    
+    let catTotals = {};
+    let itemTotals = {};
+    let vendorTotals = {};
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.status !== 'confirmed') return;
+      
+      const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
+      if (expenseDate < thirtyDaysAgo) return;
+
+      const vendor = data.vendor || 'Unknown';
+      vendorTotals[vendor] = (vendorTotals[vendor] || 0) + (data.total || 0);
+
+      (data.items || []).forEach(item => {
+         const cat = item.category || 'other';
+         const total = item.lineTotal || 0;
+         catTotals[cat] = (catTotals[cat] || 0) + total;
+         
+         if (item.name) {
+           const name = item.name.trim();
+           itemTotals[name] = (itemTotals[name] || 0) + total;
+         }
+      });
+    });
+
+    // 1. Render Category Doughnut Chart
+    const catLabels = Object.keys(catTotals);
+    const catData = Object.values(catTotals);
     
     if (expenseChartInst) {
        expenseChartInst.destroy();
     }
     
-    expenseChartInst = new Chart(ctx, {
+    expenseChartInst = new Chart(ctxCategory, {
       type: 'doughnut',
       data: {
-        labels: labels,
+        labels: catLabels,
         datasets: [{
-          data: data,
+          data: catData,
           backgroundColor: ['#ff4d4d', '#4caf50', '#ffeb3b', '#2196f3', '#9c27b0', '#ff9800'],
           borderColor: '#111',
           borderWidth: 2
@@ -3707,6 +4140,81 @@ window.loadAnalytics = loadAnalytics;
         }
       }
     });
+    
+    // 2. Render Top Items Bar Chart
+    if (ctxTopItems) {
+      const sortedItems = Object.entries(itemTotals)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10); // Top 10 items
+        
+      if (expenseTopItemsChartInst) {
+         expenseTopItemsChartInst.destroy();
+      }
+      
+      expenseTopItemsChartInst = new Chart(ctxTopItems, {
+        type: 'bar',
+        data: {
+          labels: sortedItems.map(item => item[0]),
+          datasets: [{
+            label: 'Total Spent ($)',
+            data: sortedItems.map(item => item[1]),
+            backgroundColor: 'rgba(33,150,243,0.7)',
+            borderColor: '#2196f3',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { 
+              beginAtZero: true,
+              grid: { color: '#333' }, 
+              ticks: { color: '#aaa' } 
+            },
+            x: { 
+              grid: { display: false }, 
+              ticks: { color: '#aaa', maxRotation: 45, minRotation: 45 } 
+            }
+          }
+        }
+      });
+    }
+
+    // 3. Render Vendor Chart
+    if (ctxVendor) {
+      const sortedVendors = Object.entries(vendorTotals)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+        
+      if (expenseVendorChartInst) expenseVendorChartInst.destroy();
+      
+      expenseVendorChartInst = new Chart(ctxVendor, {
+        type: 'bar',
+        data: {
+          labels: sortedVendors.map(v => v[0]),
+          datasets: [{
+            label: 'Vendor Spent ($)',
+            data: sortedVendors.map(v => v[1]),
+            backgroundColor: ['#e9ab00', '#ff6b35', '#ff4d4d', '#4caf50', '#2196f3', '#9c27b0'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#aaa' } },
+            y: { grid: { display: false }, ticks: { color: '#aaa' } }
+          }
+        }
+      });
+    }
   };
 
   window.expensesUnsub = null;
@@ -3743,6 +4251,8 @@ window.loadAnalytics = loadAnalytics;
         }
 
         renderExpenseAnalytics(snapshot);
+        renderExpenseStats(snapshot);
+        initPriceTrends(snapshot);
 
         let rowCount = 0;
         snapshot.forEach(docSnap => {
@@ -3760,7 +4270,7 @@ window.loadAnalytics = loadAnalytics;
           mainTr.onmouseover = () => mainTr.style.background = "rgba(255,255,255,0.05)";
           mainTr.onmouseout = () => mainTr.style.background = "transparent";
           mainTr.innerHTML = `
-            <td data-label="Date" style="padding: 12px;">${dateStr}</td>
+            <td data-label="Date" style="padding: 12px;"><span class="expand-icon" style="margin-right: 8px; font-size: 10px; display: inline-block; width: 12px;">▶</span>${dateStr}</td>
             <td data-label="Vendor" style="padding: 12px; font-weight: 600;">${window.escapeHtml(data.vendor || 'Unknown')}</td>
             <td data-label="Items" style="padding: 12px;">${itemCount} items</td>
             <td data-label="Total" style="padding: 12px; font-weight: bold; color: var(--accent);">${totalStr}</td>
@@ -3771,32 +4281,39 @@ window.loadAnalytics = loadAnalytics;
             </td>
           `;
           
+          const detailTr = document.createElement("tr");
+          detailTr.style.display = "none";
+          detailTr.style.background = "rgba(233,171,0,0.05)";
+          
+          let itemsHtml = '<table style="width:100%; border-collapse: collapse; font-size: 13px;">';
+          itemsHtml += '<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--gray);"><th style="text-align:left; padding:8px;">Item Name</th><th style="text-align:left; padding:8px;">Category</th><th style="text-align:center; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit Price</th><th style="text-align:right; padding:8px;">Line Total</th></tr></thead>';
+          itemsHtml += '<tbody>';
+          (data.items || []).forEach(item => {
+             itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                <td style="padding:8px; font-weight:600;">${window.escapeHtml(item.name || 'Unknown')}</td>
+                <td style="padding:8px; color:var(--gray);">${window.escapeHtml(item.category || 'other')}</td>
+                <td style="padding:8px; text-align:center;">${item.quantity || 1}</td>
+                <td style="padding:8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
+                <td style="padding:8px; text-align:right; font-weight:bold; color:var(--white);">$${(item.lineTotal || 0).toFixed(2)}</td>
+             </tr>`;
+          });
+          itemsHtml += '</tbody></table>';
+          
+          detailTr.innerHTML = `<td colspan="5" style="padding: 0;">
+            <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+              ${itemsHtml}
+            </div>
+          </td>`;
+          
           mainTr.addEventListener("click", () => {
-             document.getElementById('slide-vendor').textContent = data.vendor || 'Unknown';
-             document.getElementById('slide-date').textContent = dateStr;
-             document.getElementById('slide-total').textContent = totalStr;
-             
-             let itemsHtml = '<table style="width:100%; border-collapse: collapse;">';
-             itemsHtml += '<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--gray);"><th style="text-align:left; padding:8px;">Item</th><th style="text-align:center; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit</th><th style="text-align:right; padding:8px;">Total</th></tr></thead>';
-             itemsHtml += '<tbody>';
-             (data.items || []).forEach(item => {
-                itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                   <td style="padding:12px 8px;">
-                     <div style="font-weight:600;">${window.escapeHtml(item.name || 'Unknown')}</div>
-                     <div style="font-size:12px; color:var(--gray); margin-top:4px;">${window.escapeHtml(item.category || 'other')}</div>
-                   </td>
-                   <td style="padding:12px 8px; text-align:center;">${item.quantity || 1}</td>
-                   <td style="padding:12px 8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
-                   <td style="padding:12px 8px; text-align:right; font-weight:bold; color:var(--white);">$${(item.lineTotal || 0).toFixed(2)}</td>
-                </tr>`;
-             });
-             itemsHtml += '</tbody></table>';
-             document.getElementById('slide-content').innerHTML = itemsHtml;
-             
-             if (window.openReceiptSlide) window.openReceiptSlide();
+             const isHidden = detailTr.style.display === "none";
+             detailTr.style.display = isHidden ? "table-row" : "none";
+             const icon = mainTr.querySelector('.expand-icon');
+             if (icon) icon.textContent = isHidden ? "▼" : "▶";
           });
           
           savedExpensesTbody.appendChild(mainTr);
+          savedExpensesTbody.appendChild(detailTr);
         });
       }, (err) => {
         console.error("Expenses sync error:", err);

@@ -137,3 +137,19 @@
     padding: 6px 10px;
   }
 }
+
+/* Mobile responsive fixes for all inline grids */
+@media (max-width: 768px) {
+  #today-glance,
+  #expense-stats-row,
+  .crm-dashboard-grid,
+  .crm-stats-grid,
+  [style*="grid-template-columns: 1.2fr 1fr"],
+  [style*="grid-template-columns: 1fr 2fr"],
+  [style*="grid-template-columns: 1fr 1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns: repeat(4, 1fr)"],
+  [style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+}
