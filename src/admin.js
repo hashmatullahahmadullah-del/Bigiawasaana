@@ -4241,18 +4241,22 @@ window.loadAnalytics = loadAnalytics;
 
   const renderExpenseStats = (snapshot) => {
     let totalSpent = 0;
+    let allTimeSpent = 0;
     let receiptCount = 0;
-    let mostExpensiveReceipt = { total: 0, vendor: '-' };
+    let mostExpensiveReceipt = { total: 0, vendor: '' };
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       if (data.status !== 'confirmed') return;
+      
+      const total = data.total || 0;
+      allTimeSpent += total;
+      
       const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
       if (expenseDate < thirtyDaysAgo) return;
 
-      const total = data.total || 0;
       totalSpent += total;
       receiptCount++;
       if (total > mostExpensiveReceipt.total) {
@@ -4262,11 +4266,13 @@ window.loadAnalytics = loadAnalytics;
 
     const avgReceipt = receiptCount > 0 ? (totalSpent / receiptCount) : 0;
 
+    const elAllTime = document.getElementById('exp-all-time-total');
     const elTotal = document.getElementById('exp-30d-total');
     const elAvg = document.getElementById('exp-avg-receipt');
     const elCount = document.getElementById('exp-receipt-count');
     const elMax = document.getElementById('exp-most-expensive');
 
+    if (elAllTime) elAllTime.textContent = `$${allTimeSpent.toFixed(2)}`;
     if (elTotal) elTotal.textContent = `$${totalSpent.toFixed(2)}`;
     if (elAvg) elAvg.textContent = `$${avgReceipt.toFixed(2)}`;
     if (elCount) elCount.textContent = receiptCount.toString();

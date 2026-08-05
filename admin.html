@@ -1162,7 +1162,11 @@
             </div>
 
             <!-- Expense Stats Row -->
-            <div id="expense-stats-row" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+            <div id="expense-stats-row" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+              <div class="crm-stat-card">
+                <div class="stat-title">All-Time Spending</div>
+                <div class="stat-value" id="exp-all-time-total" style="color: var(--accent);">$0.00</div>
+              </div>
               <div class="crm-stat-card">
                 <div class="stat-title">30-Day Spending</div>
                 <div class="stat-value" id="exp-30d-total">$0.00</div>
