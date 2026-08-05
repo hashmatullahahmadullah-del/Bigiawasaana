@@ -4253,7 +4253,7 @@ window.loadAnalytics = loadAnalytics;
       const data = docSnap.data();
       if (data.status !== 'confirmed') return;
       
-      const total = parseFloat(data.total) || 0;
+      const total = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
       allTimeSpent += total;
       
       const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
@@ -4381,11 +4381,12 @@ window.loadAnalytics = loadAnalytics;
       if (expenseDate < thirtyDaysAgo) return;
 
       const vendor = data.vendor || 'Unknown';
-      vendorTotals[vendor] = (vendorTotals[vendor] || 0) + (data.total || 0);
+      const receiptTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
+      vendorTotals[vendor] = (vendorTotals[vendor] || 0) + receiptTotal;
 
       (data.items || []).forEach(item => {
          const cat = item.category || 'other';
-         const total = item.lineTotal || 0;
+         const total = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || 0;
          catTotals[cat] = (catTotals[cat] || 0) + total;
          
          if (item.name) {
