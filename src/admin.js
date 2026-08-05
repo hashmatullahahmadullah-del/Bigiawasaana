@@ -1,7 +1,7 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app, auth, db, storage } from './firebase.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, getDoc, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, getDoc, setDoc, deleteDoc, serverTimestamp, Timestamp, limit, where } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { t, getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
 
@@ -387,6 +387,7 @@ function initCRMData() {
       if (o.status === 'completed') {
         custMap[phone].totalSpent += parsedTotal;
         custMap[phone].totalOrders += 1;
+        custMap[phone].loyaltyPoints += Math.floor(parsedTotal); // 1 point per $1 spent
         if (!custMap[phone].lastVisit || oDate > custMap[phone].lastVisit) {
           custMap[phone].lastVisit = oDate;
         }
@@ -702,12 +703,51 @@ function renderLiveOrders(snapshot) {
     
     const statusClass = order.status === 'completed' ? 'status-completed' : (order.status === 'cancelled' ? 'status-cancelled' : 'status-pending');
     
-    const itemsHtml = (order.items || []).map(item => `
-      <div style="display: flex; justify-content: space-between;">
-        <span>${item.qty}x ${item.name}</span>
-        <span>$${(item.price * item.qty).toFixed(2)}</span>
-      </div>
-    `).join('');
+    const itemsHtml = (order.items || []).map(item => {
+      let optionsHtml = '';
+      if (item.selectedOptions && Object.keys(item.selectedOptions).length > 0) {
+        const optLines = Object.entries(item.selectedOptions).map(([key, val]) => 
+          `<span style="display: inline-block; background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 3px; font-size: 11px; margin-right: 4px;">${val}</span>`
+        ).join('');
+        optionsHtml = `<div style="margin-top: 2px;">${optLines}</div>`;
+      }
+      if (item.addOns && item.addOns.length > 0) {
+        const addOnLines = item.addOns.map(a => `+ ${a.name || a}`).join(', ');
+        optionsHtml += `<div style="font-size: 11px; color: #90caf9; margin-top: 2px;">${addOnLines}</div>`;
+      }
+      return `
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+          <div>
+            <span>${item.qty || item.quantity || 1}x ${item.name}</span>
+            ${optionsHtml}
+          </div>
+          <span>$${((item.price || 0) * (item.qty || item.quantity || 1)).toFixed(2)}</span>
+        </div>
+      `;
+    }).join('');
+
+    // Special instructions
+    const specialInstr = order.specialInstructions || order.notes || '';
+    const instrHtml = specialInstr ? `<div style="font-size: 12px; color: #ff9800; font-style: italic; padding: 6px 8px; background: rgba(255,152,0,0.1); border-radius: 4px; margin-top: 4px;">📝 ${escapeHtml(specialInstr)}</div>` : '';
+
+    // Pickup info
+    let pickupHtml = '';
+    if (order.pickup) {
+      const pType = order.pickup.type === 'scheduled' ? '📅 Scheduled' : '⚡ ASAP';
+      const readyTime = order.pickup.estimatedReadyTime?.toDate ? order.pickup.estimatedReadyTime.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 
+                        order.estimatedReadyAt?.toDate ? order.estimatedReadyAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+      pickupHtml = `<div style="font-size: 11px; color: var(--gray); margin-top: 4px;">${pType}${readyTime ? ' · Ready by ' + readyTime : ''}</div>`;
+    }
+
+    // Discount/tax/tip breakdown
+    let breakdownHtml = '';
+    if (order.discount > 0 || order.tax > 0 || order.tip > 0) {
+      breakdownHtml = '<div style="font-size: 11px; color: var(--gray); margin-top: 4px; display: flex; gap: 12px;">';
+      if (order.discount > 0) breakdownHtml += `<span>Discount: -$${order.discount.toFixed(2)}</span>`;
+      if (order.tax > 0) breakdownHtml += `<span>Tax: $${order.tax.toFixed(2)}</span>`;
+      if (order.tip > 0) breakdownHtml += `<span style="color: #4caf50;">Tip: $${order.tip.toFixed(2)}</span>`;
+      breakdownHtml += '</div>';
+    }
     
     card.innerHTML = `
       <div class="order-header">
@@ -718,14 +758,17 @@ function renderLiveOrders(snapshot) {
   const color = mins > 15 ? '#f44336' : mins > 7 ? '#ff9800' : '#4caf50';
   return `<span style="display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; background: ${color}22; color: ${color};">${mins} min ago</span>`;
 })() : ''}</div>
+          ${pickupHtml}
         </div>
         <div class="status-badge ${statusClass}">${order.status}</div>
       </div>
       <div class="order-items">
         ${itemsHtml}
+        ${instrHtml}
       </div>
       <div class="order-total">
         Total: ${typeof order.total === 'number' ? '$' + order.total.toFixed(2) : order.total}
+        ${breakdownHtml}
       </div>
       <div class="order-actions">
         ${order.status === 'pending' ? `<button class="btn-outline btn-small" onclick="updateOrderStatus('${orderId}', 'completed')">Mark Completed</button>
@@ -1238,7 +1281,9 @@ function renderDashboard() {
   completedOrders.forEach(o => {
     if(!o.items) return;
     o.items.forEach(i => {
-      itemCounts[i.name] = (itemCounts[i.name] || 0) + i.qty;
+      if (i.price === 0 || i.basePriceMoney === 0) return; // skip free modifiers
+      const cleanName = (i.name || 'Unknown').trim().toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+      itemCounts[cleanName] = (itemCounts[cleanName] || 0) + (i.qty || 1);
     });
   });
   const sortedItems = Object.entries(itemCounts).sort((a,b) => b[1] - a[1]).slice(0, 7);
@@ -1343,20 +1388,105 @@ window.openCustomerDetail = (cust) => {
   document.getElementById('slide-cust-name').textContent = cust.name;
   const content = document.getElementById('slide-cust-content');
   const tier = getTier(cust.totalSpent);
+  const tierColor = getTierColor(tier);
   
-  content.innerHTML = `
+  // Get customer's orders from state
+  const custOrders = state.orders
+    .filter(o => (o.customerPhone || 'Unknown') === cust.phone)
+    .sort((a, b) => b.date - a.date);
+  
+  // Calculate stats
+  const completedOrders = custOrders.filter(o => o.status === 'completed');
+  const avgOrderValue = completedOrders.length > 0 
+    ? completedOrders.reduce((sum, o) => sum + o.total, 0) / completedOrders.length 
+    : 0;
+  
+  // Most ordered item
+  const itemFreq = {};
+  completedOrders.forEach(o => {
+    (o.items || []).forEach(i => {
+      const name = (i.name || 'Unknown').trim();
+      itemFreq[name] = (itemFreq[name] || 0) + (i.qty || i.quantity || 1);
+    });
+  });
+  const topItem = Object.entries(itemFreq).sort((a,b) => b[1] - a[1])[0];
+  
+  // Days since last visit
+  const daysSince = cust.lastVisit 
+    ? Math.floor((Date.now() - cust.lastVisit.getTime()) / (1000 * 60 * 60 * 24)) 
+    : null;
+  
+  let html = `
     <div style="margin-bottom: 24px; display: flex; gap: 10px;">
       <a href="tel:${cust.phone.replace(/\D/g,'')}" class="btn-primary btn-small" style="text-decoration: none;">Send Message / Call</a>
     </div>
     
     <div class="crm-panel mb-m">
-      <h3 style="margin-bottom: 12px;">Details</h3>
-      <p><strong>Phone:</strong> ${cust.phone}</p>
-      <p><strong>Total Spent:</strong> $${cust.totalSpent.toFixed(2)}</p>
-      <p><strong>Tier:</strong> ${tier}</p>
-      <p><strong>Last Visit:</strong> ${cust.lastVisit ? cust.lastVisit.toLocaleDateString() : 'N/A'}</p>
+      <h3 style="margin-bottom: 12px;">Customer Summary</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+          <div style="font-size: 12px; color: var(--gray); text-transform: uppercase;">Phone</div>
+          <div style="font-weight: bold;">${cust.phone}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--gray); text-transform: uppercase;">Tier</div>
+          <div><span class="crm-badge" style="background: ${tierColor}33; color: ${tierColor}; border-color: ${tierColor};">${tier}</span></div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--gray); text-transform: uppercase;">Total Spent</div>
+          <div style="font-weight: bold; color: var(--accent);">$${cust.totalSpent.toFixed(2)}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--gray); text-transform: uppercase;">Loyalty Points</div>
+          <div style="font-weight: bold; color: var(--accent);">${(cust.loyaltyPoints || 0).toLocaleString()}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--gray); text-transform: uppercase;">Avg Order Value</div>
+          <div style="font-weight: bold;">$${avgOrderValue.toFixed(2)}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--gray); text-transform: uppercase;">Favorite Item</div>
+          <div style="font-weight: bold;">${topItem ? topItem[0] + ' (' + topItem[1] + 'x)' : 'N/A'}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--gray); text-transform: uppercase;">Last Visit</div>
+          <div>${cust.lastVisit ? cust.lastVisit.toLocaleDateString() : 'N/A'}${daysSince !== null ? ` <span style="font-size: 11px; color: ${daysSince > 30 ? '#f44336' : daysSince > 14 ? '#ff9800' : '#4caf50'};">(${daysSince}d ago)</span>` : ''}</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--gray); text-transform: uppercase;">Total Orders</div>
+          <div style="font-weight: bold;">${cust.totalOrders}</div>
+        </div>
+      </div>
     </div>
+
+    <div class="crm-panel">
+      <h3 style="margin-bottom: 12px;">Order History (${custOrders.length})</h3>
   `;
+  
+  if (custOrders.length === 0) {
+    html += '<p style="color: var(--gray); text-align: center; padding: 16px;">No orders found.</p>';
+  } else {
+    custOrders.forEach(o => {
+      const statusColor = o.status === 'completed' ? '#4caf50' : o.status === 'cancelled' ? '#f44336' : '#ff9800';
+      html += `
+        <div style="border-bottom: 1px solid var(--border); padding: 12px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 13px; color: var(--gray);">${o.date.toLocaleDateString()} ${o.date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: ${statusColor}22; color: ${statusColor}; text-transform: uppercase; font-weight: bold;">${o.status}</span>
+          </div>
+          <div style="font-size: 13px;">
+            ${(o.items || []).map(i => `<div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>${(i.qty || i.quantity || 1)}x ${escapeHtml(i.name)}</span>
+              <span style="color: var(--gray);">$${((i.price || 0) * (i.qty || i.quantity || 1)).toFixed(2)}</span>
+            </div>`).join('')}
+          </div>
+          <div style="text-align: right; font-weight: bold; margin-top: 4px; color: var(--accent);">$${o.total.toFixed(2)}</div>
+        </div>`;
+    });
+  }
+  
+  html += '</div>';
+  content.innerHTML = html;
   document.getElementById('customer-slide-over').classList.add('open');
 };
 
@@ -1548,13 +1678,19 @@ window.toggleReviewResponse = async (id, isResponded) => {
 function renderLoyalty() {
   const grid = document.getElementById('loyalty-tiers-grid');
   if(!grid) return;
-  let bronze = 0, silver = 0, gold = 0;
+  let bronze = 0, silver = 0, gold = 0, totalPoints = 0;
   state.customers.forEach(c => {
     const tier = getTier(c.totalSpent);
     if(tier === 'Gold') gold++;
     else if(tier === 'Silver') silver++;
     else bronze++;
+    totalPoints += (c.loyaltyPoints || 0);
   });
+
+  // Top 10 loyal customers
+  const top10 = [...state.customers]
+    .sort((a,b) => (b.loyaltyPoints || 0) - (a.loyaltyPoints || 0))
+    .slice(0, 10);
 
   grid.innerHTML = `
     <div class="crm-stat-card" style="border-top: 3px solid #CD7F32;">
@@ -1569,6 +1705,51 @@ function renderLoyalty() {
       <div class="stat-title">Gold Customers</div>
       <div class="stat-value">${gold}</div>
     </div>
+    <div class="crm-stat-card" style="border-top: 3px solid var(--accent);">
+      <div class="stat-title">Total Points Earned</div>
+      <div class="stat-value" style="color: var(--accent);">${totalPoints.toLocaleString()}</div>
+    </div>
+  `;
+
+  // Leaderboard
+  let leaderboardEl = document.getElementById('loyalty-leaderboard');
+  if (!leaderboardEl) {
+    leaderboardEl = document.createElement('div');
+    leaderboardEl.id = 'loyalty-leaderboard';
+    leaderboardEl.className = 'crm-panel mt-m';
+    grid.insertAdjacentElement('afterend', leaderboardEl);
+    // Insert before the Tier Settings panel
+    const tierPanel = grid.nextElementSibling?.nextElementSibling;
+    if (tierPanel) grid.parentElement.insertBefore(leaderboardEl, tierPanel);
+  }
+
+  leaderboardEl.innerHTML = `
+    <h2 class="crm-panel-title" style="margin-bottom: 16px;">🏆 Top Loyal Customers</h2>
+    <table class="crm-table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="border-bottom: 1px solid var(--border); color: var(--gray);">
+          <th style="padding: 8px; text-align: left;">#</th>
+          <th style="padding: 8px; text-align: left;">Customer</th>
+          <th style="padding: 8px; text-align: center;">Orders</th>
+          <th style="padding: 8px; text-align: right;">Points</th>
+          <th style="padding: 8px; text-align: right;">Tier</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${top10.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:16px; color:var(--gray);">No customers yet</td></tr>' :
+          top10.map((c, i) => {
+            const tier = getTier(c.totalSpent);
+            const color = getTierColor(tier);
+            return `<tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 10px 8px; font-weight: bold; color: ${i < 3 ? 'var(--accent)' : 'var(--gray)'};">${i + 1}</td>
+              <td style="padding: 10px 8px;"><strong>${escapeHtml(c.name)}</strong><br><span style="font-size: 12px; color: var(--gray);">${c.phone}</span></td>
+              <td style="padding: 10px 8px; text-align: center;">${c.totalOrders}</td>
+              <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: var(--accent);">${(c.loyaltyPoints || 0).toLocaleString()}</td>
+              <td style="padding: 10px 8px; text-align: right;"><span class="crm-badge" style="background: ${color}33; color: ${color}; border-color: ${color};">${tier}</span></td>
+            </tr>`;
+          }).join('')}
+      </tbody>
+    </table>
   `;
 }
 
@@ -1822,6 +2003,43 @@ function renderDealsList() {
   const container = document.getElementById('admin-deals-list');
   const filter = document.getElementById('deal-filter')?.value || 'all';
   if (!container) return;
+
+  // Calculate deals performance stats from orders
+  const now = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  let activeDealsCount = 0;
+  state.deals.forEach(deal => {
+    const start = deal.startDate ? deal.startDate.toDate() : null;
+    const end = deal.endDate ? deal.endDate.toDate() : null;
+    if (deal.active && !(start && now < start) && !(end && now > end)) activeDealsCount++;
+  });
+  
+  let discountedOrders = 0;
+  let totalDiscountsGiven = 0;
+  let discountedRevenue = 0;
+  
+  if (state.orders) {
+    state.orders.forEach(o => {
+      if (o.status !== 'completed') return;
+      if (!o.date || o.date < thirtyDaysAgo) return;
+      if (o.discount && o.discount > 0) {
+        discountedOrders++;
+        totalDiscountsGiven += o.discount;
+        discountedRevenue += o.total;
+      }
+    });
+  }
+  
+  const el1 = document.getElementById('deals-active-count');
+  const el2 = document.getElementById('deals-discounted-orders');
+  const el3 = document.getElementById('deals-total-discounts');
+  const el4 = document.getElementById('deals-discounted-revenue');
+  if (el1) el1.textContent = activeDealsCount;
+  if (el2) el2.textContent = discountedOrders;
+  if (el3) el3.textContent = '$' + totalDiscountsGiven.toFixed(2);
+  if (el4) el4.textContent = '$' + discountedRevenue.toFixed(2);
 
   const filteredDeals = state.deals.filter(deal => {
     if (filter === 'all') return true;
@@ -2980,14 +3198,35 @@ function updateProfitDashboard() {
   // Aggregate daily data
   const dailyData = {};
   
-  // 1. Map Sales
+  // 1a. Map Manual Sales (from sales_logs)
   profitDataCache.sales.forEach(s => {
     const d = new Date(s.date);
     if (d >= thirtyDaysAgo) {
-      if (!dailyData[s.date]) dailyData[s.date] = { sales: 0, expenses: 0 };
+      if (!dailyData[s.date]) dailyData[s.date] = { sales: 0, onlineOrders: 0, expenses: 0 };
       dailyData[s.date].sales += (s.amount || 0);
     }
   });
+
+  // 1b. Auto-sync completed online orders from state.orders
+  if (state.orders && state.orders.length > 0) {
+    state.orders.forEach(o => {
+      if (o.status !== 'completed') return;
+      const oDate = o.date;
+      if (!oDate || oDate < thirtyDaysAgo) return;
+      const dateStr = oDate.toISOString().split('T')[0];
+      if (!dailyData[dateStr]) dailyData[dateStr] = { sales: 0, onlineOrders: 0, expenses: 0 };
+      dailyData[dateStr].sales += (o.total || 0);
+      dailyData[dateStr].onlineOrders += (o.total || 0);
+    });
+  }
+
+  // Show online orders hint on the daily sales form
+  const dsHint = document.getElementById('ds-online-hint');
+  if (dsHint) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayOnline = dailyData[todayStr]?.onlineOrders || 0;
+    dsHint.textContent = todayOnline > 0 ? `Online orders today: $${todayOnline.toFixed(2)} (auto-included)` : '';
+  }
 
   // 2. Map Variable Expenses
   profitDataCache.expenses.forEach(e => {
@@ -3090,34 +3329,38 @@ function updateProfitDashboard() {
   }
 
   profitChartInst = new Chart(ctx, {
-    type: 'line',
+    type: 'bar', // Base type for combo chart
     data: {
       labels: labels,
       datasets: [
         {
+          type: 'line',
           label: 'Sales ($)',
           data: salesDataset,
           borderColor: '#4caf50',
-          backgroundColor: 'rgba(76,175,80,0.1)',
-          fill: true,
-          tension: 0.4
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          tension: 0.4,
+          order: 2
         },
         {
+          type: 'bar',
           label: 'Total Expenses ($)',
           data: expensesDataset,
-          borderColor: '#f44336',
-          backgroundColor: 'transparent',
-          borderDash: [5, 5],
-          tension: 0.4
+          backgroundColor: 'rgba(244,67,54,0.7)',
+          borderRadius: 4,
+          order: 3
         },
         {
+          type: 'line',
           label: 'Net Profit ($)',
           data: profitDataset,
           borderColor: '#2196f3',
           backgroundColor: 'rgba(33,150,243,0.1)',
           fill: true,
           tension: 0.4,
-          borderWidth: 3
+          borderWidth: 3,
+          order: 1
         }
       ]
     },
@@ -3129,7 +3372,20 @@ function updateProfitDashboard() {
         intersect: false,
       },
       plugins: {
-        legend: { labels: { color: '#ccc' } }
+        legend: { labels: { color: '#ccc' } },
+        tooltip: {
+          callbacks: {
+            footer: (tooltipItems) => {
+              let sales = 0; let profit = 0;
+              tooltipItems.forEach(ti => {
+                if(ti.dataset.label.includes('Sales')) sales = ti.parsed.y;
+                if(ti.dataset.label.includes('Profit')) profit = ti.parsed.y;
+              });
+              if (sales > 0) return `Margin: ${((profit/sales)*100).toFixed(1)}%`;
+              return '';
+            }
+          }
+        }
       },
       scales: {
         y: { grid: { color: '#333' }, ticks: { color: '#aaa' } },
@@ -3598,6 +3854,17 @@ function loadAnalytics() {
   if (analyticsUnsub) analyticsUnsub();
   
   analyticsUnsub = onSnapshot(aq, (snapshot) => {
+    // Read date filter
+    const filterEl = document.getElementById('analytics-date-filter');
+    const filterVal = filterEl ? filterEl.value : 'all';
+    
+    let cutoffDate = null;
+    if (filterVal !== 'all') {
+      cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - parseInt(filterVal));
+      cutoffDate.setHours(0, 0, 0, 0);
+    }
+    
     let totalViews = 0;
     let blogViews = 0;
     let menuViews = 0;
@@ -3607,6 +3874,13 @@ function loadAnalytics() {
     
     snapshot.forEach(d => {
       const data = d.data();
+      
+      // Date filtering
+      if (cutoffDate && data.timestamp) {
+        const viewDate = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+        if (viewDate < cutoffDate) return;
+      }
+      
       totalViews++;
       
       const path = data.path || '/';
@@ -3644,7 +3918,7 @@ function loadAnalytics() {
     const sortedPages = Object.keys(pageCounts).map(p => ({ path: p, count: pageCounts[p] })).sort((a, b) => b.count - a.count).slice(0, 10);
     const topPagesTbody = document.getElementById('analytics-top-pages');
     if (sortedPages.length === 0) {
-      topPagesTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">No data yet</td></tr>`;
+      topPagesTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">No data for this period</td></tr>`;
     } else {
       topPagesTbody.innerHTML = sortedPages.map(sp => `
         <tr style="border-bottom: 1px solid var(--border);">
@@ -3658,7 +3932,7 @@ function loadAnalytics() {
     const sortedRefs = Object.keys(referrerCounts).map(r => ({ ref: r, count: referrerCounts[r] })).sort((a, b) => b.count - a.count).slice(0, 10);
     const topRefsTbody = document.getElementById('analytics-top-sources');
     if (sortedRefs.length === 0) {
-      topRefsTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">No data yet</td></tr>`;
+      topRefsTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">No data for this period</td></tr>`;
     } else {
       topRefsTbody.innerHTML = sortedRefs.map(sr => `
         <tr style="border-bottom: 1px solid var(--border);">
@@ -4107,8 +4381,8 @@ window.loadAnalytics = loadAnalytics;
          catTotals[cat] = (catTotals[cat] || 0) + total;
          
          if (item.name) {
-           const name = item.name.trim();
-           itemTotals[name] = (itemTotals[name] || 0) + total;
+           const cleanName = item.name.trim().toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+           itemTotals[cleanName] = (itemTotals[cleanName] || 0) + total;
          }
       });
     });
@@ -4215,6 +4489,46 @@ window.loadAnalytics = loadAnalytics;
         }
       });
     }
+
+    // 4. Render Recent Receipts Table (Slide-Over Trigger)
+    const tbody = document.getElementById('recent-receipts-body');
+    if (tbody) {
+      tbody.innerHTML = '';
+      const receipts = [];
+      snapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        if (d.status === 'confirmed') receipts.push({ id: docSnap.id, ...d });
+      });
+      // Sort by purchaseDate descending (or createdAt)
+      receipts.sort((a,b) => {
+          const aTime = a.purchaseDate?.toDate ? a.purchaseDate.toDate().getTime() : (a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0);
+          const bTime = b.purchaseDate?.toDate ? b.purchaseDate.toDate().getTime() : (b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0);
+          return bTime - aTime;
+      });
+      
+      const recent = receipts.slice(0, 10);
+      if (recent.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--gray);">No receipts found.</td></tr>';
+      } else {
+        recent.forEach(r => {
+          const dateStr = r.purchaseDate?.toDate ? r.purchaseDate.toDate().toLocaleDateString() : (r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : 'N/A');
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.style.transition = "background 0.2s";
+          tr.onmouseover = () => tr.style.background = "rgba(255,255,255,0.05)";
+          tr.onmouseout = () => tr.style.background = "transparent";
+          
+          tr.innerHTML = `
+            <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${dateStr}</td>
+            <td style="padding: 12px 8px; font-weight: bold; border-bottom: 1px solid var(--border);">${window.escapeHtml(r.vendor || 'Unknown')}</td>
+            <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${window.escapeHtml(r.category || 'other')}</td>
+            <td style="padding: 12px 8px; text-align: right; color: var(--accent); font-weight: bold; border-bottom: 1px solid var(--border);">$${(r.total || 0).toFixed(2)}</td>
+          `;
+          tr.addEventListener('click', () => window.openReceiptSlide(r));
+          tbody.appendChild(tr);
+        });
+      }
+    }
   };
 
   window.expensesUnsub = null;
@@ -4229,7 +4543,8 @@ window.loadAnalytics = loadAnalytics;
           backdrop.style.pointerEvents = 'none';
       }
   };
-  window.openReceiptSlide = () => {
+  window.openReceiptSlide = (receipt) => {
+      if (!receipt) return;
       const slide = document.getElementById('receipt-slide-over');
       const backdrop = document.getElementById('receipt-slide-backdrop');
       if (slide) slide.style.transform = 'translateX(0)';
@@ -4237,6 +4552,46 @@ window.loadAnalytics = loadAnalytics;
           backdrop.style.opacity = '1';
           backdrop.style.pointerEvents = 'auto';
       }
+
+      document.getElementById('slide-vendor').textContent = receipt.vendor || 'Unknown Vendor';
+      document.getElementById('slide-date').textContent = receipt.purchaseDate?.toDate ? receipt.purchaseDate.toDate().toLocaleDateString() : 'N/A';
+      document.getElementById('slide-total').textContent = '$' + (receipt.total || 0).toFixed(2);
+      
+      const content = document.getElementById('slide-content');
+      let html = `<div style="margin-bottom: 24px; display:flex; gap: 8px;">
+          <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--gray);">Category: <strong style="color:var(--white);">${receipt.category || 'other'}</strong></span>
+          <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--gray);">Status: <strong style="color:var(--white);">${receipt.status || 'unknown'}</strong></span>
+      </div>`;
+      
+      if (receipt.originalImageUrl) {
+          html += `<div style="margin-bottom: 24px;">
+              <img src="${receipt.originalImageUrl}" alt="Receipt" style="width: 100%; border-radius: 8px; border: 1px solid var(--border);" />
+          </div>`;
+      }
+      
+      html += `<h4 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px;">Parsed Items</h4>`;
+      html += `<table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+         <tr style="color: var(--gray); border-bottom: 1px solid var(--border);">
+            <th style="text-align: left; padding: 4px 0;">Item</th>
+            <th style="text-align: center; padding: 4px 0;">Qty</th>
+            <th style="text-align: right; padding: 4px 0;">Price</th>
+            <th style="text-align: right; padding: 4px 0;">Total</th>
+         </tr>`;
+      
+      (receipt.items || []).forEach(item => {
+          html += `<tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                  <div style="font-weight: bold;">${item.name || 'Unknown'}</div>
+                  <div style="font-size: 11px; color: var(--gray);">Raw: ${item.rawText || 'N/A'}</div>
+              </td>
+              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;">${item.quantity || 1}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${(item.unitPrice || 0).toFixed(2)}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${(item.lineTotal || 0).toFixed(2)}</td>
+          </tr>`;
+      });
+      html += `</table>`;
+      
+      content.innerHTML = html;
   };
 
   window.initEconomicsListeners = () => {

@@ -614,6 +614,25 @@
         <!-- Deals & Combos View -->
         <section id="deals-view" class="crm-view" style="display: none;">
           <h1 class="crm-view-title">Deals & Combos Manager</h1>
+
+          <div id="deals-stats-row" class="crm-stats-grid" style="margin-bottom: 24px;">
+            <div class="crm-stat-card" style="padding: 16px;">
+              <div class="stat-title">Active Deals</div>
+              <div class="stat-value" id="deals-active-count" style="color: #4caf50;">0</div>
+            </div>
+            <div class="crm-stat-card" style="padding: 16px;">
+              <div class="stat-title">Discounted Orders (30d)</div>
+              <div class="stat-value" id="deals-discounted-orders">0</div>
+            </div>
+            <div class="crm-stat-card" style="padding: 16px;">
+              <div class="stat-title">Total Discounts Given (30d)</div>
+              <div class="stat-value" id="deals-total-discounts" style="color: #ff9800;">$0.00</div>
+            </div>
+            <div class="crm-stat-card" style="padding: 16px;">
+              <div class="stat-title">Revenue from Discounted Orders</div>
+              <div class="stat-value" id="deals-discounted-revenue" style="color: var(--accent);">$0.00</div>
+            </div>
+          </div>
           
           <div class="crm-dashboard-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start;">
             
@@ -905,7 +924,11 @@
                     </div>
                     <button type="submit" class="btn-primary">Save Daily Sales</button>
                     <p id="ds-status" style="margin:0; font-size: 12px; color: var(--accent);"></p>
+                    <p id="ds-online-hint" style="margin:0; font-size: 12px; color: #4caf50; font-style: italic;"></p>
                   </form>
+                  <div style="margin-top: 12px; padding: 10px 12px; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.2); border-radius: 6px; font-size: 12px; color: #81c784; line-height: 1.5;">
+                    💡 <strong>Online orders are auto-included</strong> in your profit chart. Only log cash/walk-in sales here that aren't tracked in the system.
+                  </div>
                 </div>
                 
                 <!-- Recent Daily Sales Table -->
@@ -1036,6 +1059,16 @@
         <!-- ============================================== -->
         <div id="analytics-view" class="crm-view" style="display: none;">
           <h1 class="crm-view-title">Analytics & Traffic</h1>
+          
+          <div style="margin-bottom: 16px;">
+            <select id="analytics-date-filter" class="crm-select" style="max-width: 200px;" onchange="if(window.loadAnalytics) window.loadAnalytics()">
+              <option value="all">All Time</option>
+              <option value="1">Today</option>
+              <option value="7" selected>Last 7 Days</option>
+              <option value="30">Last 30 Days</option>
+              <option value="90">Last 90 Days</option>
+            </select>
+          </div>
           
           <div class="crm-stats-grid" style="margin-bottom: 32px;">
             <div class="crm-stat-card">
@@ -1185,6 +1218,26 @@
               
               <div class="chart-wrapper" style="height: 300px; position: relative;">
                 <canvas id="priceTrendChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Recent Receipts Section -->
+            <div id="recent-receipts-section" style="margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px; margin-bottom: 16px;">Recent Scanned Receipts</h3>
+              <div class="crm-table-container">
+                <table class="crm-table" style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
+                      <th style="padding: 12px 8px;">Date</th>
+                      <th style="padding: 12px 8px;">Vendor</th>
+                      <th style="padding: 12px 8px;">Category</th>
+                      <th style="padding: 12px 8px; text-align: right;">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-receipts-body">
+                    <tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
