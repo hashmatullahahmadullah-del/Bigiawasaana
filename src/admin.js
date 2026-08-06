@@ -4257,12 +4257,9 @@ window.loadAnalytics = loadAnalytics;
       
       const total = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
       allTimeSpent += total;
-      
-      const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
-      if (expenseDate < thirtyDaysAgo) return;
-
-      totalSpent += total;
+      totalSpent += total; // Now represents Total Spending (all time) to avoid UI confusion
       receiptCount++;
+      
       if (total > mostExpensiveReceipt.total) {
         mostExpensiveReceipt = { total, vendor: data.vendor || 'Unknown' };
       }
@@ -4380,7 +4377,6 @@ window.loadAnalytics = loadAnalytics;
       if (data.status !== 'confirmed') return;
       
       const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
-      if (expenseDate < thirtyDaysAgo) return;
 
       const vendor = data.vendor || 'Unknown';
       const receiptTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
@@ -4510,19 +4506,20 @@ window.loadAnalytics = loadAnalytics;
         const d = docSnap.data();
         if (d.status === 'confirmed') receipts.push({ id: docSnap.id, ...d });
       });
-      // Sort by purchaseDate descending (or createdAt)
+      // Sort strictly by createdAt (scanned date) descending so newest uploads are always first
       receipts.sort((a,b) => {
-          const aTime = a.purchaseDate?.toDate ? a.purchaseDate.toDate().getTime() : (a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0);
-          const bTime = b.purchaseDate?.toDate ? b.purchaseDate.toDate().getTime() : (b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0);
+          const aTime = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          const bTime = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
           return bTime - aTime;
       });
       
       const recent = receipts.slice(0, 10);
       if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--gray);">No receipts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 16px; color: var(--gray);">No receipts found.</td></tr>';
       } else {
         recent.forEach(r => {
-          const dateStr = r.purchaseDate?.toDate ? r.purchaseDate.toDate().toLocaleDateString() : (r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : 'N/A');
+          const scannedDateStr = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : 'N/A';
+          const purchaseDateStr = r.purchaseDate?.toDate ? r.purchaseDate.toDate().toLocaleDateString() : 'Unknown';
           const parsedTotal = parseFloat(String(r.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
           const tr = document.createElement('tr');
           tr.style.cursor = 'pointer';
@@ -4531,7 +4528,8 @@ window.loadAnalytics = loadAnalytics;
           tr.onmouseout = () => tr.style.background = "transparent";
           
           tr.innerHTML = `
-            <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${dateStr}</td>
+            <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${scannedDateStr}</td>
+            <td style="padding: 12px 8px; border-bottom: 1px solid var(--border); color: var(--gray);">${purchaseDateStr}</td>
             <td style="padding: 12px 8px; font-weight: bold; border-bottom: 1px solid var(--border);">${window.escapeHtml(r.vendor || 'Unknown')}</td>
             <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${window.escapeHtml(r.category || 'other')}</td>
             <td style="padding: 12px 8px; text-align: right; color: var(--accent); font-weight: bold; border-bottom: 1px solid var(--border);">$${parsedTotal.toFixed(2)}</td>
