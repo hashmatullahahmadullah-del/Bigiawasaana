@@ -696,7 +696,9 @@ function renderLiveOrders(snapshot) {
   snapshot.forEach((docSnap) => {
     const order = docSnap.data();
     const orderId = docSnap.id;
-    const date = order.createdAt ? order.createdAt.toDate().toLocaleString() : 'Just now';
+    const date = (order.createdAt && typeof order.createdAt.toDate === 'function') 
+                 ? order.createdAt.toDate().toLocaleString() 
+                 : (order.createdAt ? new Date(order.createdAt).toLocaleString() : 'Just now');
     
     const card = document.createElement('div');
     card.className = 'order-card';
@@ -754,7 +756,7 @@ function renderLiveOrders(snapshot) {
         <div>
           <div class="order-title">${order.customerName} <span style="font-size: 12px; color: var(--gray); font-weight: normal; margin-left: 8px;">${order.customerPhone || ''}</span></div>
           <div class="order-meta">${date} &middot; via ${order.method || 'Web'} ${order.status === 'pending' ? (() => {
-  const mins = Math.floor((Date.now() - (order.createdAt ? order.createdAt.toDate().getTime() : Date.now())) / 60000);
+  const mins = Math.floor((Date.now() - (order.createdAt && typeof order.createdAt.toDate === 'function' ? order.createdAt.toDate().getTime() : (order.createdAt ? new Date(order.createdAt).getTime() : Date.now()))) / 60000);
   const color = mins > 15 ? '#f44336' : mins > 7 ? '#ff9800' : '#4caf50';
   return `<span style="display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; background: ${color}22; color: ${color};">${mins} min ago</span>`;
 })() : ''}</div>
