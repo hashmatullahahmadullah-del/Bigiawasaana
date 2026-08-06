@@ -4506,11 +4506,16 @@ window.loadAnalytics = loadAnalytics;
         const d = docSnap.data();
         if (d.status === 'confirmed') receipts.push({ id: docSnap.id, ...d });
       });
-      // Sort strictly by createdAt (scanned date) descending so newest uploads are always first
+      // Sort strictly descending by the most relevant date (confirmedAt > createdAt > purchaseDate)
       receipts.sort((a,b) => {
-          const aTime = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-          const bTime = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-          return bTime - aTime;
+          const getMs = (r) => {
+              if (r.confirmedAt && typeof r.confirmedAt.toDate === 'function') return r.confirmedAt.toDate().getTime();
+              if (r.createdAt && typeof r.createdAt.toDate === 'function') return r.createdAt.toDate().getTime();
+              if (r.purchaseDate && typeof r.purchaseDate.toDate === 'function') return r.purchaseDate.toDate().getTime();
+              if (r.createdAt) return new Date(r.createdAt).getTime();
+              return 0;
+          };
+          return getMs(b) - getMs(a);
       });
       
       const recent = receipts.slice(0, 10);
