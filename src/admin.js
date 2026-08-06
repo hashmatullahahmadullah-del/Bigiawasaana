@@ -4521,6 +4521,7 @@ window.loadAnalytics = loadAnalytics;
       } else {
         recent.forEach(r => {
           const dateStr = r.purchaseDate?.toDate ? r.purchaseDate.toDate().toLocaleDateString() : (r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : 'N/A');
+          const parsedTotal = parseFloat(String(r.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
           const tr = document.createElement('tr');
           tr.style.cursor = 'pointer';
           tr.style.transition = "background 0.2s";
@@ -4531,9 +4532,12 @@ window.loadAnalytics = loadAnalytics;
             <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${dateStr}</td>
             <td style="padding: 12px 8px; font-weight: bold; border-bottom: 1px solid var(--border);">${window.escapeHtml(r.vendor || 'Unknown')}</td>
             <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${window.escapeHtml(r.category || 'other')}</td>
-            <td style="padding: 12px 8px; text-align: right; color: var(--accent); font-weight: bold; border-bottom: 1px solid var(--border);">$${(r.total || 0).toFixed(2)}</td>
+            <td style="padding: 12px 8px; text-align: right; color: var(--accent); font-weight: bold; border-bottom: 1px solid var(--border);">$${parsedTotal.toFixed(2)}</td>
           `;
-          tr.addEventListener('click', () => window.openReceiptSlide(r));
+          tr.addEventListener('click', () => {
+             try { window.openReceiptSlide(r); } 
+             catch(e) { console.error("Error opening receipt slide:", e); alert("Error loading receipt details."); }
+          });
           tbody.appendChild(tr);
         });
       }
@@ -4564,7 +4568,8 @@ window.loadAnalytics = loadAnalytics;
 
       document.getElementById('slide-vendor').textContent = receipt.vendor || 'Unknown Vendor';
       document.getElementById('slide-date').textContent = receipt.purchaseDate?.toDate ? receipt.purchaseDate.toDate().toLocaleDateString() : 'N/A';
-      document.getElementById('slide-total').textContent = '$' + (receipt.total || 0).toFixed(2);
+      const parsedTotal = parseFloat(String(receipt.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
+      document.getElementById('slide-total').textContent = '$' + parsedTotal.toFixed(2);
       
       const content = document.getElementById('slide-content');
       let html = `<div style="margin-bottom: 24px; display:flex; gap: 8px;">
@@ -4588,14 +4593,16 @@ window.loadAnalytics = loadAnalytics;
          </tr>`;
       
       (receipt.items || []).forEach(item => {
+          const uPrice = parseFloat(String(item.unitPrice || 0).replace(/[^0-9.-]+/g, "")) || 0;
+          const lTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || 0;
           html += `<tr>
               <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
                   <div style="font-weight: bold;">${item.name || 'Unknown'}</div>
                   <div style="font-size: 11px; color: var(--gray);">Raw: ${item.rawText || 'N/A'}</div>
               </td>
               <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;">${item.quantity || 1}</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${(item.unitPrice || 0).toFixed(2)}</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${(item.lineTotal || 0).toFixed(2)}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${uPrice.toFixed(2)}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${lTotal.toFixed(2)}</td>
           </tr>`;
       });
       html += `</table>`;
@@ -4625,7 +4632,8 @@ window.loadAnalytics = loadAnalytics;
           const data = docSnap.data();
           const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'N/A';
           const itemCount = data.items ? data.items.length : 0;
-          const totalStr = data.total != null ? `$${data.total.toFixed(2)}` : '—';
+          const parsedDataTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
+          const totalStr = data.total != null ? `$${parsedDataTotal.toFixed(2)}` : '—';
           
           const mainTr = document.createElement("tr");
           mainTr.style.borderBottom = "1px solid var(--border)";
@@ -4653,12 +4661,14 @@ window.loadAnalytics = loadAnalytics;
           itemsHtml += '<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--gray);"><th style="text-align:left; padding:8px;">Item Name</th><th style="text-align:left; padding:8px;">Category</th><th style="text-align:center; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit Price</th><th style="text-align:right; padding:8px;">Line Total</th></tr></thead>';
           itemsHtml += '<tbody>';
           (data.items || []).forEach(item => {
+             const uPrice = parseFloat(String(item.unitPrice || 0).replace(/[^0-9.-]+/g, "")) || 0;
+             const lTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || 0;
              itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
                 <td style="padding:8px; font-weight:600;">${window.escapeHtml(item.name || 'Unknown')}</td>
                 <td style="padding:8px; color:var(--gray);">${window.escapeHtml(item.category || 'other')}</td>
                 <td style="padding:8px; text-align:center;">${item.quantity || 1}</td>
-                <td style="padding:8px; text-align:right;">$${(item.unitPrice || 0).toFixed(2)}</td>
-                <td style="padding:8px; text-align:right; font-weight:bold; color:var(--white);">$${(item.lineTotal || 0).toFixed(2)}</td>
+                <td style="padding:8px; text-align:right;">$${uPrice.toFixed(2)}</td>
+                <td style="padding:8px; text-align:right; font-weight:bold; color:var(--white);">$${lTotal.toFixed(2)}</td>
              </tr>`;
           });
           itemsHtml += '</tbody></table>';
