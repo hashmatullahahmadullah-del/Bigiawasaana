@@ -1332,9 +1332,12 @@ body {
   border: 1px solid var(--border);
   width: 100%;
   max-width: 500px;
+  max-height: 90vh;
   border-radius: 4px;
   transform: translateY(20px);
   transition: transform 0.3s;
+  display: flex;
+  flex-direction: column;
 }
 
 .crm-modal.open .crm-modal-box {
@@ -1347,10 +1350,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .crm-modal-content {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .crm-btn-icon {
@@ -1966,9 +1972,12 @@ body {
   border: 1px solid var(--border);
   width: 100%;
   max-width: 500px;
+  max-height: 90vh;
   border-radius: 4px;
   transform: translateY(20px);
   transition: transform 0.3s;
+  display: flex;
+  flex-direction: column;
 }
 
 .crm-modal.open .crm-modal-box {
@@ -1981,10 +1990,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .crm-modal-content {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .crm-btn-icon {
