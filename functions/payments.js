@@ -99,6 +99,33 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
   
   const discountedSubtotalCents = Math.max(0, subtotalCents - discountCents);
 
+  function isStoreOpenAtTime(dateObj, config) {
+    const laDate = new Date(dateObj.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+    const currentDay = laDate.getDay();
+    const currentH = laDate.getHours();
+    const currentM = laDate.getMinutes();
+    
+    if (config.openDays && Array.isArray(config.openDays)) {
+      if (!config.openDays.includes(currentDay)) return false;
+    }
+    
+    if (!config.businessHours) return true;
+    
+    const [openH, openM] = config.businessHours.open.split(':').map(Number);
+    const [closeH, closeM] = config.businessHours.close.split(':').map(Number);
+    
+    const currentTime = currentH * 60 + currentM;
+    const openTime = openH * 60 + openM;
+    const closeTime = closeH * 60 + closeM;
+    
+    if (closeTime > openTime) {
+      if (currentTime < openTime || currentTime >= closeTime) return false;
+    } else {
+      if (currentTime < openTime && currentTime >= closeTime) return false;
+    }
+    return true;
+  }
+
   // ── Step 2: Server-side tax calculation ──
   const taxCents = Math.round(discountedSubtotalCents * TAX_RATE);
   const totalCents = discountedSubtotalCents + taxCents + tipCents;
@@ -142,11 +169,18 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('invalid-argument', 'Pickup time is too far in the future.');
     }
     
+    if (!isStoreOpenAtTime(requestedDate, config)) {
+      throw new functions.https.HttpsError('failed-precondition', 'The selected scheduled pickup time is outside of our business hours or on a closed day.');
+    }
+    
     requestedTime = admin.firestore.Timestamp.fromDate(requestedDate);
     estimatedReadyTime = requestedTime;
     releasedToKitchen = false;
   } else {
     // ASAP
+    if (!isStoreOpenAtTime(now, config)) {
+      throw new functions.https.HttpsError('failed-precondition', 'The store is currently closed. Please select a Scheduled pickup time instead.');
+    }
     let activeAsapOrderCount = 0;
     try {
       const statsDoc = await db.collection('liveStats').doc('current').get();

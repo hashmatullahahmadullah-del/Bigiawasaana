@@ -2494,3 +2494,17 @@ body {
     max-width: calc(100vw - 64px);
   }
 }
+
+.store-closed-banner {
+  background: var(--accent);
+  color: white;
+  text-align: center;
+  padding: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}

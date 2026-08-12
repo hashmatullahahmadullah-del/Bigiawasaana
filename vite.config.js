@@ -4,11 +4,7 @@ import { resolve } from 'path';
 export default defineConfig({
   build: {
     rollupOptions: {
-      output: {
-        entryFileNames: `assets/[name].js`,
-        chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`
-      },
+
       input: {
         main: resolve(__dirname, 'index.html'),
         admin: resolve(__dirname, 'admin.html'),
@@ -28,6 +24,7 @@ export default defineConfig({
         cateringJs: resolve(__dirname, 'src/catering.js'),
         itemTemplate: resolve(__dirname, 'item-template.html'),
         blogTemplate: resolve(__dirname, 'blog-template.html'),
+        areaTemplate: resolve(__dirname, 'area-template.html'),
       },
     },
   },

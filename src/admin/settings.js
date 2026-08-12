@@ -138,6 +138,10 @@ export function loadPickupSettings() {
         document.getElementById('pickup-open-time').value = config.businessHours.open || '12:00';
         document.getElementById('pickup-close-time').value = config.businessHours.close || '22:30';
       }
+      const openDays = config.openDays || [0, 1, 2, 3, 4, 5, 6];
+      document.querySelectorAll('.pickup-day-cb').forEach(cb => {
+        cb.checked = openDays.includes(parseInt(cb.value, 10));
+      });
     }
   });
 }
@@ -160,6 +164,9 @@ document.getElementById('pickup-config-form')?.addEventListener('submit', async 
       open: document.getElementById('pickup-open-time').value,
       close: document.getElementById('pickup-close-time').value
     },
+    openDays: Array.from(document.querySelectorAll('.pickup-day-cb'))
+                   .filter(cb => cb.checked)
+                   .map(cb => parseInt(cb.value, 10)),
     updatedAt: serverTimestamp()
   };
 

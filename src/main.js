@@ -48,6 +48,7 @@ onSnapshot(doc(db, 'settings', 'pickupConfig'), (docSnap) => {
   if (docSnap.exists()) {
     pickupConfig = { ...pickupConfig, ...docSnap.data() };
     updateAsapEstimate();
+    if (typeof checkBusinessHours === 'function') checkBusinessHours();
   }
 });
 
@@ -57,6 +58,76 @@ onSnapshot(doc(db, 'liveStats', 'current'), (docSnap) => {
     updateAsapEstimate();
   }
 });
+
+// ──────────────────────────────────────────
+// BUSINESS HOURS ENFORCEMENT
+// ──────────────────────────────────────────
+window.isStoreClosed = false;
+
+function checkBusinessHours() {
+  const now = new Date();
+  if (!pickupConfig.businessHours) return;
+  const [openH, openM] = pickupConfig.businessHours.open.split(':').map(Number);
+  const [closeH, closeM] = pickupConfig.businessHours.close.split(':').map(Number);
+  
+  const currentH = now.getHours();
+  const currentM = now.getMinutes();
+  
+  const currentTime = currentH * 60 + currentM;
+  const openTime = openH * 60 + openM;
+  const closeTime = closeH * 60 + closeM;
+  
+  let isClosed = false;
+  
+  // 1. Check if today is a valid open day
+  const currentDay = now.getDay(); // 0 is Sunday, 1 is Monday...
+  if (pickupConfig.openDays && Array.isArray(pickupConfig.openDays)) {
+    if (!pickupConfig.openDays.includes(currentDay)) {
+      isClosed = true;
+    }
+  }
+  
+  // 2. Check time
+  if (!isClosed) {
+    if (closeTime > openTime) {
+      if (currentTime < openTime || currentTime >= closeTime) isClosed = true;
+    } else {
+      // Crosses midnight e.g. open 11:00, close 02:00
+      if (currentTime < openTime && currentTime >= closeTime) isClosed = true;
+    }
+  }
+  
+  window.isStoreClosed = isClosed;
+
+  // Toggle banner
+  let banner = document.getElementById('store-closed-banner');
+  if (isClosed) {
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'store-closed-banner';
+      banner.className = 'store-closed-banner';
+      
+      const pType = document.querySelector('input[name="pickup_type"]:checked')?.value || 'asap';
+      let message = `We are currently closed. Next open at ${pickupConfig.businessHours.open}`;
+      
+      if (pType === 'asap') {
+         message += " — ASAP ordering is disabled. Please select a Scheduled pickup time.";
+      }
+      
+      banner.innerHTML = `<span><svg style="width:20px;height:20px;fill:currentColor;vertical-align:middle;margin-right:8px" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-.22-13h-.06c-.4 0-.72.32-.72.72v4.72c0 .35.18.68.49.86l4.15 2.49c.34.2.78.1.98-.24a.71.71 0 00-.25-.99l-3.87-2.3V7.72c0-.4-.32-.72-.72-.72z"/></svg>${message}</span>`;
+      document.body.prepend(banner);
+    } else {
+      const pType = document.querySelector('input[name="pickup_type"]:checked')?.value || 'asap';
+      let message = `We are currently closed. Next open at ${pickupConfig.businessHours.open}`;
+      if (pType === 'asap') {
+         message += " — ASAP ordering is disabled. Please select a Scheduled pickup time.";
+      }
+      banner.innerHTML = `<span><svg style="width:20px;height:20px;fill:currentColor;vertical-align:middle;margin-right:8px" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-.22-13h-.06c-.4 0-.72.32-.72.72v4.72c0 .35.18.68.49.86l4.15 2.49c.34.2.78.1.98-.24a.71.71 0 00-.25-.99l-3.87-2.3V7.72c0-.4-.32-.72-.72-.72z"/></svg>${message}</span>`;
+    }
+  } else {
+    if (banner) banner.remove();
+  }
+}
 
 function updateAsapEstimate() {
   const el = document.getElementById('asap-estimate');
@@ -75,6 +146,8 @@ window.togglePickupType = () => {
   } else {
     document.getElementById('scheduled-pickup-options').style.display = 'none';
   }
+  if (typeof checkBusinessHours === 'function') checkBusinessHours();
+  if (typeof updateCartUI === 'function') updateCartUI();
 };
 
 function populateDates() {
@@ -86,6 +159,10 @@ function populateDates() {
   
   for (let i = 0; i <= pickupConfig.maxScheduleDaysAhead; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const dayOfWeek = d.getDay();
+    if (pickupConfig.openDays && Array.isArray(pickupConfig.openDays) && !pickupConfig.openDays.includes(dayOfWeek)) {
+      continue;
+    }
     const opt = document.createElement('option');
     opt.value = d.toISOString().split('T')[0];
     opt.textContent = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -925,7 +1002,24 @@ function updateCartUI() {
   // Disable checkout button if cart is empty
   const checkoutBtn = document.getElementById('checkout-btn');
   if (checkoutBtn) {
-    checkoutBtn.disabled = cart.length === 0;
+    if (cart.length === 0) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = 'Cart is empty';
+    } else {
+      // If store is closed AND ASAP is selected, disable checkout
+      const pType = document.querySelector('input[name="pickup_type"]:checked')?.value || 'asap';
+      if (window.isStoreClosed && pType === 'asap') {
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = 'Store Closed (Select Scheduled)';
+        checkoutBtn.style.background = '#333';
+        checkoutBtn.style.color = '#999';
+      } else {
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = 'Proceed to Checkout';
+        checkoutBtn.style.background = 'var(--primary)';
+        checkoutBtn.style.color = 'var(--dark)';
+      }
+    }
     checkoutBtn.style.opacity = cart.length === 0 ? '0.5' : '1';
   }
 }
@@ -1467,6 +1561,10 @@ function initReveal() {
 document.addEventListener('DOMContentLoaded', () => {
   loadMenuFromFirestore();
   updateCartUI();
+  if (typeof checkBusinessHours === 'function') {
+    checkBusinessHours();
+    setInterval(checkBusinessHours, 60000);
+  }
 
   const applyPromoBtn = document.getElementById('apply-promo-btn');
   if (applyPromoBtn) {

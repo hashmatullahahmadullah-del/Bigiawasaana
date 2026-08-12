@@ -188,7 +188,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
 
     html = html.replace(/{{POST_CONTENT}}/g, contentHtml);
 
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=86400');
     res.status(200).send(html);
   } catch (error) {
     console.error('Error rendering blog page:', error);
@@ -409,7 +409,7 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
 
     html = html.replace(/{{ITEM_CONTENT}}/g, itemContent);
 
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=3600');
     res.status(200).send(html);
 
   } catch (error) {
@@ -554,7 +554,7 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
     html = html.replace(/{{AREA_CONTENT}}/g, areaContent);
 
     // Cache headers: 1 hour CDN cache
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=3600');
     res.status(200).send(html);
 
   } catch (error) {
@@ -682,7 +682,7 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
     xml += `\n</urlset>`;
 
     res.set('Content-Type', 'application/xml');
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=3600');
     res.status(200).send(xml);
 
   } catch (error) {
