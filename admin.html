@@ -1162,7 +1162,7 @@
             <h1 class="crm-view-title">Expenses & Receipts</h1>
           </div>
           
-          <div style="max-width: 800px; margin: 0 auto; padding: 20px 0;">
+          <div style="width: 100%; max-width: 1400px; margin: 0 auto; padding: 20px 0;">
             <p style="color: var(--gray); font-size: 15px; margin-bottom: 24px;">
               Photograph a Restaurant Depot, Costco, or any vendor receipt to log it automatically.
             </p>
@@ -1187,26 +1187,42 @@
             </div>
 
             <!-- Expense Stats Row -->
-            <div id="expense-stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div id="expense-stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px;">
               <div class="crm-stat-card">
                 <div class="stat-title">All-Time Spending</div>
                 <div class="stat-value" id="exp-all-time-total" style="color: var(--accent);">$0.00</div>
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;" id="exp-all-time-count">0 receipts</div>
               </div>
               <div class="crm-stat-card">
-                <div class="stat-title">30-Day Spending</div>
+                <div class="stat-title">Last 30 Days</div>
                 <div class="stat-value" id="exp-30d-total">$0.00</div>
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;" id="exp-30d-count">0 receipts</div>
+              </div>
+              <div class="crm-stat-card">
+                <div class="stat-title">Last 7 Days</div>
+                <div class="stat-value" id="exp-7d-total">$0.00</div>
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;" id="exp-7d-count">0 receipts</div>
+              </div>
+              <div class="crm-stat-card">
+                <div class="stat-title">Weekly Avg</div>
+                <div class="stat-value" id="exp-weekly-avg">$0.00</div>
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">per week</div>
               </div>
               <div class="crm-stat-card">
                 <div class="stat-title">Avg per Receipt</div>
                 <div class="stat-value" id="exp-avg-receipt">$0.00</div>
               </div>
               <div class="crm-stat-card">
-                <div class="stat-title">Receipt Count</div>
-                <div class="stat-value" id="exp-receipt-count">0</div>
+                <div class="stat-title">Most Expensive Receipt</div>
+                <div class="stat-value" id="exp-most-expensive" style="font-size: 18px;">-</div>
               </div>
               <div class="crm-stat-card">
-                <div class="stat-title">Most Expensive Receipt</div>
-                <div class="stat-value" id="exp-most-expensive" style="font-size: 24px;">-</div>
+                <div class="stat-title">Top Vendor (30d)</div>
+                <div class="stat-value" id="exp-top-vendor" style="font-size: 18px;">-</div>
+              </div>
+              <div class="crm-stat-card">
+                <div class="stat-title">Biggest Item (30d)</div>
+                <div class="stat-value" id="exp-biggest-item" style="font-size: 18px;">-</div>
               </div>
             </div>
 
@@ -1214,7 +1230,7 @@
             <div id="expense-analytics-section" style="margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
               <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px;">Expense Breakdown</h3>
               
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-top: 16px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 16px;">
                 <div>
                   <h4 style="margin-top: 0; color: var(--gray); font-size: 16px;">Category Breakdown (Last 30 Days)</h4>
                   <div class="chart-wrapper" style="height: 250px; position: relative;">
@@ -1222,9 +1238,20 @@
                   </div>
                 </div>
                 <div>
-                  <h4 style="margin-top: 0; color: var(--gray); font-size: 16px;">Top Expensive Items (Last 30 Days)</h4>
-                  <div class="chart-wrapper" style="height: 250px; position: relative;">
-                    <canvas id="expenseTopItemsChart"></canvas>
+                  <h4 style="margin-top: 0; color: var(--gray); font-size: 16px;">Item Spending (Last 30 Days)</h4>
+                  <div class="crm-table-container" style="height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
+                    <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse; font-size: 13px;">
+                      <thead style="position: sticky; top: 0; background: var(--surface); z-index: 1;">
+                        <tr style="border-bottom: 1px solid var(--border); color: var(--gray);">
+                          <th style="padding: 8px;">Item</th>
+                          <th style="padding: 8px; text-align: right;">Qty</th>
+                          <th style="padding: 8px; text-align: right;">Spent</th>
+                        </tr>
+                      </thead>
+                      <tbody id="expenseTopItemsTbody">
+                        <tr><td colspan="3" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
                 <div>
@@ -1250,32 +1277,12 @@
               </div>
             </div>
 
-            <!-- Recent Receipts Section -->
-            <div id="recent-receipts-section" style="margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px; margin-bottom: 16px;">Recent Scanned Receipts</h3>
-              <div class="crm-table-container" style="overflow-x: auto;">
-                <table class="crm-table" style="width: 100%; border-collapse: collapse; min-width: 500px;">
-                  <thead>
-                    <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
-                      <th style="padding: 12px 8px;">Scanned On</th>
-                      <th style="padding: 12px 8px;">Purchase Date</th>
-                      <th style="padding: 12px 8px;">Vendor</th>
-                      <th style="padding: 12px 8px;">Category</th>
-                      <th style="padding: 12px 8px; text-align: right;">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody id="recent-receipts-body">
-                    <tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
 
             <div id="review-section" style="display:none; margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
               <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px; color: var(--accent);">Review Parsed Items</h3>
               <div id="review-meta" style="font-size: 14px; color:var(--gray-light); margin-bottom: 16px;"></div>
-              <div class="crm-table-container">
-                <table class="crm-table" id="review-table" style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+              <div class="crm-table-container" style="overflow-x: auto;">
+                <table class="crm-table" id="review-table" style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left; min-width: 600px;">
                   <thead>
                     <tr>
                       <th>Item</th>
@@ -1295,21 +1302,8 @@
 
             <div>
               <h2 style="margin-bottom: 16px; font-family: 'Barlow Condensed'; font-size: 24px;">Recent Expenses</h2>
-              <div class="crm-table-container" style="overflow-x: auto;">
-                <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse; min-width: 600px;">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Vendor</th>
-                      <th>Items</th>
-                      <th>Total</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="saved-expenses-tbody">
-                    <tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gray);">Loading...</td></tr>
-                  </tbody>
-                </table>
+              <div id="saved-expenses-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px;">
+                <div style="padding: 24px; color: var(--gray); text-align: center; width: 100%; grid-column: 1 / -1;">Loading expenses...</div>
               </div>
             </div>
           </div>

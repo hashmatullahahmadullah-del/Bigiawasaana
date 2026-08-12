@@ -3,7 +3,7 @@ import { showToast } from './orders.js';
 import { escapeHtml } from './shared.js';
 import { app, db, storage } from '../firebase.js';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc, serverTimestamp, limit } from 'firebase/firestore';
-import { ref, uploadBytes } from 'firebase/storage';
+import { ref, uploadBytes, deleteObject } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 
@@ -402,40 +402,144 @@ window.loadAnalytics = loadAnalytics;
   let priceTrendChartInst = null;
 
   const renderExpenseStats = (snapshot) => {
-    let totalSpent = 0;
     let allTimeSpent = 0;
-    let receiptCount = 0;
+    let thirtyDaySpent = 0;
+    let sevenDaySpent = 0;
+    let allTimeCount = 0;
+    let thirtyDayCount = 0;
+    let sevenDayCount = 0;
     let mostExpensiveReceipt = { total: 0, vendor: '' };
-    const thirtyDaysAgo = new Date();
+    let vendorTotals30d = {};
+    let itemTotals30d = {};
+    let oldestDate = null;
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Helper: compute receipt total from items
+    const computeReceiptTotal = (data) => {
+      let total = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
+      // If stored total is 0 or missing, compute from items
+      if (total === 0 && Array.isArray(data.items)) {
+        data.items.forEach(item => {
+          const uPrice = parseFloat(item.unitPrice) || 0;
+          const qty = parseFloat(item.quantity) || 1;
+          const lineTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || (uPrice * qty);
+          total += lineTotal;
+        });
+      }
+      return total;
+    };
+
+    // Helper: get date from receipt
+    const getReceiptDate = (data) => {
+      if (data.confirmedAt?.toDate) return data.confirmedAt.toDate();
+      if (data.createdAt?.toDate) return data.createdAt.toDate();
+      if (data.createdAt) return new Date(data.createdAt);
+      if (data.purchaseDate?.toDate) return data.purchaseDate.toDate();
+      return null;
+    };
 
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       if (data.status !== 'confirmed') return;
       
-      const total = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
-      allTimeSpent += total;
-      totalSpent += total; // Now represents Total Spending (all time) to avoid UI confusion
-      receiptCount++;
-      
-      if (total > mostExpensiveReceipt.total) {
-        mostExpensiveReceipt = { total, vendor: data.vendor || 'Unknown' };
+      const receiptTotal = computeReceiptTotal(data);
+      const expenseDate = getReceiptDate(data);
+
+      // All-time
+      allTimeSpent += receiptTotal;
+      allTimeCount++;
+
+      // Track oldest date for weekly average
+      if (expenseDate && (!oldestDate || expenseDate < oldestDate)) {
+        oldestDate = expenseDate;
+      }
+
+      // Most expensive receipt (all-time)
+      if (receiptTotal > mostExpensiveReceipt.total) {
+        mostExpensiveReceipt = { total: receiptTotal, vendor: data.vendor || 'Unknown' };
+      }
+
+      // 30-day window
+      if (expenseDate && expenseDate >= thirtyDaysAgo) {
+        thirtyDaySpent += receiptTotal;
+        thirtyDayCount++;
+
+        // Track vendors in 30d
+        const vendor = data.vendor || 'Unknown';
+        vendorTotals30d[vendor] = (vendorTotals30d[vendor] || 0) + receiptTotal;
+
+        // Track items in 30d
+        (Array.isArray(data.items) ? data.items : []).forEach(item => {
+          if (item.name) {
+            const cleanName = String(item.name).trim().toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+            const uPrice = parseFloat(item.unitPrice) || 0;
+            const qty = parseFloat(item.quantity) || 1;
+            const lineTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || (uPrice * qty);
+            itemTotals30d[cleanName] = (itemTotals30d[cleanName] || 0) + lineTotal;
+          }
+        });
+      }
+
+      // 7-day window
+      if (expenseDate && expenseDate >= sevenDaysAgo) {
+        sevenDaySpent += receiptTotal;
+        sevenDayCount++;
       }
     });
 
-    const avgReceipt = receiptCount > 0 ? (totalSpent / receiptCount) : 0;
+    // Weekly average: total spent / number of weeks since oldest receipt
+    let weeklyAvg = 0;
+    if (oldestDate && allTimeCount > 0) {
+      const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+      const totalWeeks = Math.max(1, (now - oldestDate) / msPerWeek);
+      weeklyAvg = allTimeSpent / totalWeeks;
+    }
 
-    const elAllTime = document.getElementById('exp-all-time-total');
-    const elTotal = document.getElementById('exp-30d-total');
-    const elAvg = document.getElementById('exp-avg-receipt');
-    const elCount = document.getElementById('exp-receipt-count');
-    const elMax = document.getElementById('exp-most-expensive');
+    const avgReceipt = allTimeCount > 0 ? (allTimeSpent / allTimeCount) : 0;
+
+    // Top vendor (30d)
+    let topVendor = { name: '-', total: 0 };
+    Object.entries(vendorTotals30d).forEach(([name, total]) => {
+      if (total > topVendor.total) topVendor = { name, total };
+    });
+
+    // Biggest item (30d)
+    let biggestItem = { name: '-', total: 0 };
+    Object.entries(itemTotals30d).forEach(([name, total]) => {
+      if (total > biggestItem.total) biggestItem = { name, total };
+    });
+
+    // Update DOM
+    const el = (id) => document.getElementById(id);
+    
+    const elAllTime = el('exp-all-time-total');
+    const elAllTimeCount = el('exp-all-time-count');
+    const el30d = el('exp-30d-total');
+    const el30dCount = el('exp-30d-count');
+    const el7d = el('exp-7d-total');
+    const el7dCount = el('exp-7d-count');
+    const elWeeklyAvg = el('exp-weekly-avg');
+    const elAvg = el('exp-avg-receipt');
+    const elMax = el('exp-most-expensive');
+    const elTopVendor = el('exp-top-vendor');
+    const elBiggestItem = el('exp-biggest-item');
 
     if (elAllTime) elAllTime.textContent = `$${allTimeSpent.toFixed(2)}`;
-    if (elTotal) elTotal.textContent = `$${totalSpent.toFixed(2)}`;
+    if (elAllTimeCount) elAllTimeCount.textContent = `${allTimeCount} receipt${allTimeCount !== 1 ? 's' : ''}`;
+    if (el30d) el30d.textContent = `$${thirtyDaySpent.toFixed(2)}`;
+    if (el30dCount) el30dCount.textContent = `${thirtyDayCount} receipt${thirtyDayCount !== 1 ? 's' : ''}`;
+    if (el7d) el7d.textContent = `$${sevenDaySpent.toFixed(2)}`;
+    if (el7dCount) el7dCount.textContent = `${sevenDayCount} receipt${sevenDayCount !== 1 ? 's' : ''}`;
+    if (elWeeklyAvg) elWeeklyAvg.textContent = `$${weeklyAvg.toFixed(2)}`;
     if (elAvg) elAvg.textContent = `$${avgReceipt.toFixed(2)}`;
-    if (elCount) elCount.textContent = receiptCount.toString();
     if (elMax) elMax.textContent = mostExpensiveReceipt.total > 0 ? `$${mostExpensiveReceipt.total.toFixed(2)} (${mostExpensiveReceipt.vendor})` : '-';
+    if (elTopVendor) elTopVendor.textContent = topVendor.total > 0 ? `${topVendor.name} ($${topVendor.total.toFixed(2)})` : '-';
+    if (elBiggestItem) elBiggestItem.textContent = biggestItem.total > 0 ? `${biggestItem.name} ($${biggestItem.total.toFixed(2)})` : '-';
   };
 
   const initPriceTrends = (snapshot) => {
@@ -550,7 +654,11 @@ window.loadAnalytics = loadAnalytics;
          
          if (item.name) {
            const cleanName = String(item.name || '').trim().toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
-           itemTotals[cleanName] = (itemTotals[cleanName] || 0) + total;
+           if (!itemTotals[cleanName]) {
+             itemTotals[cleanName] = { spent: 0, qty: 0 };
+           }
+           itemTotals[cleanName].spent += total;
+           itemTotals[cleanName].qty += qty;
          }
       });
     });
@@ -583,47 +691,23 @@ window.loadAnalytics = loadAnalytics;
       }
     });
     
-    // 2. Render Top Items Bar Chart
-    if (ctxTopItems) {
+    // 2. Render Top Items Table
+    const tbodyTopItems = document.getElementById('expenseTopItemsTbody');
+    if (tbodyTopItems) {
       const sortedItems = Object.entries(itemTotals)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10); // Top 10 items
+        .sort((a, b) => b[1].spent - a[1].spent); // Sort by spent descending
         
-      if (expenseTopItemsChartInst) {
-         expenseTopItemsChartInst.destroy();
+      if (sortedItems.length === 0) {
+        tbodyTopItems.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 16px; color: var(--gray);">No items recorded.</td></tr>';
+      } else {
+        tbodyTopItems.innerHTML = sortedItems.map(([itemName, data]) => `
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px; font-weight: 500;">${escapeHtml(itemName)}</td>
+            <td style="padding: 8px; text-align: right; color: var(--gray-light);">${data.qty}</td>
+            <td style="padding: 8px; text-align: right; color: var(--accent); font-weight: bold;">$${data.spent.toFixed(2)}</td>
+          </tr>
+        `).join('');
       }
-      
-      expenseTopItemsChartInst = new Chart(ctxTopItems, {
-        type: 'bar',
-        data: {
-          labels: sortedItems.map(item => item[0]),
-          datasets: [{
-            label: 'Total Spent ($)',
-            data: sortedItems.map(item => item[1]),
-            backgroundColor: 'rgba(33,150,243,0.7)',
-            borderColor: '#2196f3',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            y: { 
-              beginAtZero: true,
-              grid: { color: '#333' }, 
-              ticks: { color: '#aaa' } 
-            },
-            x: { 
-              grid: { display: false }, 
-              ticks: { color: '#aaa', maxRotation: 45, minRotation: 45 } 
-            }
-          }
-        }
-      });
     }
 
     // 3. Render Vendor Chart
@@ -658,56 +742,7 @@ window.loadAnalytics = loadAnalytics;
       });
     }
 
-    // 4. Render Recent Receipts Table (Slide-Over Trigger)
-    const tbody = document.getElementById('recent-receipts-body');
-    if (tbody) {
-      tbody.innerHTML = '';
-      const receipts = [];
-      snapshot.forEach(docSnap => {
-        const d = docSnap.data();
-        if (d.status === 'confirmed') receipts.push({ id: docSnap.id, ...d });
-      });
-      // Sort strictly descending by the most relevant date (confirmedAt > createdAt > purchaseDate)
-      receipts.sort((a,b) => {
-          const getMs = (r) => {
-              if (r.confirmedAt && typeof r.confirmedAt.toDate === 'function') return r.confirmedAt.toDate().getTime();
-              if (r.createdAt && typeof r.createdAt.toDate === 'function') return r.createdAt.toDate().getTime();
-              if (r.purchaseDate && typeof r.purchaseDate.toDate === 'function') return r.purchaseDate.toDate().getTime();
-              if (r.createdAt) return new Date(r.createdAt).getTime();
-              return 0;
-          };
-          return getMs(b) - getMs(a);
-      });
-      
-      const recent = receipts.slice(0, 10);
-      if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 16px; color: var(--gray);">No receipts found.</td></tr>';
-      } else {
-        recent.forEach(r => {
-          const scannedDateStr = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString() : 'N/A';
-          const purchaseDateStr = r.purchaseDate?.toDate ? r.purchaseDate.toDate().toLocaleDateString() : 'Unknown';
-          const parsedTotal = parseFloat(String(r.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
-          const tr = document.createElement('tr');
-          tr.style.cursor = 'pointer';
-          tr.style.transition = "background 0.2s";
-          tr.onmouseover = () => tr.style.background = "rgba(255,255,255,0.05)";
-          tr.onmouseout = () => tr.style.background = "transparent";
-          
-          tr.innerHTML = `
-            <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${scannedDateStr}</td>
-            <td style="padding: 12px 8px; border-bottom: 1px solid var(--border); color: var(--gray);">${purchaseDateStr}</td>
-            <td style="padding: 12px 8px; font-weight: bold; border-bottom: 1px solid var(--border);">${window.escapeHtml(r.vendor || 'Unknown')}</td>
-            <td style="padding: 12px 8px; border-bottom: 1px solid var(--border);">${window.escapeHtml(r.category || 'other')}</td>
-            <td style="padding: 12px 8px; text-align: right; color: var(--accent); font-weight: bold; border-bottom: 1px solid var(--border);">$${parsedTotal.toFixed(2)}</td>
-          `;
-          tr.addEventListener('click', () => {
-             try { window.openReceiptSlide(r); } 
-             catch(e) { console.error("Error opening receipt slide:", e); alert("Error loading receipt details."); }
-          });
-          tbody.appendChild(tr);
-        });
-      }
-    }
+    // Removed Recent Receipts Table per user request
   };
 
   window.window.expensesUnsub = null;
@@ -777,102 +812,115 @@ window.loadAnalytics = loadAnalytics;
   };
 
   window.initEconomicsListeners = () => {
-    const savedExpensesTbody = document.getElementById("saved-expenses-tbody");
-    if (savedExpensesTbody) {
-      const expensesQuery = query(collection(db, "expenses"), limit(200));
-      window.window.expensesUnsub = onSnapshot(expensesQuery, (snapshot) => {
-        savedExpensesTbody.innerHTML = "";
-        if (snapshot.empty) {
-          savedExpensesTbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gray);">No saved expenses yet.</td></tr>';
-          return;
-        }
+      const savedExpensesContainer = document.getElementById('saved-expenses-container');
+      if (!savedExpensesContainer) return;
+      const expensesQuery = query(collection(db, "expenses"));
+      window.expensesUnsub = onSnapshot(expensesQuery, (snapshot) => {
+        try {
+          savedExpensesContainer.innerHTML = '';
+          if (snapshot.empty) {
+            savedExpensesContainer.innerHTML = '<div style="padding: 24px; color: var(--gray); text-align: center; width: 100%; grid-column: 1 / -1;">No saved expenses yet.</div>';
+            return;
+          }
 
-        renderExpenseAnalytics(snapshot);
-        renderExpenseStats(snapshot);
-        initPriceTrends(snapshot);
+          renderExpenseAnalytics(snapshot);
+          renderExpenseStats(snapshot);
+          initPriceTrends(snapshot);
 
-        let docsArray = [];
-        snapshot.forEach(docSnap => docsArray.push(docSnap.data()));
-        docsArray.sort((a,b) => {
-           const getMs = (r) => {
-               if (r.createdAt?.toDate) return r.createdAt.toDate().getTime();
-               if (r.createdAt) return new Date(r.createdAt).getTime();
-               if (r.purchaseDate?.toDate) return r.purchaseDate.toDate().getTime();
-               return 0;
-           };
-           return getMs(b) - getMs(a);
-        });
+          let docsArray = [];
+          snapshot.forEach(docSnap => docsArray.push(docSnap.data()));
+          docsArray.sort((a,b) => {
+             const getMs = (r) => {
+                 if (r.createdAt?.toDate) return r.createdAt.toDate().getTime();
+                 if (r.createdAt) return new Date(r.createdAt).getTime();
+                 if (r.purchaseDate?.toDate) return r.purchaseDate.toDate().getTime();
+                 return 0;
+             };
+             return getMs(b) - getMs(a);
+          });
 
-        let rowCount = 0;
-        docsArray.forEach(data => {
-          if (rowCount >= 50) return;
-          rowCount++;
-          const dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : (data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A');
-          const itemCount = data.items ? data.items.length : 0;
-          const parsedDataTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
-          const totalStr = data.total != null ? `$${parsedDataTotal.toFixed(2)}` : '—';
+          let rowCount = 0;
+          savedExpensesContainer.innerHTML = '';
           
-          const mainTr = document.createElement("tr");
-          mainTr.style.borderBottom = "1px solid var(--border)";
-          mainTr.style.cursor = "pointer";
-          mainTr.style.transition = "background 0.2s";
-          mainTr.onmouseover = () => mainTr.style.background = "rgba(255,255,255,0.05)";
-          mainTr.onmouseout = () => mainTr.style.background = "transparent";
-          mainTr.innerHTML = `
-            <td data-label="Date" style="padding: 12px;"><span class="expand-icon" style="margin-right: 8px; font-size: 10px; display: inline-block; width: 12px;">▶</span>${dateStr}</td>
-            <td data-label="Vendor" style="padding: 12px; font-weight: 600;">${window.escapeHtml(data.vendor || 'Unknown')}</td>
-            <td data-label="Items" style="padding: 12px;">${itemCount} items</td>
-            <td data-label="Total" style="padding: 12px; font-weight: bold; color: var(--accent);">${totalStr}</td>
-            <td data-label="Status" style="padding: 12px;">
-              <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
-                ${window.escapeHtml(data.status || 'pending')}
-              </span>
-            </td>
-          `;
-          
-          const detailTr = document.createElement("tr");
-          detailTr.style.display = "none";
-          detailTr.style.background = "rgba(233,171,0,0.05)";
-          
-          let itemsHtml = '<div style="display: flex; flex-direction: column; gap: 8px;">';
-          (Array.isArray(data.items) ? data.items : []).forEach(item => {
-             const uPrice = parseFloat(String(item.unitPrice || 0).replace(/[^0-9.-]+/g, "")) || 0;
-             const lTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || 0;
-             itemsHtml += `<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+          if (docsArray.length === 0) {
+            savedExpensesContainer.innerHTML = '<div style="padding: 24px; color: var(--gray); text-align: center; width: 100%; grid-column: 1 / -1;">No recent expenses found.</div>';
+            return;
+          }
+
+          docsArray.forEach(data => {
+            if (rowCount >= 1000) return;
+            rowCount++;
+            const dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : (data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A');
+            const itemCount = data.items ? data.items.length : 0;
+            const parsedDataTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
+            const totalStr = data.total != null ? `$${parsedDataTotal.toFixed(2)}` : '—';
+            
+            const card = document.createElement("div");
+            card.style.background = "var(--surface)";
+            card.style.border = "1px solid var(--border)";
+            card.style.borderRadius = "12px";
+            card.style.padding = "16px";
+            card.style.display = "flex";
+            card.style.flexDirection = "column";
+            card.style.gap = "16px";
+            card.style.transition = "transform 0.2s, box-shadow 0.2s";
+            card.onmouseover = () => {
+              card.style.transform = "translateY(-2px)";
+              card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+            };
+            card.onmouseout = () => {
+              card.style.transform = "none";
+              card.style.boxShadow = "none";
+            };
+
+            const headerHtml = `
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                 <div style="display: flex; flex-direction: column; gap: 4px;">
-                  <strong style="font-size: 14px;">${window.escapeHtml(item.name || 'Unknown')}</strong>
-                  <span style="font-size: 11px; color: var(--gray); text-transform: uppercase;">${window.escapeHtml(item.category || 'other')}</span>
+                  <strong style="font-size: 18px; color: var(--white); word-break: break-word;">${escapeHtml(data.vendor || 'Unknown Vendor')}</strong>
+                  <span style="font-size: 13px; color: var(--gray);">${dateStr}</span>
                 </div>
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                  <strong style="font-size: 14px; color: var(--white);">$${lTotal.toFixed(2)}</strong>
-                  <span style="font-size: 11px; color: var(--gray);">${item.quantity || 1} @ $${uPrice.toFixed(2)}</span>
+                <div style="text-align: right;">
+                  <strong style="font-size: 20px; color: var(--accent);">${totalStr}</strong>
+                  <div style="margin-top: 4px;">
+                    <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
+                      ${escapeHtml(data.status || 'pending')}
+                    </span>
+                  </div>
                 </div>
-             </div>`;
+              </div>
+            `;
+
+            let itemsHtml = '<div style="display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-top: auto;">';
+            itemsHtml += `<div style="font-size: 12px; font-weight: bold; color: var(--gray); margin-bottom: 4px; text-transform: uppercase;">${itemCount} Items</div>`;
+            
+            (Array.isArray(data.items) ? data.items : []).forEach(item => {
+               const uPrice = parseFloat(String(item.unitPrice || 0).replace(/[^0-9.-]+/g, "")) || 0;
+               const qty = parseFloat(item.quantity) || 1;
+               const lTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || (uPrice * qty);
+               
+               itemsHtml += `
+                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; font-size: 13px;">
+                   <div style="display: flex; flex-direction: column; gap: 2px;">
+                     <span style="color: var(--white);">${escapeHtml(item.name || 'Unknown')}</span>
+                     <span style="font-size: 11px; color: var(--gray);">${qty} @ $${uPrice.toFixed(2)}</span>
+                   </div>
+                   <span style="color: var(--white); font-weight: 500;">$${lTotal.toFixed(2)}</span>
+                 </div>
+               `;
+            });
+            itemsHtml += '</div>';
+            
+            card.innerHTML = headerHtml + itemsHtml;
+            savedExpensesContainer.appendChild(card);
           });
-          itemsHtml += '</div>';
-          
-          detailTr.innerHTML = `<td colspan="5" data-label="" style="padding: 0; display: block; width: 100%; border: none;">
-            <div style="padding: 16px; border-bottom: 1px solid var(--border);">
-              <h4 style="margin: 0 0 12px 0; font-family: 'Barlow Condensed'; font-size: 16px; color: var(--white); text-transform: uppercase;">Receipt Items</h4>
-              ${itemsHtml}
-            </div>
-          </td>`;
-          
-          mainTr.addEventListener("click", () => {
-             const isHidden = detailTr.style.display === "none";
-             detailTr.style.display = isHidden ? "table-row" : "none";
-             const icon = mainTr.querySelector('.expand-icon');
-             if (icon) icon.textContent = isHidden ? "▼" : "▶";
-          });
-          
-          savedExpensesTbody.appendChild(mainTr);
-          savedExpensesTbody.appendChild(detailTr);
-        });
+        } catch (e) {
+          console.error("Javascript Error during receipt rendering:", e);
+          savedExpensesContainer.innerHTML = `<div style="padding: 16px; color: #ff4d4d; white-space: pre-wrap; font-family: monospace; grid-column: 1 / -1;"><b>CRASH!</b> ${e.message}\n${e.stack}</div>`;
+        }
       }, (err) => {
         console.error("Expenses sync error:", err);
-        savedExpensesTbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: #f44336;">Error loading expenses. Check console.</td></tr>';
+        savedExpensesContainer.innerHTML = '<div style="padding: 16px; text-align: center; color: #f44336; grid-column: 1 / -1;">Error loading expenses. Check console.</div>';
       });
-    }
 
     // Inventory Tracker Logic
     const inventoryTbody = document.getElementById('inventory-tbody');
@@ -946,8 +994,8 @@ window.loadAnalytics = loadAnalytics;
          tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
          tr.innerHTML = `
             <td data-label="Item / Category" style="padding: 12px; font-weight: 600;">
-              <div>${window.escapeHtml(data.name || 'Unknown')}</div>
-              <div style="font-size:11px; color:var(--gray); text-transform:uppercase; margin-top:4px;">${window.escapeHtml(data.category || 'other')}</div>
+              <div>${escapeHtml(data.name || 'Unknown')}</div>
+              <div style="font-size:11px; color:var(--gray); text-transform:uppercase; margin-top:4px;">${escapeHtml(data.category || 'other')}</div>
             </td>
             <td data-label="Status" style="padding: 12px; min-width: 120px;">
               ${stockLevelHtml}

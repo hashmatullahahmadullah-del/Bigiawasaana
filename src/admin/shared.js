@@ -42,15 +42,13 @@ if (langToggleBtn) {
 }
 
 // Global escapeHtml utility
-window.escapeHtml = function escapeHtml(str) {
+export function escapeHtml(str) {
   if (str == null) return '';
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
-};
-export function escapeHtml(str) {
-  return window.escapeHtml(str);
 }
+window.escapeHtml = escapeHtml;
 
 // PWA Installation Logic
 window.quill = null;
