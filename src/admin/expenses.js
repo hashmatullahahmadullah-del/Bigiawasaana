@@ -151,61 +151,93 @@ window.loadAnalytics = loadAnalytics;
     let currentItems = [];
     let currentStoragePath = null;
 
-    const handleFileSelected = async (file) => {
-      if (!file) return;
+    window.pendingReviewQueue = [];
+    let isProcessingBatch = false;
 
-      // Hide actions while processing
+    const processNextInReviewQueue = () => {
+      if (window.pendingReviewQueue.length > 0) {
+        const nextData = window.pendingReviewQueue[0];
+        currentExpenseId = nextData.id;
+        currentItems = nextData.items || [];
+        // storage path is not stored in data returned by parseReceipt, but we can pass it if we attach it
+        currentStoragePath = nextData._storagePath;
+        renderReview(nextData);
+        statusEl.textContent = `✅ Ready to Review (${window.pendingReviewQueue.length} remaining). Click Confirm & Save to move to the next.`;
+        if (receiptActions) receiptActions.style.display = "flex";
+      } else {
+        reviewSection.style.display = "none";
+        if (receiptActions) receiptActions.style.display = "none";
+        currentExpenseId = null;
+        currentItems = [];
+        currentStoragePath = null;
+        statusEl.textContent = "✅ All receipts processed and reviewed!";
+        showToast("All batch receipts processed.");
+      }
+    };
+
+    // Override the confirm button logic later to call processNextInReviewQueue() instead of hiding everything if there's a queue
+
+    const handleFilesSelected = async (files) => {
+      if (!files || files.length === 0) return;
+      
+      if (isProcessingBatch) {
+        alert("Already processing a batch. Please wait.");
+        return;
+      }
+      isProcessingBatch = true;
+      
       if (receiptActions) receiptActions.style.display = "none";
       reviewSection.style.display = "none";
-      currentExpenseId = null;
-      currentItems = [];
-      currentStoragePath = null;
-
-      statusEl.textContent = "Compressing image...";
-
-      try {
-        // Compress the image first (speeds up upload + Gemini processing)
-        const compressed = await compressImage(file);
-        const compressedSize = (compressed.size / 1024).toFixed(0);
-        statusEl.textContent = `Uploading (${compressedSize} KB)...`;
-
-        const timestamp = Date.now();
-        const path = `receipts/unsorted/${timestamp}_receipt.webp`;
-        currentStoragePath = path;
-        const storageReference = ref(storage, path);
-
-        await uploadBytes(storageReference, compressed, { contentType: 'image/webp' });
-        statusEl.textContent = "Parsing receipt with AI (this can take a few seconds)...";
-
-        const functions = getFunctions(app);
-        const parseReceipt = httpsCallable(functions, "parseReceipt");
-        const result = await parseReceipt({ storagePath: path });
-        const data = result.data;
-
-        currentExpenseId = data.id;
-        currentItems = data.items || [];
-
-        renderReview(data);
-        statusEl.textContent = "✅ Parsed! Review the items below, then click Confirm & Save.";
-
-        // Show retake/delete actions
-        if (receiptActions) receiptActions.style.display = "flex";
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = "Error parsing receipt: " + err.message;
-        if (receiptActions) receiptActions.style.display = "flex";
+      
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        statusEl.textContent = `Processing receipt ${i + 1} of ${files.length}... (Compressing)`;
+        try {
+          const compressed = await compressImage(file);
+          statusEl.textContent = `Processing receipt ${i + 1} of ${files.length}... (Uploading)`;
+          const timestamp = Date.now() + i;
+          const path = `receipts/unsorted/${timestamp}_receipt.webp`;
+          const storageReference = ref(storage, path);
+          await uploadBytes(storageReference, compressed, { contentType: 'image/webp' });
+          
+          statusEl.textContent = `Processing receipt ${i + 1} of ${files.length}... (AI Parsing - this takes a few seconds)`;
+          const functions = getFunctions(app);
+          const parseReceipt = httpsCallable(functions, "parseReceipt");
+          const result = await parseReceipt({ storagePath: path });
+          
+          if (result.data) {
+            result.data._storagePath = path;
+            window.pendingReviewQueue.push(result.data);
+            successCount++;
+          }
+        } catch (err) {
+          console.error("Error processing file", i, err);
+          failCount++;
+        }
+      }
+      
+      isProcessingBatch = false;
+      
+      if (successCount > 0) {
+        statusEl.textContent = `Batch complete. ${successCount} successful, ${failCount} failed.`;
+        processNextInReviewQueue();
+      } else {
+        statusEl.textContent = `Batch failed. Could not process any receipts.`;
       }
     };
 
     if (cameraInput) {
       cameraInput.addEventListener("change", (e) => {
-        handleFileSelected(e.target.files[0]);
+        handleFilesSelected(e.target.files);
         cameraInput.value = "";
       });
     }
     if (galleryInput) {
       galleryInput.addEventListener("change", (e) => {
-        handleFileSelected(e.target.files[0]);
+        handleFilesSelected(e.target.files);
         galleryInput.value = "";
       });
     }
@@ -258,6 +290,49 @@ window.loadAnalytics = loadAnalytics;
           console.error(err);
           statusEl.textContent = "Error deleting draft: " + err.message;
         }
+      });
+    }
+
+    const exportCsvBtn = document.getElementById("export-csv-btn");
+    if (exportCsvBtn) {
+      exportCsvBtn.addEventListener("click", () => {
+        if (!window.expenseDocsArray || window.expenseDocsArray.length === 0) {
+          alert("No expenses available to export.");
+          return;
+        }
+        
+        let csvContent = "Date,Vendor,Category,Item,Qty,Unit Price,Line Total,Receipt Total,Status\n";
+        
+        window.expenseDocsArray.forEach(data => {
+          const dateStr = data.confirmedAt?.toDate ? data.confirmedAt.toDate().toLocaleDateString() : 
+                          (data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : 'N/A');
+          const vendor = `"${(data.vendor || 'Unknown').replace(/"/g, '""')}"`;
+          const receiptTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
+          const status = data.status || 'pending';
+          
+          if (!data.items || data.items.length === 0) {
+            csvContent += `${dateStr},${vendor},"","",0,0,0,${receiptTotal},${status}\n`;
+          } else {
+            data.items.forEach(item => {
+              const category = `"${(item.category || '').replace(/"/g, '""')}"`;
+              const itemName = `"${(item.name || '').replace(/"/g, '""')}"`;
+              const qty = item.quantity || 1;
+              const unitPrice = parseFloat(item.unitPrice) || 0;
+              const lineTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || (unitPrice * qty);
+              
+              csvContent += `${dateStr},${vendor},${category},${itemName},${qty},${unitPrice},${lineTotal},${receiptTotal},${status}\n`;
+            });
+          }
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `expenses_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       });
     }
 
@@ -374,13 +449,21 @@ window.loadAnalytics = loadAnalytics;
           confirmedAt: serverTimestamp(),
         });
 
-        statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
-        reviewSection.style.display = "none";
-        if (receiptActions) receiptActions.style.display = "none";
-        currentExpenseId = null;
-        currentItems = [];
-        currentStoragePath = null;
         showToast("Expense confirmed!");
+
+        // Move to the next item in the batch queue if any
+        if (window.pendingReviewQueue && window.pendingReviewQueue.length > 0) {
+          // Remove the one we just confirmed
+          window.pendingReviewQueue.shift();
+          processNextInReviewQueue();
+        } else {
+          statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
+          reviewSection.style.display = "none";
+          if (receiptActions) receiptActions.style.display = "none";
+          currentExpenseId = null;
+          currentItems = [];
+          currentStoragePath = null;
+        }
       } catch (err) {
         console.error(err);
         statusEl.textContent = "Error saving: " + err.message;
@@ -411,6 +494,10 @@ window.loadAnalytics = loadAnalytics;
     let mostExpensiveReceipt = { total: 0, vendor: '' };
     let vendorTotals30d = {};
     let itemTotals30d = {};
+    let itemPriceSum30d = {};
+    let itemPriceCount30d = {};
+    let itemPriceSumOlder = {};
+    let itemPriceCountOlder = {};
     let oldestDate = null;
 
     const now = new Date();
@@ -445,7 +532,6 @@ window.loadAnalytics = loadAnalytics;
 
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
-      if (data.status !== 'confirmed') return;
       
       const receiptTotal = computeReceiptTotal(data);
       const expenseDate = getReceiptDate(data);
@@ -464,7 +550,7 @@ window.loadAnalytics = loadAnalytics;
         mostExpensiveReceipt = { total: receiptTotal, vendor: data.vendor || 'Unknown' };
       }
 
-      // 30-day window
+      // 30-day window vs Older window
       if (expenseDate && expenseDate >= thirtyDaysAgo) {
         thirtyDaySpent += receiptTotal;
         thirtyDayCount++;
@@ -481,6 +567,22 @@ window.loadAnalytics = loadAnalytics;
             const qty = parseFloat(item.quantity) || 1;
             const lineTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || (uPrice * qty);
             itemTotals30d[cleanName] = (itemTotals30d[cleanName] || 0) + lineTotal;
+            if (uPrice > 0) {
+              itemPriceSum30d[cleanName] = (itemPriceSum30d[cleanName] || 0) + uPrice;
+              itemPriceCount30d[cleanName] = (itemPriceCount30d[cleanName] || 0) + 1;
+            }
+          }
+        });
+      } else if (expenseDate && expenseDate < thirtyDaysAgo) {
+        // Track older prices for inflation alerts
+        (Array.isArray(data.items) ? data.items : []).forEach(item => {
+          if (item.name) {
+            const cleanName = String(item.name).trim().toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+            const uPrice = parseFloat(item.unitPrice) || 0;
+            if (uPrice > 0) {
+              itemPriceSumOlder[cleanName] = (itemPriceSumOlder[cleanName] || 0) + uPrice;
+              itemPriceCountOlder[cleanName] = (itemPriceCountOlder[cleanName] || 0) + 1;
+            }
           }
         });
       }
@@ -540,6 +642,52 @@ window.loadAnalytics = loadAnalytics;
     if (elMax) elMax.textContent = mostExpensiveReceipt.total > 0 ? `$${mostExpensiveReceipt.total.toFixed(2)} (${mostExpensiveReceipt.vendor})` : '-';
     if (elTopVendor) elTopVendor.textContent = topVendor.total > 0 ? `${topVendor.name} ($${topVendor.total.toFixed(2)})` : '-';
     if (elBiggestItem) elBiggestItem.textContent = biggestItem.total > 0 ? `${biggestItem.name} ($${biggestItem.total.toFixed(2)})` : '-';
+
+    // Evaluate Price Hike Alerts
+    const alertsContainer = document.getElementById('price-alerts-container');
+    if (alertsContainer) {
+      alertsContainer.innerHTML = '';
+      let hasAlerts = false;
+      
+      Object.keys(itemPriceSum30d).forEach(itemName => {
+        if (itemPriceSumOlder[itemName]) {
+          const avg30d = itemPriceSum30d[itemName] / itemPriceCount30d[itemName];
+          const avgOlder = itemPriceSumOlder[itemName] / itemPriceCountOlder[itemName];
+          
+          if (avgOlder > 0) {
+            const percentIncrease = ((avg30d - avgOlder) / avgOlder) * 100;
+            // Alert if price went up by more than 10%
+            if (percentIncrease >= 10) {
+              hasAlerts = true;
+              const alertDiv = document.createElement('div');
+              alertDiv.style.background = 'rgba(244, 67, 54, 0.1)';
+              alertDiv.style.border = '1px solid rgba(244, 67, 54, 0.3)';
+              alertDiv.style.padding = '12px 16px';
+              alertDiv.style.borderRadius = '8px';
+              alertDiv.style.color = '#f44336';
+              alertDiv.style.display = 'flex';
+              alertDiv.style.alignItems = 'center';
+              alertDiv.style.gap = '12px';
+              alertDiv.innerHTML = `
+                <span style="font-size: 20px;">🚨</span>
+                <div>
+                  <strong>Price Hike Alert:</strong> 
+                  ${itemName} is up <strong>${percentIncrease.toFixed(1)}%</strong> this month. 
+                  (Average price increased from $${avgOlder.toFixed(2)} to $${avg30d.toFixed(2)})
+                </div>
+              `;
+              alertsContainer.appendChild(alertDiv);
+            }
+          }
+        }
+      });
+      
+      if (hasAlerts) {
+        alertsContainer.style.display = 'flex';
+      } else {
+        alertsContainer.style.display = 'none';
+      }
+    }
   };
 
   const initPriceTrends = (snapshot) => {
@@ -551,7 +699,6 @@ window.loadAnalytics = loadAnalytics;
 
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
-      if (data.status !== 'confirmed') return;
       const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
 
       (Array.isArray(data.items) ? data.items : []).forEach(item => {
@@ -636,7 +783,6 @@ window.loadAnalytics = loadAnalytics;
     
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
-      if (data.status !== 'confirmed') return;
       
       const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
 
@@ -838,6 +984,8 @@ window.loadAnalytics = loadAnalytics;
              };
              return getMs(b) - getMs(a);
           });
+          
+          window.expenseDocsArray = docsArray;
 
           let rowCount = 0;
           savedExpensesContainer.innerHTML = '';

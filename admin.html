@@ -1175,9 +1175,12 @@
                 <label for="receipt-input-gallery" style="display:inline-flex; align-items:center; gap:8px; padding: 14px 24px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 16px; background: rgba(255,255,255,0.15); color: var(--white); border: 1px solid var(--border);">
                   🖼️ Upload from Gallery
                 </label>
+                <button type="button" id="export-csv-btn" style="display:inline-flex; align-items:center; gap:8px; padding: 14px 24px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 16px; background: rgba(255,255,255,0.05); color: var(--white); border: 1px solid var(--border);">
+                  📥 Export CSV
+                </button>
               </div>
               <input id="receipt-input-camera" type="file" accept="image/*" capture="environment" style="display:none;" />
-              <input id="receipt-input-gallery" type="file" accept="image/*" style="display:none;" />
+              <input id="receipt-input-gallery" type="file" accept="image/*" multiple style="display:none;" />
               <div id="upload-status" style="margin-top: 16px; font-size: 14px; color: var(--gray);"></div>
               <!-- Retake / Delete Actions (hidden until a receipt is parsed) -->
               <div id="receipt-actions" style="display: none; margin-top: 16px; display: none; gap: 12px; justify-content: center; flex-wrap: wrap;">
@@ -1225,6 +1228,9 @@
                 <div class="stat-value" id="exp-biggest-item" style="font-size: 18px;">-</div>
               </div>
             </div>
+
+            <!-- Price Alerts Section -->
+            <div id="price-alerts-container" style="margin-bottom: 24px; display: none; flex-direction: column; gap: 12px;"></div>
 
             <!-- Expense Analytics -->
             <div id="expense-analytics-section" style="margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
