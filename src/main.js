@@ -12,8 +12,8 @@ import './analytics.js';
 // Replace with your Sandbox Application ID from developer.squareup.com
 // In production, swap for your Production Application ID
 // ─────────────────────────────────────────────────────────────────
-const SQUARE_APP_ID = 'sq0idp-ZNKswm32xh_nRRecm5ggFg'; // ← Replace with your Production App ID
-const SQUARE_LOCATION_ID = 'LVVN2XC88162M'; // ← Replace with your Production Location ID
+const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
+const SQUARE_LOCATION_ID = import.meta.env.VITE_SQUARE_LOCATION_ID;
 const TAX_RATE = 0.1025; // LA County / Reseda sales tax rate (10.25%)
 
 // Firebase Functions

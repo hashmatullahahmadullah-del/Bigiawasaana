@@ -1,28 +1,36 @@
 /* ─── MOBILE NAV ─── */
 .site-nav {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 1200px;
   z-index: 1000;
-  background: rgba(6,6,6,0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(17, 17, 17, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
 }
 
 .site-nav .container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 72px;
+  height: 64px;
+  padding: 0 24px;
 }
 
 .nav-logo img {
-  height: 56px;
-  width: auto;
-  object-fit: contain;
+  height: 44px;
+  width: 44px;
+  object-fit: cover;
+  border-radius: 50%;
   display: block;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .nav-links {
@@ -49,6 +57,32 @@
 .nav-links a.nav-cta {
   color: var(--accent);
   font-weight: 700;
+}
+
+.nav-cta-primary {
+  background: var(--accent);
+  color: var(--bg) !important;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 100px;
+  font-weight: 700 !important;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.nav-cta-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.nav-cta-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--white) !important;
+  padding: 8px 20px;
+  border-radius: 100px;
+  transition: border-color 0.2s;
+}
+.nav-cta-outline:hover {
+  border-color: var(--gray);
 }
 
 /* Hamburger */
@@ -81,9 +115,10 @@
 /* Mobile Drawer */
 .nav-mobile-drawer {
   position: fixed;
-  top: 72px;
-  left: 0;
-  right: 0;
+  top: 92px;
+  left: 16px;
+  right: 16px;
+  border-radius: 24px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 0;

@@ -13,11 +13,11 @@ const files = [
 
 const newNavLinks = `      <ul class="nav-links">
         <li><a href="/menu.html" data-i18n="nav.menu">Menu</a></li>
-        <li><a href="/menu.html" class="nav-cta" style="background: var(--accent); color: var(--bg); border: none; padding: 10px 24px; border-radius: 100px; font-weight: 700;">ORDER NOW</a></li>
+        <li><a href="/menu.html" class="nav-cta-primary">ORDER NOW</a></li>
         <li><a href="/locations.html" data-i18n="nav.location">Location & Hours</a></li>
         <li><a href="/catering.html" data-i18n="nav.catering">Catering</a></li>
         <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
-        <li><a href="tel:+13239211646" class="nav-cta" style="background: transparent; border: 1px solid var(--border); color: var(--white);">(323) 921-1646</a></li>
+        <li><a href="tel:+13239211646" class="nav-cta-outline">(323) 921-1646</a></li>
       </ul>`;
 
 const newMobileDrawer = `  <div class="nav-mobile-drawer" id="nav-mobile-drawer">

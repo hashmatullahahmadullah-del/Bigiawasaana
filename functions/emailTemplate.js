@@ -126,7 +126,7 @@ exports.generateCateringEmail = (data) => {
       <div class="header">
         <a href="https://bigiawasaana.com" target="_blank">
           <!-- Always use absolute URLs in emails -->
-          <img src="https://bigiawasaana.com/logo.png" alt="Bigi Awasaana">
+          <img src="https://bigiawasaana.com/logo.webp" alt="Bigi Awasaana">
         </a>
       </div>
       

@@ -5,7 +5,7 @@ files.forEach(f => {
   let original = content;
   
   if (content.includes('og:image')) {
-    content = content.replace(/content="https:\/\/bigiawasaana\.com\/[^"]+"/g, 'content="https://bigiawasaana.com/logo.png"');
+    content = content.replace(/content="https:\/\/bigiawasaana\.com\/[^"]+"/g, 'content="https://bigiawasaana.com/logo.webp"');
     if (content !== original) {
       fs.writeFileSync(f, content);
       console.log('Updated', f);
