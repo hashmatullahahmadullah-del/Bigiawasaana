@@ -146,39 +146,52 @@ export function loadPickupSettings() {
   });
 }
 
-document.getElementById('pickup-config-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = e.target.querySelector('button[type="submit"]');
-  btn.textContent = 'Saving...';
+const initPickupForm = () => {
+  const form = document.getElementById('pickup-config-form');
+  if (!form) return;
   
-  const config = {
-    basePrepTimeMinutes: parseInt(document.getElementById('pickup-base-prep').value, 10),
-    perOrderIncrementMinutes: parseInt(document.getElementById('pickup-per-order').value, 10),
-    maxWaitMinutes: parseInt(document.getElementById('pickup-max-wait').value, 10),
-    busyModeOffsetMinutes: parseInt(document.getElementById('pickup-busy-offset').value, 10) || 0,
-    minLeadTimeMinutes: parseInt(document.getElementById('pickup-min-lead').value, 10),
-    maxScheduleDaysAhead: parseInt(document.getElementById('pickup-max-days').value, 10),
-    slotIntervalMinutes: parseInt(document.getElementById('pickup-slot-interval').value, 10),
-    prepBufferBeforeCloseMinutes: parseInt(document.getElementById('pickup-prep-buffer').value, 10),
-    businessHours: {
-      open: document.getElementById('pickup-open-time').value,
-      close: document.getElementById('pickup-close-time').value
-    },
-    openDays: Array.from(document.querySelectorAll('.pickup-day-cb'))
-                   .filter(cb => cb.checked)
-                   .map(cb => parseInt(cb.value, 10)),
-    updatedAt: serverTimestamp()
-  };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) btn.textContent = 'Saving...';
+    
+    try {
+      const config = {
+        basePrepTimeMinutes: parseInt(document.getElementById('pickup-base-prep').value, 10) || 0,
+        perOrderIncrementMinutes: parseInt(document.getElementById('pickup-per-order').value, 10) || 0,
+        maxWaitMinutes: parseInt(document.getElementById('pickup-max-wait').value, 10) || 0,
+        busyModeOffsetMinutes: parseInt(document.getElementById('pickup-busy-offset').value, 10) || 0,
+        minLeadTimeMinutes: parseInt(document.getElementById('pickup-min-lead').value, 10) || 0,
+        maxScheduleDaysAhead: parseInt(document.getElementById('pickup-max-days').value, 10) || 0,
+        slotIntervalMinutes: parseInt(document.getElementById('pickup-slot-interval').value, 10) || 0,
+        prepBufferBeforeCloseMinutes: parseInt(document.getElementById('pickup-prep-buffer').value, 10) || 0,
+        businessHours: {
+          open: document.getElementById('pickup-open-time').value,
+          close: document.getElementById('pickup-close-time').value
+        },
+        openDays: Array.from(document.querySelectorAll('.pickup-day-cb'))
+                       .filter(cb => cb.checked)
+                       .map(cb => parseInt(cb.value, 10)),
+        updatedAt: serverTimestamp()
+      };
 
-  try {
-    await setDoc(doc(db, 'settings', 'pickupConfig'), config, { merge: true });
-    showToast('Pickup settings saved!');
-  } catch (err) {
-    console.error('Error saving pickup settings', err);
-    showToast('Error saving pickup settings', true);
-  }
-  btn.textContent = 'Save Pickup Settings';
-});
+      await setDoc(doc(db, 'settings', 'pickupConfig'), config, { merge: true });
+      showToast('Pickup settings saved!');
+    } catch (err) {
+      console.error('Error saving pickup settings', err);
+      showToast('Error saving pickup settings: ' + err.message, true);
+      alert('Error saving pickup settings: ' + err.message);
+    } finally {
+      if (btn) btn.textContent = 'Save Pickup Settings';
+    }
+  });
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPickupForm);
+} else {
+  initPickupForm();
+}
 
 export function renderUpcomingScheduledOrders() {
   const tbody = document.getElementById('upcoming-scheduled-list');

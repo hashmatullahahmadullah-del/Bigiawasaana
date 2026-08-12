@@ -59,6 +59,7 @@
       { "source": "/order-status", "destination": "/order-status.html" },
       { "source": "/tv1", "destination": "/tv1.html" },
       { "source": "/tv2", "destination": "/tv2.html" },
+      { "source": "/admin", "destination": "/admin.html" },
       { "source": "**", "destination": "/index.html" }
     ],
     "redirects": [

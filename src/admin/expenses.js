@@ -138,7 +138,7 @@ window.loadAnalytics = loadAnalytics;
           ctx.drawImage(img, 0, 0, w, h);
           canvas.toBlob((blob) => {
             resolve(blob);
-          }, 'image/jpeg', quality);
+          }, 'image/webp', quality);
         };
         img.src = e.target.result;
       };
@@ -170,11 +170,11 @@ window.loadAnalytics = loadAnalytics;
         statusEl.textContent = `Uploading (${compressedSize} KB)...`;
 
         const timestamp = Date.now();
-        const path = `receipts/unsorted/${timestamp}_receipt.jpg`;
+        const path = `receipts/unsorted/${timestamp}_receipt.webp`;
         currentStoragePath = path;
         const storageReference = ref(storage, path);
 
-        await uploadBytes(storageReference, compressed);
+        await uploadBytes(storageReference, compressed, { contentType: 'image/webp' });
         statusEl.textContent = "Parsing receipt with AI (this can take a few seconds)...";
 
         const functions = getFunctions(app);
@@ -793,7 +793,7 @@ window.loadAnalytics = loadAnalytics;
           if (rowCount >= 50) return;
           rowCount++;
           const data = docSnap.data();
-          const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'N/A';
+          const dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : (data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A');
           const itemCount = data.items ? data.items.length : 0;
           const parsedDataTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
           const totalStr = data.total != null ? `$${parsedDataTotal.toFixed(2)}` : '—';
@@ -820,24 +820,26 @@ window.loadAnalytics = loadAnalytics;
           detailTr.style.display = "none";
           detailTr.style.background = "rgba(233,171,0,0.05)";
           
-          let itemsHtml = '<table style="width:100%; border-collapse: collapse; font-size: 13px;">';
-          itemsHtml += '<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--gray);"><th style="text-align:left; padding:8px;">Item Name</th><th style="text-align:left; padding:8px;">Category</th><th style="text-align:center; padding:8px;">Qty</th><th style="text-align:right; padding:8px;">Unit Price</th><th style="text-align:right; padding:8px;">Line Total</th></tr></thead>';
-          itemsHtml += '<tbody>';
+          let itemsHtml = '<div style="display: flex; flex-direction: column; gap: 8px;">';
           (data.items || []).forEach(item => {
              const uPrice = parseFloat(String(item.unitPrice || 0).replace(/[^0-9.-]+/g, "")) || 0;
              const lTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || 0;
-             itemsHtml += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                <td style="padding:8px; font-weight:600;">${window.escapeHtml(item.name || 'Unknown')}</td>
-                <td style="padding:8px; color:var(--gray);">${window.escapeHtml(item.category || 'other')}</td>
-                <td style="padding:8px; text-align:center;">${item.quantity || 1}</td>
-                <td style="padding:8px; text-align:right;">$${uPrice.toFixed(2)}</td>
-                <td style="padding:8px; text-align:right; font-weight:bold; color:var(--white);">$${lTotal.toFixed(2)}</td>
-             </tr>`;
+             itemsHtml += `<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <strong style="font-size: 14px;">${window.escapeHtml(item.name || 'Unknown')}</strong>
+                  <span style="font-size: 11px; color: var(--gray); text-transform: uppercase;">${window.escapeHtml(item.category || 'other')}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                  <strong style="font-size: 14px; color: var(--white);">$${lTotal.toFixed(2)}</strong>
+                  <span style="font-size: 11px; color: var(--gray);">${item.quantity || 1} @ $${uPrice.toFixed(2)}</span>
+                </div>
+             </div>`;
           });
-          itemsHtml += '</tbody></table>';
+          itemsHtml += '</div>';
           
-          detailTr.innerHTML = `<td colspan="5" style="padding: 0;">
+          detailTr.innerHTML = `<td colspan="5" data-label="" style="padding: 0; display: block; width: 100%; border: none;">
             <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+              <h4 style="margin: 0 0 12px 0; font-family: 'Barlow Condensed'; font-size: 16px; color: var(--white); text-transform: uppercase;">Receipt Items</h4>
               ${itemsHtml}
             </div>
           </td>`;

@@ -49,6 +49,7 @@ onSnapshot(doc(db, 'settings', 'pickupConfig'), (docSnap) => {
     pickupConfig = { ...pickupConfig, ...docSnap.data() };
     updateAsapEstimate();
     if (typeof checkBusinessHours === 'function') checkBusinessHours();
+    updateFooterHours();
   }
 });
 
@@ -58,6 +59,30 @@ onSnapshot(doc(db, 'liveStats', 'current'), (docSnap) => {
     updateAsapEstimate();
   }
 });
+
+function updateFooterHours() {
+  if (!pickupConfig.businessHours) return;
+  const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const openDaysStr = pickupConfig.openDays && pickupConfig.openDays.length === 7 
+    ? 'Every Day' 
+    : (pickupConfig.openDays || [0,1,2,3,4,5,6]).map(d => daysMap[d].substring(0,3)).join(', ');
+    
+  function formatTime(time24) {
+    const [h, m] = time24.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    let displayH = h % 12;
+    displayH = displayH ? displayH : 12;
+    return `${displayH}${m > 0 ? ':' + String(m).padStart(2, '0') : ''}${ampm}`;
+  }
+  
+  const openTime = formatTime(pickupConfig.businessHours.open);
+  const closeTime = formatTime(pickupConfig.businessHours.close);
+  const text = `${openDaysStr} ${openTime}–${closeTime}`;
+  
+  document.querySelectorAll('.footer-hours-display').forEach(el => {
+    el.textContent = text;
+  });
+}
 
 // ──────────────────────────────────────────
 // BUSINESS HOURS ENFORCEMENT

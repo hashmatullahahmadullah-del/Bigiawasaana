@@ -23,7 +23,7 @@ exports.parseReceipt = functions
       // 1. Download image from Google Cloud Storage to a local buffer
       const file = bucket.file(storagePath);
       const [metadata] = await file.getMetadata();
-      const mimeType = metadata.contentType || "image/jpeg";
+      const mimeType = metadata.contentType || "image/webp";
       const [buffer] = await file.download();
 
       // 2. Initialize Gemini API
