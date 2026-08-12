@@ -151,31 +151,21 @@ window.loadAnalytics = loadAnalytics;
     let currentItems = [];
     let currentStoragePath = null;
 
-    window.pendingReviewQueue = [];
     let isProcessingBatch = false;
 
-    const processNextInReviewQueue = () => {
-      if (window.pendingReviewQueue.length > 0) {
-        const nextData = window.pendingReviewQueue[0];
-        currentExpenseId = nextData.id;
-        currentItems = nextData.items || [];
-        // storage path is not stored in data returned by parseReceipt, but we can pass it if we attach it
-        currentStoragePath = nextData._storagePath;
-        renderReview(nextData);
-        statusEl.textContent = `✅ Ready to Review (${window.pendingReviewQueue.length} remaining). Click Confirm & Save to move to the next.`;
+    window.openDraftReview = (id) => {
+      const draftData = window[`draft_data_${id}`];
+      if (draftData) {
+        currentExpenseId = draftData.id;
+        currentItems = draftData.items || [];
+        currentStoragePath = draftData.rawImageUrl || draftData._storagePath;
+        renderReview(draftData);
+        statusEl.textContent = `Draft opened for review.`;
         if (receiptActions) receiptActions.style.display = "flex";
-      } else {
-        reviewSection.style.display = "none";
-        if (receiptActions) receiptActions.style.display = "none";
-        currentExpenseId = null;
-        currentItems = [];
-        currentStoragePath = null;
-        statusEl.textContent = "✅ All receipts processed and reviewed!";
-        showToast("All batch receipts processed.");
+        // scroll to top smoothly
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     };
-
-    // Override the confirm button logic later to call processNextInReviewQueue() instead of hiding everything if there's a queue
 
     const handleFilesSelected = async (files) => {
       if (!files || files.length === 0) return;
@@ -209,8 +199,6 @@ window.loadAnalytics = loadAnalytics;
           const result = await parseReceipt({ storagePath: path });
           
           if (result.data) {
-            result.data._storagePath = path;
-            window.pendingReviewQueue.push(result.data);
             successCount++;
           }
         } catch (err) {
@@ -222,10 +210,9 @@ window.loadAnalytics = loadAnalytics;
       isProcessingBatch = false;
       
       if (successCount > 0) {
-        statusEl.textContent = `Batch complete. ${successCount} successful, ${failCount} failed.`;
-        processNextInReviewQueue();
+        statusEl.textContent = `✅ Batch complete. ${successCount} processed. Check "Pending Receipts" below to review them.`;
       } else {
-        statusEl.textContent = `Batch failed. Could not process any receipts.`;
+        statusEl.textContent = `❌ Batch failed. Could not process any receipts.`;
       }
     };
 
@@ -290,6 +277,18 @@ window.loadAnalytics = loadAnalytics;
           console.error(err);
           statusEl.textContent = "Error deleting draft: " + err.message;
         }
+      });
+    }
+    
+    // Cancel button
+    const cancelBtn = document.getElementById("receipt-cancel-btn");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", () => {
+        reviewSection.style.display = "none";
+        if (receiptActions) receiptActions.style.display = "none";
+        currentExpenseId = null;
+        currentItems = [];
+        currentStoragePath = null;
       });
     }
 
@@ -451,19 +450,12 @@ window.loadAnalytics = loadAnalytics;
 
         showToast("Expense confirmed!");
 
-        // Move to the next item in the batch queue if any
-        if (window.pendingReviewQueue && window.pendingReviewQueue.length > 0) {
-          // Remove the one we just confirmed
-          window.pendingReviewQueue.shift();
-          processNextInReviewQueue();
-        } else {
-          statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
-          reviewSection.style.display = "none";
-          if (receiptActions) receiptActions.style.display = "none";
-          currentExpenseId = null;
-          currentItems = [];
-          currentStoragePath = null;
-        }
+        statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
+        reviewSection.style.display = "none";
+        if (receiptActions) receiptActions.style.display = "none";
+        currentExpenseId = null;
+        currentItems = [];
+        currentStoragePath = null;
       } catch (err) {
         console.error(err);
         statusEl.textContent = "Error saving: " + err.message;
@@ -986,6 +978,42 @@ window.loadAnalytics = loadAnalytics;
           });
           
           window.expenseDocsArray = docsArray;
+          
+          // Render Pending Inbox
+          const pendingInboxSection = document.getElementById('pending-inbox-section');
+          const pendingInboxList = document.getElementById('pending-inbox-list');
+          if (pendingInboxSection && pendingInboxList) {
+            const pendingDocs = docsArray.filter(d => !d.status || d.status === 'draft' || d.status === 'pending');
+            
+            if (pendingDocs.length > 0) {
+              pendingInboxSection.style.display = 'block';
+              pendingInboxList.innerHTML = pendingDocs.map(d => {
+                const vendor = escapeHtml(d.vendor || 'Unknown Vendor');
+                const dateStr = d.createdAt?.toDate ? d.createdAt.toDate().toLocaleDateString() : 'N/A';
+                const totalStr = d.total != null ? `$${parseFloat(String(d.total).replace(/[^0-9.-]+/g, "")).toFixed(2)}` : '—';
+                const itemCount = d.items ? d.items.length : 0;
+                
+                // Store the data in a globally accessible way for the click handler
+                window[`draft_data_${d.id}`] = d;
+                
+                return `
+                  <div onclick="openDraftReview('${d.id}')" style="background: var(--bg); border: 1px solid var(--accent); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(233,171,0,0.1)'" onmouseout="this.style.background='var(--bg)'">
+                    <div>
+                      <strong style="color: var(--white); font-size: 16px;">${vendor}</strong>
+                      <div style="font-size: 13px; color: var(--gray); margin-top: 4px;">${dateStr} &bull; ${itemCount} items</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                      <strong style="color: var(--accent); font-size: 18px;">${totalStr}</strong>
+                      <button type="button" class="btn-primary btn-small" style="padding: 6px 12px; pointer-events: none;">Review</button>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            } else {
+              pendingInboxSection.style.display = 'none';
+              pendingInboxList.innerHTML = '';
+            }
+          }
 
           let rowCount = 0;
           savedExpensesContainer.innerHTML = '';

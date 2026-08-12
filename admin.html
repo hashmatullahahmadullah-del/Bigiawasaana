@@ -1183,7 +1183,8 @@
               <input id="receipt-input-gallery" type="file" accept="image/*" multiple style="display:none;" />
               <div id="upload-status" style="margin-top: 16px; font-size: 14px; color: var(--gray);"></div>
               <!-- Retake / Delete Actions (hidden until a receipt is parsed) -->
-              <div id="receipt-actions" style="display: none; margin-top: 16px; display: none; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <div id="receipt-actions" style="display: none; margin-top: 16px; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" id="receipt-cancel-btn" class="btn-outline btn-small" style="color: var(--white);">❌ Close Review</button>
                 <button type="button" id="receipt-retake-btn" class="btn-outline btn-small" style="color: var(--white);">🔄 Retake / Re-upload</button>
                 <button type="button" id="receipt-delete-btn" class="btn-outline btn-small" style="color: #f44336; border-color: rgba(244,67,54,0.4);">🗑️ Delete Draft</button>
               </div>
@@ -1227,6 +1228,12 @@
                 <div class="stat-title">Biggest Item (30d)</div>
                 <div class="stat-value" id="exp-biggest-item" style="font-size: 18px;">-</div>
               </div>
+            </div>
+
+            <!-- Pending Inbox -->
+            <div id="pending-inbox-section" style="margin-bottom: 24px; display: none;">
+              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px; margin-bottom: 12px; color: var(--accent);">Inbox: Pending Receipts</h3>
+              <div id="pending-inbox-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
 
             <!-- Price Alerts Section -->
