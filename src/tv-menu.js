@@ -7,6 +7,15 @@ let featuredItems = [];
 let currentFeaturedIndex = 0;
 let featuredRotationInterval = null;
 
+// Handle Redirects for static menu screens
+const urlParams = new URLSearchParams(window.location.search);
+const screenParam = urlParams.get('screen');
+if (screenParam === '1') {
+  window.location.replace('/tv1');
+} else if (screenParam === '2') {
+  window.location.replace('/tv2');
+}
+
 // ─────────────────────────────────────────────────────────────────
 // AUTO-FULLSCREEN, MANUAL TOGGLE, & WAKE LOCK
 // ─────────────────────────────────────────────────────────────────
