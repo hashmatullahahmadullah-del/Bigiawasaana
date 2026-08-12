@@ -19,17 +19,24 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Lint
         run: npm run lint --if-present
         continue-on-error: true  # Don't block builds on lint initially
       
       - name: Build
-        run: npm run build
+        run: npm run build > build.log 2>&1 || (cat build.log && exit 1)
+      
+      - name: Upload Build Log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
       
       - name: Install function dependencies
-        run: cd functions && npm ci
+        run: cd functions && npm install
   
   deploy-preview:
     if: github.event_name == 'pull_request'
@@ -41,7 +48,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm install
       - run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -59,9 +66,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm install
       - run: npm run build
-      - run: cd functions && npm ci
+      - run: cd functions && npm install
       - name: Setup Firebase Credentials
         run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > firebase-key.json
       - name: Deploy to Firebase
