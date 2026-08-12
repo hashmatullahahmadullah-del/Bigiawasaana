@@ -62,9 +62,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: cd functions && npm ci
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          projectId: bigi-awasaana-7b3ce
-          channelId: live
+      - name: Setup Firebase Credentials
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > firebase-key.json
+      - name: Deploy to Firebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/firebase-key.json
+        run: npx firebase-tools deploy --project bigi-awasaana-7b3ce --non-interactive
