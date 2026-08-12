@@ -450,9 +450,9 @@ window.loadAnalytics = loadAnalytics;
       if (data.status !== 'confirmed') return;
       const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
 
-      (data.items || []).forEach(item => {
+      (Array.isArray(data.items) ? data.items : []).forEach(item => {
         if (item.name && item.unitPrice) {
-          const name = item.name.trim();
+          const name = String(item.name || '').trim();
           if (!itemsData[name]) itemsData[name] = [];
           itemsData[name].push({ date: expenseDate, price: item.unitPrice });
         }
@@ -540,13 +540,16 @@ window.loadAnalytics = loadAnalytics;
       const receiptTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
       vendorTotals[vendor] = (vendorTotals[vendor] || 0) + receiptTotal;
 
-      (data.items || []).forEach(item => {
-         const cat = item.category || 'other';
-         const total = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || 0;
+      (Array.isArray(data.items) ? data.items : []).forEach(item => {
+         const uPrice = parseFloat(item.unitPrice) || 0;
+         const qty = parseFloat(item.quantity) || 1;
+         const total = uPrice * qty;
+         
+         const cat = item.category ? String(item.category || '').trim().toLowerCase() : 'other';
          catTotals[cat] = (catTotals[cat] || 0) + total;
          
          if (item.name) {
-           const cleanName = item.name.trim().toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+           const cleanName = String(item.name || '').trim().toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
            itemTotals[cleanName] = (itemTotals[cleanName] || 0) + total;
          }
       });
@@ -776,7 +779,7 @@ window.loadAnalytics = loadAnalytics;
   window.initEconomicsListeners = () => {
     const savedExpensesTbody = document.getElementById("saved-expenses-tbody");
     if (savedExpensesTbody) {
-      const expensesQuery = query(collection(db, "expenses"), orderBy("createdAt", "desc"), limit(100));
+      const expensesQuery = query(collection(db, "expenses"), limit(200));
       window.window.expensesUnsub = onSnapshot(expensesQuery, (snapshot) => {
         savedExpensesTbody.innerHTML = "";
         if (snapshot.empty) {
@@ -788,11 +791,22 @@ window.loadAnalytics = loadAnalytics;
         renderExpenseStats(snapshot);
         initPriceTrends(snapshot);
 
+        let docsArray = [];
+        snapshot.forEach(docSnap => docsArray.push(docSnap.data()));
+        docsArray.sort((a,b) => {
+           const getMs = (r) => {
+               if (r.createdAt?.toDate) return r.createdAt.toDate().getTime();
+               if (r.createdAt) return new Date(r.createdAt).getTime();
+               if (r.purchaseDate?.toDate) return r.purchaseDate.toDate().getTime();
+               return 0;
+           };
+           return getMs(b) - getMs(a);
+        });
+
         let rowCount = 0;
-        snapshot.forEach(docSnap => {
+        docsArray.forEach(data => {
           if (rowCount >= 50) return;
           rowCount++;
-          const data = docSnap.data();
           const dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : (data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A');
           const itemCount = data.items ? data.items.length : 0;
           const parsedDataTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
@@ -821,7 +835,7 @@ window.loadAnalytics = loadAnalytics;
           detailTr.style.background = "rgba(233,171,0,0.05)";
           
           let itemsHtml = '<div style="display: flex; flex-direction: column; gap: 8px;">';
-          (data.items || []).forEach(item => {
+          (Array.isArray(data.items) ? data.items : []).forEach(item => {
              const uPrice = parseFloat(String(item.unitPrice || 0).replace(/[^0-9.-]+/g, "")) || 0;
              const lTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || 0;
              itemsHtml += `<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
