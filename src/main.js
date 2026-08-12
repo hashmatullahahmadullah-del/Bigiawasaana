@@ -509,7 +509,7 @@ function renderSpecials() {
   if (!grid) return;
   grid.innerHTML = '';
 
-  let specialItems = menuItems.filter(item => item.category === 'bigi street meals');
+  let specialItems = menuItems.filter(item => item.category === 'bigi street meals' && !item.hidden);
 
   specialItems.forEach(item => {
     const card = document.createElement('div');

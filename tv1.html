@@ -23,13 +23,9 @@
     }
     h1 { color: #ff4500; font-family: 'Arial Narrow', sans-serif; text-transform: uppercase; font-size: 4vw; }
     p { font-size: 1.5vw; opacity: 0.8; }
-    /* Hide youtube video behind the image but keep it full-screen active */
-    #yt-container {
-      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; 
-      z-index: -1; opacity: 0.01; pointer-events: none; overflow: hidden;
-    }
-    #yt-container iframe {
-      width: 100%; height: 100%;
+    /* Invisible base64 video loop to prevent TV sleep */
+    #tv-nosleep {
+      position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; z-index: -1;
     }
   </style>
 </head>
@@ -40,7 +36,7 @@
     <p>This activates fullscreen, starts music, and enables WakeLock to prevent sleep.</p>
   </div>
 
-  <div id="yt-container"></div>
+  <video id="tv-nosleep" playsinline muted loop src="data:video/webm;base64,GkXfo0AgQoaBAUL3gQFC8oEEQvOBCEKCQAR3ZWJtQoeBAkKFgQIYU4BnQAABZQUAAAAAAAAEAAABXgAAAs4T1kOIQnKGE8YBA4rIgEAAXwAAAwAAAwAAAAAYQoeBAkKFgQIYU4BnQAABZQUAAAAAAAAEAAABXgAAAs4="></video>
   <img id="menu-img" src="/tv1-menu.jpg" alt="TV1 Menu">
 
   <!-- Include NoSleep.js -->
@@ -67,16 +63,18 @@
         }
       }
 
-      // 3. Add Youtube video (Lofi Girl) full-screen BEHIND the image 
-      // This tricks the TV into thinking a full-screen video is playing.
-      const ytId = '5qap5aO4i9A'; 
-      document.getElementById('yt-container').innerHTML = `
-        <iframe 
-          src="https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=0&mute=0" 
-          frameborder="0" allow="autoplay" allowfullscreen>
-        </iframe>
-      `;
+      // 3. Play invisible base64 looping video
+      const video = document.getElementById('tv-nosleep');
+      if (video) {
+        video.play().catch(err => console.error('Video play error:', err));
+      }
     });
+
+    // 4. Reload the page every 15 minutes. This clears memory and often resets 
+    // aggressive TV OS sleep timers that ignore background videos.
+    setTimeout(() => {
+      window.location.reload();
+    }, 15 * 60 * 1000);
   </script>
 </body>
 </html>
