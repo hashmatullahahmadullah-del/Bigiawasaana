@@ -11,6 +11,16 @@ export function initNav(activePage = '') {
   syncGlobalBusinessHours();
   initCookieBanner();
   
+  // Check if we should initialize analytics right away
+  try {
+    const consent = JSON.parse(localStorage.getItem('cookieConsent'));
+    if (consent && consent.analytics) {
+      initAnalytics();
+    }
+  } catch (e) {
+    console.error("Error reading cookie consent", e);
+  }
+
   if (!hamburger || !drawer) return;
 
   hamburger.addEventListener('click', () => {
@@ -199,10 +209,34 @@ function initCookieBanner() {
   document.getElementById('cookie-accept').addEventListener('click', () => {
     localStorage.setItem('cookieConsent', JSON.stringify({ essential: true, analytics: true }));
     banner.remove();
+    initAnalytics(); // Start tracking immediately
   });
 
   document.getElementById('cookie-reject').addEventListener('click', () => {
     localStorage.setItem('cookieConsent', JSON.stringify({ essential: true, analytics: false }));
     banner.remove();
   });
+}
+
+function initAnalytics() {
+  const measurementId = 'G-XXXXXXXXXX'; // REPLACE WITH YOUR ACTUAL GA4 MEASUREMENT ID
+  
+  // Prevent duplicate initialization
+  if (window.dataLayer) return;
+  
+  // Create script tag for gtag.js
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+  document.head.appendChild(script);
+
+  // Initialize dataLayer and gtag function
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag = gtag; // Expose globally just in case
+  
+  gtag('js', new Date());
+  gtag('config', measurementId);
+  
+  console.log("Analytics initialized.");
 }
