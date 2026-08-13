@@ -113,6 +113,9 @@ body {
   position: relative;
   overflow: hidden;
   display: inline-block;
+  transform: translateZ(0);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  isolation: isolate;
 }
 
 .btn-primary::after {
