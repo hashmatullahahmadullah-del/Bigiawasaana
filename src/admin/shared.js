@@ -7,7 +7,7 @@ import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { t, getLang, setLang, toggleLang, applyTranslations } from '../i18n/index.js';
-
+import Chart from 'chart.js/auto';
 
 export const loginSection = document.getElementById('login-section');
 export const dashboardSection = document.getElementById('dashboard-section');
@@ -37,7 +37,7 @@ if (langToggleBtn) {
   langToggleBtn.addEventListener('click', () => {
     toggleLang();
     applyTranslations();
-    if (typeof renderEconomics === 'function') renderEconomics();
+    if (typeof window.renderEconomics === 'function') window.renderEconomics();
   });
 }
 
@@ -392,7 +392,7 @@ export function renderCustomers() {
         <td data-label="Last Ordered"><span style="color: ${lastOrderBadgeColor};">${lastOrderedStr}</span></td>
         <td data-label="Tier"><span class="crm-badge" style="background: ${color}33; color: ${color}; border-color: ${color};">${tier}</span></td>
       `;
-      tr.addEventListener('click', () => openCustomerDetail(c));
+      tr.addEventListener('click', () => window.openCustomerDetail(c));
       tbody.appendChild(tr);
     });
 }
@@ -531,7 +531,7 @@ export function renderAllOrders() {
         <td data-label="Total">$${o.total.toFixed(2)}</td>
         <td data-label="Status"><span class="status-badge ${statusClass}">${o.status}</span></td>
       `;
-      tr.addEventListener('click', () => openMockOrderDetail(o));
+      tr.addEventListener('click', () => window.openMockOrderDetail(o));
       tbody.appendChild(tr);
     });
 }

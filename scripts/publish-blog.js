@@ -47,7 +47,7 @@ async function publishBlog() {
     };
 
     const docRef = await addDoc(collection(db, "posts"), postData);
-    console.log(\`Successfully published blog post with ID: \${docRef.id}\`);
+    console.log(`Successfully published blog post with ID: ${docRef.id}`);
     process.exit(0);
   } catch (error) {
     console.error("Error publishing blog post:", error);

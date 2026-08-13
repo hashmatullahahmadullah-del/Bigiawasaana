@@ -106,7 +106,7 @@ export function initCRMData() {
     renderAllOrders();
     renderUpcomingScheduledOrders();
     renderLoyalty();
-    if (typeof renderEconomics === 'function') renderEconomics();
+    if (typeof window.renderEconomics === 'function') window.renderEconomics();
   });
 
   // 4. Listen to Catering Inquiries
@@ -118,25 +118,11 @@ export function initCRMData() {
     });
     renderCatering();
   });
-
-  // 5. Load Pop-up Settings & TV Promo Settings
-  loadPopupSettings();
-  loadTvPromoSettings();
-
-  // 6. Listen to Deals
-  if (typeof initDealsListener === 'function') {
-    window.dealsUnsub = initDealsListener();
-  }
-
-  // 7. Load Pickup Settings
-  loadPickupSettings();
-
-  // 8. Listen to Unit Economics Settings
   window.unitSettingsUnsub = onSnapshot(doc(db, 'unitEconomics_settings', 'config'), (docSnap) => {
     if (docSnap.exists()) {
       state.unitSettings = { ...state.unitSettings, ...docSnap.data() };
     }
-    if (typeof renderEconomics === 'function') renderEconomics();
+    if (typeof window.renderEconomics === 'function') window.renderEconomics();
   });
 
   // 9. Listen to Unit Economics Platforms
@@ -144,7 +130,7 @@ export function initCRMData() {
     if (docSnap.exists()) {
       state.unitPlatforms = { ...state.unitPlatforms, ...docSnap.data() };
     }
-    if (typeof renderEconomics === 'function') renderEconomics();
+    if (typeof window.renderEconomics === 'function') window.renderEconomics();
   });
 
   // 10. Listen to Unit Economics Ingredients
@@ -152,7 +138,7 @@ export function initCRMData() {
   window.ingredientsUnsub = onSnapshot(ingredientsQuery, (snapshot) => {
     state.ingredients = [];
     snapshot.forEach(d => state.ingredients.push({ id: d.id, ...d.data() }));
-    if (typeof renderEconomics === 'function') renderEconomics();
+    if (typeof window.renderEconomics === 'function') window.renderEconomics();
   });
 
   // 11. Listen to Unit Economics Events
@@ -160,11 +146,11 @@ export function initCRMData() {
   window.eventsUnsub = onSnapshot(eventsQuery, (snapshot) => {
     state.events = [];
     snapshot.forEach(d => state.events.push({ id: d.id, ...d.data(), date: d.data().date?.toDate() || new Date() }));
-    if (typeof renderEconomics === 'function') renderEconomics();
+    if (typeof window.renderEconomics === 'function') window.renderEconomics();
   });
 
   loadAnalytics();
-  initEconomicsListeners();
+  if (typeof window.initEconomicsListeners === 'function') window.initEconomicsListeners();
 }
 
 export async function loadTvPromoSettings() {

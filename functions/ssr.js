@@ -140,7 +140,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
 
     let cleanContent = post.content || '';
     if (post.coverImage) {
-      const escapedUrl = post.coverImage.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const escapedUrl = post.coverImage.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
       // Remove the image if it's wrapped in a <p>
       cleanContent = cleanContent.replace(new RegExp(`<p>\\s*<img[^>]*src=["']${escapedUrl}["'][^>]*>\\s*</p>`, 'gi'), '');
       // Remove just the <img> tag if it wasn't caught above

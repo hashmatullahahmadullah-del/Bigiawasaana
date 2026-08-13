@@ -5,7 +5,7 @@ import { app, db, storage } from '../firebase.js';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { ref, uploadBytes, deleteObject } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-
+import Chart from 'chart.js/auto';
 
 
 export function loadAnalytics() {
@@ -64,7 +64,7 @@ export function loadAnalytics() {
           const url = new URL(referrer);
           cleanRef = url.hostname; // e.g. www.google.com
         }
-      } catch(e) {}
+      } catch(e) { console.warn(e); }
       
       referrerCounts[cleanRef] = (referrerCounts[cleanRef] || 0) + 1;
     });
@@ -120,7 +120,7 @@ window.loadAnalytics = loadAnalytics;
   const deleteBtn = document.getElementById("receipt-delete-btn");
 
   // Compress image client-side before uploading (faster transfer + faster Gemini parsing)
-  function compressImage(file, maxWidth = 1600, quality = 0.7) {
+  const localCompressImage = (file, maxWidth = 1600, quality = 0.7) => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -186,7 +186,7 @@ window.loadAnalytics = loadAnalytics;
         const file = files[i];
         statusEl.textContent = `Processing receipt ${i + 1} of ${files.length}... (Compressing)`;
         try {
-          const compressed = await compressImage(file);
+          const compressed = await localCompressImage(file);
           statusEl.textContent = `Processing receipt ${i + 1} of ${files.length}... (Uploading)`;
           const timestamp = Date.now() + i;
           const path = `receipts/unsorted/${timestamp}_receipt.webp`;
@@ -264,7 +264,7 @@ window.loadAnalytics = loadAnalytics;
         try {
           await deleteDoc(doc(db, "expenses", currentExpenseId));
           if (currentStoragePath) {
-            try { await deleteObject(ref(storage, currentStoragePath)); } catch(e) {}
+            try { await deleteObject(ref(storage, currentStoragePath)); } catch(e) { console.warn(e); }
           }
           currentExpenseId = null;
           currentItems = [];
@@ -335,7 +335,7 @@ window.loadAnalytics = loadAnalytics;
       });
     }
 
-    function renderReview(data) {
+    const renderReview = (data) => {
       reviewMeta.innerHTML = `
         <strong>Vendor:</strong> ${data.vendor || "Unknown"} &nbsp;
         <strong>Total:</strong> $${data.total != null ? data.total.toFixed(2) : "\u2014"} &nbsp;

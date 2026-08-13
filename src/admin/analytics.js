@@ -3,6 +3,7 @@ import { state } from './shared.js';
 import { db } from '../firebase.js';
 import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, deleteDoc, serverTimestamp, where } from 'firebase/firestore';
 
+import Chart from 'chart.js/auto';
 
 window.profitChartInst = null;
 window.profitChartInst = null;

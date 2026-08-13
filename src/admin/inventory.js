@@ -15,7 +15,7 @@ window.switchEconomicsTab = (tabId) => {
   document.getElementById(`btn-eco-${tabId}`).classList.add('active');
   
   if (tabId === 'profit') {
-    renderEconomicsProfit();
+    window.renderEconomicsProfit();
   }
 };
 
@@ -24,7 +24,7 @@ window.renderEconomics = () => {
   
   renderEconomicsDashboardAlert();
   renderEconomicsMenu();
-  renderEconomicsProfit();
+  window.renderEconomicsProfit();
   renderEconomicsIngredients();
   renderEconomicsLaborEvents();
   renderEconomicsDelivery();
@@ -247,8 +247,8 @@ window.saveRecipe = async (e, menuId) => {
     window.adminMenuData[menuId].economics = ecoUpdate;
 
     showToast('Recipe saved successfully');
-    closeEditRecipeModal();
-    renderEconomics();
+    window.closeEditRecipeModal();
+    window.renderEconomics();
   } catch (err) {
     console.error(err);
     showToast('Error saving recipe', true);
@@ -514,7 +514,7 @@ window.pullLaborRevenue = () => {
   });
 
   document.getElementById('labor-revenue').value = rev.toFixed(2);
-  calculateLaborCost();
+  window.calculateLaborCost();
   showToast(`Pulled $${rev.toFixed(2)} in revenue.`);
 };
 
@@ -637,7 +637,7 @@ window.saveEvent = async (e, eventId) => {
       await addDoc(collection(db, 'unitEconomics_events'), payload);
     }
     showToast('Event saved');
-    closeEditEventModal();
+    window.closeEditEventModal();
   } catch (err) {
     console.error(err);
     showToast('Error saving event', true);
@@ -649,7 +649,7 @@ window.deleteEvent = async (eventId) => {
   try {
     await deleteDoc(doc(db, 'unitEconomics_events', eventId));
     showToast('Event deleted');
-    closeEditEventModal();
+    window.closeEditEventModal();
   } catch (err) {
     showToast('Error deleting', true);
   }
@@ -746,7 +746,7 @@ window.savePlatformRates = async () => {
     state.unitPlatforms = { ...state.unitPlatforms, ...newRates };
     
     showToast('Platform rates updated');
-    renderEconomics();
+    window.renderEconomics();
   } catch(err) {
     console.error(err);
     showToast('Error saving rates', true);

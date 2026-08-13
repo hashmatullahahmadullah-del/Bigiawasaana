@@ -151,7 +151,7 @@ if (totalEl) {
   state.catering.forEach(inquiry => {
     const tr = document.createElement('tr');
     tr.style.cursor = 'pointer';
-    tr.onclick = () => showCateringDetails(inquiry);
+    tr.onclick = () => window.showCateringDetails(inquiry);
     
     tr.innerHTML = `
       <td data-label="Added">${inquiry.createdAt.toLocaleDateString()}</td>
@@ -212,7 +212,7 @@ window.updateCateringStatus = async (id, status) => {
   try {
     await updateDoc(doc(db, 'catering_inquiries', id), { status });
     showToast('Inquiry status updated.');
-    closeCateringModal();
+    window.closeCateringModal();
   } catch (error) {
     console.error("Error updating catering status", error);
     showToast('Failed to update status.');

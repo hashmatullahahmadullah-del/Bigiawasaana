@@ -263,8 +263,8 @@ export async function loadMenuAdmin() {
       `;
     });
     adminMenuList.innerHTML = html;
-    if (typeof populateDealSelects === 'function') populateDealSelects();
-    if (typeof renderEconomics === 'function') renderEconomics();
+    if (typeof window.populateDealSelects === 'function') window.populateDealSelects();
+    if (typeof window.renderEconomics === 'function') window.renderEconomics();
   } catch (err) {
     console.error("Error loading menu: ", err);
     adminMenuList.innerHTML = "<p style=\"color: var(--accent);\">Failed to load menu.</p>";
@@ -368,7 +368,7 @@ if (editMenuForm) {
         variants,
         addOns
       });
-      closeEditMenuModal();
+      window.closeEditMenuModal();
       loadMenuAdmin();
     } catch (err) {
       console.error("Error updating menu item: ", err);

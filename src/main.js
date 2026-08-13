@@ -197,7 +197,8 @@ function populateDates() {
   updateTimeSlots();
 }
 
-window.updateTimeSlots = () => {
+window.updateTimeSlots = updateTimeSlots;
+function updateTimeSlots() {
   const dateStr = document.getElementById('pickup-date-select').value;
   const timeSelect = document.getElementById('pickup-time-select');
   if (!dateStr || !timeSelect) return;
@@ -265,7 +266,7 @@ window.updateTimeSlots = () => {
     document.getElementById('pickup-time-warning').style.display = 'none';
     timeSelect.disabled = false;
   }
-};
+}
 
 // ─────────────────────────────────────────────────────────────────
 // MENU LOADING
@@ -509,7 +510,7 @@ function renderSpecials() {
   if (!grid) return;
   grid.innerHTML = '';
 
-  let specialItems = menuItems.filter(item => item.category === 'bigi street meals' && !item.hidden);
+  let specialItems = menuItems.filter(item => item.category === 'bigi street meals');
 
   specialItems.forEach(item => {
     const card = document.createElement('div');
@@ -607,7 +608,8 @@ let currentModalItem = null;
 let currentModalQty = 1;
 let currentMealUpgrade = null; // the matching meal item from 'meals' category
 
-window.openItemModal = (id) => {
+window.openItemModal = openItemModal;
+function openItemModal(id) {
   const item = menuItems.find(i => i.id === id);
   if (!item) return;
 
@@ -773,12 +775,13 @@ window.openItemModal = (id) => {
   };
 
   modal.style.display = 'flex';
-};
+}
 
-window.closeItemModal = () => {
+window.closeItemModal = closeItemModal;
+function closeItemModal() {
   const modal = document.getElementById('item-details-modal');
   if (modal) modal.style.display = 'none';
-};
+}
 
 window.changeItemQty = (delta) => {
   currentModalQty += delta;
@@ -786,7 +789,8 @@ window.changeItemQty = (delta) => {
   updateModalPrice();
 };
 
-window.updateModalPrice = () => {
+window.updateModalPrice = updateModalPrice;
+function updateModalPrice() {
   if (!currentModalItem) return;
   
   let basePrice = currentModalItem.price || 0;
@@ -817,9 +821,10 @@ window.updateModalPrice = () => {
   document.getElementById('item-modal-price').textContent = `$${basePrice.toFixed(2)}`;
   document.getElementById('item-modal-qty').textContent = currentModalQty;
   document.getElementById('item-modal-add-btn').textContent = `Add to Cart - $${total.toFixed(2)}`;
-};
+}
 
-window.addConfiguredItemToCart = () => {
+window.addConfiguredItemToCart = addConfiguredItemToCart;
+function addConfiguredItemToCart() {
   if (!currentModalItem) return;
 
   // Check if meal upgrade is toggled on
@@ -878,7 +883,7 @@ window.addConfiguredItemToCart = () => {
   updateCartUI();
   const mealLabel = isMealUpgrade ? ' (Meal)' : '';
   showToast(`${currentModalItem.name}${mealLabel} added to cart`);
-};
+}
 
 window.addToCartDirect = (id, event) => {
   if (event) event.stopPropagation();
@@ -1355,7 +1360,7 @@ window.closePaymentModal = () => {
 
   // Destroy the card instance — openPaymentModal will re-create it on demand
   if (squareCard) {
-    try { squareCard.destroy(); } catch(e) {}
+    try { squareCard.destroy(); } catch(e) { console.warn(e); }
     squareCard = null;
   }
   
@@ -1542,7 +1547,7 @@ async function processSquareToken(token, { customerName, customerPhone, tipCents
     if (_errorsEl) _errorsEl.textContent = errorMsg;
     showToast(errorMsg);
   }
-};
+}
 
 // ─────────────────────────────────────────────────────────────────
 // TOAST NOTIFICATIONS
