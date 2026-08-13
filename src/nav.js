@@ -219,7 +219,7 @@ function initCookieBanner() {
 }
 
 function initAnalytics() {
-  const measurementId = 'G-XXXXXXXXXX'; // REPLACE WITH YOUR ACTUAL GA4 MEASUREMENT ID
+  const measurementId = 'G-KMWPNQK580'; // REPLACE WITH YOUR ACTUAL GA4 MEASUREMENT ID
   
   // Prevent duplicate initialization
   if (window.dataLayer) return;
