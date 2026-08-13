@@ -9,6 +9,8 @@ export function initNav(activePage = '') {
   
   // Sync global business hours on all pages
   syncGlobalBusinessHours();
+  initCookieBanner();
+  
   if (!hamburger || !drawer) return;
 
   hamburger.addEventListener('click', () => {
@@ -156,4 +158,51 @@ function syncGlobalBusinessHours() {
       el.textContent = openDaysStr === 'Every Day' ? 'Every Day' : openDaysStr;
     });
   }).catch(err => console.error("Error syncing business hours:", err));
+}
+
+function initCookieBanner() {
+  if (localStorage.getItem('cookieConsent')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'cookie-banner';
+  banner.style.cssText = `
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+  `;
+
+  banner.innerHTML = `
+    <div style="flex: 1; min-width: 250px;">
+      <h3 style="margin: 0 0 8px 0; font-family: 'Barlow Condensed'; letter-spacing: 1px; color: var(--accent);">WE VALUE YOUR PRIVACY</h3>
+      <p style="margin: 0; font-size: 14px; color: var(--gray); line-height: 1.5;">
+        We use essential cookies to keep items in your cart and keep you logged in. We also use optional analytics cookies to help us improve our menu and website. 
+        <a href="/privacy.html" style="color: var(--white); text-decoration: underline;">Learn more</a>.
+      </p>
+    </div>
+    <div style="display: flex; gap: 12px; flex-shrink: 0;">
+      <button id="cookie-reject" class="btn-outline" style="padding: 12px 24px; font-size: 14px;">Reject Non-Essential</button>
+      <button id="cookie-accept" class="btn-primary" style="padding: 12px 24px; font-size: 14px;">Accept All</button>
+    </div>
+  `;
+
+  document.body.appendChild(banner);
+
+  document.getElementById('cookie-accept').addEventListener('click', () => {
+    localStorage.setItem('cookieConsent', JSON.stringify({ essential: true, analytics: true }));
+    banner.remove();
+  });
+
+  document.getElementById('cookie-reject').addEventListener('click', () => {
+    localStorage.setItem('cookieConsent', JSON.stringify({ essential: true, analytics: false }));
+    banner.remove();
+  });
 }

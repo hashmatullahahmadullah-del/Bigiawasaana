@@ -30,6 +30,8 @@ export default defineConfig({
         tv2: resolve(__dirname, 'tv2.html'),
         blog: resolve(__dirname, 'blog.html'),
         review: resolve(__dirname, 'review.html'),
+        privacy: resolve(__dirname, 'privacy.html'),
+        terms: resolve(__dirname, 'terms.html'),
         cateringJs: resolve(__dirname, 'src/catering.js'),
         itemTemplate: resolve(__dirname, 'item-template.html'),
         blogTemplate: resolve(__dirname, 'blog-template.html'),

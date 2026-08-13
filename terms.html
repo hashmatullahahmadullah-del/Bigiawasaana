@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Terms of Service for Bigi Awasaana. Read our policies regarding online orders, refunds, and food allergies.">
+  <title>Terms of Service | Bigi Awasaana</title>
+  <link rel="canonical" href="https://bigiawasaana.com/terms.html">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <meta name="theme-color" content="#111111">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Lalezar&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
+
+  <style>
+    .legal-content h2 { margin-top: 40px; margin-bottom: 16px; font-size: 24px; color: var(--accent); }
+    .legal-content p, .legal-content li { color: var(--gray); line-height: 1.6; margin-bottom: 16px; font-size: 16px; }
+    .legal-content ul { padding-left: 20px; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+
+  <!-- Nav (Will be injected by nav.js) -->
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
+        <img src="/logo.webp" alt="Bigi Awasaana Logo" width="128" height="64">
+      </a>
+      <ul class="nav-links">
+        <li><a href="/menu.html">Menu</a></li>
+        <li><a href="/locations.html">Location</a></li>
+        <li><a href="/catering.html">Catering</a></li>
+        <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+        <span class="hamburger-box"><span class="hamburger-inner"></span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div class="nav-mobile-drawer" id="nav-mobile-drawer">
+    <a href="/menu.html">Menu</a>
+    <a href="/locations.html">Location</a>
+    <a href="/catering.html">Catering</a>
+    <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
+  </div>
+
+  <main>
+    <header style="padding-top: 120px; padding-bottom: 60px; text-align: center; border-bottom: 1px solid var(--border);">
+      <div class="container">
+        <h1 class="font-lalezar" style="font-size: clamp(32px, 6vw, 64px); line-height: 1; margin-bottom: 16px;">TERMS OF SERVICE</h1>
+        <p style="color: var(--gray); font-size: 15px;">Last Updated: August 12, 2026</p>
+      </div>
+    </header>
+
+    <section class="py-xl">
+      <div class="container" style="max-width: 800px;">
+        <div class="legal-content">
+          <p>Please read these Terms of Service carefully before using the Bigi Awasaana website or placing an online order.</p>
+          
+          <h2>1. General Conditions</h2>
+          <p>By placing an order through our website, you warrant that you are legally capable of entering into binding contracts. We reserve the right to refuse service, cancel orders, or terminate accounts at our sole discretion.</p>
+
+          <h2>2. Pricing and Availability</h2>
+          <p>All prices are subject to change without notice. We make every effort to ensure that the pricing and availability of items on our menu are accurate, but errors may occur. In the event of a pricing error, we will contact you before preparing your order.</p>
+
+          <h2>3. Refunds and Cancellations</h2>
+          <p>Because our food is prepared to order, we generally cannot accept cancellations or offer refunds once meal preparation has begun. If there is a problem with your order (e.g., missing items or incorrect preparation), please contact us immediately so we can make it right. Refunds are issued at the sole discretion of management.</p>
+
+          <h2>4. Food Allergies</h2>
+          <p>While we take precautions to prevent cross-contamination, our kitchen handles ingredients that may contain allergens, including nuts, dairy, wheat, and soy. We cannot guarantee a 100% allergen-free environment. If you have a severe food allergy, please inform us, but be aware that you consume our food at your own risk.</p>
+
+          <h2>5. Intellectual Property</h2>
+          <p>All content on this website, including text, graphics, logos, images, and software, is the property of Bigi Awasaana or its content suppliers and is protected by copyright laws.</p>
+
+          <h2>6. Changes to Terms</h2>
+          <p>We reserve the right to update or modify these Terms of Service at any time without prior notice. Your continued use of the website following any changes constitutes your acceptance of the new Terms.</p>
+
+          <h2>7. Contact Information</h2>
+          <p>Questions about the Terms of Service should be sent to us at:</p>
+          <ul>
+            <li>Email: bigiawasaana@gmail.com</li>
+            <li>Phone: (323) 921-1646</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" style="background: var(--surface); padding-top: 64px; border-top: 1px solid var(--border);">
+    <div class="footer-bottom">
+      <div class="container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+        <p style="margin: 0;">&copy; 2026 Bigi Awasaana. All rights reserved.</p>
+        <div style="display: flex; gap: 16px;">
+          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/terms.html">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Cart FAB (hidden until launch) -->
+  <button class="btn-primary cart-fab" onclick="toggleCart(true)" id="cart-fab" aria-label="Open cart" style="display: none;">
+    <span style="font-size: 16px;">BAG</span>
+    <span id="cart-count-badge" class="cart-badge">0</span>
+  </button>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
