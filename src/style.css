@@ -128,8 +128,8 @@ body {
 
 @keyframes shimmer-btn {
   0% { transform: translateX(-150%) skewX(-20deg); }
-  20% { transform: translateX(200%) skewX(-20deg); }
-  100% { transform: translateX(200%) skewX(-20deg); }
+  20% { transform: translateX(300%) skewX(-20deg); }
+  100% { transform: translateX(300%) skewX(-20deg); }
 }
 
 .btn-primary:hover {

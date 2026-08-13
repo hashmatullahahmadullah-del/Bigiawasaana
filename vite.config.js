@@ -1,10 +1,19 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import fs from 'fs';
+
+// Get all area HTML files
+const areaFiles = fs.readdirSync(resolve(__dirname, 'areas'))
+  .filter(file => file.endsWith('.html'))
+  .reduce((entries, file) => {
+    const name = file.replace('.html', '');
+    entries[`area_${name}`] = resolve(__dirname, `areas/${file}`);
+    return entries;
+  }, {});
 
 export default defineConfig({
   build: {
     rollupOptions: {
-
       input: {
         main: resolve(__dirname, 'index.html'),
         admin: resolve(__dirname, 'admin.html'),
@@ -25,6 +34,7 @@ export default defineConfig({
         itemTemplate: resolve(__dirname, 'item-template.html'),
         blogTemplate: resolve(__dirname, 'blog-template.html'),
         areaTemplate: resolve(__dirname, 'area-template.html'),
+        ...areaFiles
       },
     },
   },
