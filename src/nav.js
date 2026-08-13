@@ -6,6 +6,9 @@ import { getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js
 export function initNav(activePage = '') {
   const hamburger = document.getElementById('nav-hamburger');
   const drawer = document.getElementById('nav-mobile-drawer');
+  
+  // Sync global business hours on all pages
+  syncGlobalBusinessHours();
   if (!hamburger || !drawer) return;
 
   hamburger.addEventListener('click', () => {
@@ -111,4 +114,46 @@ function renderPopup(data, lastUpdate, dismissedKey) {
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closePopup();
   });
+}
+
+function syncGlobalBusinessHours() {
+  getDoc(doc(db, 'settings', 'pickupConfig')).then((docSnap) => {
+    if (!docSnap.exists()) return;
+    const pickupConfig = docSnap.data();
+    if (!pickupConfig.businessHours) return;
+    
+    const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const openDaysStr = pickupConfig.openDays && pickupConfig.openDays.length === 7 
+      ? 'Every Day' 
+      : (pickupConfig.openDays || [0,1,2,3,4,5,6]).map(d => daysMap[d].substring(0,3)).join(', ');
+      
+    function formatTime(time24) {
+      if(!time24) return '';
+      const [h, m] = time24.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      let displayH = h % 12;
+      displayH = displayH ? displayH : 12;
+      return `${displayH}${m > 0 ? ':' + String(m).padStart(2, '0') : ''}${ampm}`;
+    }
+    
+    const openTime = formatTime(pickupConfig.businessHours.open);
+    const closeTime = formatTime(pickupConfig.businessHours.close);
+    
+    // Format 1: "Every Day 12PM-10:30PM"
+    const fullText = `${openDaysStr} ${openTime}–${closeTime}`;
+    document.querySelectorAll('.footer-hours-display').forEach(el => {
+      el.textContent = fullText;
+    });
+    
+    // Format 2: "12:00 PM - 10:30 PM" (Used in hero/location headers)
+    const timeOnlyText = `${openTime} – ${closeTime}`;
+    document.querySelectorAll('.hero-hours-display').forEach(el => {
+      el.textContent = timeOnlyText;
+    });
+    
+    // Format 3: Update "Open Every Day" separately if needed
+    document.querySelectorAll('.hero-days-display').forEach(el => {
+      el.textContent = openDaysStr === 'Every Day' ? 'Every Day' : openDaysStr;
+    });
+  }).catch(err => console.error("Error syncing business hours:", err));
 }

@@ -77,10 +77,22 @@ function updateFooterHours() {
   
   const openTime = formatTime(pickupConfig.businessHours.open);
   const closeTime = formatTime(pickupConfig.businessHours.close);
-  const text = `${openDaysStr} ${openTime}–${closeTime}`;
   
+  // Format 1: "Every Day 12PM-10:30PM"
+  const fullText = `${openDaysStr} ${openTime}–${closeTime}`;
   document.querySelectorAll('.footer-hours-display').forEach(el => {
-    el.textContent = text;
+    el.textContent = fullText;
+  });
+  
+  // Format 2: "12:00 PM - 10:30 PM" (Used in hero/location headers)
+  const timeOnlyText = `${openTime} – ${closeTime}`;
+  document.querySelectorAll('.hero-hours-display').forEach(el => {
+    el.textContent = timeOnlyText;
+  });
+  
+  // Format 3: Update "Open Every Day" separately if needed
+  document.querySelectorAll('.hero-days-display').forEach(el => {
+    el.textContent = openDaysStr === 'Every Day' ? 'Every Day' : openDaysStr;
   });
 }
 
