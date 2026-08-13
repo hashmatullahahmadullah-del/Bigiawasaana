@@ -90,7 +90,9 @@ function updateFooterHours() {
 window.isStoreClosed = false;
 
 function checkBusinessHours() {
-  const now = new Date();
+  // Get current time in Los Angeles timezone to prevent device time spoofing
+  const nowString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+  const now = new Date(nowString);
   if (!pickupConfig.businessHours) return;
   const [openH, openM] = pickupConfig.businessHours.open.split(':').map(Number);
   const [closeH, closeM] = pickupConfig.businessHours.close.split(':').map(Number);

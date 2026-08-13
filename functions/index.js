@@ -12,3 +12,4 @@ exports.renderItemPage = require('./ssr').renderItemPage;
 exports.renderAreaPage = require('./ssr').renderAreaPage;
 exports.renderSitemap = require('./ssr').renderSitemap;
 exports.onNewCateringInquiry = require('./catering').onNewCateringInquiry;
+exports.generateSeoBlog = require('./blogGen').generateSeoBlog;

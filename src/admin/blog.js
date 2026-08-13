@@ -3,7 +3,8 @@ import { showToast } from './orders.js';
 import { db, storage } from '../firebase.js';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from '../firebase.js';
 
 window.quill = null;
 document.addEventListener('DOMContentLoaded', () => {
@@ -93,6 +94,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   cancelPostBtn?.addEventListener('click', () => {
     blogEditorSection.style.display = 'none';
+  });
+
+  const generateBtn = document.getElementById('generate-ai-blog-btn');
+  generateBtn?.addEventListener('click', async () => {
+    const topic = prompt("Enter a topic for the blog post (e.g. 'Best Halal Burger in SFV'):");
+    if (!topic) return;
+
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Generating...';
+    
+    try {
+      showToast('Generating AI blog post. This may take 10-20 seconds...');
+      const generateSeoBlog = httpsCallable(getFunctions(app), 'generateSeoBlog');
+      const res = await generateSeoBlog({ topic });
+      const data = res.data;
+      
+      document.getElementById('post-id').value = '';
+      document.getElementById('post-title').value = data.title || '';
+      document.getElementById('post-slug').value = ''; 
+      document.getElementById('post-excerpt').value = data.excerpt || '';
+      document.getElementById('post-keywords').value = data.keywords || '';
+      document.getElementById('post-published').checked = false;
+      currentCoverUrl = '';
+      document.getElementById('post-cover-preview').innerHTML = '';
+      if(window.quill) window.quill.root.innerHTML = data.content || '';
+      
+      blogEditorSection.style.display = 'block';
+      blogForm.scrollIntoView({ behavior: 'smooth' });
+      showToast('Blog generated successfully! Review and add an image.');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to generate blog: ' + err.message);
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.textContent = '✨ Generate with AI';
+    }
   });
 
   postCoverImage?.addEventListener('change', async (e) => {
