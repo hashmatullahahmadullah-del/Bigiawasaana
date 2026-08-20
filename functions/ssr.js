@@ -126,7 +126,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
           "@type": "ListItem",
           "position": 2,
           "name": "Blog",
-          "item": "https://bigiawasaana.com/blog.html"
+          "item": "https://bigiawasaana.com/blog"
         },
         {
           "@type": "ListItem",
@@ -151,7 +151,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
       <article class="blog-article">
         <div class="container">
           <header class="blog-header">
-            <a href="/blog.html" class="back-to-blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back to Blog</a>
+            <a href="/blog" class="back-to-blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back to Blog</a>
             <div class="blog-meta">
               <span class="blog-date">${formattedDate}</span>
               ${post.keywords ? `<span class="blog-category">${post.keywords.split(',')[0].trim()}</span>` : ''}
