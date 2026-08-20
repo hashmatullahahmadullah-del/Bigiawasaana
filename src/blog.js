@@ -7,6 +7,9 @@ initNav();
 document.addEventListener('DOMContentLoaded', async () => {
   const feedContainer = document.getElementById('blog-feed-container');
   if (!feedContainer) return;
+  
+  // If SSR has already populated the blog cards, skip client-side fetch
+  if (feedContainer.querySelector('.blog-card')) return;
 
   try {
     const q = query(

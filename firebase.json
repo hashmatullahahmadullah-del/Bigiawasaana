@@ -48,7 +48,8 @@
     "rewrites": [
       { "source": "/sitemap.xml", "function": "renderSitemap" },
       { "source": "/blog/**", "function": "renderBlogPage" },
-      { "source": "/blog", "destination": "/blog.html" },
+      { "source": "/blog.html", "function": "renderBlogIndex" },
+      { "source": "/blog", "function": "renderBlogIndex" },
       { "source": "/item/**", "function": "renderItemPage" },
       { "source": "/faq", "destination": "/faq.html" },
       { "source": "/menu", "destination": "/menu.html" },

@@ -327,6 +327,17 @@ async function loadMenuFromFirestore() {
   try {
     const snapshot = await getDocs(collection(db, 'menu'));
     if (!snapshot.empty) {
+      // Helper to convert existing firebasestorage URLs to SEO-friendly rewritten paths
+      function getSEOImageUrl(url) {
+        if (url && typeof url === 'string' && url.includes('firebasestorage.googleapis.com') && url.includes('menu-images')) {
+          const match = url.match(/menu-images%2F([^?&]+)/);
+          if (match && match[1]) {
+            return `/m-img/${match[1]}`;
+          }
+        }
+        return url;
+      }
+
       menuItems = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
@@ -335,7 +346,7 @@ async function loadMenuFromFirestore() {
           desc: data.desc || data.description || '',
           price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
           category: (data.category || 'platters').toLowerCase(),
-          img: data.img || data.image || data.imageUrl || '',
+          img: getSEOImageUrl(data.img || data.image || data.imageUrl || ''),
           featured: !!data.featured,
           calories: data.calories || null,
           variants: Array.isArray(data.variants) ? data.variants : [],

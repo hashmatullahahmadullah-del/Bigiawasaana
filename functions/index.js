@@ -13,3 +13,5 @@ exports.renderAreaPage = require('./ssr').renderAreaPage;
 exports.renderSitemap = require('./ssr').renderSitemap;
 exports.onNewCateringInquiry = require('./catering').onNewCateringInquiry;
 exports.generateSeoBlog = require('./blogGen').generateSeoBlog;
+exports.renderBlogIndex = require('./ssr').renderBlogIndex;
+exports.serveMenuImage = require('./images').serveMenuImage;

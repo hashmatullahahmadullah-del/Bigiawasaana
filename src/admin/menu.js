@@ -89,16 +89,18 @@ export async function compressImage(file, maxWidth = 800, quality = 0.8) {
 export async function uploadImageFile(file) {
   try {
     const optimizedFile = await compressImage(file);
-    const storageRef = ref(storage, `menu-images/${Date.now()}_${optimizedFile.name}`);
-    const snapshot = await uploadBytes(storageRef, optimizedFile);
-    const downloadUrl = await getDownloadURL(snapshot.ref);
-    return downloadUrl;
+    const safeName = optimizedFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '-');
+    const filename = `${Date.now()}_${safeName}`;
+    const storageRef = ref(storage, `menu-images/${filename}`);
+    await uploadBytes(storageRef, optimizedFile);
+    return `/m-img/${filename}`;
   } catch (err) {
     console.error("Image compression failed, falling back to original:", err);
-    const storageRef = ref(storage, `menu-images/${Date.now()}_${file.name}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadUrl = await getDownloadURL(snapshot.ref);
-    return downloadUrl;
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '-');
+    const filename = `${Date.now()}_${safeName}`;
+    const storageRef = ref(storage, `menu-images/${filename}`);
+    await uploadBytes(storageRef, file);
+    return `/m-img/${filename}`;
   }
 }
 

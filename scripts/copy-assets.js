@@ -21,6 +21,21 @@ filesToCopy.forEach(({ src, dest }) => {
   if (fs.existsSync(src)) {
     if (src.endsWith('.html') && dest.startsWith('functions/')) {
       let content = fs.readFileSync(src, 'utf8');
+      // Re-inject CSS links that Vite strips from SSR templates
+      // These raw CSS files are copied to dist/src/ and served via Firebase Hosting
+      if (!content.includes('/src/style.css') && !content.includes('style-')) {
+        content = content.replace(
+          '</head>',
+          '  <link rel="stylesheet" href="/src/style.css">\n  <link rel="stylesheet" href="/src/mobile-nav.css">\n</head>'
+        );
+      }
+      // Re-inject nav.js script if Vite stripped it
+      if (!content.includes('/src/nav.js') && !content.includes('nav-')) {
+        content = content.replace(
+          '</body>',
+          '  <script type="module">\n    import { initNav } from "/src/nav.js";\n    initNav();\n  </script>\n</body>'
+        );
+      }
       fs.writeFileSync(dest, content);
       console.log(`Copied ${src} to ${dest}`);
     } else {

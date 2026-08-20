@@ -575,44 +575,44 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>\${baseUrl}/</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>\${baseUrl}/menu.html</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/menu</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>\${baseUrl}/specials.html</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/specials</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>\${baseUrl}/locations.html</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/locations</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>\${baseUrl}/catering.html</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/catering</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>\${baseUrl}/faq.html</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/faq</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>\${baseUrl}/blog.html</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/blog</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>`;
@@ -639,8 +639,8 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
     allAreaSlugs.forEach(slug => {
       xml += `
   <url>
-    <loc>\${baseUrl}/areas/\${slug}</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/areas/\${slug}</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`;
@@ -654,8 +654,8 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
         const itemSlug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         xml += `
   <url>
-    <loc>\${baseUrl}/item/\${itemSlug}</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/item/\${itemSlug}</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>`;
@@ -671,8 +671,8 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
       if (data.slug) {
         xml += `
   <url>
-    <loc>\${baseUrl}/blog/\${data.slug}</loc>
-    <lastmod>\${now}</lastmod>
+    <loc>${baseUrl}/blog/\${data.slug}</loc>
+    <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>`;

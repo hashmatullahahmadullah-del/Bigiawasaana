@@ -11,10 +11,13 @@
       font-family: sans-serif;
     }
     #menu-img {
+      position: absolute; top: 0; left: 0;
       width: 100vw;
       height: 100vh;
       object-fit: contain;
       display: block;
+      z-index: 10;
+      background: #000;
     }
     #start-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -23,9 +26,13 @@
     }
     h1 { color: #ff4500; font-family: 'Arial Narrow', sans-serif; text-transform: uppercase; font-size: 4vw; }
     p { font-size: 1.5vw; opacity: 0.8; }
-    /* Invisible base64 video loop to prevent TV sleep */
-    #tv-nosleep {
-      position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; z-index: -1;
+    /* Unoccluded tiny video to bypass aggressive browser optimizations */
+    #youtube-player-container {
+      position: absolute; top: 0; left: 0; width: 10px; height: 10px;
+      opacity: 0.05; pointer-events: none; z-index: 999; overflow: hidden;
+    }
+    #youtube-player {
+      width: 100vw; height: 100vh;
     }
   </style>
 </head>
@@ -36,45 +43,117 @@
     <p>This activates fullscreen, starts music, and enables WakeLock to prevent sleep.</p>
   </div>
 
-  <video id="tv-nosleep" playsinline muted loop src="data:video/webm;base64,GkXfo0AgQoaBAUL3gQFC8oEEQvOBCEKCQAR3ZWJtQoeBAkKFgQIYU4BnQAABZQUAAAAAAAAEAAABXgAAAs4T1kOIQnKGE8YBA4rIgEAAXwAAAwAAAwAAAAAYQoeBAkKFgQIYU4BnQAABZQUAAAAAAAAEAAABXgAAAs4="></video>
+  <div id="youtube-player-container">
+    <div id="youtube-player"></div>
+  </div>
   <img id="menu-img" src="/tv1-menu.jpg" alt="TV1 Menu">
 
   <!-- Include NoSleep.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
+  <!-- YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
   <script>
+    let player;
+    // Replace this with your desired YouTube video ID
+    const YOUTUBE_VIDEO_ID = 'jfKfPfyJRdk'; // Default: Lofi Girl stream
+    
+    // We use localStorage to remember if the TV was started within the last 12 hours.
+    // This allows us to reload the page to reset aggressive TV sleep timers without needing another tap.
+    const LAST_STARTED_KEY = 'tv_last_started';
+    const now = Date.now();
+    const lastStarted = localStorage.getItem(LAST_STARTED_KEY);
+    const shouldAutoResume = lastStarted && (now - parseInt(lastStarted) < 12 * 60 * 60 * 1000);
+
+    if (shouldAutoResume) {
+      document.getElementById('start-overlay').style.display = 'none';
+    }
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('youtube-player', {
+        videoId: YOUTUBE_VIDEO_ID,
+        playerVars: {
+          'autoplay': shouldAutoResume ? 1 : 0,
+          'controls': 0,
+          'loop': 1,
+          'playlist': YOUTUBE_VIDEO_ID // Required to loop a single video
+        },
+        events: {
+          'onReady': onPlayerReady
+        }
+      });
+    }
+
+    function onPlayerReady(event) {
+      if (shouldAutoResume) {
+        event.target.playVideo();
+        event.target.unMute();
+        event.target.setVolume(100);
+        activateWakeLock();
+      }
+    }
+
     document.getElementById('start-overlay').addEventListener('click', async () => {
       document.getElementById('start-overlay').style.display = 'none';
+      localStorage.setItem(LAST_STARTED_KEY, Date.now().toString());
       
       // Request fullscreen
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(e => console.log(e));
       }
 
-      // 1. Enable NoSleep.js fallback
+      activateWakeLock();
+
+      // Play YouTube video
+      if (player && typeof player.playVideo === 'function') {
+        player.playVideo();
+        player.unMute();
+        player.setVolume(100);
+      }
+    });
+
+    async function activateWakeLock() {
       const noSleep = new NoSleep();
       noSleep.enable();
 
-      // 2. Try modern Screen Wake Lock API
       if ('wakeLock' in navigator) {
         try {
-          await navigator.wakeLock.request('screen');
+          let wakeLock = await navigator.wakeLock.request('screen');
+          document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+              wakeLock = await navigator.wakeLock.request('screen');
+            }
+          });
         } catch (err) {
           console.log('Wake Lock error:', err);
         }
       }
+    }
 
-      // 3. Play invisible base64 looping video
-      const video = document.getElementById('tv-nosleep');
-      if (video) {
-        video.play().catch(err => console.error('Video play error:', err));
+    // Force video playback if it pauses, and force DOM repaints
+    setInterval(() => {
+      if (player && typeof player.getPlayerState === 'function') {
+        const state = player.getPlayerState();
+        if (state !== 1 && state !== 3 && document.getElementById('start-overlay').style.display === 'none') {
+          player.playVideo();
+        }
       }
-    });
+      const dummy = document.createElement('div');
+      dummy.style.position = 'absolute';
+      dummy.style.opacity = '0.01';
+      dummy.innerText = Date.now();
+      document.body.appendChild(dummy);
+      setTimeout(() => dummy.remove(), 50);
+    }, 10000);
 
-    // 4. Reload the page every 15 minutes. This clears memory and often resets 
-    // aggressive TV OS sleep timers that ignore background videos.
+    // Reload the page every 10 minutes. This is the ultimate weapon against TV sleep timers.
+    // Because we save the state in localStorage, it will bypass the "Tap to Start" screen
+    // and immediately resume playing.
     setTimeout(() => {
-      window.location.reload();
-    }, 15 * 60 * 1000);
+      if (document.getElementById('start-overlay').style.display === 'none') {
+        window.location.reload();
+      }
+    }, 10 * 60 * 1000);
   </script>
 </body>
 </html>
