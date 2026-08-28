@@ -67,9 +67,33 @@ body.crm-body {
 
 /* Sidebar Refinement */
 .crm-nav {
+  width: 260px !important;
   background: var(--surface-admin);
   border-right: 1px solid var(--border-admin);
   transition: background-color 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: static !important;
+  height: 100vh !important;
+}
+
+/* Mobile Sidebar Fix */
+@media (max-width: 768px) {
+  .crm-nav {
+    position: fixed !important;
+    left: -260px;
+    z-index: 1000;
+    transition: left 0.3s ease;
+  }
+  .crm-nav.mobile-open {
+    left: 0;
+  }
+}
+
+.crm-nav-links {
+  padding: 24px 12px;
+  flex: 1;
 }
 
 .crm-nav-item {
@@ -79,10 +103,16 @@ body.crm-body {
   text-transform: none;
   letter-spacing: 0;
   color: var(--text-muted);
-  border-left: 3px solid transparent;
+  border-left: none; /* Removed the line on the left */
+  border-radius: 8px; /* Added soft rounded corners */
   padding: 10px 16px;
   transition: all 0.2s ease;
-  margin-bottom: 2px;
+  margin-bottom: 4px; /* Slightly more gap */
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  background: transparent;
 }
 
 .crm-nav-item:hover {
@@ -91,12 +121,12 @@ body.crm-body {
 }
 
 .crm-nav-item.active {
-  color: var(--accent-admin);
-  border-left-color: var(--accent-admin);
-  background: var(--hover-bg);
+  color: var(--accent-admin) !important;
+  background: var(--hover-bg) !important;
+  font-weight: 600;
 }
 
-.crm-nav-item .icon { opacity: 0.7; }
+.crm-nav-item .icon { opacity: 0.7; margin-right: 12px; font-size: 18px; width: 24px; text-align: center; }
 .crm-nav-item.active .icon { opacity: 1; }
 
 /* Buttons */
@@ -241,6 +271,52 @@ input:focus, select:focus, textarea:focus {
 .tab-btn.active {
   color: var(--accent-admin) !important;
   border-bottom-color: var(--accent-admin) !important;
+}
+
+/* Overview Cards */
+#today-glance {
+  background: var(--surface-admin) !important;
+  border: 1px solid var(--border-admin) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: 16px !important;
+  padding: 32px !important;
+}
+
+#today-glance > div {
+  padding: 16px;
+  border-radius: 12px;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+#today-glance > div:hover {
+  background: var(--hover-bg);
+  transform: translateY(-2px);
+}
+
+#today-glance > div > div:first-child {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+  color: var(--text-muted) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 8px !important;
+}
+
+#today-glance > div > div:last-child {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 32px !important;
+  color: var(--text-main) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+}
+
+/* Quick Actions buttons below glance */
+#dashboard-view .btn-outline {
+  border-radius: 20px !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  background: var(--surface-admin) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 /* Theme Toggle Button */
