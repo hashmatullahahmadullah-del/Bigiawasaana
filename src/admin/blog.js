@@ -1,4 +1,4 @@
-﻿import { compressImage } from './menu.js';
+import { compressImage } from './menu.js';
 import { showToast } from './orders.js';
 import { db, storage } from '../firebase.js';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Apply alt attribute to the newly inserted image
             setTimeout(() => {
-              const images = document.querySelectorAll('#quill-editor img');
+              const images = document.querySelectorAll('#window.quill-editor img');
               images.forEach(img => {
                 if (img.src === url) {
                   img.setAttribute('alt', altText);
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Failed to generate blog: ' + err.message);
     } finally {
       generateBtn.disabled = false;
-      generateBtn.textContent = 'âœ¨ Generate with AI';
+      generateBtn.textContent = '✨ Generate with AI';
     }
   });
 
@@ -264,6 +264,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
 
 
