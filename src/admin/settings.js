@@ -1,8 +1,9 @@
 import { showToast } from './orders.js';
 import { errorEl, state } from './shared.js';
-import { auth, db } from '../firebase.js';
+import { app, auth, db } from '../firebase.js';
 import { updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 
 
@@ -185,6 +186,62 @@ const initPickupForm = () => {
       if (btn) btn.textContent = 'Save Pickup Settings';
     }
   });
+
+  // --- Google Maps Sync Button ---
+  const syncBtn = document.getElementById('btn-sync-google-hours');
+  const syncStatus = document.getElementById('google-sync-status');
+
+  if (syncBtn) {
+    syncBtn.addEventListener('click', async () => {
+      syncBtn.disabled = true;
+      syncBtn.textContent = '⏳ Syncing...';
+      if (syncStatus) {
+        syncStatus.style.display = 'block';
+        syncStatus.style.color = 'var(--gray)';
+        syncStatus.textContent = 'Fetching business hours from Google Maps...';
+      }
+
+      try {
+        const functions = getFunctions(app);
+        const syncGoogleHours = httpsCallable(functions, 'syncGoogleHours');
+        const result = await syncGoogleHours();
+
+        // The onSnapshot listener in loadPickupSettings() will automatically
+        // update the form fields when Firestore is updated by the Cloud Function.
+
+        if (syncStatus) {
+          if (result.data.temporarilyClosed) {
+            syncStatus.style.color = '#f87171'; // red
+            syncStatus.textContent = '⚠️ Your Google Maps listing is marked as "Temporarily Closed". This status is now shown on the website.';
+            showToast('Google Maps shows: Temporarily Closed — website updated.', true);
+          } else if (result.data.permanentlyClosed) {
+            syncStatus.style.color = '#f87171'; // red
+            syncStatus.textContent = '⚠️ Your Google Maps listing is marked as "Permanently Closed". Update your Google Business Profile.';
+            showToast('Google Maps shows: Permanently Closed', true);
+          } else {
+            syncStatus.style.color = '#4ade80'; // green
+            const descriptions = result.data.weekdayDescriptions || [];
+            if (descriptions.length > 0) {
+              syncStatus.textContent = '✅ Synced! ' + descriptions.join(' · ');
+            } else {
+              syncStatus.textContent = `✅ Synced! Open: ${result.data.businessHours.open}, Close: ${result.data.businessHours.close}`;
+            }
+            showToast('Business hours synced from Google Maps!');
+          }
+        }
+      } catch (err) {
+        console.error('Google Maps sync error:', err);
+        if (syncStatus) {
+          syncStatus.style.color = '#f87171'; // red
+          syncStatus.textContent = '❌ Sync failed: ' + (err.message || 'Unknown error');
+        }
+        showToast('Failed to sync from Google Maps: ' + err.message, true);
+      } finally {
+        syncBtn.disabled = false;
+        syncBtn.textContent = '🔄 Sync from Google Maps';
+      }
+    });
+  }
 };
 
 if (document.readyState === 'loading') {

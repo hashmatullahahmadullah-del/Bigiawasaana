@@ -62,6 +62,21 @@ onSnapshot(doc(db, 'liveStats', 'current'), (docSnap) => {
 
 function updateFooterHours() {
   if (!pickupConfig.businessHours) return;
+
+  // If temporarily closed, show that status in footer/hero
+  if (pickupConfig.temporarilyClosed) {
+    document.querySelectorAll('.footer-hours-display').forEach(el => {
+      el.textContent = 'Temporarily Closed';
+    });
+    document.querySelectorAll('.hero-hours-display').forEach(el => {
+      el.textContent = 'Temporarily Closed';
+    });
+    document.querySelectorAll('.hero-days-display').forEach(el => {
+      el.textContent = '';
+    });
+    return;
+  }
+
   const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const openDaysStr = pickupConfig.openDays && pickupConfig.openDays.length === 7 
     ? 'Every Day' 
@@ -102,6 +117,27 @@ function updateFooterHours() {
 window.isStoreClosed = false;
 
 function checkBusinessHours() {
+  // ── TEMPORARILY CLOSED override (synced from Google Maps) ──
+  if (pickupConfig.temporarilyClosed) {
+    window.isStoreClosed = true;
+
+    let banner = document.getElementById('store-closed-banner');
+    const message = 'We are temporarily closed. Please check back soon for updates on our reopening. Thank you for your patience! 🙏';
+
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'store-closed-banner';
+      banner.className = 'store-closed-banner temporarily-closed';
+      banner.innerHTML = `<span><svg style="width:20px;height:20px;fill:currentColor;vertical-align:middle;margin-right:8px" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>${message}</span>`;
+      document.body.prepend(banner);
+    } else {
+      banner.className = 'store-closed-banner temporarily-closed';
+      banner.innerHTML = `<span><svg style="width:20px;height:20px;fill:currentColor;vertical-align:middle;margin-right:8px" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>${message}</span>`;
+    }
+    return;
+  }
+
+  // ── Normal business hours check ──
   // Get current time in Los Angeles timezone to prevent device time spoofing
   const nowString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
   const now = new Date(nowString);
@@ -156,6 +192,7 @@ function checkBusinessHours() {
       banner.innerHTML = `<span><svg style="width:20px;height:20px;fill:currentColor;vertical-align:middle;margin-right:8px" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-.22-13h-.06c-.4 0-.72.32-.72.72v4.72c0 .35.18.68.49.86l4.15 2.49c.34.2.78.1.98-.24a.71.71 0 00-.25-.99l-3.87-2.3V7.72c0-.4-.32-.72-.72-.72z"/></svg>${message}</span>`;
       document.body.prepend(banner);
     } else {
+      banner.className = 'store-closed-banner'; // remove temporarily-closed class if it was there before
       const pType = document.querySelector('input[name="pickup_type"]:checked')?.value || 'asap';
       let message = `We are currently closed. Next open at ${pickupConfig.businessHours.open}`;
       if (pType === 'asap') {

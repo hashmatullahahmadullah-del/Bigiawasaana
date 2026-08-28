@@ -2513,3 +2513,15 @@ body {
   z-index: 10000;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
+
+.store-closed-banner.temporarily-closed {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  padding: 16px 12px;
+  font-size: 17px;
+  animation: pulse-closed 3s ease-in-out infinite;
+}
+
+@keyframes pulse-closed {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}

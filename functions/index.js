@@ -15,3 +15,6 @@ exports.onNewCateringInquiry = require('./catering').onNewCateringInquiry;
 exports.generateSeoBlog = require('./blogGen').generateSeoBlog;
 exports.renderBlogIndex = require('./ssr').renderBlogIndex;
 exports.serveMenuImage = require('./images').serveMenuImage;
+exports.syncGoogleHours = require('./syncGoogleHours').syncGoogleHours;
+// Uncomment below to enable daily auto-sync of Google Maps hours at 3 AM LA time:
+// exports.syncGoogleHoursCron = require('./syncGoogleHours').syncGoogleHoursCron;

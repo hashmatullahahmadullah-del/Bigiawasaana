@@ -845,7 +845,13 @@
                 </div>
               </div>
 
-              <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--white); margin-top: 16px;">Business Hours</h3>
+              <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--white); margin-top: 16px; display: flex; align-items: center; gap: 12px;">
+                Business Hours
+                <button type="button" id="btn-sync-google-hours" style="font-family: 'Barlow Condensed'; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 4px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;" title="Fetch business hours from your Google Maps listing">
+                  🔄 Sync from Google Maps
+                </button>
+              </h3>
+              <p id="google-sync-status" style="font-size: 12px; color: var(--gray); margin: 0; display: none;"></p>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="crm-form-group">
                   <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Open Time (HH:MM)</label>

@@ -132,6 +132,21 @@ function syncGlobalBusinessHours() {
   getDoc(doc(db, 'settings', 'pickupConfig')).then((docSnap) => {
     if (!docSnap.exists()) return;
     const pickupConfig = docSnap.data();
+
+    // If temporarily closed, show that status everywhere
+    if (pickupConfig.temporarilyClosed) {
+      document.querySelectorAll('.footer-hours-display').forEach(el => {
+        el.textContent = 'Temporarily Closed';
+      });
+      document.querySelectorAll('.hero-hours-display').forEach(el => {
+        el.textContent = 'Temporarily Closed';
+      });
+      document.querySelectorAll('.hero-days-display').forEach(el => {
+        el.textContent = '';
+      });
+      return;
+    }
+
     if (!pickupConfig.businessHours) return;
     
     const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
