@@ -281,3 +281,20 @@ document.querySelectorAll('.crm-nav-item').forEach(btn => {
   });
 });
 
+
+// Theme Toggle Logic
+document.addEventListener('DOMContentLoaded', () => {
+  const themeToggle = document.getElementById('theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
+  const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+  const currentTheme = localStorage.getItem('adminTheme') || 'dark';
+  if (themeIcon) themeIcon.textContent = currentTheme === 'light' ? '☀️' : '🌙';
+  const toggleTheme = () => {
+    const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('adminTheme', newTheme);
+    if (themeIcon) themeIcon.textContent = newTheme === 'light' ? '☀️' : '🌙';
+  };
+  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+  if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', toggleTheme);
+});
