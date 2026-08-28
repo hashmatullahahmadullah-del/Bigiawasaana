@@ -7,7 +7,8 @@
   <link rel="icon" type="image/jpeg" href="/favicon.jpg">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/admin.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;1,400&family=Lalezar&display=swap">
+  <link rel="stylesheet" href="/src/admin-theme.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;1,400&family=Lalezar&family=Inter:wght@400;500;600;700&display=swap">
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1120,35 +1121,39 @@
             <!-- Top Pages -->
             <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
               <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Pages & Posts</h3>
-              <table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                <thead>
-                  <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
-                    <th style="padding-bottom: 8px;">URL Path</th>
-                    <th style="padding-bottom: 8px; text-align: right;">Views</th>
-                  </tr>
-                </thead>
-                <tbody id="analytics-top-pages">
-                  <!-- JS injected -->
-                  <tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
-                </tbody>
-              </table>
+              <div class="crm-table-container">
+                <table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
+                      <th style="padding-bottom: 8px;">URL Path</th>
+                      <th style="padding-bottom: 8px; text-align: right;">Views</th>
+                    </tr>
+                  </thead>
+                  <tbody id="analytics-top-pages">
+                    <!-- JS injected -->
+                    <tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <!-- Top Referrers -->
             <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
               <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Traffic Sources</h3>
-              <table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                <thead>
-                  <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
-                    <th style="padding-bottom: 8px;">Source (Referrer)</th>
-                    <th style="padding-bottom: 8px; text-align: right;">Visits</th>
-                  </tr>
-                </thead>
-                <tbody id="analytics-top-sources">
-                  <!-- JS injected -->
-                  <tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
-                </tbody>
-              </table>
+              <div class="crm-table-container">
+                <table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
+                      <th style="padding-bottom: 8px;">Source / Referrer</th>
+                      <th style="padding-bottom: 8px; text-align: right;">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody id="analytics-top-sources">
+                    <!-- JS injected -->
+                    <tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
           
