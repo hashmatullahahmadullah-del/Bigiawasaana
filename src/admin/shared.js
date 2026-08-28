@@ -792,6 +792,30 @@ if (customerSearch) customerSearch.addEventListener('input', renderCustomers);
 export const customerTierFilter = document.getElementById('customer-tier-filter');
 if (customerTierFilter) customerTierFilter.addEventListener('change', renderCustomers);
 
+export const exportCustomersBtn = document.getElementById('btn-export-customers');
+if (exportCustomersBtn) {
+  exportCustomersBtn.addEventListener('click', () => {
+    if (state.customers.length === 0) return alert('No customers to export.');
+    const headers = ['Name', 'Phone', 'Email', 'Total Spent', 'Orders', 'Loyalty Points', 'Tier'];
+    const rows = state.customers.map(c => [
+      `"${c.name || ''}"`, 
+      c.phone || '', 
+      c.email || '', 
+      c.totalSpent.toFixed(2), 
+      c.totalOrders, 
+      c.loyaltyPoints, 
+      getTier(c.totalSpent)
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `customers_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  });
+}
+
 export const orderSearch = document.getElementById('order-search');
 if (orderSearch) orderSearch.addEventListener('input', renderAllOrders);
 

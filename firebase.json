@@ -23,45 +23,109 @@
       {
         "source": "/.well-known/**",
         "headers": [
-          { "key": "Content-Type", "value": "application/octet-stream" }
+          {
+            "key": "Content-Type",
+            "value": "application/octet-stream"
+          }
         ]
       },
       {
         "source": "**/*.@(jpg|jpeg|png|webp|svg|woff|woff2|js|css)",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600, s-maxage=86400"
+          }
         ]
       },
       {
         "source": "**/*.html",
         "headers": [
-          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
         ]
       },
       {
         "source": "/areas/**",
         "headers": [
-          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
         ]
       }
     ],
     "rewrites": [
-      { "source": "/sitemap.xml", "function": "renderSitemap" },
-      { "source": "/blog/**", "function": "renderBlogPage" },
-      { "source": "/blog.html", "function": "renderBlogIndex" },
-      { "source": "/blog", "function": "renderBlogIndex" },
-      { "source": "/item/**", "function": "renderItemPage" },
-      { "source": "/faq", "destination": "/faq.html" },
-      { "source": "/menu", "destination": "/menu.html" },
-      { "source": "/review", "destination": "/review.html" },
-      { "source": "/specials", "destination": "/specials.html" },
-      { "source": "/locations", "destination": "/locations.html" },
-      { "source": "/catering", "destination": "/catering.html" },
-      { "source": "/order-status", "destination": "/order-status.html" },
-      { "source": "/tv1", "destination": "/tv1.html" },
-      { "source": "/tv2", "destination": "/tv2.html" },
-      { "source": "/admin", "destination": "/admin.html" },
-      { "source": "**", "destination": "/index.html" }
+      {
+        "source": "/m-img/**",
+        "function": "serveMenuImage"
+      },
+      {
+        "source": "/sitemap.xml",
+        "function": "renderSitemap"
+      },
+      {
+        "source": "/blog/**",
+        "function": "renderBlogPage"
+      },
+      {
+        "source": "/blog.html",
+        "function": "renderBlogIndex"
+      },
+      {
+        "source": "/blog",
+        "function": "renderBlogIndex"
+      },
+      {
+        "source": "/item/**",
+        "function": "renderItemPage"
+      },
+      {
+        "source": "/faq",
+        "destination": "/faq.html"
+      },
+      {
+        "source": "/menu",
+        "destination": "/menu.html"
+      },
+      {
+        "source": "/review",
+        "destination": "/review.html"
+      },
+      {
+        "source": "/specials",
+        "destination": "/specials.html"
+      },
+      {
+        "source": "/locations",
+        "destination": "/locations.html"
+      },
+      {
+        "source": "/catering",
+        "destination": "/catering.html"
+      },
+      {
+        "source": "/order-status",
+        "destination": "/order-status.html"
+      },
+      {
+        "source": "/tv1",
+        "destination": "/tv1.html"
+      },
+      {
+        "source": "/tv2",
+        "destination": "/tv2.html"
+      },
+      {
+        "source": "/admin",
+        "destination": "/admin.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ],
     "redirects": [
       {

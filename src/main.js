@@ -1,4 +1,4 @@
-import './style.css';
+﻿import './style.css';
 import { db } from './firebase.js';
 import { collection, addDoc, getDocs, serverTimestamp, onSnapshot, query, where } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -7,11 +7,11 @@ import { evaluateDeals } from './lib/deals-evaluator.js';
 import { getLang, t } from './i18n/index.js';
 import './analytics.js';
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SQUARE CONFIGURATION
 // Replace with your Sandbox Application ID from developer.squareup.com
 // In production, swap for your Production Application ID
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
 const SQUARE_LOCATION_ID = import.meta.env.VITE_SQUARE_LOCATION_ID;
 const TAX_RATE = 0.1025; // LA County / Reseda sales tax rate (10.25%)
@@ -94,13 +94,13 @@ function updateFooterHours() {
   const closeTime = formatTime(pickupConfig.businessHours.close);
   
   // Format 1: "Every Day 12PM-10:30PM"
-  const fullText = `${openDaysStr} ${openTime}–${closeTime}`;
+  const fullText = `${openDaysStr} ${openTime}â€“${closeTime}`;
   document.querySelectorAll('.footer-hours-display').forEach(el => {
     el.textContent = fullText;
   });
   
   // Format 2: "12:00 PM - 10:30 PM" (Used in hero/location headers)
-  const timeOnlyText = `${openTime} – ${closeTime}`;
+  const timeOnlyText = `${openTime} â€“ ${closeTime}`;
   document.querySelectorAll('.hero-hours-display').forEach(el => {
     el.textContent = timeOnlyText;
   });
@@ -111,18 +111,18 @@ function updateFooterHours() {
   });
 }
 
-// ──────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // BUSINESS HOURS ENFORCEMENT
-// ──────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.isStoreClosed = false;
 
 function checkBusinessHours() {
-  // ── TEMPORARILY CLOSED override (synced from Google Maps) ──
+  // â”€â”€ TEMPORARILY CLOSED override (synced from Google Maps) â”€â”€
   if (pickupConfig.temporarilyClosed) {
     window.isStoreClosed = true;
 
     let banner = document.getElementById('store-closed-banner');
-    const message = 'We are temporarily closed. Please check back soon for updates on our reopening. Thank you for your patience! 🙏';
+    const message = 'We are temporarily closed. Please check back soon for updates on our reopening. Thank you for your patience! ðŸ™';
 
     if (!banner) {
       banner = document.createElement('div');
@@ -137,7 +137,7 @@ function checkBusinessHours() {
     return;
   }
 
-  // ── Normal business hours check ──
+  // â”€â”€ Normal business hours check â”€â”€
   // Get current time in Los Angeles timezone to prevent device time spoofing
   const nowString = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
   const now = new Date(nowString);
@@ -186,7 +186,7 @@ function checkBusinessHours() {
       let message = `We are currently closed. Next open at ${pickupConfig.businessHours.open}`;
       
       if (pType === 'asap') {
-         message += " — ASAP ordering is disabled. Please select a Scheduled pickup time.";
+         message += " â€” ASAP ordering is disabled. Please select a Scheduled pickup time.";
       }
       
       banner.innerHTML = `<span><svg style="width:20px;height:20px;fill:currentColor;vertical-align:middle;margin-right:8px" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-.22-13h-.06c-.4 0-.72.32-.72.72v4.72c0 .35.18.68.49.86l4.15 2.49c.34.2.78.1.98-.24a.71.71 0 00-.25-.99l-3.87-2.3V7.72c0-.4-.32-.72-.72-.72z"/></svg>${message}</span>`;
@@ -196,7 +196,7 @@ function checkBusinessHours() {
       const pType = document.querySelector('input[name="pickup_type"]:checked')?.value || 'asap';
       let message = `We are currently closed. Next open at ${pickupConfig.businessHours.open}`;
       if (pType === 'asap') {
-         message += " — ASAP ordering is disabled. Please select a Scheduled pickup time.";
+         message += " â€” ASAP ordering is disabled. Please select a Scheduled pickup time.";
       }
       banner.innerHTML = `<span><svg style="width:20px;height:20px;fill:currentColor;vertical-align:middle;margin-right:8px" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-.22-13h-.06c-.4 0-.72.32-.72.72v4.72c0 .35.18.68.49.86l4.15 2.49c.34.2.78.1.98-.24a.71.71 0 00-.25-.99l-3.87-2.3V7.72c0-.4-.32-.72-.72-.72z"/></svg>${message}</span>`;
     }
@@ -319,9 +319,9 @@ function updateTimeSlots() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MENU LOADING
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadMenuFromFirestore() {
   const grid = document.getElementById('menu-grid');
   if (grid) {
@@ -369,7 +369,7 @@ async function loadMenuFromFirestore() {
         if (url && typeof url === 'string' && url.includes('firebasestorage.googleapis.com') && url.includes('menu-images')) {
           const match = url.match(/menu-images%2F([^?&]+)/);
           if (match && match[1]) {
-            return `/m-img/${match[1]}`;
+            return `/m-img/${match[1]}?cb=2`;
           }
         }
         return url;
@@ -417,9 +417,9 @@ async function loadMenuFromFirestore() {
   initDealsListener();
 }
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // CATEGORY PILLS
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function buildCategoryPills() {
   const scrollContainer = document.querySelector('.cat-scroll');
   if (!scrollContainer) return;
@@ -452,9 +452,9 @@ function buildCategoryPills() {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────
-// MENU RENDERING — with "Add to Cart" buttons always visible
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// MENU RENDERING â€” with "Add to Cart" buttons always visible
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderMenu(category) {
   const grid = document.getElementById('menu-grid');
   if (!grid) return;
@@ -479,15 +479,15 @@ function renderMenu(category) {
     
     let badgeHtml = '';
     if (item.featured) {
-      badgeHtml = `<div class="menu-badge">⭐ Featured</div>`;
+      badgeHtml = `<div class="menu-badge">â­ Featured</div>`;
     } else if (item.category === 'bigi street meals') {
-      badgeHtml = `<div class="menu-badge">🔥 Special</div>`;
+      badgeHtml = `<div class="menu-badge">ðŸ”¥ Special</div>`;
     }
 
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" loading="lazy" width="400" height="300">`
       : `<div class="premium-fallback">
-           <div class="premium-fallback-icon">🍽</div>
+           <div class="premium-fallback-icon">ðŸ½</div>
          </div>`;
          
     const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
@@ -500,7 +500,7 @@ function renderMenu(category) {
       </div>
       <div class="menu-card-content">
         <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
-        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 INCLUDES FRIES & DRINK</div>` : ''}
+        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">ðŸ”¥ INCLUDES FRIES & DRINK</div>` : ''}
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${item.price.toFixed(2)}</span>
@@ -535,12 +535,12 @@ function renderFeaturedMenu() {
     const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
-    let badgeHtml = `<div class="menu-badge">⭐ Featured</div>`;
+    let badgeHtml = `<div class="menu-badge">â­ Featured</div>`;
     
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" width="400" height="300">`
       : `<div class="premium-fallback">
-           <div class="premium-fallback-icon">🍽</div>
+           <div class="premium-fallback-icon">ðŸ½</div>
          </div>`;
          
     const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
@@ -553,7 +553,7 @@ function renderFeaturedMenu() {
       </div>
       <div class="menu-card-content">
         <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
-        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 INCLUDES FRIES & DRINK</div>` : ''}
+        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">ðŸ”¥ INCLUDES FRIES & DRINK</div>` : ''}
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
@@ -583,12 +583,12 @@ function renderSpecials() {
     const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
-    let badgeHtml = `<div class="menu-badge">🔥 Special</div>`;
+    let badgeHtml = `<div class="menu-badge">ðŸ”¥ Special</div>`;
     
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" width="400" height="300">`
       : `<div class="premium-fallback">
-           <div class="premium-fallback-icon">🍽</div>
+           <div class="premium-fallback-icon">ðŸ½</div>
          </div>`;
          
     const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
@@ -601,7 +601,7 @@ function renderSpecials() {
       </div>
       <div class="menu-card-content">
         <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
-        <div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 LIMITED TIME SPECIAL</div>
+        <div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">ðŸ”¥ LIMITED TIME SPECIAL</div>
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
@@ -614,9 +614,9 @@ function renderSpecials() {
 }
 window.renderSpecials = renderSpecials;
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // DEALS RENDERING & LISTENER
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function initDealsListener() {
   const dealsRef = collection(db, 'deals');
   const q = query(dealsRef, where('active', '==', true));
@@ -663,9 +663,9 @@ function renderDealsGrid() {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // CART LOGIC
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let currentModalItem = null;
 let currentModalQty = 1;
 let currentMealUpgrade = null; // the matching meal item from 'meals' category
@@ -763,7 +763,7 @@ function openItemModal(id) {
     }
   }
 
-  // ── "Make it a Meal" Upgrade ──
+  // â”€â”€ "Make it a Meal" Upgrade â”€â”€
   let mealContainer = document.getElementById('item-modal-meal-container');
   if (!mealContainer) {
     mealContainer = document.createElement('div');
@@ -815,7 +815,7 @@ function openItemModal(id) {
         <label class="kiosk-meal-upgrade">
           <input type="checkbox" id="meal-upgrade-check" class="kiosk-hidden-input" onchange="updateModalPrice()">
           <div class="kiosk-meal-content">
-            <div class="kiosk-meal-icon" style="font-size: 32px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">🍔🍟</div>
+            <div class="kiosk-meal-icon" style="font-size: 32px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">ðŸ”ðŸŸ</div>
             <div class="kiosk-meal-text">
               <div class="kiosk-meal-title">MAKE IT A MEAL</div>
               <div class="kiosk-meal-desc">Add fries & a refreshing drink</div>
@@ -1017,7 +1017,7 @@ function updateCartUI() {
     const targetAmount = 30.00;
     const progress = Math.min(100, (subtotal / targetAmount) * 100);
     const progressText = subtotal >= targetAmount 
-      ? `🎉 You've unlocked a Free Doogh!` 
+      ? `ðŸŽ‰ You've unlocked a Free Doogh!` 
       : `Add $${(targetAmount - subtotal).toFixed(2)} more for a Free Doogh!`;
 
     itemsContainer.innerHTML = `
@@ -1036,14 +1036,14 @@ function updateCartUI() {
 
       const imgHtml = item.img 
         ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img">`
-        : `<div class="cart-item-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gray);">🍽</div>`;
+        : `<div class="cart-item-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gray);">ðŸ½</div>`;
 
       let modsHtml = '';
       if (item.selectedVariant) {
-        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 4px;">• ${item.selectedVariant}</div>`;
+        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 4px;">â€¢ ${item.selectedVariant}</div>`;
       }
       if (item.selectedAddOns && item.selectedAddOns.length > 0) {
-        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 2px;">• ${item.selectedAddOns.join(', ')}</div>`;
+        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 2px;">â€¢ ${item.selectedAddOns.join(', ')}</div>`;
       }
 
       el.innerHTML = `
@@ -1076,7 +1076,7 @@ function updateCartUI() {
       evalResult.appliedDeals.forEach(deal => {
         dealsHtml += `
           <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; color: var(--accent);">
-            <span>✓ ${deal.title}</span>
+            <span>âœ“ ${deal.title}</span>
             <span>-$${(deal.discountCents / 100).toFixed(2)}</span>
           </div>
         `;
@@ -1123,14 +1123,14 @@ window.toggleCart = (show) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────
-// SQUARE WEB PAYMENTS — Payment Modal
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// SQUARE WEB PAYMENTS â€” Payment Modal
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let squarePayments;
 
 async function initSquarePayments() {
   if (!window.Square) {
-    console.error('Square SDK not loaded — check if https://web.squarecdn.com/v1/square.js is blocked.');
+    console.error('Square SDK not loaded â€” check if https://web.squarecdn.com/v1/square.js is blocked.');
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) checkoutBtn.textContent = 'Payment Unavailable';
     return;
@@ -1230,7 +1230,7 @@ window.openPaymentModal = async () => {
     <div style="margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 8px;" class="custom-scrollbar">
       ${cart.map(item => `
         <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px;">
-          <span style="color: var(--white);">${item.qty}× ${item.name}</span>
+          <span style="color: var(--white);">${item.qty}Ã— ${item.name}</span>
           <span style="color: var(--gray);">$${(item.price * item.qty).toFixed(2)}</span>
         </div>
       `).join('')}
@@ -1272,7 +1272,7 @@ window.openPaymentModal = async () => {
 
   document.getElementById('pay-total').textContent = `$${(discountedSubtotal + tax).toFixed(2)}`;
 
-  // Ensure Square card is initialized (handles close → reopen race condition)
+  // Ensure Square card is initialized (handles close â†’ reopen race condition)
   if (!squareCard) {
     await initSquarePayments();
   }
@@ -1420,7 +1420,7 @@ window.closePaymentModal = () => {
   const modal = document.getElementById('payment-modal');
   modal.style.display = 'none';
 
-  // Destroy the card instance — openPaymentModal will re-create it on demand
+  // Destroy the card instance â€” openPaymentModal will re-create it on demand
   if (squareCard) {
     try { squareCard.destroy(); } catch(e) { console.warn(e); }
     squareCard = null;
@@ -1440,9 +1440,9 @@ window.editPickupTime = () => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // handlePayment
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getPickupPayload() {
   const pickupTypeEl = document.querySelector('input[name="pickup_type"]:checked');
   const pickupType = pickupTypeEl ? pickupTypeEl.value : 'asap';
@@ -1602,7 +1602,7 @@ async function processSquareToken(token, { customerName, customerPhone, tipCents
       const discountedSubtotal = subtotal - discountAmount;
       const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
       const tip = Math.min(tipRaw, 100);
-      _payBtn.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
+      _payBtn.innerHTML = `COMPLETE PURCHASE â€” <span id="pay-total">$${(discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
     }
 
     const errorMsg = err.message || 'Payment failed. Please try again.';
@@ -1611,9 +1611,9 @@ async function processSquareToken(token, { customerName, customerPhone, tipCents
   }
 }
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // TOAST NOTIFICATIONS
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function showToast(message) {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -1629,9 +1629,9 @@ function showToast(message) {
 
 
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SCROLL REVEAL ANIMATION
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function initReveal() {
   const els = document.querySelectorAll('.reveal');
   if (!els.length) return;
@@ -1647,9 +1647,9 @@ function initReveal() {
 }
 
 
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // INIT
-// ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('DOMContentLoaded', () => {
   loadMenuFromFirestore();
   updateCartUI();
@@ -1697,3 +1697,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveal();
   initSquarePayments();
 });
+
+

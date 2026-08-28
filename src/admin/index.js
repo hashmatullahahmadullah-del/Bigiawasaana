@@ -151,6 +151,7 @@ export function initCRMData() {
 
   loadAnalytics();
   if (typeof window.initEconomicsListeners === 'function') window.initEconomicsListeners();
+  if (typeof window.initDealsListener === 'function') window.dealsUnsub = window.initDealsListener();
 }
 
 export async function loadTvPromoSettings() {

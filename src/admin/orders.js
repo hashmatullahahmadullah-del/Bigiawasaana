@@ -26,6 +26,7 @@ export function renderLiveOrders(snapshot) {
   
   snapshot.forEach((docSnap) => {
     const order = docSnap.data();
+    if (order.status !== 'pending') return;
     const orderId = docSnap.id;
     const date = (order.createdAt && typeof order.createdAt.toDate === 'function') 
                  ? order.createdAt.toDate().toLocaleString() 
