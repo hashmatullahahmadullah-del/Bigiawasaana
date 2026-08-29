@@ -343,6 +343,15 @@ input:focus, select:focus, textarea:focus {
   .crm-main {
     padding: 16px !important;
   }
+  .crm-subnav {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 12px !important;
+  }
+  .crm-subnav::-webkit-scrollbar {
+    display: none;
+  }
   
   #today-glance, .crm-stats-grid {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -352,7 +361,18 @@ input:focus, select:focus, textarea:focus {
   .hide-on-mobile { display: none !important; }
 }
 
-@media (max-width: 480px) {
+.flex-row-mobile-col {
+  display: flex;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .flex-row-mobile-col {
+    flex-direction: column !important;
+  }
+}
+
+@media (max-width: 768px) {
   #today-glance, .crm-stats-grid {
     grid-template-columns: 1fr !important;
   }

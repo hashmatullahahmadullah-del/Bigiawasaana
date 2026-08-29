@@ -40,7 +40,7 @@
   </div>
 
   <!-- Mobile Nav Overlay -->
-  <div id="crm-nav-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1001; opacity: 0; transition: opacity 0.3s;"></div>
+  <div id="crm-nav-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 999; opacity: 0; transition: opacity 0.3s;"></div>
 
   <!-- Login Section -->
   <section id="login-section" style="max-width: 400px; margin: 120px auto 60px auto; background: var(--surface); padding: 32px; border: 1px solid var(--border); border-radius: 8px;">
@@ -781,7 +781,7 @@
                   </div>
                 </div>
 
-                <div style="display: flex; gap: 12px; margin-top: 8px;">
+                <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 8px;">
                   <button type="submit" id="deal-save-btn" class="btn-primary" style="flex: 1; padding: 12px;">Save Promotion</button>
                   <button type="button" id="deal-cancel-btn" class="btn-outline" style="flex: 1; padding: 12px; display: none;">Cancel Edit</button>
                 </div>
@@ -1340,9 +1340,9 @@
         </div>
 
         <div id="blog-management" class="crm-view" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div class="flex-row-mobile-col" style="justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <h2 style="font-family: 'Barlow Condensed'; font-size: 28px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase;">Blog Management</h2>
-            <div style="display: flex; gap: 12px;">
+            <div class="flex-row-mobile-col" style="gap: 12px;">
               <button id="generate-ai-blog-btn" class="btn-outline" style="border-color: #a27b5c; color: #a27b5c;">✨ Generate with AI</button>
               <button id="add-post-btn" class="btn-primary">+ New Post</button>
             </div>
@@ -1354,7 +1354,7 @@
             <form id="blog-form" style="display: flex; flex-direction: column; gap: 16px;">
               <input type="hidden" id="post-id">
               
-              <div style="display: flex; gap: 16px;">
+              <div class="flex-row-mobile-col">
                 <div style="flex: 1;">
                   <label class="form-label">Title</label>
                   <input type="text" id="post-title" class="form-input" required placeholder="e.g. Top 5 Halal Spots in LA">
@@ -1391,7 +1391,7 @@
                 <label for="post-published" style="color: var(--white); font-size: 16px; cursor: pointer;">Published (Live)</label>
               </div>
 
-              <div style="display: flex; gap: 12px; margin-top: 24px;">
+              <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 24px;">
                 <button type="submit" class="btn-primary">Save Post</button>
                 <button type="button" id="cancel-post-btn" class="btn-outline">Cancel</button>
               </div>
@@ -1542,7 +1542,7 @@
           <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
             <input type="checkbox" id="edit-menu-hidden"> Hide from Menu Grid (useful for combo meals triggered as add-ons)
           </label>
-          <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 16px;">
             <button type="submit" class="btn-primary" style="flex: 1;">Save Changes</button>
             <button type="button" class="btn-outline" style="flex: 1;" onclick="closeEditMenuModal()">Cancel</button>
           </div>
@@ -1600,7 +1600,7 @@
             <label class="form-label">Category</label>
             <input type="text" id="add-inv-category" class="form-input" required placeholder="e.g. Produce, Dry Goods">
           </div>
-          <div style="display: flex; gap: 16px;">
+          <div class="flex-row-mobile-col">
             <div style="flex: 1;">
               <label class="form-label">Initial Stock</label>
               <input type="number" id="add-inv-stock" class="form-input" required step="0.01" min="0" value="0">
@@ -1610,7 +1610,7 @@
               <input type="number" id="add-inv-price" class="form-input" required step="0.01" min="0" value="0.00">
             </div>
           </div>
-          <div style="display: flex; gap: 12px; margin-top: 8px;">
+          <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 8px;">
             <button type="submit" class="btn-primary" style="flex: 1;">Add Item</button>
             <button type="button" class="btn-outline" style="flex: 1;" onclick="document.getElementById('add-inventory-modal').classList.remove('open')">Cancel</button>
           </div>
@@ -1636,7 +1636,7 @@
             <input type="password" id="reauth-password-input" class="crm-input" required placeholder="Your password" />
           </div>
           <p id="reauth-error" style="color: #f44336; font-size: 12px; margin: 0;"></p>
-          <div style="display: flex; gap: 12px; margin-top: 8px;">
+          <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 8px;">
             <button type="submit" class="btn-primary" style="flex: 1;" id="btn-reauth-submit">Verify</button>
             <button type="button" class="btn-outline" style="flex: 1;" onclick="document.getElementById('reauth-modal').classList.remove('open')">Cancel</button>
           </div>
