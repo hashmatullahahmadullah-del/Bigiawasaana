@@ -420,3 +420,8 @@ h1, h2, h3, h4 {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+
+/* Modal Overrides */
+.crm-modal-box { background: var(--surface-admin) !important; border-color: var(--border-admin) !important; }
+.crm-modal-header { border-bottom-color: var(--border-admin) !important; }
