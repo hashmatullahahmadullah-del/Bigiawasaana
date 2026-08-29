@@ -298,3 +298,25 @@ document.addEventListener('DOMContentLoaded', () => {
   if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
   if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', toggleTheme);
 });
+
+// Auto-inject data-labels for mobile responsive tables
+function injectTableLabels() {
+  document.querySelectorAll('table.crm-table').forEach(table => {
+    const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+    if (headers.length === 0) return;
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      Array.from(tr.querySelectorAll('td')).forEach((td, i) => {
+        if (!td.hasAttribute('data-label') && headers[i]) {
+          td.setAttribute('data-label', headers[i]);
+        }
+      });
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  injectTableLabels();
+  // Also observe for dynamically injected tables
+  const observer = new MutationObserver(() => injectTableLabels());
+  observer.observe(document.body, { childList: true, subtree: true });
+});
