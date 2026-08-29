@@ -210,18 +210,22 @@ window.loadAnalytics = loadAnalytics;
       
       if (receiptActions) receiptActions.style.display = "none";
       reviewSection.classList.remove('open');
-          setTimeout(() => reviewSection.style.display = 'none', 300);
-      
+      setTimeout(() => reviewSection.style.display = 'none', 300);
       let successCount = 0;
       let failCount = 0;
       let duplicateCount = 0;
-      
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (uploadText) uploadText.innerHTML = `<div class="loading-spinner"></div>Processing receipt ${i + 1} of ${files.length}... (Compressing)`;
+        
+      // Convert FileList to a static array immediately to prevent mutation if the input is cleared
+      const filesArray = Array.from(files);
+      const originalFileCount = filesArray.length;
+        
+      for (let i = 0; i < originalFileCount; i++) {
+        const file = filesArray[i];
+        if (!file) continue; // safety check
+        if (uploadText) uploadText.innerHTML = `<div class="loading-spinner"></div>Processing receipt ${i + 1} of ${originalFileCount}... (Compressing)`;
         try {
           const compressed = await localCompressImage(file);
-          if (uploadText) uploadText.innerHTML = `<div class="loading-spinner"></div>Processing receipt ${i + 1} of ${files.length}... (Uploading)`;
+          if (uploadText) uploadText.innerHTML = `<div class="loading-spinner"></div>Processing receipt ${i + 1} of ${originalFileCount}... (Uploading)`;
           const timestamp = Date.now() + i;
           const path = `receipts/unsorted/${timestamp}_receipt.webp`;
           const storageReference = ref(storage, path);
@@ -245,12 +249,13 @@ window.loadAnalytics = loadAnalytics;
                  showToast(`Duplicate receipt rejected for ${result.data.vendor}`);
                }
             } else if (result.data) {
-            successCount++;
-            if (files.length === 1 && result.data.id) {
-               window[`draft_data_${result.data.id}`] = result.data;
-               window.openDraftReview(result.data.id, true);
+              successCount++;
+              // Using originalFileCount because files (FileList) is mutated to length 0 when input.value is cleared!
+              if (originalFileCount === 1 && result.data.id) {
+                 window[`draft_data_${result.data.id}`] = result.data;
+                 window.openDraftReview(result.data.id, true);
+              }
             }
-          }
         } catch (err) {
           console.error('Error processing file', i, err);
           failCount++;

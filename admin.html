@@ -31,7 +31,26 @@
   </script>
   <meta name="thumbnail" content="https://bigiawasaana.com/hero-food-spread.jpg">
 </head>
-<body class="crm-body" style="overflow-y: auto;">
+
+<div id="global-error" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; background: red; color: white; z-index: 999999; padding: 20px; font-family: monospace; white-space: pre-wrap; font-size: 16px;"></div>
+<script>
+  window.onerror = function(msg, url, line, col, error) {
+    const el = document.getElementById('global-error');
+    if (el) {
+      el.style.display = 'block';
+      el.textContent += 'Error: ' + msg + '\nLine: ' + line + ':' + col + '\n' + (error && error.stack ? error.stack : '') + '\n\n';
+    }
+  };
+  window.addEventListener('unhandledrejection', function(event) {
+    const el = document.getElementById('global-error');
+    if (el) {
+      el.style.display = 'block';
+      el.textContent += 'Unhandled Promise Rejection: ' + (event.reason && event.reason.stack ? event.reason.stack : event.reason) + '\n\n';
+    }
+  });
+</script>
+<body
+ class="crm-body" style="overflow-y: auto;">
 
   <!-- iOS Install Hint -->
   <div id="ios-install-hint" style="display: none; position: fixed; top: 72px; left: 0; right: 0; z-index: 999; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px; text-align: center; font-size: 13px; color: var(--gray);">
@@ -1204,8 +1223,8 @@
             
               <!-- Duplicate Warning Modal -->
               <div id="duplicate-warning-modal" class="crm-modal" style="display: none;">
-                <div class="crm-modal-box" style="max-width: 500px;">
-                  <div class="crm-modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+                <div class="crm-modal-box" style="max-width: none; width: 100vw; height: 100vh; max-height: none; border-radius: 0; border: none; transform: none; display: flex; flex-direction: column;">
+                  <div class="crm-modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.3); padding: 32px 48px;">
                     <h2 style="color: #ef4444; margin: 0; display: flex; align-items: center; gap: 8px;">
                       <span>⚠️</span> Duplicate Receipt Detected
                     </h2>
@@ -1232,8 +1251,8 @@
 
               <!-- Review Section (Drafts) -->
               <div id="review-section" class="crm-modal" style="display: none;">
-                <div class="crm-modal-box" style="max-width: 900px;">
-                  <div class="crm-modal-header">
+                <div class="crm-modal-box" style="max-width: none; width: 100vw; height: 100vh; max-height: none; border-radius: 0; border: none; transform: none; display: flex; flex-direction: column;">
+                  <div class="crm-modal-header" style="padding: 32px 48px;">
                     <h2 style="margin: 0;">Review Receipt Draft</h2>
                     <button class="crm-btn-icon" onclick="document.getElementById('receipt-cancel-btn').click()">✕</button>
                   </div>
