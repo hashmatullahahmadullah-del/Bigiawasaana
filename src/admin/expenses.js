@@ -354,6 +354,45 @@ window.loadAnalytics = loadAnalytics;
       // removed block
     }
 
+    const closeAndDiscardDraft = async () => {
+      if (!currentExpenseId) {
+        reviewSection.classList.remove('open');
+        setTimeout(() => reviewSection.style.display = 'none', 300);
+        return;
+      }
+      
+      confirmBtn.disabled = true;
+      if (retakeBtn) retakeBtn.disabled = true;
+      if (deleteBtn) deleteBtn.disabled = true;
+      
+      try {
+        await deleteDoc(doc(db, "expenses", currentExpenseId));
+        if (currentStoragePath) {
+          try { 
+            const { deleteObject, ref } = await import('firebase/storage');
+            await deleteObject(ref(storage, currentStoragePath)); 
+          } catch (e) {}
+        }
+        showToast("Draft deleted.");
+      } catch (err) {
+        console.error("Error discarding draft:", err);
+      }
+      
+      reviewSection.classList.remove('open');
+      setTimeout(() => reviewSection.style.display = 'none', 300);
+      currentExpenseId = null;
+      currentItems = [];
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Confirm & Save Expense";
+      if (retakeBtn) retakeBtn.disabled = false;
+      if (deleteBtn) deleteBtn.disabled = false;
+    };
+
+    const cancelBtn = document.getElementById("receipt-cancel-btn");
+    if (cancelBtn) cancelBtn.addEventListener("click", closeAndDiscardDraft);
+    if (retakeBtn) retakeBtn.addEventListener("click", closeAndDiscardDraft);
+    if (deleteBtn) deleteBtn.addEventListener("click", closeAndDiscardDraft);
+
     confirmBtn.addEventListener("click", async () => {
       if (!currentExpenseId) return;
       confirmBtn.disabled = true;
