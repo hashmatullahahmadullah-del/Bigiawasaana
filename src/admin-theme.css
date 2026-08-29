@@ -178,6 +178,7 @@ body.crm-body {
 }
 
 .crm-panel {
+  min-width: 0;
   padding: 24px;
 }
 
@@ -386,3 +387,5 @@ input:focus, select:focus, textarea:focus {
     grid-template-columns: 1fr !important;
   }
 }
+
+.crm-dashboard-grid > *, .crm-grid-col-2 > *, .crm-grid-1fr-2fr > *, .crm-grid-col-3 > * { min-width: 0; }
