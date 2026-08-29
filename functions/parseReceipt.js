@@ -86,18 +86,39 @@ exports.parseReceipt = functions
       const parsed = JSON.parse(response.text);
 
 
-      // 4.5. Duplicate Detection
-      if (parsed.vendor && parsed.total) {
+      // 4.5. Smart Duplicate Detection
+      if (parsed.total) {
         const duplicateCheck = await admin.firestore().collection("expenses")
-          .where("vendor", "==", parsed.vendor)
           .where("total", "==", parsed.total)
-          .where("status", "==", "confirmed")
-          .limit(1)
           .get();
           
+        let isDuplicate = false;
+        let dupVendor = "";
+        
         if (!duplicateCheck.empty) {
-          console.log("Duplicate receipt detected! Vendor:", parsed.vendor, "Total:", parsed.total);
-          return { duplicate: true, existingId: duplicateCheck.docs[0].id, vendor: parsed.vendor, total: parsed.total };
+           for (const d of duplicateCheck.docs) {
+              const data = d.data();
+              // If it was created recently (within last 5 minutes), it's a double-upload double-click!
+              const timeSinceCreated = data.createdAt ? Date.now() - data.createdAt.toMillis() : 9999999;
+              
+              const v1 = (parsed.vendor || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+              const v2 = (data.vendor || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+              
+              if (v1 && v2 && (v1.includes(v2) || v2.includes(v1) || v1 === v2)) {
+                 isDuplicate = true;
+                 dupVendor = data.vendor;
+                 break;
+              } else if (timeSinceCreated < 5 * 60 * 1000) {
+                 isDuplicate = true;
+                 dupVendor = data.vendor;
+                 break;
+              }
+           }
+        }
+        
+        if (isDuplicate) {
+          console.log("Duplicate receipt detected! Vendor:", dupVendor, "Total:", parsed.total);
+          return { duplicate: true, vendor: dupVendor, total: parsed.total };
         }
       }
 

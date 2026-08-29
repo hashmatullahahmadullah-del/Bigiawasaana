@@ -849,7 +849,25 @@ window.loadAnalytics = loadAnalytics;
           backdrop.style.pointerEvents = 'none';
       }
   };
-  window.openReceiptSlide = (receipt) => {
+  
+    window.deleteSavedReceipt = async (id) => {
+        if (!confirm("Are you sure you want to permanently delete this receipt and all its items?")) return;
+        try {
+            await deleteDoc(doc(db, "expenses", id));
+            if (window.closeReceiptSlide) window.closeReceiptSlide();
+            showToast("Receipt permanently deleted.");
+        } catch (e) {
+            console.error("Error deleting receipt:", e);
+            alert("Failed to delete receipt: " + e.message);
+        }
+    };
+
+    window.openReceiptSlide = (receipt) => {
+        const deleteBtn = document.getElementById('slide-delete-btn');
+        if (deleteBtn) {
+            deleteBtn.onclick = () => window.deleteSavedReceipt(receipt.id);
+        }
+
       if (!receipt) return;
       const slide = document.getElementById('receipt-slide-over');
       const backdrop = document.getElementById('receipt-slide-backdrop');
