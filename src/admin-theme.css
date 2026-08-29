@@ -1,3 +1,4 @@
+* { box-sizing: border-box; }
 /* 
  * admin-theme.css 
  * Overrides global restaurant theme variables for a modern SaaS look.
@@ -332,6 +333,7 @@ input:focus, select:focus, textarea:focus {
 
 
 .crm-main {
+  min-width: 0;
   flex: 1;
   padding: 40px !important;
   background: var(--bg-admin);
