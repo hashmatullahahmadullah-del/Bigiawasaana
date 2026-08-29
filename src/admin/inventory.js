@@ -100,7 +100,7 @@ export function renderEconomicsMenu() {
     return { id, item, ...calculateItemEconomics(item) };
   }).sort((a, b) => b.contributionMargin - a.contributionMargin);
 
-  let html = `<table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+  let html = `<div class="crm-table-container"><table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
     <thead>
       <tr>
         <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.menuItem')}</th>
@@ -132,7 +132,7 @@ export function renderEconomicsMenu() {
       </tr>
     `;
   });
-  html += `</tbody></table>`;
+  html += `</tbody></table></div>`;
   container.innerHTML = html;
 }
 
@@ -277,7 +277,7 @@ export function renderEconomicsIngredients() {
         <button type="button" class="btn-outline btn-small" onclick="document.getElementById('add-ing-form').style.display='none'">${t('btn.cancel')}</button>
       </form>
 
-      <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+      <div class="crm-table-container"><table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
         <thead>
           <tr>
             <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.ingredientName')}</th>
@@ -304,7 +304,7 @@ export function renderEconomicsIngredients() {
     });
   }
 
-  html += `</tbody></table></div>`;
+  html += `</tbody></table></div></div>`;
   container.innerHTML = html;
 }
 
@@ -439,7 +439,7 @@ export function renderEconomicsLaborEvents() {
           <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--gray);">Based on order mix from the last 90 days. Break-even calculates how many average orders you need to cover fixed event costs.</p>
         </div>
 
-        <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+        <div class="crm-table-container"><table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
           <thead>
             <tr>
               <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.eventName')}</th>
@@ -483,7 +483,7 @@ export function renderEconomicsLaborEvents() {
     });
   }
 
-  html += `</tbody></table></div></div>`;
+  html += `</tbody></table></div></div></div>`;
   container.innerHTML = html;
 
   // Set default dates for labor to today
@@ -688,7 +688,7 @@ export function renderEconomicsDelivery() {
       </div>
     </div>
 
-    <table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+    <div class="crm-table-container"><table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
       <thead>
         <tr>
           <th style="padding: 12px; border-bottom: 1px solid var(--border);">Item</th>
@@ -729,7 +729,7 @@ export function renderEconomicsDelivery() {
     `;
   });
 
-  html += `</tbody></table>`;
+  html += `</tbody></table></div>`;
   container.innerHTML = html;
 }
 

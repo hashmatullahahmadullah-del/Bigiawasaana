@@ -330,3 +330,30 @@ input:focus, select:focus, textarea:focus {
   border-radius: 50% !important;
 }
 
+
+.crm-main {
+  flex: 1;
+  padding: 40px !important;
+  background: var(--bg-admin);
+  height: 100vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .crm-main {
+    padding: 16px !important;
+  }
+  
+  #today-glance, .crm-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  #mobile-menu-btn { display: block !important; }
+  .hide-on-mobile { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  #today-glance, .crm-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

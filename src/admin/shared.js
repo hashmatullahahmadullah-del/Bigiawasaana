@@ -738,7 +738,7 @@ export function renderLoyalty() {
 
   leaderboardEl.innerHTML = `
     <h2 class="crm-panel-title" style="margin-bottom: 16px;">🏆 Top Loyal Customers</h2>
-    <table class="crm-table" style="width: 100%; border-collapse: collapse;">
+    <div class="crm-table-container"><table class="crm-table" style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr style="border-bottom: 1px solid var(--border); color: var(--gray);">
           <th style="padding: 8px; text-align: left;">#</th>
@@ -762,7 +762,7 @@ export function renderLoyalty() {
             </tr>`;
           }).join('')}
       </tbody>
-    </table>
+    </table></div>
   `;
 }
 

@@ -923,7 +923,7 @@ window.loadAnalytics = loadAnalytics;
       }
       
       html += `<h4 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px;">Parsed Items</h4>`;
-      html += `<table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+      html += `<div class="crm-table-container"><table style="width: 100%; font-size: 13px; border-collapse: collapse;">
          <tr style="color: var(--gray); border-bottom: 1px solid var(--border);">
             <th style="text-align: left; padding: 4px 0;">Item</th>
             <th style="text-align: center; padding: 4px 0;">Qty</th>
@@ -944,7 +944,7 @@ window.loadAnalytics = loadAnalytics;
               <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${lTotal.toFixed(2)}</td>
           </tr>`;
       });
-      html += `</table>`;
+      html += `</table></div>`;
       
       content.innerHTML = html;
   };
