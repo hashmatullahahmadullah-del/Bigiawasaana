@@ -14,7 +14,8 @@ const corsHandler = cors({ origin: true });
 const TAX_RATE = 0.1025; // LA County / Reseda sales tax rate
 
 function getSquareClient() {
-  const config = functions.config().square || {};
+  let config = {};
+  try { config = functions.config().square || {}; } catch(e) { /* ignore config error */ }
   const accessToken = config.access_token || process.env.SQUARE_ACCESS_TOKEN;
   const env = config.env || process.env.SQUARE_ENV || 'sandbox';
 
@@ -29,7 +30,8 @@ function getSquareClient() {
 }
 
 function getLocationId() {
-  const config = functions.config().square || {};
+  let config = {};
+  try { config = functions.config().square || {}; } catch(e) { /* ignore config error */ }
   return config.location_id || process.env.SQUARE_LOCATION_ID;
 }
 

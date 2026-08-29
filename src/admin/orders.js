@@ -194,7 +194,7 @@ window.showCateringDetails = (inquiry) => {
     </div>
     <div style="margin-bottom: 24px;">
       <div style="font-size: 11px; color: var(--gray); text-transform: uppercase; margin-bottom: 4px;">Details</div>
-      <div style="background: var(--surface); padding: 12px; border-radius: 4px;">${inquiry.details}</div>
+      <div style="background: var(--surface); padding: 12px; border-radius: 4px; white-space: pre-wrap;">${escapeHtml(inquiry.details || "")}</div>
     </div>
     <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px;">
       <button class="btn-primary" onclick="updateCateringStatus('${inquiry.id}', 'contacted')">Mark as Contacted</button>

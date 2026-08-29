@@ -10,8 +10,10 @@ exports.onNewCateringInquiry = functions.firestore
   .onCreate(async (snap, context) => {
     const data = snap.data();
     
-    const gmailEmail = functions.config().gmail ? functions.config().gmail.email : process.env.GMAIL_EMAIL;
-    const gmailPassword = functions.config().gmail ? functions.config().gmail.password : process.env.GMAIL_PASSWORD;
+    let gmailEmail = process.env.GMAIL_EMAIL;
+    let gmailPassword = process.env.GMAIL_PASSWORD;
+    try { if (functions.config().gmail) { gmailEmail = functions.config().gmail.email || gmailEmail; gmailPassword = functions.config().gmail.password || gmailPassword; } } catch(e){ /* ignore config error */ }
+    
 
     if (!gmailEmail || !gmailPassword) {
       console.error('Missing Gmail credentials. Run: firebase functions:config:set gmail.email="your@gmail.com" gmail.password="app_password"');
