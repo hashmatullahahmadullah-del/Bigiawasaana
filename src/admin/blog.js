@@ -16,11 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
         theme: 'snow',
         modules: {
           toolbar: [
-            [{ 'header': [2, 3, false] }],
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'font': [] }],
+            [{ 'color': [] }, { 'background': [] }],
             ['bold', 'italic', 'underline', 'strike'],
-            ['blockquote'],
+            [{ 'align': [] }],
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['link', 'image'],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['blockquote', 'code-block'],
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+            ['link', 'image', 'video'],
             ['clean']
           ]
         }
@@ -82,18 +87,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentCoverUrl = '';
 
   addPostBtn?.addEventListener('click', () => {
-    blogForm.reset();
+    
+    document.getElementById('post-title').value = '';
+    document.getElementById('post-slug').value = '';
+    document.getElementById('post-excerpt').value = '';
+    document.getElementById('post-published').value = 'false';
+    document.getElementById('blog-save-status').textContent = 'Draft in Progress';
+
     document.getElementById('post-id').value = '';
     document.getElementById('post-keywords').value = '';
     document.getElementById('post-cover-preview').innerHTML = '';
     currentCoverUrl = '';
     if(window.quill) window.quill.root.innerHTML = '';
-    blogEditorSection.style.display = 'block';
-    blogForm.scrollIntoView({ behavior: 'smooth' });
+    blogEditorSection.style.display = 'flex'; document.body.style.overflow = 'hidden';
+    
   });
 
   cancelPostBtn?.addEventListener('click', () => {
-    blogEditorSection.style.display = 'none';
+    blogEditorSection.style.display = 'none'; document.body.style.overflow = '';
   });
 
   const generateBtn = document.getElementById('generate-ai-blog-btn');
@@ -120,8 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('post-cover-preview').innerHTML = '';
       if(window.quill) window.quill.root.innerHTML = data.content || '';
       
-      blogEditorSection.style.display = 'block';
-      blogForm.scrollIntoView({ behavior: 'smooth' });
+      blogEditorSection.style.display = 'flex'; document.body.style.overflow = 'hidden';
+      
       showToast('Blog generated successfully! Review and add an image.');
     } catch (err) {
       console.error(err);
@@ -148,16 +159,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  blogForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  
+  const saveDraftBtn = document.getElementById('save-draft-btn');
+  const publishPostBtn = document.getElementById('publish-post-btn');
+  
+  const savePost = async (isPublished) => {
     const id = document.getElementById('post-id').value;
     const title = document.getElementById('post-title').value.trim();
+    if (!title) {
+      alert("Title is required!");
+      return;
+    }
+
     let slug = document.getElementById('post-slug').value.trim();
     if (!slug) slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const excerpt = document.getElementById('post-excerpt').value.trim();
     const keywords = document.getElementById('post-keywords').value.trim();
-    const isPublished = document.getElementById('post-published').checked;
     const editorContent = window.quill ? window.quill.root.innerHTML : '';
+    
+    // Hidden published checkbox state update
+    document.getElementById('post-published').value = isPublished ? 'true' : 'false';
 
     const postData = {
       title,
@@ -170,22 +191,35 @@ document.addEventListener('DOMContentLoaded', () => {
       updatedAt: serverTimestamp()
     };
 
+    document.getElementById('blog-save-status').textContent = 'Saving...';
+
     try {
       if (id) {
         await updateDoc(doc(db, 'posts', id), postData);
         showToast('Post updated!');
       } else {
         postData.publishedAt = isPublished ? serverTimestamp() : null;
-        await addDoc(collection(db, 'posts'), postData);
+        const newDoc = await addDoc(collection(db, 'posts'), postData);
+        document.getElementById('post-id').value = newDoc.id;
         showToast('Post created!');
       }
-      blogEditorSection.style.display = 'none';
+      document.getElementById('blog-save-status').textContent = isPublished ? 'Published' : 'Saved Draft';
       loadBlogPosts();
+      
+      // If we clicked publish, close the composer automatically
+      if (isPublished) {
+        blogEditorSection.style.display = 'none'; document.body.style.overflow = '';
+      }
     } catch (err) {
       console.error(err);
       showToast('Error saving post');
+      document.getElementById('blog-save-status').textContent = 'Error Saving';
     }
-  });
+  };
+
+  saveDraftBtn?.addEventListener('click', () => savePost(false));
+  publishPostBtn?.addEventListener('click', () => savePost(true));
+
 
   // Auto-generate slug from title if empty
   document.getElementById('post-title')?.addEventListener('input', (e) => {
@@ -231,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('post-slug').value = post.slug;
           document.getElementById('post-excerpt').value = post.excerpt || '';
           document.getElementById('post-keywords').value = post.keywords || '';
-          document.getElementById('post-published').checked = post.isPublished;
+          document.getElementById('post-published').value = post.isPublished ? 'true' : 'false';
           currentCoverUrl = post.coverImage || '';
           if (currentCoverUrl) {
             document.getElementById('post-cover-preview').innerHTML = `<img src="${currentCoverUrl}" style="height: 100px; border-radius: 8px;">`;
@@ -240,8 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           if(window.quill) window.quill.root.innerHTML = post.content || '';
           
-          blogEditorSection.style.display = 'block';
-          blogForm.scrollIntoView({ behavior: 'smooth' });
+          blogEditorSection.style.display = 'flex'; document.body.style.overflow = 'hidden';
+          
         });
 
         card.querySelector('.delete-post-btn').addEventListener('click', async () => {
