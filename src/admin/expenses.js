@@ -163,7 +163,7 @@ window.loadAnalytics = loadAnalytics;
         currentItems = draftData.items || [];
         currentStoragePath = draftData.rawImageUrl || draftData._storagePath;
         renderReview(draftData);
-        statusEl.textContent = `Draft opened for review.`;
+        if (statusEl) statusEl.textContent = `Draft opened for review.`;
         if (receiptActions) receiptActions.style.display = "flex";
         reviewSection.style.display = 'flex';
           setTimeout(() => reviewSection.classList.add('open'), 10);
@@ -290,7 +290,7 @@ window.loadAnalytics = loadAnalytics;
     const renderReview = (data) => {
       reviewMeta.innerHTML = `
         <strong>Vendor:</strong> ${data.vendor || "Unknown"} &nbsp;
-        <strong>Total:</strong> ${data.total != null ? data.total.toFixed(2) : "\u2014"} &nbsp;
+        <strong>Total:</strong> ${data.total != null ? parseFloat(data.total).toFixed(2) : "\u2014"} &nbsp;
         ${data.needsReview ? '<span style="color:#b00;">\u26a0 Needs review</span>' : ""}
       `;
 
@@ -404,7 +404,7 @@ window.loadAnalytics = loadAnalytics;
 
         showToast("Expense confirmed!");
 
-        statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
+        if (statusEl) statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
         reviewSection.classList.remove('open');
           setTimeout(() => reviewSection.style.display = 'none', 300);
         if (receiptActions) receiptActions.style.display = "none";
@@ -413,7 +413,7 @@ window.loadAnalytics = loadAnalytics;
         currentStoragePath = null;
       } catch (err) {
         console.error(err);
-        statusEl.textContent = "Error saving: " + err.message;
+        if (statusEl) statusEl.textContent = "Error saving: " + err.message;
       } finally {
         confirmBtn.disabled = false;
         confirmBtn.textContent = "Confirm & Save Expense";
