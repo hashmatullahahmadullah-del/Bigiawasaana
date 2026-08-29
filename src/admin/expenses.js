@@ -156,7 +156,7 @@ window.loadAnalytics = loadAnalytics;
     let autoSaveInterval = null;
     let autoSaveCountdown = 10;
     
-    window.openDraftReview = (id) => {
+    window.openDraftReview = (id, autoSave = false) => {
       const draftData = window[`draft_data_${id}`];
       if (draftData) {
         currentExpenseId = draftData.id;
@@ -167,21 +167,26 @@ window.loadAnalytics = loadAnalytics;
         if (receiptActions) receiptActions.style.display = "flex";
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Start Auto-Save Countdown
-        if (autoSaveInterval) clearInterval(autoSaveInterval);
-        autoSaveCountdown = 10;
-        confirmBtn.textContent = `Confirm & Save Expense (${autoSaveCountdown}s)`;
-        
-        autoSaveInterval = setInterval(() => {
-          autoSaveCountdown--;
-          if (autoSaveCountdown > 0) {
-            confirmBtn.textContent = `Confirm & Save Expense (${autoSaveCountdown}s)`;
-          } else {
-            clearInterval(autoSaveInterval);
-            confirmBtn.textContent = `Confirm & Save Expense`;
-            confirmBtn.click(); // Auto-trigger save
-          }
-        }, 1000);
+        if (autoSave) {
+          // Start Auto-Save Countdown
+          if (autoSaveInterval) clearInterval(autoSaveInterval);
+          autoSaveCountdown = 10;
+          confirmBtn.textContent = `Confirm & Save Expense (${autoSaveCountdown}s)`;
+          
+          autoSaveInterval = setInterval(() => {
+            autoSaveCountdown--;
+            if (autoSaveCountdown > 0) {
+              confirmBtn.textContent = `Confirm & Save Expense (${autoSaveCountdown}s)`;
+            } else {
+              clearInterval(autoSaveInterval);
+              confirmBtn.textContent = `Confirm & Save Expense`;
+              confirmBtn.click(); // Auto-trigger save
+            }
+          }, 1000);
+        } else {
+          if (autoSaveInterval) clearInterval(autoSaveInterval);
+          confirmBtn.textContent = `Confirm & Save Expense`;
+        }
       }
     };
 
@@ -231,6 +236,10 @@ window.loadAnalytics = loadAnalytics;
              showToast(`Duplicate receipt rejected for ${result.data.vendor}`);
           } else if (result.data) {
             successCount++;
+            if (files.length === 1 && result.data.id) {
+               window[`draft_data_${result.data.id}`] = result.data;
+               window.openDraftReview(result.data.id, true);
+            }
           }
         } catch (err) {
           console.error('Error processing file', i, err);
