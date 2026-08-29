@@ -834,19 +834,18 @@ window.loadAnalytics = loadAnalytics;
     if (tbodyTopItems) {
       const sortedItems = Object.entries(itemTotals)
         .sort((a, b) => b[1].spent - a[1].spent); // Sort by spent descending
-        
-      if (sortedItems.length === 0) {
-        tbodyTopItems.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 16px; color: var(--gray);">No items recorded.</td></tr>';
-      } else {
-        tbodyTopItems.innerHTML = sortedItems.map(([itemName, data]) => `
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 8px; font-weight: 500;">${escapeHtml(itemName)}</td>
-            <td style="padding: 8px; text-align: right; color: var(--gray-light);">${data.qty}</td>
-            <td style="padding: 8px; text-align: right; color: var(--accent); font-weight: bold;">$${data.spent.toFixed(2)}</td>
-          </tr>
-        `).join('');
+         if (sortedItems.length === 0) {
+          tbodyTopItems.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 24px; color: var(--text-muted);">No items recorded.</td></tr>';
+        } else {
+          tbodyTopItems.innerHTML = sortedItems.map(([itemName, data]) => `
+            <tr>
+              <td data-label="Item" style="font-weight: 600;">${escapeHtml(itemName)}</td>
+              <td data-label="Qty" style="text-align: right; color: var(--text-muted);">${data.qty}</td>
+              <td data-label="Spent" style="text-align: right; color: var(--accent-admin); font-weight: bold;">$${data.spent.toFixed(2)}</td>
+            </tr>
+          `).join('');
+        }
       }
-    }
 
     // 3. Render Vendor Chart
     if (ctxVendor) {
