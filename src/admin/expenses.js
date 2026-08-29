@@ -346,7 +346,7 @@ window.loadAnalytics = loadAnalytics;
         });
       });
 
-      reviewSection.style.display = "block";
+      // removed block
     }
 
     confirmBtn.addEventListener("click", async () => {
