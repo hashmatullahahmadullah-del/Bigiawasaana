@@ -950,14 +950,14 @@ window.loadAnalytics = loadAnalytics;
   };
 
   window.initEconomicsListeners = () => {
-      const savedExpensesContainer = document.getElementById('saved-expenses-container');
+      const savedExpensesContainer = document.getElementById('expenseDocsTbody');
       if (!savedExpensesContainer) return;
       const expensesQuery = query(collection(db, "expenses"));
       window.expensesUnsub = onSnapshot(expensesQuery, (snapshot) => {
         try {
           savedExpensesContainer.innerHTML = '';
           if (snapshot.empty) {
-            savedExpensesContainer.innerHTML = '<div style="padding: 24px; color: var(--gray); text-align: center; width: 100%; grid-column: 1 / -1;">No saved expenses yet.</div>';
+            savedExpensesContainer.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">No saved expenses yet.</td></tr>';
             return;
           }
 
@@ -1019,10 +1019,9 @@ window.loadAnalytics = loadAnalytics;
           savedExpensesContainer.innerHTML = '';
           
           if (docsArray.length === 0) {
-            savedExpensesContainer.innerHTML = '<div style="padding: 24px; color: var(--gray); text-align: center; width: 100%; grid-column: 1 / -1;">No recent expenses found.</div>';
+            savedExpensesContainer.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">No recent expenses found.</td></tr>';
             return;
           }
-
           docsArray.forEach(data => {
             if (rowCount >= 1000) return;
             rowCount++;
@@ -1030,64 +1029,26 @@ window.loadAnalytics = loadAnalytics;
             const itemCount = data.items ? data.items.length : 0;
             const parsedDataTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
             const totalStr = data.total != null ? `$${parsedDataTotal.toFixed(2)}` : '—';
+            const vendor = escapeHtml(data.vendor || 'Unknown Vendor');
+            const status = escapeHtml(data.status || 'pending');
             
-            const card = document.createElement("div");
-            card.style.background = "var(--surface)";
-            card.style.border = "1px solid var(--border)";
-            card.style.borderRadius = "12px";
-            card.style.padding = "16px";
-            card.style.display = "flex";
-            card.style.flexDirection = "column";
-            card.style.gap = "16px";
-            card.style.transition = "transform 0.2s, box-shadow 0.2s";
-            card.onmouseover = () => {
-              card.style.transform = "translateY(-2px)";
-              card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-            };
-            card.onmouseout = () => {
-              card.style.transform = "none";
-              card.style.boxShadow = "none";
-            };
+            let statusBadge = ``;
+            if (status === 'confirmed') statusBadge = `<span style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Confirmed</span>`;
+            else if (status === 'needs_review') statusBadge = `<span style="background: rgba(245,158,11,0.15); color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Review</span>`;
+            else statusBadge = `<span style="background: rgba(161,161,170,0.15); color: var(--text-muted); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">${status}</span>`;
 
-            const headerHtml = `
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                  <strong style="font-size: 18px; color: var(--white); word-break: break-word;">${escapeHtml(data.vendor || 'Unknown Vendor')}</strong>
-                  <span style="font-size: 13px; color: var(--gray);">${dateStr}</span>
-                </div>
-                <div style="text-align: right;">
-                  <strong style="font-size: 20px; color: var(--accent);">${totalStr}</strong>
-                  <div style="margin-top: 4px;">
-                    <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.1); color: var(--white); text-transform: uppercase;">
-                      ${escapeHtml(data.status || 'pending')}
-                    </span>
-                  </div>
-                </div>
-              </div>
+            const tr = document.createElement("tr");
+            tr.style.borderBottom = "1px solid var(--border-admin)";
+            tr.innerHTML = `
+              <td data-label="Date" style="padding: 16px;">${dateStr}</td>
+              <td data-label="Vendor" style="padding: 16px; font-weight: 600;">${vendor} <br><span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">${itemCount} items</span></td>
+              <td data-label="Total" style="padding: 16px; font-weight: bold; color: var(--accent-admin);">$${parsedDataTotal.toFixed(2)}</td>
+              <td data-label="Status" style="padding: 16px;">${statusBadge}</td>
+              <td data-label="Action" style="padding: 16px; text-align: right;">
+                <button class="btn-outline btn-small" onclick="window.openReceiptSlide(window.expenseDocsArray[${rowCount-1}])">View Details</button>
+              </td>
             `;
-
-            let itemsHtml = '<div style="display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-top: auto;">';
-            itemsHtml += `<div style="font-size: 12px; font-weight: bold; color: var(--gray); margin-bottom: 4px; text-transform: uppercase;">${itemCount} Items</div>`;
-            
-            (Array.isArray(data.items) ? data.items : []).forEach(item => {
-               const uPrice = parseFloat(String(item.unitPrice || 0).replace(/[^0-9.-]+/g, "")) || 0;
-               const qty = parseFloat(item.quantity) || 1;
-               const lTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || (uPrice * qty);
-               
-               itemsHtml += `
-                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; font-size: 13px;">
-                   <div style="display: flex; flex-direction: column; gap: 2px;">
-                     <span style="color: var(--white);">${escapeHtml(item.name || 'Unknown')}</span>
-                     <span style="font-size: 11px; color: var(--gray);">${qty} @ $${uPrice.toFixed(2)}</span>
-                   </div>
-                   <span style="color: var(--white); font-weight: 500;">$${lTotal.toFixed(2)}</span>
-                 </div>
-               `;
-            });
-            itemsHtml += '</div>';
-            
-            card.innerHTML = headerHtml + itemsHtml;
-            savedExpensesContainer.appendChild(card);
+            savedExpensesContainer.appendChild(tr);
           });
         } catch (e) {
           console.error("Javascript Error during receipt rendering:", e);
