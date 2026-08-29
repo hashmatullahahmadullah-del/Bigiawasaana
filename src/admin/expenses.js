@@ -165,7 +165,8 @@ window.loadAnalytics = loadAnalytics;
         renderReview(draftData);
         statusEl.textContent = `Draft opened for review.`;
         if (receiptActions) receiptActions.style.display = "flex";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        reviewSection.style.display = 'flex';
+          setTimeout(() => reviewSection.classList.add('open'), 10);
         
         if (autoSave) {
           // Start Auto-Save Countdown
@@ -208,7 +209,8 @@ window.loadAnalytics = loadAnalytics;
       }
       
       if (receiptActions) receiptActions.style.display = "none";
-      reviewSection.style.display = "none";
+      reviewSection.classList.remove('open');
+          setTimeout(() => reviewSection.style.display = 'none', 300);
       
       let successCount = 0;
       let failCount = 0;
@@ -231,10 +233,18 @@ window.loadAnalytics = loadAnalytics;
           const result = await parseReceipt({ storagePath: path });
           
           if (result.data && result.data.duplicate) {
-             duplicateCount++;
-             try { await deleteObject(storageReference); } catch(e) {}
-             showToast(`Duplicate receipt rejected for ${result.data.vendor}`);
-          } else if (result.data) {
+               duplicateCount++;
+               try { await deleteObject(storageReference); } catch(e) {}
+               const dupModal = document.getElementById('duplicate-warning-modal');
+               if (dupModal) {
+                 document.getElementById('dup-modal-vendor').textContent = result.data.vendor || 'Unknown Vendor';
+                 document.getElementById('dup-modal-total').textContent = result.data.total != null ? '$' + parseFloat(result.data.total).toFixed(2) : '---';
+                 dupModal.style.display = 'flex';
+                 setTimeout(() => dupModal.classList.add('open'), 10);
+               } else {
+                 showToast(`Duplicate receipt rejected for ${result.data.vendor}`);
+               }
+            } else if (result.data) {
             successCount++;
             if (files.length === 1 && result.data.id) {
                window[`draft_data_${result.data.id}`] = result.data;
@@ -395,7 +405,8 @@ window.loadAnalytics = loadAnalytics;
         showToast("Expense confirmed!");
 
         statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
-        reviewSection.style.display = "none";
+        reviewSection.classList.remove('open');
+          setTimeout(() => reviewSection.style.display = 'none', 300);
         if (receiptActions) receiptActions.style.display = "none";
         currentExpenseId = null;
         currentItems = [];

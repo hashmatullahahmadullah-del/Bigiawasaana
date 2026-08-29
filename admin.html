@@ -1201,37 +1201,69 @@
             </div>
 
             
-            <!-- Review Section (Drafts) -->
-            <div id="review-section" class="crm-panel" style="display: none; border-left: 4px solid #f59e0b; margin-bottom: 24px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-admin); padding-bottom: 16px;">
-                <div>
-                  <h3 style="margin: 0; color: var(--text-main); font-size: 18px;">Review Receipt Draft</h3>
-                  <div id="review-meta" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;"></div>
-                </div>
-                <div id="receipt-actions" style="display: flex; gap: 8px;">
-                  <button type="button" class="btn-outline btn-small" id="receipt-retake-btn" style="color: var(--text-muted);">Clear</button>
-                  <button type="button" class="btn-outline btn-small" id="receipt-delete-btn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Delete</button>
-                  <button type="button" class="btn-primary btn-small" id="confirm-expense-btn">Confirm & Save Expense</button>
+            
+              <!-- Duplicate Warning Modal -->
+              <div id="duplicate-warning-modal" class="crm-modal" style="display: none;">
+                <div class="crm-modal-box" style="max-width: 500px;">
+                  <div class="crm-modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+                    <h2 style="color: #ef4444; margin: 0; display: flex; align-items: center; gap: 8px;">
+                      <span>⚠️</span> Duplicate Receipt Detected
+                    </h2>
+                    <button class="crm-btn-icon" onclick="document.getElementById('duplicate-warning-modal').style.display = 'none'">✕</button>
+                  </div>
+                  <div class="crm-modal-content">
+                    <p style="color: var(--white); font-size: 16px; margin-bottom: 16px;">
+                      The receipt you just uploaded appears to be a duplicate of an existing expense in your database.
+                    </p>
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                      <div style="color: var(--gray); font-size: 13px; margin-bottom: 4px;">VENDOR</div>
+                      <div id="dup-modal-vendor" style="color: var(--white); font-size: 18px; font-weight: bold; margin-bottom: 12px;"></div>
+                      
+                      <div style="color: var(--gray); font-size: 13px; margin-bottom: 4px;">TOTAL AMOUNT</div>
+                      <div id="dup-modal-total" style="color: #ef4444; font-size: 20px; font-weight: bold;"></div>
+                    </div>
+                    <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">
+                      To prevent double-counting your expenses, this upload has been securely deleted and no draft was created.
+                    </p>
+                    <button type="button" class="btn-primary" style="width: 100%; background: #ef4444; color: white;" onclick="document.getElementById('duplicate-warning-modal').style.display = 'none'">I Understand, Close</button>
+                  </div>
                 </div>
               </div>
-              
-              <div class="crm-table-container">
-                <table class="crm-table">
-                  <thead>
-                    <tr>
-                      <th style="width: 25%">Item Name</th>
-                      <th style="width: 25%">Category & Link</th>
-                      <th style="width: 10%">Qty</th>
-                      <th style="width: 15%">Unit Price</th>
-                      <th style="width: 15%">Line Total</th>
-                    </tr>
-                  </thead>
-                  <tbody id="review-tbody">
-                    <!-- JS Injected -->
-                  </tbody>
-                </table>
+
+              <!-- Review Section (Drafts) -->
+              <div id="review-section" class="crm-modal" style="display: none;">
+                <div class="crm-modal-box" style="max-width: 900px;">
+                  <div class="crm-modal-header">
+                    <h2 style="margin: 0;">Review Receipt Draft</h2>
+                    <button class="crm-btn-icon" onclick="document.getElementById('receipt-cancel-btn').click()">✕</button>
+                  </div>
+                  <div class="crm-modal-content">
+                    <div id="review-meta" style="color: var(--gray); font-size: 14px; margin-bottom: 16px;"></div>
+                    
+                    <div class="crm-table-container">
+                      <table class="crm-table">
+                        <thead>
+                          <tr>
+                            <th style="width: 25%">Item Name</th>
+                            <th style="width: 25%">Category & Link</th>
+                            <th style="width: 10%">Qty</th>
+                            <th style="width: 15%">Unit Price</th>
+                            <th style="width: 15%">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody id="review-tbody"></tbody>
+                      </table>
+                    </div>
+
+                    <div id="receipt-actions" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                      <button type="button" class="btn-outline btn-small" id="receipt-cancel-btn" style="color: var(--text-muted); display: none;">Cancel</button>
+                      <button type="button" class="btn-outline btn-small" id="receipt-retake-btn" style="color: var(--text-muted);">Clear</button>
+                      <button type="button" class="btn-outline btn-small" id="receipt-delete-btn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Delete</button>
+                      <button type="button" class="btn-primary btn-small" id="confirm-expense-btn">Confirm & Save Expense</button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
 
             <!-- Upload Progress -->
             <div id="expense-upload-progress" class="crm-panel" style="display: none; border-left: 4px solid var(--accent-admin); margin-bottom: 24px;">
