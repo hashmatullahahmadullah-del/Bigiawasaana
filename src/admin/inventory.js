@@ -100,39 +100,41 @@ export function renderEconomicsMenu() {
     return { id, item, ...calculateItemEconomics(item) };
   }).sort((a, b) => b.contributionMargin - a.contributionMargin);
 
-  let html = `<div class="crm-table-container"><table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse;">
-    <thead>
-      <tr>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.menuItem')}</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.price')}</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.foodCost')}</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.marginPct')} ($)</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.foodCost')} %</th>
-        <th style="padding: 12px; border-bottom: 1px solid var(--border);">${t('ue.table.actions')}</th>
-      </tr>
-    </thead>
-    <tbody>`;
+  let html = `<div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+    <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+      <table class="crm-table">
+        <thead>
+          <tr>
+            <th>${t('ue.table.menuItem')}</th>
+            <th>${t('ue.table.price')}</th>
+            <th>${t('ue.table.foodCost')}</th>
+            <th>${t('ue.table.marginPct')} ($)</th>
+            <th>${t('ue.table.foodCost')} %</th>
+            <th style="text-align: right;">${t('ue.table.actions')}</th>
+          </tr>
+        </thead>
+        <tbody>`;
 
   items.forEach(i => {
     const color = getFoodCostColor(i.foodCostPercent);
     html += `
-      <tr style="border-bottom: 1px solid var(--border);">
-        <td data-label="Item" style="padding: 12px; font-weight: 600;">${i.item.name}</td>
-        <td data-label="Price" style="padding: 12px;">$${(parseFloat(String(i.item.price || 0).replace('$', '')) || 0).toFixed(2)}</td>
-        <td data-label="Total Cost" style="padding: 12px;">$${i.totalCost.toFixed(2)}</td>
-        <td data-label="Margin ($)" style="padding: 12px; color: var(--accent); font-weight: bold;">$${i.contributionMargin.toFixed(2)}</td>
-        <td data-label="Food Cost %" style="padding: 12px;">
+      <tr>
+        <td data-label="Item" style="font-weight: 600;">${i.item.name}</td>
+        <td data-label="Price">$${(parseFloat(String(i.item.price || 0).replace('$', '')) || 0).toFixed(2)}</td>
+        <td data-label="Total Cost">$${i.totalCost.toFixed(2)}</td>
+        <td data-label="Margin ($)" style="color: var(--accent-admin); font-weight: bold;">$${i.contributionMargin.toFixed(2)}</td>
+        <td data-label="Food Cost %">
           <span style="background: ${color}22; color: ${color}; padding: 4px 8px; border-radius: 4px; font-weight: bold;">
             ${i.foodCostPercent.toFixed(1)}%
           </span>
         </td>
-        <td data-label="${t('ue.table.actions')}" style="padding: 12px;">
+        <td data-label="${t('ue.table.actions')}" style="text-align: right;">
           <button class="btn-outline btn-small" onclick="openEditRecipeModal('${i.id}')">${t('ue.btn.editRecipe')}</button>
         </td>
       </tr>
     `;
   });
-  html += `</tbody></table></div>`;
+  html += `</tbody></table></div></div>`;
   container.innerHTML = html;
 }
 

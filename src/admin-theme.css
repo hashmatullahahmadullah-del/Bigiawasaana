@@ -1,120 +1,123 @@
 * { box-sizing: border-box; }
+
 /* 
  * admin-theme.css 
  * Overrides global restaurant theme variables for a modern SaaS look.
  */
 
 :root {
+  /* Backwards compatibility */
+  --accent: #e11d48;
+  --white: #fafafa;
+  --gray: #a1a1aa;
+  --gray-light: #d4d4d8;
+  --bg: #09090b;
+
   /* Default SaaS Dark Theme Palette */
-  --bg-admin: #0e0e11;
+  --bg-admin: #09090b;
   --surface-admin: #18181b;
   --border-admin: #27272a;
   
   /* Restoring the original brand Red, but optimized for SaaS */
-  --accent-admin: #e11d48;    /* A modern, SaaS-friendly crimson/red */
+  --accent-admin: #e11d48;
   --accent-hover: #be123c;
+  --accent-light: rgba(225, 29, 72, 0.15);
   
-  --text-main: #f4f4f5;
+  --text-main: #fafafa;
   --text-muted: #a1a1aa;
-  --table-header-bg: rgba(0,0,0,0.2);
-  --hover-bg: rgba(255, 255, 255, 0.04);
+  --table-header-bg: #1f1f22;
+  --hover-bg: rgba(255, 255, 255, 0.05);
   
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
 :root[data-theme="light"] {
+  /* Backwards compatibility */
+  --accent: #e11d48;
+  --white: #0f172a;
+  --gray: #64748b;
+  --gray-light: #475569;
+  --bg: #f8fafc;
+
   /* SaaS Light Theme Palette */
-  --bg-admin: #f4f4f5;
+  --bg-admin: #f8fafc;
   --surface-admin: #ffffff;
-  --border-admin: #e4e4e7;
+  --border-admin: #e2e8f0;
   
   --accent-admin: #e11d48;
   --accent-hover: #be123c;
+  --accent-light: rgba(225, 29, 72, 0.1);
   
-  --text-main: #18181b;
-  --text-muted: #52525b;
-  --table-header-bg: #f8fafc;
-  --hover-bg: #f4f4f5;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --table-header-bg: #f1f5f9;
+  --hover-bg: #f1f5f9;
   
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
-body.crm-body {
+/* Global Reset for Admin */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-admin);
   color: var(--text-main);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0;
+  overflow-x: hidden;
 }
 
 /* Typography Overrides */
-.crm-body h1, .crm-body h2, .crm-body h3, .crm-body h4 {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
+h1, h2, h3, h4 {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  color: var(--text-main) !important;
   letter-spacing: -0.02em;
-  color: var(--text-main);
 }
 
-.crm-view-title {
-  font-size: 24px;
-  color: var(--text-main);
-  margin-bottom: 0;
+/* Layout */
+.crm-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
-/* Sidebar Refinement */
+/* Sidebar */
 .crm-nav {
-  width: 260px !important;
-  background: var(--surface-admin);
-  border-right: 1px solid var(--border-admin);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  width: 260px;
+  background: var(--surface-admin) !important;
+  border-right: 1px solid var(--border-admin) !important;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  position: static !important;
-  height: 100vh !important;
-}
-
-/* Mobile Sidebar Fix */
-@media (max-width: 768px) {
-  .crm-nav {
-    position: fixed !important;
-    left: -260px;
-    z-index: 1000;
-    transition: left 0.3s ease;
-  }
-  .crm-nav.mobile-open {
-    left: 0;
-  }
-}
-
-.crm-nav-links {
-  padding: 24px 12px;
-  flex: 1;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  flex-shrink: 0;
 }
 
 .crm-nav-item {
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--text-muted);
-  border-left: none; /* Removed the line on the left */
-  border-radius: 8px; /* Added soft rounded corners */
-  padding: 10px 16px;
-  transition: all 0.2s ease;
-  margin-bottom: 4px; /* Slightly more gap */
-  width: 100%;
-  text-align: left;
   display: flex;
   align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  margin: 4px 16px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
   background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: calc(100% - 32px);
+  text-align: left;
 }
 
 .crm-nav-item:hover {
@@ -123,76 +126,132 @@ body.crm-body {
 }
 
 .crm-nav-item.active {
-  color: var(--accent-admin) !important;
-  background: var(--hover-bg) !important;
+  background: var(--accent-light);
+  color: var(--accent-admin);
   font-weight: 600;
 }
 
-.crm-nav-item .icon { opacity: 0.7; margin-right: 12px; font-size: 18px; width: 24px; text-align: center; }
-.crm-nav-item.active .icon { opacity: 1; }
+/* Main Content Area */
+.crm-main {
+  min-width: 0;
+  flex: 1;
+  padding: 40px !important;
+  background: var(--bg-admin);
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.crm-view {
+  display: none;
+  animation: fadeIn 0.3s ease;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.crm-view.active {
+  display: block;
+}
+
+.crm-view-title {
+  font-size: 28px !important;
+  margin-top: 0 !important;
+  margin-bottom: 32px !important;
+}
+
+/* UI Components: Cards & Panels */
+.crm-panel, .crm-stat-card, [style*="background: var(--surface)"] {
+  background: var(--surface-admin) !important;
+  border: 1px solid var(--border-admin) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 24px !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: box-shadow 0.2s ease;
+  min-width: 0; /* Fix flex/grid blowout */
+}
+
+/* Data Cards / KPI Cards */
+.crm-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.stat-title {
+  color: var(--text-muted) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.stat-value {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: var(--text-main) !important;
+  letter-spacing: -0.02em;
+}
 
 /* Buttons */
 .btn-primary {
   background: var(--accent-admin) !important;
   color: white !important;
-  border-radius: 6px !important;
-  font-family: 'Inter', sans-serif !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 18px !important;
+  font-size: 14px !important;
   font-weight: 500 !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
-  box-shadow: var(--shadow-sm) !important;
-  border: 1px solid var(--accent-admin) !important;
+  cursor: pointer;
   transition: all 0.2s ease !important;
+  box-shadow: var(--shadow-sm) !important;
 }
-
 .btn-primary:hover {
   background: var(--accent-hover) !important;
-  border-color: var(--accent-hover) !important;
-  transform: none !important;
+  transform: translateY(-1px);
 }
-
 .btn-outline {
-  border: 1px solid var(--border-admin) !important;
-  background: var(--surface-admin) !important;
+  background: transparent !important;
   color: var(--text-main) !important;
-  border-radius: 6px !important;
-  font-family: 'Inter', sans-serif !important;
+  border: 1px solid var(--border-admin) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 18px !important;
+  font-size: 14px !important;
   font-weight: 500 !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
+  cursor: pointer;
   transition: all 0.2s ease !important;
-  box-shadow: var(--shadow-sm);
 }
-
 .btn-outline:hover {
   background: var(--hover-bg) !important;
 }
-
-/* Cards & Surfaces & Layouts */
-.crm-panel, .crm-stats-card, .order-card {
-  background: var(--surface-admin) !important;
-  border: 1px solid var(--border-admin) !important;
-  border-radius: 12px !important;
-  box-shadow: var(--shadow-md) !important;
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+.btn-outline.active {
+  background: var(--accent-light) !important;
+  color: var(--accent-admin) !important;
+  border-color: var(--accent-admin) !important;
 }
 
-.crm-panel {
-  min-width: 0;
-  padding: 24px;
-}
-
-.stat-value {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 700;
+/* Forms & Inputs */
+.crm-input, .crm-select, input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select, textarea {
+  width: 100%;
+  background: var(--bg-admin) !important;
   color: var(--text-main) !important;
+  border: 1px solid var(--border-admin) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  font-family: 'Inter', sans-serif !important;
+  transition: all 0.2s ease;
 }
-
-/* Header Navbar */
-.site-nav {
-  background: var(--surface-admin) !important;
-  border-bottom: 1px solid var(--border-admin) !important;
-  transition: background-color 0.3s ease;
+.crm-input:focus, .crm-select:focus, input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-admin) !important;
+  box-shadow: 0 0 0 3px var(--accent-light) !important;
+}
+.crm-form-group label {
+  color: var(--text-main) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  margin-bottom: 8px !important;
+  display: block;
+  font-family: 'Inter', sans-serif !important;
+  text-transform: none !important;
 }
 
 /* Tables */
@@ -201,201 +260,88 @@ body.crm-body {
   width: 100%;
   -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border-admin);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--surface-admin);
-  box-shadow: var(--shadow-sm);
 }
-
 .crm-table {
   width: 100%;
   min-width: 600px;
   border-collapse: collapse;
 }
-
 .crm-table th {
   background: var(--table-header-bg) !important;
   color: var(--text-muted) !important;
   font-family: 'Inter', sans-serif !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   font-size: 12px !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  padding: 14px 16px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 16px !important;
   border-bottom: 1px solid var(--border-admin) !important;
 }
-
 .crm-table td {
-  padding: 14px 16px !important;
+  padding: 16px !important;
   border-bottom: 1px solid var(--border-admin) !important;
   color: var(--text-main) !important;
   font-size: 14px !important;
 }
-
-/* Inputs */
-input, select, textarea {
-  background: var(--bg-admin) !important;
-  border: 1px solid var(--border-admin) !important;
-  border-radius: 6px !important;
-  color: var(--text-main) !important;
-  font-family: 'Inter', sans-serif !important;
-  padding: 10px 12px !important;
-  transition: border-color 0.2s, box-shadow 0.2s;
+.crm-table tr:last-child td {
+  border-bottom: none !important;
 }
-
-input:focus, select:focus, textarea:focus {
-  outline: none !important;
-  border-color: var(--accent-admin) !important;
-  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15) !important;
-}
-
-/* Badges */
-.status-badge {
-  font-family: 'Inter', sans-serif !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
-  font-weight: 500 !important;
-  border: none !important;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.status-pending { background: rgba(245, 158, 11, 0.15) !important; color: var(--warning) !important; }
-.status-completed { background: rgba(16, 185, 129, 0.15) !important; color: var(--success) !important; }
-.status-cancelled { background: rgba(239, 68, 68, 0.15) !important; color: var(--danger) !important; }
-
-/* Tabs */
-.tab-btn {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 500 !important;
-  text-transform: none !important;
-  letter-spacing: 0 !important;
-  color: var(--text-muted) !important;
-}
-.tab-btn.active {
-  color: var(--accent-admin) !important;
-  border-bottom-color: var(--accent-admin) !important;
-}
-
-/* Overview Cards */
-#today-glance {
-  background: var(--surface-admin) !important;
-  border: 1px solid var(--border-admin) !important;
-  box-shadow: var(--shadow-md) !important;
-  border-radius: 16px !important;
-  padding: 32px !important;
-}
-
-#today-glance > div {
-  padding: 16px;
-  border-radius: 12px;
-  transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-#today-glance > div:hover {
+.crm-table tbody tr:hover {
   background: var(--hover-bg);
-  transform: translateY(-2px);
 }
 
-#today-glance > div > div:first-child {
-  font-family: 'Inter', sans-serif !important;
-  font-size: 13px !important;
-  color: var(--text-muted) !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.05em !important;
-  margin-bottom: 8px !important;
-}
-
-#today-glance > div > div:last-child {
-  font-family: 'Inter', sans-serif !important;
-  font-size: 32px !important;
-  color: var(--text-main) !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.03em !important;
-}
-
-/* Quick Actions buttons below glance */
-#dashboard-view .btn-outline {
-  border-radius: 20px !important;
-  padding: 8px 16px !important;
-  font-size: 13px !important;
-  background: var(--surface-admin) !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-/* Theme Toggle Button */
-#theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border-radius: 50% !important;
-}
-
-
-.crm-main {
-  min-width: 0;
-  flex: 1;
-  padding: 40px !important;
-  background: var(--bg-admin);
-  height: 100vh;
-  overflow-y: auto;
-}
-
-@media (max-width: 768px) {
-  .crm-main {
-    padding: 16px !important;
-  }
-  .crm-subnav {
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 12px !important;
-  }
-  .crm-subnav::-webkit-scrollbar {
-    display: none;
-  }
-  
-  #today-glance, .crm-stats-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  
-  #mobile-menu-btn { display: block !important; }
-  .hide-on-mobile { display: none !important; }
-}
-
+/* Responsive Grids */
 .flex-row-mobile-col {
   display: flex;
   gap: 16px;
 }
-
 @media (max-width: 768px) {
   .flex-row-mobile-col {
     flex-direction: column !important;
   }
 }
 
-@media (max-width: 768px) {
-  #today-glance, .crm-stats-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-@media (max-width: 768px) {
+/* Mobile Adjustments */
+@media (max-width: 1024px) {
   .crm-dashboard-grid, .crm-grid-col-2, .crm-grid-1fr-2fr, .crm-grid-col-3 {
     grid-template-columns: 1fr !important;
   }
 }
 
-.crm-dashboard-grid > *, .crm-grid-col-2 > *, .crm-grid-1fr-2fr > *, .crm-grid-col-3 > * { min-width: 0; }
-
-/* Responsive Table Cards for Mobile UX */
 @media (max-width: 768px) {
+  .crm-main {
+    padding: 16px !important;
+  }
+  .crm-view-title {
+    font-size: 24px !important;
+    margin-bottom: 24px !important;
+  }
+  
+  .crm-nav {
+    position: fixed !important;
+    left: -260px;
+    z-index: 1000;
+  }
+  .crm-nav.open {
+    left: 0;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+  
+  #today-glance, .crm-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  #mobile-menu-btn { display: block !important; }
+  .hide-on-mobile { display: none !important; }
+
+  /* Mobile Table Cards */
   .crm-table-container {
     box-shadow: none;
     border: none;
     border-radius: 0;
+    background: transparent;
   }
   .crm-table {
     min-width: 0 !important;
@@ -410,10 +356,10 @@ input:focus, select:focus, textarea:focus {
   .crm-table tr {
     margin-bottom: 16px;
     border: 1px solid var(--border-admin) !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius-md) !important;
     background: var(--surface-admin) !important;
-    padding: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 8px;
+    box-shadow: var(--shadow-sm);
   }
   .crm-table td {
     display: flex !important;
@@ -439,4 +385,9 @@ input:focus, select:focus, textarea:focus {
   .crm-table td > * {
     text-align: right;
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

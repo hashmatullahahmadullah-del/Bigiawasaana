@@ -893,437 +893,405 @@
         </section>
 
         <!-- Unit Economics View -->
-        <section id="economics-view" class="crm-view">
-          <h1 class="crm-view-title">Unit Economics & Profitability</h1>
-          
-          <div class="crm-subnav" style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
-            <button class="btn-outline active" id="btn-eco-menu" onclick="switchEconomicsTab('menu')" data-i18n="ue.tab.menuProfitability">Menu Profitability</button>
-            <button class="btn-outline" id="btn-eco-profit" onclick="switchEconomicsTab('profit')">Daily Profit</button>
-            <button class="btn-outline" id="btn-eco-ingredients" onclick="switchEconomicsTab('ingredients')" data-i18n="ue.tab.ingredients">Ingredients</button>
-            <button class="btn-outline" id="btn-eco-labor" onclick="switchEconomicsTab('labor')" data-i18n="ue.tab.laborEvents">Labor & Events</button>
-            <button class="btn-outline" id="btn-eco-delivery" onclick="switchEconomicsTab('delivery')" data-i18n="ue.tab.deliveryImpact">Delivery Impact</button>
-          </div>
-
-          <div id="eco-tab-menu" class="eco-tab">
-            <!-- Rendered by JS -->
-          </div>
-          
-          <div id="eco-tab-profit" class="eco-tab" style="display: none;">
-            <div class="crm-grid-1fr-2fr" style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
-              <div style="display: flex; flex-direction: column; gap: 24px;">
-                <!-- Fixed Costs Setup -->
-                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
-                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Fixed Monthly Costs</h3>
-                  <form id="fixed-costs-form" style="display: flex; flex-direction: column; gap: 16px;">
-                    <div class="crm-form-group">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Home Rent ($)</label>
-                      <input type="number" id="fc-home-rent" class="crm-input" step="0.01" placeholder="0.00">
-                    </div>
-                    <div class="crm-form-group">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Commissary Rent ($)</label>
-                      <input type="number" id="fc-commissary-rent" class="crm-input" step="0.01" placeholder="0.00">
-                    </div>
-                    <div class="crm-form-group">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Insurance ($)</label>
-                      <input type="number" id="fc-insurance" class="crm-input" step="0.01" placeholder="0.00">
-                    </div>
-                    <div class="crm-form-group">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Other Fixed Costs ($)</label>
-                      <input type="number" id="fc-other" class="crm-input" step="0.01" placeholder="0.00">
-                    </div>
-                    <button type="submit" class="btn-primary">Save Fixed Costs</button>
-                    <p id="fc-status" style="margin:0; font-size: 12px; color: var(--accent);"></p>
-                  </form>
-                </div>
-                
-                <!-- Daily Sales Entry -->
-                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
-                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Log Daily Sales</h3>
-                  <form id="daily-sales-form" style="display: flex; flex-direction: column; gap: 16px;">
-                    <div class="crm-form-group">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Date</label>
-                      <input type="date" id="ds-date" class="crm-input" required>
-                    </div>
-                    <div class="crm-form-group">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Total Sales ($)</label>
-                      <input type="number" id="ds-amount" class="crm-input" step="0.01" placeholder="0.00" required>
-                    </div>
-                    <div class="crm-form-group">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Notes (Optional)</label>
-                      <input type="text" id="ds-notes" class="crm-input" placeholder="e.g. Busy Friday, Festival...">
-                    </div>
-                    <button type="submit" class="btn-primary">Save Daily Sales</button>
-                    <p id="ds-status" style="margin:0; font-size: 12px; color: var(--accent);"></p>
-                    <p id="ds-online-hint" style="margin:0; font-size: 12px; color: #4caf50; font-style: italic;"></p>
-                  </form>
-                  <div style="margin-top: 12px; padding: 10px 12px; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.2); border-radius: 6px; font-size: 12px; color: #81c784; line-height: 1.5;">
-                    💡 <strong>Online orders are auto-included</strong> in your profit chart. Only log cash/walk-in sales here that aren't tracked in the system.
-                  </div>
-                </div>
-                
-                <!-- Recent Daily Sales Table -->
-                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; flex-grow: 1;">
-                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Recent Daily Sales</h3>
-                  <div class="crm-table-container"><table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                      <thead>
-                        <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
-                          <th style="padding-bottom: 8px;">Date</th>
-                          <th style="padding-bottom: 8px;">Amount</th>
-                          <th style="padding-bottom: 8px;">Notes</th>
-                          <th style="padding-bottom: 8px; text-align: right;">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody id="recent-sales-tbody">
-                        <tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
-                      </tbody>
-                    </table></div>
-                </div>
-              </div>
-              
-              <!-- Dashboard -->
-              <div style="display: flex; flex-direction: column; gap: 24px;">
-                <div class="crm-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-                  <div class="crm-stat-card" style="padding: 16px;">
-                    <div class="stat-title" style="font-size: 12px;">30-Day Sales</div>
-                    <div class="stat-value" id="dash-30d-sales" style="font-size: 24px;">$0.00</div>
-                  </div>
-                  <div class="crm-stat-card" style="padding: 16px;">
-                    <div class="stat-title" style="font-size: 12px;">30-Day Expenses (Var + Fixed)</div>
-                    <div class="stat-value" id="dash-30d-expenses" style="font-size: 24px;">$0.00</div>
-                  </div>
-                  <div class="crm-stat-card" style="padding: 16px;">
-                    <div class="stat-title" style="font-size: 12px;">30-Day Net Profit</div>
-                    <div class="stat-value" id="dash-30d-profit" style="font-size: 24px;">$0.00</div>
-                  </div>
-                  <div class="crm-stat-card" style="padding: 16px;">
-                    <div class="stat-title" style="font-size: 12px;">Profit Margin</div>
-                    <div class="stat-value" id="dash-profit-margin" style="font-size: 24px;">0.0%</div>
-                  </div>
-                  <div class="crm-stat-card" style="padding: 16px;">
-                    <div class="stat-title" style="font-size: 12px;">Avg Daily Sales</div>
-                    <div class="stat-value" id="dash-avg-daily-sales" style="font-size: 24px;">$0.00</div>
-                  </div>
-                  <div class="crm-stat-card" style="padding: 16px;">
-                    <div class="stat-title" style="font-size: 12px;">Best Day</div>
-                    <div class="stat-value" id="dash-best-day" style="font-size: 24px;">--</div>
-                  </div>
-                </div>
-                
-                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; flex-grow: 1;">
-                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">30-Day Profit Trend</h3>
-                  <div class="chart-wrapper" style="position: relative; height: 350px; width: 100%;">
-                    <canvas id="profitChart"></canvas>
-                  </div>
-                </div>
-
-                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
-                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Sales by Day of Week</h3>
-                  <div class="chart-wrapper" style="position: relative; height: 250px; width: 100%;">
-                    <canvas id="dayOfWeekChart"></canvas>
-                  </div>
-                </div>
-
-                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;" id="week-comparison-container">
-                  <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">This Week vs Last Week</h3>
-                  <div id="week-comparison-content" class="crm-grid-col-3" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-                    <div class="crm-stat-card" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
-                      <div class="stat-title" style="font-size: 12px;">Sales</div>
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; color: var(--gray);">This Week:</span>
-                        <span id="ww-this-sales" style="font-size: 16px; font-weight: bold; color: var(--white);">$0.00</span>
-                      </div>
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; color: var(--gray);">Last Week:</span>
-                        <span id="ww-last-sales" style="font-size: 16px; font-weight: bold; color: var(--white);">$0.00</span>
-                      </div>
-                      <div id="ww-diff-sales" style="font-size: 14px; font-weight: bold; text-align: right;"></div>
-                    </div>
-                    
-                    <div class="crm-stat-card" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
-                      <div class="stat-title" style="font-size: 12px;">Expenses</div>
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; color: var(--gray);">This Week:</span>
-                        <span id="ww-this-expenses" style="font-size: 16px; font-weight: bold; color: var(--white);">$0.00</span>
-                      </div>
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; color: var(--gray);">Last Week:</span>
-                        <span id="ww-last-expenses" style="font-size: 16px; font-weight: bold; color: var(--white);">$0.00</span>
-                      </div>
-                    </div>
-
-                    <div class="crm-stat-card" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
-                      <div class="stat-title" style="font-size: 12px;">Profit</div>
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; color: var(--gray);">This Week:</span>
-                        <span id="ww-this-profit" style="font-size: 16px; font-weight: bold; color: var(--white);">$0.00</span>
-                      </div>
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; color: var(--gray);">Last Week:</span>
-                        <span id="ww-last-profit" style="font-size: 16px; font-weight: bold; color: var(--white);">$0.00</span>
-                      </div>
-                      <div id="ww-diff-profit" style="font-size: 14px; font-weight: bold; text-align: right;"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div id="eco-tab-ingredients" class="eco-tab" style="display: none;">
-            <!-- Rendered by JS -->
-          </div>
-
-          <div id="eco-tab-labor" class="eco-tab" style="display: none;">
-            <!-- Rendered by JS -->
-          </div>
-
-          <div id="eco-tab-delivery" class="eco-tab" style="display: none;">
-            <!-- Rendered by JS -->
-          </div>
-        </section>
-
-        <!-- ============================================== -->
-        <!-- ANALYTICS -->
-        <!-- ============================================== -->
-        <div id="analytics-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Analytics & Traffic</h1>
-          
-          <div style="margin-bottom: 16px;">
-            <select id="analytics-date-filter" class="crm-select" style="max-width: 200px;" onchange="if(window.loadAnalytics) window.loadAnalytics()">
-              <option value="all">All Time</option>
-              <option value="1">Today</option>
-              <option value="7" selected>Last 7 Days</option>
-              <option value="30">Last 30 Days</option>
-              <option value="90">Last 90 Days</option>
-            </select>
-          </div>
-          
-          <div class="crm-stats-grid" style="margin-bottom: 32px;">
-            <div class="crm-stat-card">
-              <div class="stat-title">Total Page Views</div>
-              <div class="stat-value" id="analytics-total-views">0</div>
-            </div>
-            <div class="crm-stat-card">
-              <div class="stat-title">Blog Post Views</div>
-              <div class="stat-value" id="analytics-blog-views">0</div>
-            </div>
-            <div class="crm-stat-card">
-              <div class="stat-title">Menu Page Views</div>
-              <div class="stat-value" id="analytics-menu-views">0</div>
-            </div>
-          </div>
-
-          <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-            <!-- Top Pages -->
-            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
-              <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Pages & Posts</h3>
-              <div class="crm-table-container"><table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                  <thead>
-                    <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
-                      <th style="padding-bottom: 8px;">URL Path</th>
-                      <th style="padding-bottom: 8px; text-align: right;">Views</th>
-                    </tr>
-                  </thead>
-                  <tbody id="analytics-top-pages">
-                    <!-- JS injected -->
-                    <tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
-                  </tbody>
-                </table></div>
-            </div>
-
-            <!-- Top Referrers -->
-            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
-              <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Traffic Sources</h3>
-              <div class="crm-table-container"><table class="crm-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                  <thead>
-                    <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--gray);">
-                      <th style="padding-bottom: 8px;">Source / Referrer</th>
-                      <th style="padding-bottom: 8px; text-align: right;">Visits</th>
-                    </tr>
-                  </thead>
-                  <tbody id="analytics-top-sources">
-                    <!-- JS injected -->
-                    <tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
-                  </tbody>
-                </table></div>
-            </div>
-          </div>
-          
-          <div style="margin-top: 32px; padding: 16px; background: rgba(255,165,0,0.1); border: 1px solid var(--accent); border-radius: 8px;">
-            <h4 style="margin: 0 0 8px 0; color: var(--accent);">Advanced Analytics Setup Required</h4>
-            <p style="margin: 0; font-size: 14px; color: var(--gray-light); line-height: 1.5;">This native tracker measures raw traffic. To see <strong>exactly what keywords</strong> people search on Google to find you, you must set up <a href="https://search.google.com/search-console/about" target="_blank" style="color: var(--accent);">Google Search Console</a> and link your domain (bigiawasaana.com). Then setup <a href="https://analytics.google.com/" target="_blank" style="color: var(--accent);">Google Analytics 4</a>.</p>
-          </div>
-        </div>
-
         
-        <!-- ============================================== -->
-        <!-- BLOG MANAGEMENT -->
-        <!-- ============================================== -->
-        
-        <div id="expense-view" class="crm-view" style="display: none;">
-          <div class="crm-header-action">
-            <h1 class="crm-view-title">Expenses & Receipts</h1>
-          </div>
-          
-          <div style="width: 100%; max-width: 1400px; margin: 0 auto; padding: 20px 0;">
-            <p style="color: var(--gray); font-size: 15px; margin-bottom: 24px;">
-              Photograph a Restaurant Depot, Costco, or any vendor receipt to log it automatically.
-            </p>
+          <section id="economics-view" class="crm-view" style="display: none;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 32px; gap: 16px;">
+              <h1 class="crm-view-title" style="margin-bottom: 0 !important;">Unit Economics</h1>
+            </div>
+            
+            <div class="crm-subnav" style="display: flex; gap: 8px; margin-bottom: 32px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px;">
+              <button class="btn-outline active" id="btn-eco-menu" onclick="switchEconomicsTab('menu')" data-i18n="ue.tab.menuProfitability">Menu Profitability</button>
+              <button class="btn-outline" id="btn-eco-profit" onclick="switchEconomicsTab('profit')">Daily Profit</button>
+              <button class="btn-outline" id="btn-eco-ingredients" onclick="switchEconomicsTab('ingredients')" data-i18n="ue.tab.ingredients">Ingredients</button>
+              <button class="btn-outline" id="btn-eco-labor" onclick="switchEconomicsTab('labor')" data-i18n="ue.tab.laborEvents">Labor & Events</button>
+              <button class="btn-outline" id="btn-eco-delivery" onclick="switchEconomicsTab('delivery')" data-i18n="ue.tab.deliveryImpact">Delivery Impact</button>
+            </div>
+  
+            <div id="eco-tab-menu" class="eco-tab">
+              <!-- Rendered by JS -->
+            </div>
+            
+            <div id="eco-tab-profit" class="eco-tab" style="display: none;">
+              <div class="crm-grid-1fr-2fr" style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                  <!-- Fixed Costs Setup -->
+                  <div class="crm-panel">
+                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 24px;">Fixed Monthly Costs</h3>
+                    <form id="fixed-costs-form" style="display: flex; flex-direction: column; gap: 16px;">
+                      <div class="crm-form-group">
+                        <label>Home Rent ($)</label>
+                        <input type="number" id="fc-home-rent" class="crm-input" step="0.01" placeholder="0.00">
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Commissary Rent ($)</label>
+                        <input type="number" id="fc-commissary-rent" class="crm-input" step="0.01" placeholder="0.00">
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Insurance ($)</label>
+                        <input type="number" id="fc-insurance" class="crm-input" step="0.01" placeholder="0.00">
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Other Fixed Costs ($)</label>
+                        <input type="number" id="fc-other" class="crm-input" step="0.01" placeholder="0.00">
+                      </div>
+                      <button type="submit" class="btn-primary" style="margin-top: 8px;">Save Fixed Costs</button>
+                      <p id="fc-status" style="margin:0; font-size: 13px; color: var(--accent-admin);"></p>
+                    </form>
+                  </div>
+                  
+                  <!-- Daily Sales Entry -->
+                  <div class="crm-panel">
+                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 24px;">Log Daily Sales</h3>
+                    <form id="daily-sales-form" style="display: flex; flex-direction: column; gap: 16px;">
+                      <div class="crm-form-group">
+                        <label>Date</label>
+                        <input type="date" id="ds-date" class="crm-input" required>
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Gross Sales ($)</label>
+                        <input type="number" id="ds-amount" class="crm-input" step="0.01" required placeholder="0.00">
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Notes (Optional)</label>
+                        <input type="text" id="ds-notes" class="crm-input" placeholder="e.g., Weekend event, slow day...">
+                      </div>
+                      <button type="submit" class="btn-primary" style="margin-top: 8px;">Log Sales</button>
+                      <p id="ds-status" style="margin:0; font-size: 13px; color: var(--accent-admin);"></p>
+                    </form>
+                  </div>
+                </div>
 
-            <div id="receipt-upload-zone" style="background: var(--surface); border: 2px dashed var(--accent); border-radius: 12px; padding: 32px; text-align: center; margin-bottom: 32px; transition: background 0.3s;" onmouseover="this.style.background='rgba(233,171,0,0.1)'" onmouseout="this.style.background='var(--surface)'">
-              <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
-                <label for="receipt-input-camera" style="display:inline-flex; align-items:center; gap:8px; padding: 14px 24px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 16px; background: var(--accent); color: var(--black);">
-                  📷 Take Photo
-                </label>
-                <label for="receipt-input-gallery" style="display:inline-flex; align-items:center; gap:8px; padding: 14px 24px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 16px; background: rgba(255,255,255,0.15); color: var(--white); border: 1px solid var(--border);">
-                  🖼️ Upload from Gallery
-                </label>
-                <button type="button" id="export-csv-btn" style="display:inline-flex; align-items:center; gap:8px; padding: 14px 24px; border-radius: 10px; font-weight:700; cursor:pointer; font-size: 16px; background: rgba(255,255,255,0.05); color: var(--white); border: 1px solid var(--border);">
-                  📥 Export CSV
-                </button>
-              </div>
-              <input id="receipt-input-camera" type="file" accept="image/*" capture="environment" style="display:none;" />
-              <input id="receipt-input-gallery" type="file" accept="image/*" multiple style="display:none;" />
-              <div id="upload-status" style="margin-top: 16px; font-size: 14px; color: var(--gray);"></div>
-              <!-- Retake / Delete Actions (hidden until a receipt is parsed) -->
-              <div id="receipt-actions" style="display: none; margin-top: 16px; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                <button type="button" id="receipt-cancel-btn" class="btn-outline btn-small" style="color: var(--white);">❌ Close Review</button>
-                <button type="button" id="receipt-retake-btn" class="btn-outline btn-small" style="color: var(--white);">🔄 Retake / Re-upload</button>
-                <button type="button" id="receipt-delete-btn" class="btn-outline btn-small" style="color: #f44336; border-color: rgba(244,67,54,0.4);">🗑️ Delete Draft</button>
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                  <div class="crm-stats-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div class="crm-stat-card">
+                      <div class="stat-title">MTD Gross Sales</div>
+                      <div class="stat-value" id="ue-mtd-sales" style="color: var(--accent-admin);">$0.00</div>
+                    </div>
+                    <div class="crm-stat-card">
+                      <div class="stat-title">MTD Estimated Profit</div>
+                      <div class="stat-value" id="ue-mtd-profit">$0.00</div>
+                    </div>
+                  </div>
+                  <div class="crm-panel">
+                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 24px;">Daily Sales & Profit (Current Month)</h3>
+                    <div class="chart-wrapper" style="position: relative; height: 320px; width: 100%;">
+                      <canvas id="profitChart"></canvas>
+                    </div>
+                  </div>
+                  <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg);">
+                      <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Recent Daily Sales</h3>
+                    </div>
+                    <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                      <table class="crm-table">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Notes</th>
+                            <th style="text-align: right;">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody id="recent-sales-tbody">
+                          <tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Expense Stats Row -->
-            <div id="expense-stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px;">
+            <!-- Ingredients & Inventory Tab -->
+            <div id="eco-tab-ingredients" class="eco-tab" style="display: none;">
+              <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+                  <h3 style="margin: 0; color: var(--text-main); font-size: 16px;">Manage Ingredients & Stock</h3>
+                  <div style="display: flex; gap: 12px; align-items: center;">
+                    <input type="text" id="inventory-search" class="crm-input" placeholder="Search inventory..." style="max-width: 250px;">
+                    <button class="btn-primary" onclick="openAddInventoryModal()">+ Add Item</button>
+                  </div>
+                </div>
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                  <table class="crm-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Cost Per Unit</th>
+                        <th style="text-align: right;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="inventory-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Labor & Events Tab -->
+            <div id="eco-tab-labor" class="eco-tab" style="display: none;">
+              <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+                  <h3 style="margin: 0; color: var(--text-main); font-size: 16px;">Event Profitability Analyzer</h3>
+                  <button class="btn-primary" onclick="openEditEventModal()">+ New Event</button>
+                </div>
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                  <table class="crm-table">
+                    <thead>
+                      <tr>
+                        <th>Event Name</th>
+                        <th>Date</th>
+                        <th>Fixed Costs</th>
+                        <th>Break-Even Orders</th>
+                        <th>Actual Orders</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="labor-events-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Delivery Impact Tab -->
+            <div id="eco-tab-delivery" class="eco-tab" style="display: none;">
+              <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                <div class="crm-panel">
+                  <h3 style="margin-top: 0; font-size: 16px; margin-bottom: 24px;">Delivery App Margin Impact</h3>
+                  <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.5;">This shows your actual profit per item after the standard platform commissions (DoorDash 30%, Uber Eats 30%, Grubhub 25%).</p>
+                  
+                  <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-admin); border-radius: 8px; border: 1px solid var(--border-admin);">
+                      <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="width: 12px; height: 12px; background: #ff3333; border-radius: 50%;"></span>
+                        <span style="font-weight: 500;">DoorDash</span>
+                      </div>
+                      <span style="font-weight: bold;">30% Fee</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-admin); border-radius: 8px; border: 1px solid var(--border-admin);">
+                      <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="width: 12px; height: 12px; background: #06c167; border-radius: 50%;"></span>
+                        <span style="font-weight: 500;">Uber Eats</span>
+                      </div>
+                      <span style="font-weight: bold;">30% Fee</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-admin); border-radius: 8px; border: 1px solid var(--border-admin);">
+                      <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="width: 12px; height: 12px; background: #ff8000; border-radius: 50%;"></span>
+                        <span style="font-weight: 500;">Grubhub</span>
+                      </div>
+                      <span style="font-weight: bold;">25% Fee</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                  <table class="crm-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Price</th>
+                        <th>In-Store Margin</th>
+                        <th>DoorDash Margin</th>
+                        <th>Uber Eats Margin</th>
+                        <th>Grubhub Margin</th>
+                      </tr>
+                    </thead>
+                    <tbody id="delivery-impact-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Analytics View -->
+          <div id="analytics-view" class="crm-view" style="display: none;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 32px; gap: 16px;">
+              <h1 class="crm-view-title" style="margin-bottom: 0 !important;">Analytics & Traffic</h1>
+              <div style="display: flex; gap: 12px;">
+                <select id="analytics-date-filter" class="crm-select" style="min-width: 180px;" onchange="if(window.loadAnalytics) window.loadAnalytics()">
+                  <option value="all">All Time</option>
+                  <option value="1">Today</option>
+                  <option value="7" selected>Last 7 Days</option>
+                  <option value="30">Last 30 Days</option>
+                  <option value="90">Last 90 Days</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="crm-stats-grid" style="margin-bottom: 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+              <div class="crm-stat-card">
+                <div class="stat-title">Total Page Views</div>
+                <div class="stat-value" id="analytics-total-views">0</div>
+              </div>
+              <div class="crm-stat-card">
+                <div class="stat-title">Blog Post Views</div>
+                <div class="stat-value" id="analytics-blog-views">0</div>
+              </div>
+              <div class="crm-stat-card">
+                <div class="stat-title">Menu Page Views</div>
+                <div class="stat-value" id="analytics-menu-views">0</div>
+              </div>
+            </div>
+  
+            <div class="crm-panel" style="margin-bottom: 32px;">
+              <h3 style="margin-top: 0; color: var(--text-main); margin-bottom: 24px; font-size: 18px;">Traffic Overview (Last 30 Days)</h3>
+              <div class="chart-wrapper" style="position: relative; height: 320px; width: 100%;">
+                <canvas id="pageViewsChart"></canvas>
+              </div>
+            </div>
+
+            <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+              <!-- Top Pages -->
+              <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg);">
+                  <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Top Pages & Posts</h3>
+                </div>
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                  <table class="crm-table">
+                    <thead>
+                      <tr>
+                        <th>URL Path</th>
+                        <th style="text-align: right;">Views</th>
+                      </tr>
+                    </thead>
+                    <tbody id="analytics-top-pages">
+                      <tr><td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+  
+              <!-- Top Referrers -->
+              <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg);">
+                  <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Top Traffic Sources</h3>
+                </div>
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                  <table class="crm-table">
+                    <thead>
+                      <tr>
+                        <th>Source / Referrer</th>
+                        <th style="text-align: right;">Visits</th>
+                      </tr>
+                    </thead>
+                    <tbody id="analytics-top-sources">
+                      <tr><td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Next View -->
+          
+          <div id="expense-view" class="crm-view" style="display: none;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 32px; gap: 16px;">
+              <h1 class="crm-view-title" style="margin-bottom: 0 !important;">Expenses & Receipts</h1>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <select id="expense-date-filter" class="crm-select" style="min-width: 180px;">
+                  <option value="7">Last 7 Days</option>
+                  <option value="30" selected>Last 30 Days</option>
+                  <option value="all">All Time</option>
+                </select>
+                <button class="btn-primary" onclick="document.getElementById('receipt-upload-input').click()">+ Upload Receipt</button>
+                <input type="file" id="receipt-upload-input" accept="image/*,application/pdf" multiple style="display: none;">
+              </div>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="expense-upload-progress" class="crm-panel" style="display: none; border-left: 4px solid var(--accent-admin); margin-bottom: 24px;">
+              <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 8px;">Processing Receipts...</h3>
+              <p id="expense-upload-text" style="color: var(--text-muted); font-size: 14px; margin: 0;">Analyzing with AI...</p>
+            </div>
+            
+            <div id="expense-stats-row" class="crm-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px;">
               <div class="crm-stat-card">
                 <div class="stat-title">All-Time Spending</div>
-                <div class="stat-value" id="exp-all-time-total" style="color: var(--accent);">$0.00</div>
-                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;" id="exp-all-time-count">0 receipts</div>
+                <div class="stat-value" id="exp-all-time-total" style="color: var(--accent-admin);">$0.00</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500;" id="exp-all-time-count">0 receipts</div>
               </div>
               <div class="crm-stat-card">
                 <div class="stat-title">Last 30 Days</div>
                 <div class="stat-value" id="exp-30d-total">$0.00</div>
-                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;" id="exp-30d-count">0 receipts</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500;" id="exp-30d-count">0 receipts</div>
               </div>
               <div class="crm-stat-card">
                 <div class="stat-title">Last 7 Days</div>
                 <div class="stat-value" id="exp-7d-total">$0.00</div>
-                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;" id="exp-7d-count">0 receipts</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500;" id="exp-7d-count">0 receipts</div>
               </div>
               <div class="crm-stat-card">
                 <div class="stat-title">Weekly Avg</div>
                 <div class="stat-value" id="exp-weekly-avg">$0.00</div>
-                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">per week</div>
-              </div>
-              <div class="crm-stat-card">
-                <div class="stat-title">Avg per Receipt</div>
-                <div class="stat-value" id="exp-avg-receipt">$0.00</div>
-              </div>
-              <div class="crm-stat-card">
-                <div class="stat-title">Most Expensive Receipt</div>
-                <div class="stat-value" id="exp-most-expensive" style="font-size: 18px;">-</div>
-              </div>
-              <div class="crm-stat-card">
-                <div class="stat-title">Top Vendor (30d)</div>
-                <div class="stat-value" id="exp-top-vendor" style="font-size: 18px;">-</div>
-              </div>
-              <div class="crm-stat-card">
-                <div class="stat-title">Biggest Item (30d)</div>
-                <div class="stat-value" id="exp-biggest-item" style="font-size: 18px;">-</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500;">per week</div>
               </div>
             </div>
 
-            <!-- Pending Inbox -->
-            <div id="pending-inbox-section" style="margin-bottom: 24px; display: none;">
-              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px; margin-bottom: 12px; color: var(--accent);">Inbox: Pending Receipts</h3>
-              <div id="pending-inbox-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-            </div>
-
-            <!-- Price Alerts Section -->
-            <div id="price-alerts-container" style="margin-bottom: 24px; display: none; flex-direction: column; gap: 12px;"></div>
-
-            <!-- Expense Analytics -->
-            <div id="expense-analytics-section" style="margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px;">Expense Breakdown</h3>
-              
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 16px;">
-                <div>
-                  <h4 style="margin-top: 0; color: var(--gray); font-size: 16px;">Category Breakdown (Last 30 Days)</h4>
-                  <div class="chart-wrapper" style="height: 250px; position: relative;">
-                    <canvas id="expenseChart"></canvas>
-                  </div>
+            <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+              <div class="crm-panel">
+                <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 24px;">Spending by Category</h3>
+                <div class="chart-wrapper" style="position: relative; height: 260px; width: 100%;">
+                  <canvas id="expenseCategoryChart"></canvas>
                 </div>
-                <div>
-                  <h4 style="margin-top: 0; color: var(--gray); font-size: 16px;">Item Spending (Last 30 Days)</h4>
-                  <div class="crm-table-container" style="height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
-                    <div class="crm-table-container"><table class="crm-table" style="width: 100%; text-align: left; border-collapse: collapse; font-size: 13px;">
-                      <thead style="position: sticky; top: 0; background: var(--surface); z-index: 1;">
-                        <tr style="border-bottom: 1px solid var(--border); color: var(--gray);">
-                          <th style="padding: 8px;">Item</th>
-                          <th style="padding: 8px; text-align: right;">Qty</th>
-                          <th style="padding: 8px; text-align: right;">Spent</th>
-                        </tr>
-                      </thead>
-                      <tbody id="expenseTopItemsTbody">
-                        <tr><td colspan="3" style="text-align: center; padding: 16px; color: var(--gray);">Loading...</td></tr>
-                      </tbody>
-                    </table></div>
-                </div>
-                <div>
-                  <h4 style="margin-top: 0; color: var(--gray); font-size: 16px;">Spending by Vendor</h4>
-                  <div class="chart-wrapper" style="height: 250px; position: relative;">
-                    <canvas id="expenseVendorChart"></canvas>
-                  </div>
+              </div>
+              <div class="crm-panel">
+                <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 24px;">Spending by Vendor (Top 10)</h3>
+                <div class="chart-wrapper" style="position: relative; height: 260px; width: 100%;">
+                  <canvas id="expenseVendorChart"></canvas>
                 </div>
               </div>
             </div>
 
-            <!-- Price Trends Section -->
-            <div id="price-trends-section" style="margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px; margin-bottom: 8px;">Ingredient Price Trends</h3>
-              <p style="color: var(--gray); font-size: 14px; margin-bottom: 16px; margin-top: 0;">Track how your ingredient prices change over time.</p>
-              
-              <select id="price-trend-item-select" style="margin-bottom: 16px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--white); font-size: 16px; width: 100%; max-width: 400px; outline: none;">
-                <option value="">Select an item to track...</option>
-              </select>
-              
-              <div class="chart-wrapper" style="height: 300px; position: relative;">
-                <canvas id="priceTrendChart"></canvas>
+            <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 40px;">
+              <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); display: flex; justify-content: space-between; align-items: center; background: var(--table-header-bg);">
+                  <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Recent Receipts</h3>
+                  <button class="btn-outline btn-small" id="export-expenses-btn">Export CSV</button>
+                </div>
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                  <table class="crm-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Vendor</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="expenseDocsTbody">
+                      <tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-
-
-            <div id="review-section" style="display:none; margin-bottom: 32px; background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
-              <h3 style="margin-top: 0; font-family: 'Barlow Condensed'; font-size: 22px; color: var(--accent);">Review Parsed Items</h3>
-              <div id="review-meta" style="font-size: 14px; color:var(--gray-light); margin-bottom: 16px;"></div>
-              <div class="crm-table-container" style="overflow-x: auto;">
-                <div class="crm-table-container"><table class="crm-table" id="review-table" style="width:100%; border-collapse: collapse; font-size: 14px; text-align: left; min-width: 600px;">
-                  <thead>
-                    <tr>
-                      <th>Item</th>
-                      <th>Category & Link</th>
-                      <th>Qty</th>
-                      <th>Unit $</th>
-                      <th>Total $</th>
-                    </tr>
-                  </thead>
-                  <tbody id="review-tbody"></tbody>
-                </table></div>
-              <button id="confirm-expense-btn" class="btn-primary" style="margin-top: 24px; width:100%; padding: 14px; font-weight:700; border-radius: 10px; font-size: 16px; cursor:pointer;">
-                Confirm & Save Expense
-              </button>
-            </div>
-
-            <div>
-              <h2 style="margin-bottom: 16px; font-family: 'Barlow Condensed'; font-size: 24px;">Recent Expenses</h2>
-              <div id="saved-expenses-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px;">
-                <div style="padding: 24px; color: var(--gray); text-align: center; width: 100%; grid-column: 1 / -1;">Loading expenses...</div>
+              
+              <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg);">
+                  <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Item Spending</h3>
+                </div>
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                  <table class="crm-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th style="text-align: right;">Qty</th>
+                        <th style="text-align: right;">Spent</th>
+                      </tr>
+                    </thead>
+                    <tbody id="expenseTopItemsTbody">
+                      <tr><td colspan="3" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div id="blog-management" class="crm-view" style="display: none;">
+          <!-- Blog View -->
+          <div id="blog-management" class="crm-view" style="display: none;">
           <div class="flex-row-mobile-col" style="justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <h2 style="font-family: 'Barlow Condensed'; font-size: 28px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase;">Blog Management</h2>
             <div class="flex-row-mobile-col" style="gap: 12px;">
