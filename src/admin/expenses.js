@@ -108,9 +108,9 @@ window.loadAnalytics = loadAnalytics;
 
 // Expense Capture Logic
 {
-  const cameraInput = document.getElementById("receipt-input-camera");
-  const galleryInput = document.getElementById("receipt-input-gallery");
-  const statusEl = document.getElementById("upload-status");
+  const cameraInput = document.getElementById("receipt-upload-input");
+  const galleryInput = null;
+  const statusEl = document.getElementById("expense-upload-text") || { textContent: "" };
   const reviewSection = document.getElementById("review-section");
   const reviewMeta = document.getElementById("review-meta");
   const reviewTbody = document.getElementById("review-tbody");
