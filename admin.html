@@ -653,7 +653,7 @@
                 <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
                   <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">1. General Details</h3>
                   
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                       <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Deal Title *</label>
                       <input type="text" id="deal-title" placeholder="e.g. Kabob Lovers Deal" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
@@ -669,7 +669,7 @@
                     <textarea id="deal-desc" rows="2" placeholder="e.g. Buy any 2 Kabob Plates, get 1 drink free!" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                       <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Deal Type *</label>
                       <select id="deal-type" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; height: 38px;">
@@ -687,7 +687,7 @@
                     </div>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                       <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Start Date & Time (Optional)</label>
                       <input type="datetime-local" id="deal-start" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
@@ -698,7 +698,7 @@
                     </div>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                       <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Usage Limit Per Order (Optional)</label>
                       <input type="number" id="deal-limit" placeholder="Unlimited" min="1" step="1" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
@@ -721,7 +721,7 @@
                 <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
                   <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">2. Trigger Conditions (Who Qualifies)</h3>
                   
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center;">
+                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center;">
                     <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 14px; user-select: none; cursor: pointer;">
                       <input type="checkbox" id="deal-cond-order" style="accent-color: var(--accent);"> Applies to Whole Order
                     </label>
@@ -731,7 +731,7 @@
                     </div>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                       <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Required Menu Items</label>
                       <div class="multiselect-list" id="deal-cond-items" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
@@ -751,7 +751,7 @@
                 <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
                   <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">3. Reward Details (What They Get)</h3>
                   
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                       <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Discount Type</label>
                       <select id="deal-reward-type" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; height: 38px;">
@@ -767,7 +767,7 @@
                     </div>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                       <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Reward/Free Items (BOGO/Free Item)</label>
                       <div class="multiselect-list" id="deal-reward-items" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
@@ -813,7 +813,7 @@
           <div class="crm-panel mt-m">
             <h2 class="crm-panel-title">Dynamic Wait Time & Scheduling</h2>
             <form id="pickup-config-form" style="display: flex; flex-direction: column; gap: 16px;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="crm-form-group">
                   <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Base Prep Time (mins)</label>
                   <input type="number" id="pickup-base-prep" class="crm-input" required>
@@ -833,7 +833,7 @@
               </div>
               
               <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--white); margin-top: 16px;">Scheduled Ordering Limits</h3>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="crm-form-group">
                   <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Min Lead Time (mins)</label>
                   <input type="number" id="pickup-min-lead" class="crm-input" required>
@@ -859,7 +859,7 @@
                 </button>
               </h3>
               <p id="google-sync-status" style="font-size: 12px; color: var(--gray); margin: 0; display: none;"></p>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="crm-form-group">
                   <label style="font-family: 'Barlow Condensed'; font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase;">Open Time (HH:MM)</label>
                   <input type="time" id="pickup-open-time" class="crm-input" required>
@@ -917,7 +917,7 @@
           </div>
           
           <div id="eco-tab-profit" class="eco-tab" style="display: none;">
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+            <div class="crm-grid-1fr-2fr" style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
               <div style="display: flex; flex-direction: column; gap: 24px;">
                 <!-- Fixed Costs Setup -->
                 <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
@@ -1035,7 +1035,7 @@
 
                 <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;" id="week-comparison-container">
                   <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">This Week vs Last Week</h3>
-                  <div id="week-comparison-content" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                  <div id="week-comparison-content" class="crm-grid-col-3" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                     <div class="crm-stat-card" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
                       <div class="stat-title" style="font-size: 12px;">Sales</div>
                       <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1123,7 +1123,7 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
             <!-- Top Pages -->
             <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;">
               <h3 style="margin-top: 0; color: var(--accent); margin-bottom: 16px;">Top Pages & Posts</h3>

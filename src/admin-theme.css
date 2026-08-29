@@ -75,6 +75,7 @@ body.crm-body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   position: static !important;
   height: 100vh !important;
 }
@@ -376,6 +377,12 @@ input:focus, select:focus, textarea:focus {
 
 @media (max-width: 768px) {
   #today-glance, .crm-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .crm-dashboard-grid, .crm-grid-col-2, .crm-grid-1fr-2fr, .crm-grid-col-3 {
     grid-template-columns: 1fr !important;
   }
 }
