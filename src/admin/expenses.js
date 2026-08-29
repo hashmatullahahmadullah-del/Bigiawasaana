@@ -254,6 +254,20 @@ window.loadAnalytics = loadAnalytics;
       }
     };
 
+
+      if (cameraInput) {
+        cameraInput.addEventListener("change", (e) => {
+          handleFilesSelected(e.target.files);
+          cameraInput.value = "";
+        });
+      }
+      if (galleryInput) {
+        galleryInput.addEventListener("change", (e) => {
+          handleFilesSelected(e.target.files);
+          galleryInput.value = "";
+        });
+      }
+
     const renderReview = (data) => {
       reviewMeta.innerHTML = `
         <strong>Vendor:</strong> ${data.vendor || "Unknown"} &nbsp;
