@@ -938,7 +938,7 @@ window.loadAnalytics = loadAnalytics;
           initPriceTrends(snapshot);
 
           let docsArray = [];
-          snapshot.forEach(docSnap => docsArray.push(docSnap.data()));
+          snapshot.forEach(docSnap => docsArray.push({ id: docSnap.id, ...docSnap.data() }));
           docsArray.sort((a,b) => {
              const getMs = (r) => {
                  if (r.createdAt?.toDate) return r.createdAt.toDate().getTime();
