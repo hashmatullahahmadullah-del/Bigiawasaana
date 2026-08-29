@@ -85,8 +85,25 @@ exports.parseReceipt = functions
 
       const parsed = JSON.parse(response.text);
 
+
+      // 4.5. Duplicate Detection
+      if (parsed.vendor && parsed.total) {
+        const duplicateCheck = await admin.firestore().collection("expenses")
+          .where("vendor", "==", parsed.vendor)
+          .where("total", "==", parsed.total)
+          .where("status", "==", "confirmed")
+          .limit(1)
+          .get();
+          
+        if (!duplicateCheck.empty) {
+          console.log("Duplicate receipt detected! Vendor:", parsed.vendor, "Total:", parsed.total);
+          return { duplicate: true, existingId: duplicateCheck.docs[0].id, vendor: parsed.vendor, total: parsed.total };
+        }
+      }
+
       // 5. Store in Firestore
       let purchaseTimestamp = null;
+
       if (parsed.purchaseDate) {
         const d = new Date(parsed.purchaseDate);
         if (!isNaN(d.getTime())) purchaseTimestamp = admin.firestore.Timestamp.fromDate(d);

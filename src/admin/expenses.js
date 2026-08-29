@@ -153,6 +153,9 @@ window.loadAnalytics = loadAnalytics;
 
     let isProcessingBatch = false;
 
+    let autoSaveInterval = null;
+    let autoSaveCountdown = 10;
+    
     window.openDraftReview = (id) => {
       const draftData = window[`draft_data_${id}`];
       if (draftData) {
@@ -162,10 +165,26 @@ window.loadAnalytics = loadAnalytics;
         renderReview(draftData);
         statusEl.textContent = `Draft opened for review.`;
         if (receiptActions) receiptActions.style.display = "flex";
-        // scroll to top smoothly
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Start Auto-Save Countdown
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        autoSaveCountdown = 10;
+        confirmBtn.textContent = `Confirm & Save Expense (${autoSaveCountdown}s)`;
+        
+        autoSaveInterval = setInterval(() => {
+          autoSaveCountdown--;
+          if (autoSaveCountdown > 0) {
+            confirmBtn.textContent = `Confirm & Save Expense (${autoSaveCountdown}s)`;
+          } else {
+            clearInterval(autoSaveInterval);
+            confirmBtn.textContent = `Confirm & Save Expense`;
+            confirmBtn.click(); // Auto-trigger save
+          }
+        }, 1000);
       }
     };
+
 
     const handleFilesSelected = async (files) => {
       if (!files || files.length === 0) return;
@@ -176,173 +195,72 @@ window.loadAnalytics = loadAnalytics;
       }
       isProcessingBatch = true;
       
+      const uploadProgress = document.getElementById('expense-upload-progress');
+      const uploadText = document.getElementById('expense-upload-text');
+      if (uploadProgress) {
+        uploadProgress.style.display = 'block';
+        uploadProgress.classList.add('uploading-pulse');
+      }
+      
       if (receiptActions) receiptActions.style.display = "none";
       reviewSection.style.display = "none";
       
       let successCount = 0;
       let failCount = 0;
+      let duplicateCount = 0;
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        statusEl.textContent = `Processing receipt ${i + 1} of ${files.length}... (Compressing)`;
+        if (uploadText) uploadText.innerHTML = `<div class="loading-spinner"></div>Processing receipt ${i + 1} of ${files.length}... (Compressing)`;
         try {
           const compressed = await localCompressImage(file);
-          statusEl.textContent = `Processing receipt ${i + 1} of ${files.length}... (Uploading)`;
+          if (uploadText) uploadText.innerHTML = `<div class="loading-spinner"></div>Processing receipt ${i + 1} of ${files.length}... (Uploading)`;
           const timestamp = Date.now() + i;
           const path = `receipts/unsorted/${timestamp}_receipt.webp`;
           const storageReference = ref(storage, path);
           await uploadBytes(storageReference, compressed, { contentType: 'image/webp' });
           
-          statusEl.textContent = `Processing receipt ${i + 1} of ${files.length}... (AI Parsing - this takes a few seconds)`;
+          if (uploadText) uploadText.innerHTML = `<div class="loading-spinner"></div>Processing receipt ${i + 1} of ${files.length}... (AI Parsing - this takes 5-10 seconds)`;
           const functions = getFunctions(app);
-          const parseReceipt = httpsCallable(functions, "parseReceipt");
+          const parseReceipt = httpsCallable(functions, 'parseReceipt');
           const result = await parseReceipt({ storagePath: path });
           
-          if (result.data) {
+          if (result.data && result.data.duplicate) {
+             duplicateCount++;
+             try { await deleteObject(storageReference); } catch(e) {}
+             showToast(`Duplicate receipt rejected for ${result.data.vendor}`);
+          } else if (result.data) {
             successCount++;
           }
         } catch (err) {
-          console.error("Error processing file", i, err);
+          console.error('Error processing file', i, err);
           failCount++;
         }
       }
       
       isProcessingBatch = false;
+      if (uploadProgress) {
+        uploadProgress.style.display = 'none';
+        uploadProgress.classList.remove('uploading-pulse');
+      }
       
+      if (duplicateCount > 0) {
+        showToast(`Rejected ${duplicateCount} duplicate receipt(s)`);
+      }
       if (successCount > 0) {
-        statusEl.textContent = `✅ Batch complete. ${successCount} processed. Check "Pending Receipts" below to review them.`;
-      } else {
-        statusEl.textContent = `❌ Batch failed. Could not process any receipts.`;
+        showToast(`Batch complete. ${successCount} processed. Check Pending Receipts.`);
+      } else if (failCount > 0) {
+        showToast(`Batch failed. Could not process any receipts.`);
       }
     };
-
-    if (cameraInput) {
-      cameraInput.addEventListener("change", (e) => {
-        handleFilesSelected(e.target.files);
-        cameraInput.value = "";
-      });
-    }
-    if (galleryInput) {
-      galleryInput.addEventListener("change", (e) => {
-        handleFilesSelected(e.target.files);
-        galleryInput.value = "";
-      });
-    }
-
-    // Retake: reset the form and let user pick a new file
-    if (retakeBtn) {
-      retakeBtn.addEventListener("click", async () => {
-        // If there's a draft, delete it first
-        if (currentExpenseId) {
-          try {
-            await deleteDoc(doc(db, "expenses", currentExpenseId));
-          } catch(e) { console.warn("Could not delete draft:", e); }
-        }
-        // If there's an uploaded file, attempt to delete from storage
-        if (currentStoragePath) {
-          try {
-            await deleteObject(ref(storage, currentStoragePath));
-          } catch(e) { console.warn("Could not delete storage file:", e); }
-        }
-        currentExpenseId = null;
-        currentItems = [];
-        currentStoragePath = null;
-        reviewSection.style.display = "none";
-        if (receiptActions) receiptActions.style.display = "none";
-        statusEl.textContent = "Draft cleared. Select a new receipt above.";
-      });
-    }
-
-    // Delete draft
-    if (deleteBtn) {
-      deleteBtn.addEventListener("click", async () => {
-        if (!currentExpenseId) {
-          statusEl.textContent = "Nothing to delete.";
-          return;
-        }
-        if (!confirm("Delete this receipt draft?")) return;
-        try {
-          await deleteDoc(doc(db, "expenses", currentExpenseId));
-          if (currentStoragePath) {
-            try { await deleteObject(ref(storage, currentStoragePath)); } catch(e) { console.warn(e); }
-          }
-          currentExpenseId = null;
-          currentItems = [];
-          currentStoragePath = null;
-          reviewSection.style.display = "none";
-          if (receiptActions) receiptActions.style.display = "none";
-          statusEl.textContent = "Draft deleted.";
-          showToast("Draft deleted");
-        } catch(err) {
-          console.error(err);
-          statusEl.textContent = "Error deleting draft: " + err.message;
-        }
-      });
-    }
-    
-    // Cancel button
-    const cancelBtn = document.getElementById("receipt-cancel-btn");
-    if (cancelBtn) {
-      cancelBtn.addEventListener("click", () => {
-        reviewSection.style.display = "none";
-        if (receiptActions) receiptActions.style.display = "none";
-        currentExpenseId = null;
-        currentItems = [];
-        currentStoragePath = null;
-      });
-    }
-
-    const exportCsvBtn = document.getElementById("export-csv-btn");
-    if (exportCsvBtn) {
-      exportCsvBtn.addEventListener("click", () => {
-        if (!window.expenseDocsArray || window.expenseDocsArray.length === 0) {
-          alert("No expenses available to export.");
-          return;
-        }
-        
-        let csvContent = "Date,Vendor,Category,Item,Qty,Unit Price,Line Total,Receipt Total,Status\n";
-        
-        window.expenseDocsArray.forEach(data => {
-          const dateStr = data.confirmedAt?.toDate ? data.confirmedAt.toDate().toLocaleDateString() : 
-                          (data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : 'N/A');
-          const vendor = `"${(data.vendor || 'Unknown').replace(/"/g, '""')}"`;
-          const receiptTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
-          const status = data.status || 'pending';
-          
-          if (!data.items || data.items.length === 0) {
-            csvContent += `${dateStr},${vendor},"","",0,0,0,${receiptTotal},${status}\n`;
-          } else {
-            data.items.forEach(item => {
-              const category = `"${(item.category || '').replace(/"/g, '""')}"`;
-              const itemName = `"${(item.name || '').replace(/"/g, '""')}"`;
-              const qty = item.quantity || 1;
-              const unitPrice = parseFloat(item.unitPrice) || 0;
-              const lineTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || (unitPrice * qty);
-              
-              csvContent += `${dateStr},${vendor},${category},${itemName},${qty},${unitPrice},${lineTotal},${receiptTotal},${status}\n`;
-            });
-          }
-        });
-        
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `expenses_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
-    }
 
     const renderReview = (data) => {
       reviewMeta.innerHTML = `
         <strong>Vendor:</strong> ${data.vendor || "Unknown"} &nbsp;
-        <strong>Total:</strong> $${data.total != null ? data.total.toFixed(2) : "\u2014"} &nbsp;
+        <strong>Total:</strong> ${data.total != null ? data.total.toFixed(2) : "\u2014"} &nbsp;
         ${data.needsReview ? '<span style="color:#b00;">\u26a0 Needs review</span>' : ""}
       `;
 
-      // Build options for known menu ingredients
       let ingredientOptions = `<option value="">-- No Link --</option>`;
       if (window.adminMenuData) {
         Object.keys(window.adminMenuData).forEach(key => {
@@ -372,7 +290,6 @@ window.loadAnalytics = loadAnalytics;
           <td style="padding:6px 4px;"><input data-idx="${idx}" data-field="lineTotal" value="${item.lineTotal}" type="number" step="0.01" style="width:60px; border:1px solid var(--border); border-radius:4px; padding:4px; background: var(--bg); color: var(--white);" /></td>
         `;
         
-        // Auto-select linked ingredient if available
         if (item.matchedMenuIngredient) {
             const select = tr.querySelector('.item-link-input');
             if (select) select.value = item.matchedMenuIngredient;
@@ -383,6 +300,10 @@ window.loadAnalytics = loadAnalytics;
 
       reviewTbody.querySelectorAll("input, select").forEach((input) => {
         input.addEventListener("change", (e) => {
+          if (autoSaveInterval) {
+            clearInterval(autoSaveInterval);
+            confirmBtn.textContent = "Confirm & Save Expense";
+          }
           const idx = parseInt(e.target.dataset.idx, 10);
           const field = e.target.dataset.field;
           let value = e.target.value;
