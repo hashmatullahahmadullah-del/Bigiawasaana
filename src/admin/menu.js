@@ -169,7 +169,7 @@ if (addMenuForm) {
       const variants = getBuilderOptions('variants');
       const addOns = getBuilderOptions('addons');
 
-      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, img, featured: !!featured, hidden: !!hidden, variants, addOns });
+      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, img, featured: !!featured, hidden: !!hidden, variants, addOns, updatedAt: new Date().toISOString() });
       document.getElementById("menu-status").style.display = "block";
       addMenuForm.reset();
       document.getElementById('variants-container').innerHTML = '';
@@ -241,9 +241,12 @@ export async function loadMenuAdmin() {
       const itemId = docSnap.id;
       window.adminMenuData[itemId] = data;
       const descText = data.desc || data.description || '';
+      const imgHtml = data.img ? `<img src="${data.img}" alt="${data.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; flex-shrink: 0; border: 1px solid var(--border);">` : `<div style="width: 80px; height: 80px; background: var(--bg); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 10px; text-align: center; flex-shrink: 0;">No Image</div>`;
+      const updatedAtHtml = data.updatedAt ? `<div style="color: var(--gray); font-size: 11px; margin-top: 8px;">Updated: ${new Date(data.updatedAt).toLocaleString()}</div>` : '';
       
       html += `
         <div style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+          ${imgHtml}
           <div style="flex: 1;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
               <strong style="font-size: 16px; color: var(--white);">${data.name}</strong>
@@ -256,6 +259,7 @@ export async function loadMenuAdmin() {
             <div style="color: #888; font-size: 13px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
               ${descText}
             </div>
+            ${updatedAtHtml}
           </div>
           <div style="display: flex; gap: 8px;">
             <button class="btn-outline btn-small" onclick="openEditMenuModal('${itemId}')" style="padding: 6px 12px; font-size: 12px;">Edit</button>
@@ -368,7 +372,8 @@ if (editMenuForm) {
         featured: !!featured,
         hidden: !!hidden,
         variants,
-        addOns
+        addOns,
+        updatedAt: new Date().toISOString()
       });
       window.closeEditMenuModal();
       loadMenuAdmin();
