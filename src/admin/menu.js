@@ -169,7 +169,7 @@ if (addMenuForm) {
       const variants = getBuilderOptions('variants');
       const addOns = getBuilderOptions('addons');
 
-      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, img, featured: !!featured, hidden: !!hidden, variants, addOns, updatedAt: new Date().toISOString() });
+      await addDoc(collection(db, "menu"), { name, name_fa, price, desc, desc_fa, category, mealLinkId, img, featured: !!featured, hidden: !!hidden, variants, addOns, updatedAt: new Date().toISOString() });
       document.getElementById("menu-status").style.display = "block";
       addMenuForm.reset();
       document.getElementById('variants-container').innerHTML = '';
