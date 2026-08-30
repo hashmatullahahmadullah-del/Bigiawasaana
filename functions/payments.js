@@ -69,6 +69,18 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
       });
     }
 
+    if (cartItem.isMeal && cartItem.mealUpgradeId) {
+      const mealDoc = await db.collection('menu').doc(cartItem.mealUpgradeId).get();
+      if (mealDoc.exists) {
+        const mealData = mealDoc.data();
+        const mealPrice = typeof mealData.price === 'number' ? mealData.price : parseFloat(mealData.price);
+        if (!isNaN(mealPrice)) {
+          const upgradeCost = Math.max(0, mealPrice - basePrice);
+          finalPrice += upgradeCost;
+        }
+      }
+    }
+
     menuItems.push({ id: cartItem.id, ...menuData, price: finalPrice, originalPrice: basePrice });
 
     const itemTotalCents = Math.round(finalPrice * 100) * cartItem.qty;
@@ -76,6 +88,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
 
     let modsText = '';
     if (cartItem.selectedVariant) modsText += ` (${cartItem.selectedVariant})`;
+    if (cartItem.isMeal) modsText += ` (Meal Upgrade)`;
     if (Array.isArray(cartItem.selectedAddOns) && cartItem.selectedAddOns.length > 0) modsText += ` [+${cartItem.selectedAddOns.join(', ')}]`;
 
     resolvedItems.push({

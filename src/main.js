@@ -876,7 +876,10 @@ function updateModalPrice() {
   // Check meal upgrade toggle
   const mealCheck = document.getElementById('meal-upgrade-check');
   if (mealCheck && mealCheck.checked && currentMealUpgrade) {
-    basePrice = currentMealUpgrade.price || basePrice;
+    const mealPrice = currentMealUpgrade.price || 0;
+    const baseItemPrice = currentModalItem.price || 0;
+    const upgradeCost = Math.max(0, mealPrice - baseItemPrice);
+    basePrice += upgradeCost;
   }
 
   const total = basePrice * currentModalQty;
@@ -893,8 +896,8 @@ function addConfiguredItemToCart() {
   const mealCheck = document.getElementById('meal-upgrade-check');
   const isMealUpgrade = mealCheck && mealCheck.checked && currentMealUpgrade;
 
-  // Use the meal item if upgrade is toggled
-  const itemToAdd = isMealUpgrade ? currentMealUpgrade : currentModalItem;
+  // Always add the base item, not the meal item, to preserve variants and add-ons
+  const itemToAdd = currentModalItem;
 
   let finalPrice = itemToAdd.price || 0;
   let variantText = '';
@@ -904,9 +907,7 @@ function addConfiguredItemToCart() {
     const checkedVar = document.querySelector('input[name="modal_variant"]:checked');
     if (checkedVar) {
       const v = currentModalItem.variants[parseInt(checkedVar.value)];
-      if (!isMealUpgrade) {
-        finalPrice = (parseFloat(v.price) || 0);
-      }
+      finalPrice = (parseFloat(v.price) || 0);
       variantText = v.name;
     }
   }
@@ -915,11 +916,17 @@ function addConfiguredItemToCart() {
     const checkedAddOns = document.querySelectorAll('input[name="modal_addon"]:checked');
     checkedAddOns.forEach(cb => {
       const a = currentModalItem.addOns[parseInt(cb.value)];
-      if (!isMealUpgrade) {
-        finalPrice += (parseFloat(a.price) || 0);
-      }
+      finalPrice += (parseFloat(a.price) || 0);
       addOnsText.push(a.name);
     });
+  }
+
+  let mealUpgradeCost = 0;
+  if (isMealUpgrade) {
+    const mealPrice = currentMealUpgrade.price || 0;
+    const baseItemPrice = itemToAdd.price || 0;
+    mealUpgradeCost = Math.max(0, mealPrice - baseItemPrice);
+    finalPrice += mealUpgradeCost;
   }
 
   const mealSuffix = isMealUpgrade ? '|MEAL' : '';
@@ -937,7 +944,9 @@ function addConfiguredItemToCart() {
       originalPrice: itemToAdd.price,
       selectedVariant: variantText,
       selectedAddOns: addOnsText,
-      isMeal: isMealUpgrade
+      isMeal: isMealUpgrade,
+      mealUpgradeId: isMealUpgrade ? currentMealUpgrade.id : null,
+      mealUpgradeCost: mealUpgradeCost
     });
   }
   
@@ -1046,10 +1055,12 @@ function updateCartUI() {
         modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 2px;">• ${item.selectedAddOns.join(', ')}</div>`;
       }
 
+      const displayTitle = item.isMeal ? `${item.name} (Meal Upgrade)` : item.name;
+
       el.innerHTML = `
         ${imgHtml}
         <div class="cart-item-details">
-          <div class="cart-item-title">${item.name}</div>
+          <div class="cart-item-title">${displayTitle}</div>
           ${modsHtml}
           <div class="cart-item-price" style="margin-top: 6px;">$${(item.price * item.qty).toFixed(2)}</div>
         </div>
