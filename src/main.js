@@ -813,11 +813,17 @@ function openItemModal(id) {
       const priceDiff = (matchingMeal.price - item.price).toFixed(2);
       const upgradeLabel = priceDiff > 0 ? `+$${priceDiff}` : 'FREE';
 
+      const mealIconHtml = currentMealUpgrade.img 
+        ? `<img src="${currentMealUpgrade.img}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" alt="Meal Upgrade">`
+        : `<div style="font-size: 32px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">🍔🍟</div>`;
+
       mealContainer.innerHTML = `
         <label class="kiosk-meal-upgrade">
           <input type="checkbox" id="meal-upgrade-check" class="kiosk-hidden-input" onchange="updateModalPrice()">
           <div class="kiosk-meal-content">
-            <div class="kiosk-meal-icon" style="font-size: 32px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">🍔🍟</div>
+            <div class="kiosk-meal-icon">
+              ${mealIconHtml}
+            </div>
             <div class="kiosk-meal-text">
               <div class="kiosk-meal-title">MAKE IT A MEAL</div>
               <div class="kiosk-meal-desc">Add fries & a refreshing drink</div>
