@@ -385,6 +385,8 @@ async function loadMenuFromFirestore() {
           category: (data.category || 'platters').toLowerCase(),
           img: getSEOImageUrl(data.img || data.image || data.imageUrl || ''),
           featured: !!data.featured,
+          hidden: !!data.hidden,
+          mealLinkId: data.mealLinkId || null,
           calories: data.calories || null,
           variants: Array.isArray(data.variants) ? data.variants : [],
           addOns: Array.isArray(data.addOns) ? data.addOns : []
