@@ -197,15 +197,13 @@ export async function populateMealLinks() {
   const meals = [];
   snapshot.forEach(doc => {
     const data = doc.data();
-    if (data.category === 'bigi street meals') {
-      meals.push({ id: doc.id, name: data.name });
-    }
+    meals.push({ id: doc.id, name: data.name, cat: data.category });
   });
   
   meals.sort((a, b) => a.name.localeCompare(b.name));
   
   const optionsHtml = '<option value="">No Meal Upgrade (or auto-match)</option>' + 
-    meals.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+    meals.map(m => `<option value="${m.id}">${m.name} (${m.cat})</option>`).join('');
     
   if (addSelect) addSelect.innerHTML = optionsHtml;
   if (editSelect) editSelect.innerHTML = optionsHtml;
@@ -213,6 +211,42 @@ export async function populateMealLinks() {
 
 document.addEventListener("DOMContentLoaded", () => {
   populateMealLinks();
+  
+  // Temporary auto-link script for Afghan Burger
+  setTimeout(async () => {
+    try {
+      const snap = await getDocs(collection(db, "menu"));
+      let baseItem = null;
+      let mealItem = null;
+      snap.forEach(d => {
+        const item = d.data();
+        if ((item.name||'').toLowerCase().includes("afghan burger")) baseItem = { id: d.id, ...item };
+        if ((item.name||'').toLowerCase().includes("silk road meal") && item.category === 'bigi street meals') mealItem = { id: d.id, ...item };
+      });
+      
+      if (baseItem && !mealItem) {
+        const res = await addDoc(collection(db, "menu"), {
+          name: "Silk Road Meal",
+          price: (baseItem.price || 0) + 5,
+          category: "bigi street meals",
+          hidden: true,
+          desc: "Make it a meal with fries and a refreshing drink.",
+          variants: [],
+          addOns: [],
+          updatedAt: new Date().toISOString()
+        });
+        mealItem = { id: res.id };
+      }
+      
+      if (baseItem && mealItem && baseItem.mealLinkId !== mealItem.id) {
+        await updateDoc(doc(db, "menu", baseItem.id), { mealLinkId: mealItem.id });
+        console.log("Successfully linked Silk Road Wrap to Silk Road Meal!");
+        loadMenuAdmin();
+      }
+    } catch(e) {
+      console.error("Auto-link failed", e);
+    }
+  }, 2000);
 });
 
 export async function loadMenuAdmin() {

@@ -778,7 +778,7 @@ function openItemModal(id) {
   currentMealUpgrade = null;
 
   // Only show for non-meal items
-  if (item.category !== 'bigi street meals') {
+  if (!item.name.toLowerCase().includes('meal') && item.category !== 'bigi street meals') {
     let matchingMeal = null;
     if (item.mealLinkId) {
       matchingMeal = menuItems.find(m => m.id === item.mealLinkId);
@@ -792,7 +792,6 @@ function openItemModal(id) {
         .trim();
 
       matchingMeal = menuItems.find(m => {
-        if (m.category !== 'bigi street meals') return false;
         const mealNameClean = m.name.toLowerCase()
           .replace(/bigi'?s?\s*/gi, '')
           .replace(/\s*meal\s*/gi, '')
@@ -800,9 +799,10 @@ function openItemModal(id) {
         
         if (itemNameClean === 'afghan burger' && mealNameClean.includes('silk road wrap')) return true;
 
-        return mealNameClean === itemNameClean || 
+        return m.name.toLowerCase().includes('meal') && (
+               mealNameClean === itemNameClean || 
                mealNameClean.includes(itemNameClean) || 
-               itemNameClean.includes(mealNameClean);
+               itemNameClean.includes(mealNameClean));
       });
     }
 
