@@ -855,7 +855,7 @@ window.updateModalPrice = updateModalPrice;
 function updateModalPrice() {
   if (!currentModalItem) return;
   
-  let basePrice = currentModalItem.price || 0;
+  let basePrice = parseFloat(currentModalItem.price) || 0;
   
   if (currentModalItem.variants && currentModalItem.variants.length > 0) {
     const checkedVar = document.querySelector('input[name="modal_variant"]:checked');
@@ -876,8 +876,8 @@ function updateModalPrice() {
   // Check meal upgrade toggle
   const mealCheck = document.getElementById('meal-upgrade-check');
   if (mealCheck && mealCheck.checked && currentMealUpgrade) {
-    const mealPrice = currentMealUpgrade.price || 0;
-    const baseItemPrice = currentModalItem.price || 0;
+    const mealPrice = parseFloat(currentMealUpgrade.price) || 0;
+    const baseItemPrice = parseFloat(currentModalItem.price) || 0;
     const upgradeCost = Math.max(0, mealPrice - baseItemPrice);
     basePrice += upgradeCost;
   }
@@ -899,7 +899,7 @@ function addConfiguredItemToCart() {
   // Always add the base item, not the meal item, to preserve variants and add-ons
   const itemToAdd = currentModalItem;
 
-  let finalPrice = itemToAdd.price || 0;
+  let finalPrice = parseFloat(itemToAdd.price) || 0;
   let variantText = '';
   let addOnsText = [];
   
@@ -923,8 +923,8 @@ function addConfiguredItemToCart() {
 
   let mealUpgradeCost = 0;
   if (isMealUpgrade) {
-    const mealPrice = currentMealUpgrade.price || 0;
-    const baseItemPrice = itemToAdd.price || 0;
+    const mealPrice = parseFloat(currentMealUpgrade.price) || 0;
+    const baseItemPrice = parseFloat(itemToAdd.price) || 0;
     mealUpgradeCost = Math.max(0, mealPrice - baseItemPrice);
     finalPrice += mealUpgradeCost;
   }
