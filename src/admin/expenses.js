@@ -729,29 +729,36 @@ window.loadAnalytics = loadAnalytics;
 
       const points = itemsData[selectedItem].sort((a, b) => a.date - b.date);
       
-      priceTrendChartInst = new Chart(ctxTrend, {
-        type: 'line',
-        data: {
-          labels: points.map(p => p.date.toLocaleDateString()),
-          datasets: [{
-            label: `Unit Price for ${selectedItem}`,
-            data: points.map(p => p.price),
-            borderColor: '#ff6b35',
-            backgroundColor: 'rgba(255,107,53,0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#aaa' } },
-            x: { grid: { display: false }, ticks: { color: '#aaa' } }
-          }
-        }
-      });
+      if (priceTrendChartInst) {
+         priceTrendChartInst.data.labels = points.map(p => p.date.toLocaleDateString());
+         priceTrendChartInst.data.datasets[0].label = `Unit Price for ${selectedItem}`;
+         priceTrendChartInst.data.datasets[0].data = points.map(p => p.price);
+         priceTrendChartInst.update();
+      } else {
+         priceTrendChartInst = new Chart(ctxTrend, {
+           type: 'line',
+           data: {
+             labels: points.map(p => p.date.toLocaleDateString()),
+             datasets: [{
+               label: `Unit Price for ${selectedItem}`,
+               data: points.map(p => p.price),
+               borderColor: '#ff6b35',
+               backgroundColor: 'rgba(255,107,53,0.1)',
+               borderWidth: 2,
+               fill: true,
+               tension: 0.1
+             }]
+           },
+           options: {
+             responsive: true,
+             maintainAspectRatio: false,
+             scales: {
+               y: { beginAtZero: true, grid: { color: 'rgba(128,128,128,0.2)' }, ticks: { color: '#888' } },
+               x: { grid: { display: false }, ticks: { color: '#888' } }
+             }
+           }
+         });
+      }
     };
 
     selectEl.onchange = renderChart;
@@ -810,28 +817,30 @@ window.loadAnalytics = loadAnalytics;
     const catData = Object.values(catTotals);
     
     if (expenseChartInst) {
-       expenseChartInst.destroy();
+       expenseChartInst.data.labels = catLabels;
+       expenseChartInst.data.datasets[0].data = catData;
+       expenseChartInst.update();
+    } else {
+       expenseChartInst = new Chart(ctxCategory, {
+         type: 'doughnut',
+         data: {
+           labels: catLabels,
+           datasets: [{
+             data: catData,
+             backgroundColor: ['#ff4d4d', '#4caf50', '#ffeb3b', '#2196f3', '#9c27b0', '#ff9800'],
+             borderColor: 'rgba(128,128,128,0.2)',
+             borderWidth: 1
+           }]
+         },
+         options: {
+           responsive: true,
+           maintainAspectRatio: false,
+           plugins: {
+             legend: { position: 'right', labels: { color: '#888' } }
+           }
+         }
+       });
     }
-    
-    expenseChartInst = new Chart(ctxCategory, {
-      type: 'doughnut',
-      data: {
-        labels: catLabels,
-        datasets: [{
-          data: catData,
-          backgroundColor: ['#ff4d4d', '#4caf50', '#ffeb3b', '#2196f3', '#9c27b0', '#ff9800'],
-          borderColor: '#111',
-          borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'right', labels: { color: '#e0e0e0' } }
-        }
-      }
-    });
     
     // 2. Render Top Items Table
     const tbodyTopItems = document.getElementById('expenseTopItemsTbody');
@@ -888,30 +897,34 @@ window.loadAnalytics = loadAnalytics;
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
         
-      if (expenseVendorChartInst) expenseVendorChartInst.destroy();
-      
-      expenseVendorChartInst = new Chart(ctxVendor, {
-        type: 'bar',
-        data: {
-          labels: sortedVendors.map(v => v[0]),
-          datasets: [{
-            label: 'Vendor Spent ($)',
-            data: sortedVendors.map(v => v[1]),
-            backgroundColor: ['#e9ab00', '#ff6b35', '#ff4d4d', '#4caf50', '#2196f3', '#9c27b0'],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#aaa' } },
-            y: { grid: { display: false }, ticks: { color: '#aaa' } }
-          }
-        }
-      });
+      if (expenseVendorChartInst) {
+         expenseVendorChartInst.data.labels = sortedVendors.map(v => v[0]);
+         expenseVendorChartInst.data.datasets[0].data = sortedVendors.map(v => v[1]);
+         expenseVendorChartInst.update();
+      } else {
+         expenseVendorChartInst = new Chart(ctxVendor, {
+           type: 'bar',
+           data: {
+             labels: sortedVendors.map(v => v[0]),
+             datasets: [{
+               label: 'Vendor Spent ($)',
+               data: sortedVendors.map(v => v[1]),
+               backgroundColor: ['#e9ab00', '#ff6b35', '#ff4d4d', '#4caf50', '#2196f3', '#9c27b0'],
+               borderWidth: 1
+             }]
+           },
+           options: {
+             indexAxis: 'y',
+             responsive: true,
+             maintainAspectRatio: false,
+             plugins: { legend: { display: false } },
+             scales: {
+               x: { beginAtZero: true, grid: { color: 'rgba(128,128,128,0.2)' }, ticks: { color: '#888' } },
+               y: { grid: { display: false }, ticks: { color: '#888' } }
+             }
+           }
+         });
+      }
     }
 
     // Removed Recent Receipts Table per user request
