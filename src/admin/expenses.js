@@ -942,30 +942,42 @@ window.loadAnalytics = loadAnalytics;
         }
     };
 
-    window.openReceiptSlide = (receipt) => {
-        const deleteBtn = document.getElementById('slide-delete-btn');
-        if (deleteBtn) {
-            deleteBtn.onclick = () => window.deleteSavedReceipt(receipt.id);
-        }
-
-      if (!receipt) return;
-      const slide = document.getElementById('receipt-slide-over');
-      const backdrop = document.getElementById('receipt-slide-backdrop');
-      if (slide) slide.style.transform = 'translateX(0)';
-      if (backdrop) {
-          backdrop.style.opacity = '1';
-          backdrop.style.pointerEvents = 'auto';
-      }
-
-      document.getElementById('slide-vendor').textContent = receipt.vendor || 'Unknown Vendor';
-      document.getElementById('slide-date').textContent = receipt.purchaseDate?.toDate ? receipt.purchaseDate.toDate().toLocaleDateString() : 'N/A';
-      const parsedTotal = parseFloat(String(receipt.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
-      document.getElementById('slide-total').textContent = '$' + parsedTotal.toFixed(2);
-      
+  window.renderReceiptSlideContent = (receipt, editMode = false) => {
+      const vendorEl = document.getElementById('slide-vendor');
+      const dateEl = document.getElementById('slide-date');
+      const totalEl = document.getElementById('slide-total');
       const content = document.getElementById('slide-content');
-      let html = `<div style="margin-bottom: 24px; display:flex; gap: 8px;">
-          <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--gray);">Category: <strong style="color:var(--white);">${receipt.category || 'other'}</strong></span>
-          <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--gray);">Status: <strong style="color:var(--white);">${receipt.status || 'unknown'}</strong></span>
+      
+      const parsedTotal = parseFloat(String(receipt.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
+      const dateObj = receipt.purchaseDate?.toDate ? receipt.purchaseDate.toDate() : (receipt.createdAt?.toDate ? receipt.createdAt.toDate() : new Date());
+      const dateStr = dateObj.toLocaleDateString();
+      const isoDate = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+      if (editMode) {
+          vendorEl.innerHTML = `<input type="text" id="edit-vendor" class="crm-input" value="${escapeHtml(receipt.vendor || '')}" style="font-size: 16px; padding: 4px; max-width: 100%;">`;
+          dateEl.innerHTML = `<input type="date" id="edit-date" class="crm-input" value="${isoDate}" style="font-size: 12px; padding: 4px; max-width: 150px; margin-top: 4px;">`;
+          totalEl.innerHTML = `$<input type="number" id="edit-total" class="crm-input" value="${parsedTotal.toFixed(2)}" step="0.01" style="font-size: 20px; font-weight: bold; padding: 4px; max-width: 100px; display: inline-block;">`;
+      } else {
+          vendorEl.textContent = receipt.vendor || 'Unknown Vendor';
+          dateEl.textContent = dateStr;
+          totalEl.textContent = '$' + parsedTotal.toFixed(2);
+      }
+      
+      let html = `<div style="margin-bottom: 24px; display:flex; gap: 8px;">`;
+      
+      if (editMode) {
+          html += `<select id="edit-category" class="crm-select" style="font-size: 12px; padding: 4px;">
+              <option value="protein" ${receipt.category === 'protein' ? 'selected' : ''}>Protein</option>
+              <option value="produce" ${receipt.category === 'produce' ? 'selected' : ''}>Produce</option>
+              <option value="packaging" ${receipt.category === 'packaging' ? 'selected' : ''}>Packaging</option>
+              <option value="dry goods" ${receipt.category === 'dry goods' ? 'selected' : ''}>Dry Goods</option>
+              <option value="other" ${receipt.category === 'other' || !receipt.category ? 'selected' : ''}>Other</option>
+          </select>`;
+      } else {
+          html += `<span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--gray);">Category: <strong style="color:var(--white);">${receipt.category || 'other'}</strong></span>`;
+      }
+      
+      html += `<span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px; color: var(--gray);">Status: <strong style="color:var(--white);">${receipt.status || 'unknown'}</strong></span>
       </div>`;
       
       if (receipt.originalImageUrl) {
@@ -981,30 +993,161 @@ window.loadAnalytics = loadAnalytics;
             <th style="text-align: center; padding: 4px 0;">Qty</th>
             <th style="text-align: right; padding: 4px 0;">Price</th>
             <th style="text-align: right; padding: 4px 0;">Total</th>
+            ${editMode ? `<th style="text-align: right; padding: 4px 0;"></th>` : ''}
          </tr>`;
       
-      (receipt.items || []).forEach(item => {
+      (receipt.items || []).forEach((item, idx) => {
           const uPrice = parseFloat(String(item.unitPrice || 0).replace(/[^0-9.-]+/g, "")) || 0;
           const lTotal = parseFloat(String(item.lineTotal || 0).replace(/[^0-9.-]+/g, "")) || 0;
-          html += `<tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                  <div style="font-weight: bold;">${item.name || 'Unknown'}</div>
-                  <div style="font-size: 11px; color: var(--gray);">Raw: ${item.rawText || 'N/A'}</div>
-              </td>
-              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;">${item.quantity || 1}</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${uPrice.toFixed(2)}</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${lTotal.toFixed(2)}</td>
-          </tr>`;
+          
+          if (editMode) {
+              html += `<tr class="edit-item-row" data-idx="${idx}">
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                      <input type="text" class="crm-input edit-item-name" value="${escapeHtml(item.name || '')}" style="width: 100%; margin-bottom: 4px;">
+                      <div style="font-size: 11px; color: var(--gray);">Raw: ${escapeHtml(item.rawText || 'N/A')}</div>
+                      <input type="hidden" class="edit-item-rawtext" value="${escapeHtml(item.rawText || '')}">
+                      <input type="hidden" class="edit-item-cat" value="${escapeHtml(item.category || '')}">
+                  </td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                      <input type="number" class="crm-input edit-item-qty" value="${item.quantity || 1}" style="width: 60px; text-align: center;">
+                  </td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">
+                      $<input type="number" class="crm-input edit-item-price" step="0.01" value="${uPrice.toFixed(2)}" style="width: 70px; text-align: right;">
+                  </td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">
+                      $<input type="number" class="crm-input edit-item-linetotal" step="0.01" value="${lTotal.toFixed(2)}" style="width: 70px; text-align: right;">
+                  </td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">
+                      <button class="crm-btn-icon" onclick="this.closest('tr').remove()" style="color: #ef4444; font-size: 16px;">×</button>
+                  </td>
+              </tr>`;
+          } else {
+              html += `<tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                      <div style="font-weight: bold;">${escapeHtml(item.name || 'Unknown')}</div>
+                      <div style="font-size: 11px; color: var(--gray);">Raw: ${escapeHtml(item.rawText || 'N/A')}</div>
+                  </td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;">${item.quantity || 1}</td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${uPrice.toFixed(2)}</td>
+                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${lTotal.toFixed(2)}</td>
+              </tr>`;
+          }
       });
       html += `</table></div>`;
       
       content.innerHTML = html;
   };
 
+  window.saveReceiptEdit = async (receiptId) => {
+      try {
+          const vendor = document.getElementById('edit-vendor').value.trim();
+          const dateVal = document.getElementById('edit-date').value;
+          const totalVal = parseFloat(document.getElementById('edit-total').value) || 0;
+          const category = document.getElementById('edit-category').value;
+          
+          let purchaseDate = null;
+          if (dateVal) {
+              const d = new Date(dateVal + "T12:00:00");
+              if (!isNaN(d.getTime())) purchaseDate = Timestamp.fromDate(d);
+          }
+          
+          const items = [];
+          const rows = document.querySelectorAll('.edit-item-row');
+          rows.forEach(row => {
+              const name = row.querySelector('.edit-item-name').value.trim();
+              const rawText = row.querySelector('.edit-item-rawtext').value;
+              const cat = row.querySelector('.edit-item-cat').value;
+              const qty = parseFloat(row.querySelector('.edit-item-qty').value) || 1;
+              const price = parseFloat(row.querySelector('.edit-item-price').value) || 0;
+              const lineTotal = parseFloat(row.querySelector('.edit-item-linetotal').value) || (qty * price);
+              
+              if (name) {
+                  items.push({
+                      name,
+                      rawText: rawText || name,
+                      category: cat || category,
+                      quantity: qty,
+                      unitPrice: price,
+                      lineTotal: lineTotal
+                  });
+              }
+          });
+          
+          // Re-calculate subtotal
+          const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+          const tax = Math.max(0, totalVal - subtotal);
+          
+          const updateData = {
+              vendor,
+              category,
+              total: totalVal,
+              subtotal,
+              tax,
+              items
+          };
+          if (purchaseDate) updateData.purchaseDate = purchaseDate;
+          
+          await updateDoc(doc(db, "expenses", receiptId), updateData);
+          showToast("Receipt updated successfully.");
+          
+          // Refresh slide
+          const updatedReceipt = window.expenseDocsArray.find(d => d.id === receiptId);
+          if (updatedReceipt) {
+             Object.assign(updatedReceipt, updateData);
+             document.getElementById('slide-edit-btn').style.display = 'inline-block';
+             document.getElementById('slide-save-btn').style.display = 'none';
+             window.renderReceiptSlideContent(updatedReceipt, false);
+          }
+      } catch (err) {
+          console.error("Error updating receipt:", err);
+          alert("Failed to update receipt: " + err.message);
+      }
+  };
+
+  window.openReceiptSlide = (receipt) => {
+      const deleteBtn = document.getElementById('slide-delete-btn');
+      const editBtn = document.getElementById('slide-edit-btn');
+      const saveBtn = document.getElementById('slide-save-btn');
+      
+      if (deleteBtn) deleteBtn.onclick = () => window.deleteSavedReceipt(receipt.id);
+      
+      let isEditMode = false;
+      
+      if (editBtn) {
+          editBtn.style.display = 'inline-block';
+          editBtn.onclick = () => {
+              isEditMode = true;
+              editBtn.style.display = 'none';
+              if (saveBtn) saveBtn.style.display = 'inline-block';
+              window.renderReceiptSlideContent(receipt, isEditMode);
+          };
+      }
+      
+      if (saveBtn) {
+          saveBtn.style.display = 'none';
+          saveBtn.onclick = () => {
+              window.saveReceiptEdit(receipt.id);
+          };
+      }
+
+      if (!receipt) return;
+      const slide = document.getElementById('receipt-slide-over');
+      const backdrop = document.getElementById('receipt-slide-backdrop');
+      if (slide) slide.style.transform = 'translateX(0)';
+      if (backdrop) {
+          backdrop.style.opacity = '1';
+          backdrop.style.pointerEvents = 'auto';
+      }
+
+      window.renderReceiptSlideContent(receipt, false);
+  };
+
   window.initEconomicsListeners = () => {
       const savedExpensesContainer = document.getElementById('expenseDocsTbody');
       if (!savedExpensesContainer) return;
+      
       const expensesQuery = query(collection(db, "expenses"));
+      
       window.expensesUnsub = onSnapshot(expensesQuery, (snapshot) => {
         try {
           savedExpensesContainer.innerHTML = '';
@@ -1079,19 +1222,30 @@ window.loadAnalytics = loadAnalytics;
             }
             if (dateFilter) {
               filteredDocs = filteredDocs.filter(d => {
-                if (!d.createdAt) return false;
-                const dDate = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
-                const isoDate = dDate.toISOString().split('T')[0];
-                return isoDate === dateFilter;
+                let dDate;
+                if (d.createdAt?.toDate) dDate = d.createdAt.toDate();
+                else if (d.createdAt) dDate = new Date(d.createdAt);
+                else if (d.purchaseDate?.toDate) dDate = d.purchaseDate.toDate();
+                else if (d.purchaseDate) dDate = new Date(d.purchaseDate);
+                
+                if (!dDate || isNaN(dDate.getTime())) return false;
+                
+                const localISO = new Date(dDate.getTime() - (dDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                return localISO === dateFilter;
               });
             }
             if (filteredDocs.length === 0) {
               savedExpensesContainer.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">No recent expenses found.</td></tr>';
+              const loadMoreBtn = document.getElementById('btn-load-more-expenses');
+              if (loadMoreBtn) loadMoreBtn.style.display = 'none';
               return;
             }
+            
+            if (!window.expenseRenderLimit) window.expenseRenderLimit = 50;
+            
             let rowCount = 0;
             filteredDocs.forEach(data => {
-              if (rowCount >= 1000) return;
+              if (rowCount >= window.expenseRenderLimit) return;
               rowCount++;
               const dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : (data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A');
               const itemCount = data.items ? data.items.length : 0;
@@ -1119,18 +1273,37 @@ window.loadAnalytics = loadAnalytics;
               `;
               savedExpensesContainer.appendChild(tr);
             });
+            
+            const loadMoreBtn = document.getElementById('btn-load-more-expenses');
+            if (loadMoreBtn) {
+               if (filteredDocs.length > window.expenseRenderLimit) {
+                   loadMoreBtn.style.display = 'inline-block';
+               } else {
+                   loadMoreBtn.style.display = 'none';
+               }
+            }
           };
 
-          const triggerExpenseRender = () => {
+          const triggerExpenseRender = (resetLimit = false) => {
+             if (resetLimit) window.expenseRenderLimit = 50;
              const searchVal = document.getElementById('expense-search') ? document.getElementById('expense-search').value : "";
-             const dateVal = document.getElementById('expense-date-filter') ? document.getElementById('expense-date-filter').value : "";
+             const dateVal = document.getElementById('expense-specific-date-filter') ? document.getElementById('expense-specific-date-filter').value : "";
              window.renderExpenseDocs(searchVal, dateVal);
           };
 
           const expenseSearchInput = document.getElementById('expense-search');
-          if (expenseSearchInput) expenseSearchInput.addEventListener('input', triggerExpenseRender);
-          const expenseDateFilter = document.getElementById('expense-date-filter');
-          if (expenseDateFilter) expenseDateFilter.addEventListener('input', triggerExpenseRender);
+          if (expenseSearchInput) expenseSearchInput.addEventListener('input', () => triggerExpenseRender(true));
+          const expenseDateFilter = document.getElementById('expense-specific-date-filter');
+          if (expenseDateFilter) expenseDateFilter.addEventListener('input', () => triggerExpenseRender(true));
+          
+          const loadMoreBtn = document.getElementById('btn-load-more-expenses');
+          if (loadMoreBtn && !window.loadMoreAttached) {
+             loadMoreBtn.addEventListener('click', () => {
+                window.expenseRenderLimit += 50;
+                triggerExpenseRender(false);
+             });
+             window.loadMoreAttached = true;
+          }
           
           triggerExpenseRender();
           

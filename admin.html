@@ -1362,7 +1362,7 @@
                   <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Recent Receipts</h3>
                   <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                     <input type="text" id="expense-search" class="crm-input" placeholder="Search receipts..." style="max-width: 150px;">
-                    <input type="date" id="expense-date-filter" class="crm-input" style="max-width: 150px;">
+                    <input type="date" id="expense-specific-date-filter" class="crm-input" style="max-width: 150px;">
                     <button class="btn-outline btn-small" id="btn-sync-all-receipts">Sync All to Inv</button>
                     <button class="btn-outline btn-small" id="export-expenses-btn">Export CSV</button>
                   </div>
@@ -1382,6 +1382,9 @@
                       <tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
                     </tbody>
                   </table>
+                  <div style="padding: 16px; text-align: center; border-top: 1px solid var(--border-admin);">
+                    <button id="btn-load-more-expenses" class="btn-outline btn-small" style="display: none;">Load More</button>
+                  </div>
                 </div>
               </div>
               
@@ -1760,7 +1763,11 @@
       <!-- Content injected by JS -->
     </div>
     <div style="padding: 20px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center;">
-      <button class="btn-outline btn-small" id="slide-delete-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 8px 16px;">Delete</button>
+      <div style="display: flex; gap: 8px;">
+         <button class="btn-outline btn-small" id="slide-delete-btn" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 8px 16px;">Delete</button>
+         <button class="btn-outline btn-small" id="slide-edit-btn" style="padding: 8px 16px;">Edit</button>
+         <button class="btn-primary btn-small" id="slide-save-btn" style="padding: 8px 16px; display: none;">Save</button>
+      </div>
       <div style="text-align: right;">
         <span style="color: var(--gray); font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin-right: 12px;">Total</span>
         <span id="slide-total" style="font-size: 24px; font-weight: bold; color: var(--accent);">$0.00</span>
