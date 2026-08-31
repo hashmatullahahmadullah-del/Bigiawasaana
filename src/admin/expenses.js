@@ -792,10 +792,15 @@ window.loadAnalytics = loadAnalytics;
          if (item.name) {
            const cleanName = String(item.name || '').trim().toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
            if (!itemTotals[cleanName]) {
-             itemTotals[cleanName] = { spent: 0, qty: 0 };
+             itemTotals[cleanName] = { spent: 0, qty: 0, lastPrice: uPrice, lastDate: expenseDate, category: cat };
            }
            itemTotals[cleanName].spent += total;
            itemTotals[cleanName].qty += qty;
+           if (expenseDate > itemTotals[cleanName].lastDate) {
+             itemTotals[cleanName].lastPrice = uPrice;
+             itemTotals[cleanName].lastDate = expenseDate;
+             itemTotals[cleanName].category = cat;
+           }
          }
       });
     });
@@ -831,20 +836,44 @@ window.loadAnalytics = loadAnalytics;
     // 2. Render Top Items Table
     const tbodyTopItems = document.getElementById('expenseTopItemsTbody');
     if (tbodyTopItems) {
-      const sortedItems = Object.entries(itemTotals)
-        .sort((a, b) => b[1].spent - a[1].spent); // Sort by spent descending
-         if (sortedItems.length === 0) {
-          tbodyTopItems.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 24px; color: var(--text-muted);">No items recorded.</td></tr>';
-        } else {
-          tbodyTopItems.innerHTML = sortedItems.map(([itemName, data]) => `
-            <tr>
-              <td data-label="Item" style="font-weight: 600;">${escapeHtml(itemName)}</td>
-              <td data-label="Qty" style="text-align: right; color: var(--text-muted);">${data.qty}</td>
-              <td data-label="Spent" style="text-align: right; color: var(--accent-admin); font-weight: bold;">$${data.spent.toFixed(2)}</td>
-            </tr>
-          `).join('');
+      window.renderTopItems = (filter = "") => {
+        let sortedItems = Object.entries(itemTotals)
+          .sort((a, b) => b[1].spent - a[1].spent); // Sort by spent descending
+          
+        if (filter) {
+          const lowerFilter = filter.toLowerCase();
+          sortedItems = sortedItems.filter(([itemName]) => itemName.toLowerCase().includes(lowerFilter));
         }
+
+        if (sortedItems.length === 0) {
+          tbodyTopItems.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--text-muted);">No items recorded.</td></tr>';
+        } else {
+          tbodyTopItems.innerHTML = sortedItems.map(([itemName, data]) => {
+            const dateISO = data.lastDate ? data.lastDate.toISOString().split('T')[0] : '';
+            return `
+              <tr>
+                <td data-label="Item" style="font-weight: 600;">${escapeHtml(itemName)}</td>
+                <td data-label="Qty" style="text-align: right; color: var(--text-muted);">${data.qty}</td>
+                <td data-label="Spent" style="text-align: right; color: var(--accent-admin); font-weight: bold;">$${data.spent.toFixed(2)}</td>
+                <td style="text-align: right;">
+                  <button class="btn-outline btn-small" onclick="window.openAddInventoryModal('${escapeHtml(itemName)}', '${escapeHtml(data.category)}', ${data.lastPrice}, '${dateISO}')">Add to Inv</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      };
+
+      const expenseItemSearch = document.getElementById('expense-item-search');
+      if (expenseItemSearch) {
+        expenseItemSearch.addEventListener('input', (e) => {
+          window.renderTopItems(e.target.value);
+        });
+        window.renderTopItems(expenseItemSearch.value);
+      } else {
+        window.renderTopItems();
       }
+    }
 
     // 3. Render Vendor Chart
     if (ctxVendor) {
@@ -1031,41 +1060,60 @@ window.loadAnalytics = loadAnalytics;
             }
           }
 
-          let rowCount = 0;
-          savedExpensesContainer.innerHTML = '';
-          
-          if (docsArray.length === 0) {
-            savedExpensesContainer.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">No recent expenses found.</td></tr>';
-            return;
-          }
-          docsArray.forEach(data => {
-            if (rowCount >= 1000) return;
-            rowCount++;
-            const dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : (data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A');
-            const itemCount = data.items ? data.items.length : 0;
-            const parsedDataTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
-            const totalStr = data.total != null ? `$${parsedDataTotal.toFixed(2)}` : '—';
-            const vendor = escapeHtml(data.vendor || 'Unknown Vendor');
-            const status = escapeHtml(data.status || 'pending');
-            
-            let statusBadge = ``;
-            if (status === 'confirmed') statusBadge = `<span style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Confirmed</span>`;
-            else if (status === 'needs_review') statusBadge = `<span style="background: rgba(245,158,11,0.15); color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Review</span>`;
-            else statusBadge = `<span style="background: rgba(161,161,170,0.15); color: var(--text-muted); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">${status}</span>`;
+          window.renderExpenseDocs = (filter = "") => {
+            savedExpensesContainer.innerHTML = '';
+            let filteredDocs = docsArray;
+            if (filter) {
+              const lowerFilter = filter.toLowerCase();
+              filteredDocs = docsArray.filter(d => 
+                (d.vendor || "").toLowerCase().includes(lowerFilter) ||
+                (d.status || "").toLowerCase().includes(lowerFilter)
+              );
+            }
+            if (filteredDocs.length === 0) {
+              savedExpensesContainer.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">No recent expenses found.</td></tr>';
+              return;
+            }
+            let rowCount = 0;
+            filteredDocs.forEach(data => {
+              if (rowCount >= 1000) return;
+              rowCount++;
+              const dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : (data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A');
+              const itemCount = data.items ? data.items.length : 0;
+              const parsedDataTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
+              const totalStr = data.total != null ? `$${parsedDataTotal.toFixed(2)}` : '—';
+              const vendor = escapeHtml(data.vendor || 'Unknown Vendor');
+              const status = escapeHtml(data.status || 'pending');
+              
+              let statusBadge = ``;
+              if (status === 'confirmed') statusBadge = `<span style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Confirmed</span>`;
+              else if (status === 'needs_review') statusBadge = `<span style="background: rgba(245,158,11,0.15); color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Review</span>`;
+              else statusBadge = `<span style="background: rgba(161,161,170,0.15); color: var(--text-muted); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;">${status}</span>`;
 
-            const tr = document.createElement("tr");
-            tr.style.borderBottom = "1px solid var(--border-admin)";
-            tr.innerHTML = `
-              <td data-label="Date" style="padding: 16px;">${dateStr}</td>
-              <td data-label="Vendor" style="padding: 16px; font-weight: 600;">${vendor} <br><span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">${itemCount} items</span></td>
-              <td data-label="Total" style="padding: 16px; font-weight: bold; color: var(--accent-admin);">$${parsedDataTotal.toFixed(2)}</td>
-              <td data-label="Status" style="padding: 16px;">${statusBadge}</td>
-              <td data-label="Action" style="padding: 16px; text-align: right;">
-                <button class="btn-outline btn-small" onclick="window.openReceiptSlide(window.expenseDocsArray[${rowCount-1}])">View Details</button>
-              </td>
-            `;
-            savedExpensesContainer.appendChild(tr);
-          });
+              const tr = document.createElement("tr");
+              tr.style.borderBottom = "1px solid var(--border-admin)";
+              tr.innerHTML = `
+                <td data-label="Date" style="padding: 16px;">${dateStr}</td>
+                <td data-label="Vendor" style="padding: 16px; font-weight: 600;">${vendor} <br><span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">${itemCount} items</span></td>
+                <td data-label="Total" style="padding: 16px; font-weight: bold; color: var(--accent-admin);">$${parsedDataTotal.toFixed(2)}</td>
+                <td data-label="Status" style="padding: 16px;">${statusBadge}</td>
+                <td data-label="Action" style="padding: 16px; text-align: right;">
+                  <button class="btn-outline btn-small" onclick="window.openReceiptSlide(window.expenseDocsArray.find(d => d.id === '${data.id}'))">View Details</button>
+                </td>
+              `;
+              savedExpensesContainer.appendChild(tr);
+            });
+          };
+
+          const expenseSearchInput = document.getElementById('expense-search');
+          if (expenseSearchInput) {
+             expenseSearchInput.addEventListener('input', (e) => {
+                window.renderExpenseDocs(e.target.value);
+             });
+             window.renderExpenseDocs(expenseSearchInput.value);
+          } else {
+             window.renderExpenseDocs();
+          }
         } catch (e) {
           console.error("Javascript Error during receipt rendering:", e);
           savedExpensesContainer.innerHTML = `<div style="padding: 16px; color: #ff4d4d; white-space: pre-wrap; font-family: monospace; grid-column: 1 / -1;"><b>CRASH!</b> ${e.message}\n${e.stack}</div>`;
@@ -1211,9 +1259,24 @@ window.loadAnalytics = loadAnalytics;
        
        if (btnAddInventory && addInventoryModal) {
          btnAddInventory.addEventListener('click', () => {
+           addInventoryForm.reset();
+           document.getElementById('add-inv-date').valueAsDate = new Date();
            addInventoryModal.classList.add('open');
          });
        }
+       
+       window.openAddInventoryModal = (name, category, price, date) => {
+           addInventoryForm.reset();
+           document.getElementById('add-inv-name').value = name || "";
+           document.getElementById('add-inv-category').value = category !== "undefined" ? category : "";
+           document.getElementById('add-inv-price').value = price ? parseFloat(price).toFixed(2) : "0.00";
+           if (date) {
+               document.getElementById('add-inv-date').value = date;
+           } else {
+               document.getElementById('add-inv-date').valueAsDate = new Date();
+           }
+           addInventoryModal.classList.add('open');
+       };
        
        if (addInventoryForm) {
          addInventoryForm.addEventListener('submit', async (e) => {
@@ -1222,6 +1285,8 @@ window.loadAnalytics = loadAnalytics;
            const cat = document.getElementById('add-inv-category').value.trim();
            const stock = parseFloat(document.getElementById('add-inv-stock').value) || 0;
            const price = parseFloat(document.getElementById('add-inv-price').value) || 0;
+           const dateBought = document.getElementById('add-inv-date').value;
+           const pieces = parseInt(document.getElementById('add-inv-pieces').value) || 1;
            
            if(!name) return alert("Item name is required.");
            
@@ -1231,10 +1296,12 @@ window.loadAnalytics = loadAnalytics;
                name: name,
                category: cat,
                stockQuantity: stock,
+               piecesPerBox: pieces,
+               dateBought: dateBought,
                lastPrice: price,
-               priceHistory: [{ date: new Date(), price: price }],
+               priceHistory: [{ date: dateBought ? new Date(dateBought) : new Date(), price: price }],
                updatedAt: serverTimestamp()
-             });
+             }, { merge: true }); // Use merge: true to avoid overwriting existing data completely
              addInventoryModal.classList.remove('open');
              addInventoryForm.reset();
              showToast("Item added successfully");
