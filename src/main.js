@@ -1716,3 +1716,16 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveal();
   initSquarePayments();
 });
+// CART PROMO LISTENER
+onSnapshot(doc(db, 'settings', 'cart_promo'), (docSnap) => {
+  const container = document.getElementById('cart-promo-container');
+  if (!container) return;
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    if (data.active && data.html) {
+      container.innerHTML = data.html;
+    } else {
+      container.innerHTML = `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); text-align: center;"><p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">Looking for delivery?</p><div style="display: flex; gap: 12px; justify-content: center;"><a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">Uber Eats</a><span style="color: var(--border);">|</span><a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">DoorDash</a></div></div>`;
+    }
+  }
+});

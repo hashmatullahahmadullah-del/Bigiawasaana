@@ -152,6 +152,7 @@ export function initCRMData() {
   loadAnalytics();
   if (typeof window.initEconomicsListeners === 'function') window.initEconomicsListeners();
   if (typeof window.initDealsListener === 'function') window.dealsUnsub = window.initDealsListener();
+  loadCartPromoSettings();
 }
 
 export async function loadTvPromoSettings() {
@@ -200,6 +201,57 @@ if (btnSaveTvPromo) {
       showToast('Error saving TV promo', true);
     }
     btnSaveTvPromo.textContent = 'Save TV Promo';
+  });
+}
+
+export async function loadCartPromoSettings() {
+  onSnapshot(doc(db, 'settings', 'cart_promo'), (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      document.getElementById('cart-promo-active').checked = data.active || false;
+      document.getElementById('cart-promo-html').value = data.html || '';
+      toggleCartPromoEditor(data.active);
+    }
+  });
+}
+
+export function toggleCartPromoEditor(isActive) {
+  const editor = document.getElementById('cart-promo-editor');
+  if (editor) {
+    if (isActive) {
+      editor.style.opacity = '1';
+      editor.style.pointerEvents = 'auto';
+    } else {
+      editor.style.opacity = '0.5';
+      editor.style.pointerEvents = 'none';
+    }
+  }
+}
+
+const cartPromoCheckbox = document.getElementById('cart-promo-active');
+const btnSaveCartPromo = document.getElementById('btn-save-cart-promo');
+
+if (cartPromoCheckbox) {
+  cartPromoCheckbox.addEventListener('change', (e) => {
+    toggleCartPromoEditor(e.target.checked);
+  });
+}
+
+if (btnSaveCartPromo) {
+  btnSaveCartPromo.addEventListener('click', async () => {
+    btnSaveCartPromo.textContent = 'Saving...';
+    try {
+      await setDoc(doc(db, 'settings', 'cart_promo'), {
+        active: cartPromoCheckbox.checked,
+        html: document.getElementById('cart-promo-html').value,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      showToast('Cart Promo saved successfully');
+    } catch (e) {
+      console.error('Error saving cart promo:', e);
+      showToast('Error saving cart promo', true);
+    }
+    btnSaveCartPromo.textContent = 'Save Cart Promo';
   });
 }
 
