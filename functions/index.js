@@ -18,6 +18,7 @@ exports.serveMenuImage = require('./images').serveMenuImage;
 exports.syncGoogleHours = require('./syncGoogleHours').syncGoogleHours;
 // Uncomment below to enable daily auto-sync of Google Maps hours at 3 AM LA time:
 // exports.syncGoogleHoursCron = require('./syncGoogleHours').syncGoogleHoursCron;
+exports.checkInventoryDeadlinesCron = require('./inventory').checkInventoryDeadlinesCron;
 
 const functions = require("firebase-functions/v1");
 exports.cleanDuplicateDrafts = functions.https.onRequest(async (req, res) => {

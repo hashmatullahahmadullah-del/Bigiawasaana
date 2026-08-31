@@ -836,13 +836,17 @@ window.loadAnalytics = loadAnalytics;
     // 2. Render Top Items Table
     const tbodyTopItems = document.getElementById('expenseTopItemsTbody');
     if (tbodyTopItems) {
-      window.renderTopItems = (filter = "") => {
+      window.renderTopItems = (filter = "", catFilter = "") => {
         let sortedItems = Object.entries(itemTotals)
           .sort((a, b) => b[1].spent - a[1].spent); // Sort by spent descending
           
         if (filter) {
           const lowerFilter = filter.toLowerCase();
           sortedItems = sortedItems.filter(([itemName]) => itemName.toLowerCase().includes(lowerFilter));
+        }
+        if (catFilter) {
+          const lowerCat = catFilter.toLowerCase();
+          sortedItems = sortedItems.filter(([itemName, data]) => (data.category || "").toLowerCase().includes(lowerCat));
         }
 
         if (sortedItems.length === 0) {
@@ -864,15 +868,18 @@ window.loadAnalytics = loadAnalytics;
         }
       };
 
+      const triggerTopItemsRender = () => {
+         const searchVal = document.getElementById('expense-item-search') ? document.getElementById('expense-item-search').value : "";
+         const catVal = document.getElementById('expense-item-category-filter') ? document.getElementById('expense-item-category-filter').value : "";
+         window.renderTopItems(searchVal, catVal);
+      };
+
       const expenseItemSearch = document.getElementById('expense-item-search');
-      if (expenseItemSearch) {
-        expenseItemSearch.addEventListener('input', (e) => {
-          window.renderTopItems(e.target.value);
-        });
-        window.renderTopItems(expenseItemSearch.value);
-      } else {
-        window.renderTopItems();
-      }
+      if (expenseItemSearch) expenseItemSearch.addEventListener('input', triggerTopItemsRender);
+      const expenseItemCat = document.getElementById('expense-item-category-filter');
+      if (expenseItemCat) expenseItemCat.addEventListener('input', triggerTopItemsRender);
+      
+      triggerTopItemsRender();
     }
 
     // 3. Render Vendor Chart
@@ -1060,15 +1067,23 @@ window.loadAnalytics = loadAnalytics;
             }
           }
 
-          window.renderExpenseDocs = (filter = "") => {
+          window.renderExpenseDocs = (filter = "", dateFilter = "") => {
             savedExpensesContainer.innerHTML = '';
             let filteredDocs = docsArray;
             if (filter) {
               const lowerFilter = filter.toLowerCase();
-              filteredDocs = docsArray.filter(d => 
+              filteredDocs = filteredDocs.filter(d => 
                 (d.vendor || "").toLowerCase().includes(lowerFilter) ||
                 (d.status || "").toLowerCase().includes(lowerFilter)
               );
+            }
+            if (dateFilter) {
+              filteredDocs = filteredDocs.filter(d => {
+                if (!d.createdAt) return false;
+                const dDate = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
+                const isoDate = dDate.toISOString().split('T')[0];
+                return isoDate === dateFilter;
+              });
             }
             if (filteredDocs.length === 0) {
               savedExpensesContainer.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">No recent expenses found.</td></tr>';
@@ -1098,6 +1113,7 @@ window.loadAnalytics = loadAnalytics;
                 <td data-label="Total" style="padding: 16px; font-weight: bold; color: var(--accent-admin);">$${parsedDataTotal.toFixed(2)}</td>
                 <td data-label="Status" style="padding: 16px;">${statusBadge}</td>
                 <td data-label="Action" style="padding: 16px; text-align: right;">
+                  <button class="btn-outline btn-small" onclick="window.transferReceiptToInventory('${data.id}')" style="margin-right: 8px;">Transfer to Inv</button>
                   <button class="btn-outline btn-small" onclick="window.openReceiptSlide(window.expenseDocsArray.find(d => d.id === '${data.id}'))">View Details</button>
                 </td>
               `;
@@ -1105,14 +1121,24 @@ window.loadAnalytics = loadAnalytics;
             });
           };
 
+          const triggerExpenseRender = () => {
+             const searchVal = document.getElementById('expense-search') ? document.getElementById('expense-search').value : "";
+             const dateVal = document.getElementById('expense-date-filter') ? document.getElementById('expense-date-filter').value : "";
+             window.renderExpenseDocs(searchVal, dateVal);
+          };
+
           const expenseSearchInput = document.getElementById('expense-search');
-          if (expenseSearchInput) {
-             expenseSearchInput.addEventListener('input', (e) => {
-                window.renderExpenseDocs(e.target.value);
+          if (expenseSearchInput) expenseSearchInput.addEventListener('input', triggerExpenseRender);
+          const expenseDateFilter = document.getElementById('expense-date-filter');
+          if (expenseDateFilter) expenseDateFilter.addEventListener('input', triggerExpenseRender);
+          
+          triggerExpenseRender();
+          
+          const btnSyncAll = document.getElementById('btn-sync-all-receipts');
+          if (btnSyncAll) {
+             btnSyncAll.addEventListener('click', () => {
+                 window.transferAllReceiptsToInventory();
              });
-             window.renderExpenseDocs(expenseSearchInput.value);
-          } else {
-             window.renderExpenseDocs();
           }
         } catch (e) {
           console.error("Javascript Error during receipt rendering:", e);
@@ -1128,7 +1154,7 @@ window.loadAnalytics = loadAnalytics;
     const inventorySearch = document.getElementById('inventory-search');
     let inventoryDataCache = [];
 
-    const renderInventory = (filter = "") => {
+    const renderInventory = (filter = "", catFilter = "", dateFilter = "") => {
       if (!inventoryTbody) return;
       inventoryTbody.innerHTML = "";
       
@@ -1146,17 +1172,28 @@ window.loadAnalytics = loadAnalytics;
       if (costTrendEl) costTrendEl.textContent = "Stable"; // Placeholder, can be calculated dynamically
 
       if (inventoryDataCache.length === 0) {
-         inventoryTbody.innerHTML = '<tr><td colspan="7" style="padding: 24px; text-align: center; color: var(--gray);">No inventory tracked yet. Add items manually or confirm receipts.</td></tr>';
+         inventoryTbody.innerHTML = '<tr><td colspan="8" style="padding: 24px; text-align: center; color: var(--gray);">No inventory tracked yet. Add items manually or confirm receipts.</td></tr>';
          return;
       }
       
-      const filtered = inventoryDataCache.filter(data => 
-         (data.name || "").toLowerCase().includes(filter.toLowerCase()) || 
-         (data.category || "").toLowerCase().includes(filter.toLowerCase())
-      );
+      const filtered = inventoryDataCache.filter(data => {
+         let match = true;
+         if (filter) {
+            match = match && ((data.name || "").toLowerCase().includes(filter.toLowerCase()) || 
+                              (data.category || "").toLowerCase().includes(filter.toLowerCase()));
+         }
+         if (catFilter) {
+            match = match && (data.category || "").toLowerCase().includes(catFilter.toLowerCase());
+         }
+         if (dateFilter) {
+            // Compare date bought or createdAt? Let's assume dateBought
+            match = match && (data.dateBought === dateFilter);
+         }
+         return match;
+      });
 
       if (filtered.length === 0) {
-         inventoryTbody.innerHTML = '<tr><td colspan="7" style="padding: 24px; text-align: center; color: var(--gray);">No ingredients found.</td></tr>';
+         inventoryTbody.innerHTML = '<tr><td colspan="8" style="padding: 24px; text-align: center; color: var(--gray);">No ingredients found.</td></tr>';
          return;
       }
 
@@ -1207,6 +1244,9 @@ window.loadAnalytics = loadAnalytics;
             <td data-label="Last Price" style="padding: 12px; font-weight:bold; color:var(--white);">$${(data.lastPrice || 0).toFixed(2)}</td>
             <td data-label="Avg Price" style="padding: 12px; color:var(--gray);">$${(avgPrice || 0).toFixed(2)}</td>
             <td data-label="Trend" style="padding: 12px;">${priceTrendHtml}</td>
+            <td data-label="Deadline" style="padding: 12px;">
+              <input type="date" class="inventory-deadline-input" data-id="${data.id}" value="${data.deadline || ''}" style="width: 130px; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: var(--white); outline: none;">
+            </td>
             <td data-label="Actions" style="padding: 12px; text-align: right;">
               <button class="btn-outline btn-small" onclick="deleteInventoryItem('${data.id}')" style="border-color: rgba(244,67,54,0.3); color: #f44336;">Del</button>
             </td>
@@ -1229,6 +1269,20 @@ window.loadAnalytics = loadAnalytics;
              }
          });
       });
+      document.querySelectorAll('.inventory-deadline-input').forEach(input => {
+         input.addEventListener('change', async (e) => {
+             const id = e.target.getAttribute('data-id');
+             const val = e.target.value;
+             try {
+                 await updateDoc(doc(db, 'inventory', id), { deadline: val });
+                 e.target.style.borderColor = "#4caf50";
+                 setTimeout(() => e.target.style.borderColor = "rgba(255,255,255,0.2)", 1500);
+             } catch (err) {
+                 console.error(err);
+                 alert("Failed to update deadline");
+             }
+         });
+      });
     };
 
     if (inventoryTbody) {
@@ -1240,17 +1294,26 @@ window.loadAnalytics = loadAnalytics;
              inventoryDataCache.push(data);
           });
           const currentFilter = inventorySearch ? inventorySearch.value : "";
-          renderInventory(currentFilter);
+          const catFilter = document.getElementById('inventory-category-filter') ? document.getElementById('inventory-category-filter').value : "";
+          const dateFilter = document.getElementById('inventory-date-filter') ? document.getElementById('inventory-date-filter').value : "";
+          renderInventory(currentFilter, catFilter, dateFilter);
        }, (err) => {
           console.error("Inventory sync error:", err);
-          inventoryTbody.innerHTML = '<tr><td colspan="7" style="padding: 24px; text-align: center; color: #f44336;">Error loading inventory. Check console.</td></tr>';
+          inventoryTbody.innerHTML = '<tr><td colspan="8" style="padding: 24px; text-align: center; color: #f44336;">Error loading inventory. Check console.</td></tr>';
        });
 
-       if (inventorySearch) {
-          inventorySearch.addEventListener('input', (e) => {
-             renderInventory(e.target.value);
-          });
-       }
+       const triggerRender = () => {
+          const currentFilter = inventorySearch ? inventorySearch.value : "";
+          const catFilter = document.getElementById('inventory-category-filter') ? document.getElementById('inventory-category-filter').value : "";
+          const dateFilter = document.getElementById('inventory-date-filter') ? document.getElementById('inventory-date-filter').value : "";
+          renderInventory(currentFilter, catFilter, dateFilter);
+       };
+
+       if (inventorySearch) inventorySearch.addEventListener('input', triggerRender);
+       const invCatFilter = document.getElementById('inventory-category-filter');
+       if (invCatFilter) invCatFilter.addEventListener('input', triggerRender);
+       const invDateFilter = document.getElementById('inventory-date-filter');
+       if (invDateFilter) invDateFilter.addEventListener('input', triggerRender);
 
        // Add Inventory Flow
        const btnAddInventory = document.getElementById('btn-add-inventory');
@@ -1332,6 +1395,87 @@ window.loadAnalytics = loadAnalytics;
         console.error(e);
         alert("Failed to update stock");
      }
+  };
+
+  const processItemTransfer = async (item, expenseDate) => {
+      if (!item.name) return 0;
+      const docId = item.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const docRef = doc(db, 'inventory', docId);
+      const docSnap = await getDoc(docRef);
+      
+      const qty = parseFloat(item.quantity) || 1;
+      const uPrice = parseFloat(item.unitPrice) || 0;
+      const dateBought = expenseDate.toISOString().split('T')[0];
+      const priceEntry = { date: expenseDate, price: uPrice };
+      const category = item.category || 'other';
+
+      if (docSnap.exists()) {
+          const existing = docSnap.data();
+          const newStock = (parseFloat(existing.stockQuantity) || 0) + qty;
+          const newHistory = existing.priceHistory || [];
+          newHistory.push(priceEntry);
+          
+          await updateDoc(docRef, {
+              stockQuantity: newStock,
+              lastPrice: uPrice,
+              dateBought: dateBought,
+              priceHistory: newHistory,
+              updatedAt: serverTimestamp()
+          });
+      } else {
+          await setDoc(docRef, {
+              name: item.name,
+              category: category,
+              stockQuantity: qty,
+              piecesPerBox: 1,
+              dateBought: dateBought,
+              lastPrice: uPrice,
+              priceHistory: [priceEntry],
+              updatedAt: serverTimestamp()
+          });
+      }
+      return 1;
+  };
+
+  window.transferReceiptToInventory = async (receiptId) => {
+    const receipt = window.expenseDocsArray.find(d => d.id === receiptId);
+    if (!receipt || !receipt.items || receipt.items.length === 0) {
+      return showToast("No items to transfer.");
+    }
+    if (!confirm(`Transfer ${receipt.items.length} items to inventory?`)) return;
+    
+    try {
+      showToast("Transferring items to inventory...");
+      let successCount = 0;
+      const expenseDate = receipt.createdAt?.toDate ? receipt.createdAt.toDate() : new Date();
+      for (const item of receipt.items) {
+         successCount += await processItemTransfer(item, expenseDate);
+      }
+      showToast(`Successfully transferred ${successCount} items!`);
+    } catch (e) {
+      console.error(e);
+      alert("Error transferring receipt to inventory.");
+    }
+  };
+
+  window.transferAllReceiptsToInventory = async () => {
+      if (!confirm(`Transfer ALL recent receipts to inventory? This may take a moment.`)) return;
+      
+      try {
+         showToast("Transferring all receipts...");
+         let totalSuccess = 0;
+         for (const receipt of window.expenseDocsArray) {
+             if (!receipt.items) continue;
+             const expenseDate = receipt.createdAt?.toDate ? receipt.createdAt.toDate() : new Date();
+             for (const item of receipt.items) {
+                 totalSuccess += await processItemTransfer(item, expenseDate);
+             }
+         }
+         showToast(`Successfully transferred ${totalSuccess} items!`);
+      } catch (e) {
+         console.error(e);
+         alert("Error transferring receipts.");
+      }
   };
 
 

@@ -360,8 +360,10 @@
           </div>
 
           <div class="crm-panel mt-m">
-            <div class="crm-filters">
-              <input type="text" id="inventory-search" class="crm-input" placeholder="Search inventory...">
+            <div class="crm-filters" style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <input type="text" id="inventory-search" class="crm-input" placeholder="Search inventory..." style="flex: 1; min-width: 200px;">
+              <input type="text" id="inventory-category-filter" class="crm-input" placeholder="Category..." style="width: 150px;">
+              <input type="date" id="inventory-date-filter" class="crm-input" style="width: 150px;">
             </div>
             <div class="crm-table-container"><table class="crm-table" style="width: 100%; border-collapse: collapse;">
                 <thead>
@@ -372,11 +374,12 @@
                     <th>Last Price</th>
                     <th>Avg Price</th>
                     <th>Trend</th>
+                    <th>Deadline</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="inventory-tbody">
-                  <tr><td colspan="7" style="padding: 24px; text-align: center; color: var(--gray);">Loading live inventory data...</td></tr>
+                  <tr><td colspan="8" style="padding: 24px; text-align: center; color: var(--gray);">Loading live inventory data...</td></tr>
                 </tbody>
               </table></div>
           </div>
@@ -1353,18 +1356,20 @@
               </div>
             </div>
 
-            <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 40px;">
+            <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 40px;">
               <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
                 <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); display: flex; justify-content: space-between; align-items: center; background: var(--table-header-bg); flex-wrap: wrap; gap: 12px;">
                   <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Recent Receipts</h3>
-                  <div style="display: flex; gap: 12px;">
-                    <input type="text" id="expense-search" class="crm-input" placeholder="Search receipts..." style="max-width: 200px;">
+                  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <input type="text" id="expense-search" class="crm-input" placeholder="Search receipts..." style="max-width: 150px;">
+                    <input type="date" id="expense-date-filter" class="crm-input" style="max-width: 150px;">
+                    <button class="btn-outline btn-small" id="btn-sync-all-receipts">Sync All to Inv</button>
                     <button class="btn-outline btn-small" id="export-expenses-btn">Export CSV</button>
                   </div>
                 </div>
-                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none; max-height: 600px; overflow-y: auto;">
                   <table class="crm-table">
-                    <thead>
+                    <thead style="position: sticky; top: 0; background: var(--surface-admin); z-index: 10;">
                       <tr>
                         <th>Date</th>
                         <th>Vendor</th>
@@ -1383,19 +1388,23 @@
               <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
                 <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); display: flex; justify-content: space-between; align-items: center; background: var(--table-header-bg); flex-wrap: wrap; gap: 12px;">
                   <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Item Spending</h3>
-                  <input type="text" id="expense-item-search" class="crm-input" placeholder="Search items..." style="max-width: 200px;">
+                  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <input type="text" id="expense-item-search" class="crm-input" placeholder="Search items..." style="max-width: 150px;">
+                    <input type="text" id="expense-item-category-filter" class="crm-input" placeholder="Category..." style="max-width: 120px;">
+                  </div>
                 </div>
-                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none; max-height: 600px; overflow-y: auto;">
                   <table class="crm-table">
-                    <thead>
+                    <thead style="position: sticky; top: 0; background: var(--surface-admin); z-index: 10;">
                       <tr>
                         <th>Item</th>
                         <th style="text-align: right;">Qty</th>
                         <th style="text-align: right;">Spent</th>
+                        <th style="text-align: right;">Actions</th>
                       </tr>
                     </thead>
                     <tbody id="expenseTopItemsTbody">
-                      <tr><td colspan="3" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
+                      <tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
                     </tbody>
                   </table>
                 </div>
