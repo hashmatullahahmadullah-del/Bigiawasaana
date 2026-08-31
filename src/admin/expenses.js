@@ -1169,23 +1169,39 @@ window.loadAnalytics = loadAnalytics;
             return;
           }
 
-          renderExpenseAnalytics(snapshot);
-          renderExpenseStats(snapshot);
-          initPriceTrends(snapshot);
-
-          let docsArray = [];
-          snapshot.forEach(docSnap => docsArray.push({ id: docSnap.id, ...docSnap.data() }));
-          docsArray.sort((a,b) => {
-             const getMs = (r) => {
-                 if (r.createdAt?.toDate) return r.createdAt.toDate().getTime();
-                 if (r.createdAt) return new Date(r.createdAt).getTime();
-                 if (r.purchaseDate?.toDate) return r.purchaseDate.toDate().getTime();
-                 return 0;
-             };
-             return getMs(b) - getMs(a);
+          let allDocsArray = [];
+          snapshot.forEach(docSnap => {
+              const data = docSnap.data();
+              let dDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : (data.purchaseDate?.toDate ? data.purchaseDate.toDate() : (data.createdAt?.toDate ? data.createdAt.toDate() : new Date()));
+              allDocsArray.push({ id: docSnap.id, ...data, _parsedDate: dDate });
           });
           
-          window.expenseDocsArray = docsArray;
+          allDocsArray.sort((a,b) => b._parsedDate.getTime() - a._parsedDate.getTime());
+          
+          window.processExpenseSnapshot = () => {
+              const filterSelect = document.getElementById('expense-date-filter');
+              const filterVal = filterSelect ? filterSelect.value : '30';
+              
+              let cutoffDate = null;
+              if (filterVal !== 'all') {
+                  cutoffDate = new Date();
+                  cutoffDate.setDate(cutoffDate.getDate() - parseInt(filterVal));
+              }
+              
+              let filteredDocsArray = allDocsArray;
+              if (cutoffDate) {
+                  filteredDocsArray = allDocsArray.filter(d => d._parsedDate >= cutoffDate);
+              }
+              
+              window.expenseDocsArray = filteredDocsArray;
+              
+              renderExpenseAnalytics(filteredDocsArray);
+              initPriceTrends(filteredDocsArray);
+              renderExpenseStats(allDocsArray);
+          };
+          
+          window.processExpenseSnapshot();
+          let docsArray = window.expenseDocsArray;
           
           // Render Pending Inbox
           const pendingInboxSection = document.getElementById('pending-inbox-section');
@@ -1319,6 +1335,15 @@ window.loadAnalytics = loadAnalytics;
           }
           
           triggerExpenseRender();
+          
+          const globalDateFilter = document.getElementById('expense-date-filter');
+          if (globalDateFilter && !window.globalDateFilterAttached) {
+              globalDateFilter.addEventListener('change', () => {
+                  if (window.processExpenseSnapshot) window.processExpenseSnapshot();
+                  triggerExpenseRender(true);
+              });
+              window.globalDateFilterAttached = true;
+          }
           
           const btnSyncAll = document.getElementById('btn-sync-all-receipts');
           if (btnSyncAll) {
