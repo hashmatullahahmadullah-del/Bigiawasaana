@@ -475,7 +475,7 @@ window.loadAnalytics = loadAnalytics;
   let expenseVendorChartInst = null;
   let priceTrendChartInst = null;
 
-  const renderExpenseStats = (snapshot) => {
+  const renderExpenseStats = (docsArray) => {
     let allTimeSpent = 0;
     let thirtyDaySpent = 0;
     let sevenDaySpent = 0;
@@ -521,11 +521,9 @@ window.loadAnalytics = loadAnalytics;
       return null;
     };
 
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      
+    docsArray.forEach(data => {
       const receiptTotal = computeReceiptTotal(data);
-      const expenseDate = getReceiptDate(data);
+      const expenseDate = data._parsedDate || getReceiptDate(data);
 
       // All-time
       allTimeSpent += receiptTotal;
@@ -681,16 +679,15 @@ window.loadAnalytics = loadAnalytics;
     }
   };
 
-  const initPriceTrends = (snapshot) => {
+  const initPriceTrends = (docsArray) => {
     const selectEl = document.getElementById('price-trend-item-select');
     const ctxTrend = document.getElementById('priceTrendChart');
     if (!selectEl || !ctxTrend) return;
 
     let itemsData = {};
 
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
+    docsArray.forEach(data => {
+      const expenseDate = data._parsedDate || (data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date());
 
       (Array.isArray(data.items) ? data.items : []).forEach(item => {
         if (item.name && item.unitPrice) {
@@ -767,7 +764,7 @@ window.loadAnalytics = loadAnalytics;
     renderChart();
   };
 
-  const renderExpenseAnalytics = (snapshot) => {
+  const renderExpenseAnalytics = (docsArray) => {
     const ctxCategory = document.getElementById('expenseChart');
     const ctxTopItems = document.getElementById('expenseTopItemsChart');
     const ctxVendor = document.getElementById('expenseVendorChart');
@@ -776,13 +773,9 @@ window.loadAnalytics = loadAnalytics;
     let catTotals = {};
     let itemTotals = {};
     let vendorTotals = {};
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      
-      const expenseDate = data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date();
+    docsArray.forEach(data => {
+      const expenseDate = data._parsedDate || (data.confirmedAt?.toDate ? data.confirmedAt.toDate() : new Date());
 
       const vendor = data.vendor || 'Unknown';
       const receiptTotal = parseFloat(String(data.total || 0).replace(/[^0-9.-]+/g, "")) || 0;
