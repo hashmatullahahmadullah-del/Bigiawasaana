@@ -1729,3 +1729,20 @@ onSnapshot(doc(db, 'settings', 'cart_promo'), (docSnap) => {
     }
   }
 });
+
+import { welcomeLangs } from './welcome.js';
+
+// Welcome Animation
+document.addEventListener('DOMContentLoaded', () => {
+  const welcomeText = document.getElementById('welcome-text');
+  if (!welcomeText) return;
+  let i = 0;
+  welcomeText.classList.add('welcome-animating');
+  setInterval(() => {
+    welcomeText.classList.remove('welcome-animating');
+    void welcomeText.offsetWidth; // trigger reflow
+    i = (i + 1) % welcomeLangs.length;
+    welcomeText.textContent = welcomeLangs[i];
+    welcomeText.classList.add('welcome-animating');
+  }, 3000);
+});

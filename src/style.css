@@ -2488,6 +2488,39 @@ body {
   object-fit: cover;
 }
 
+/* Scroll Hint Animation */
+.scroll-hint-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: var(--accent);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+.scroll-hint-icon {
+  display: inline-block;
+  animation: slide-right-bounce 1.5s infinite ease-in-out;
+  font-size: 16px;
+}
+@keyframes slide-right-bounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
+
+/* Initial nudge animation for cards when revealed */
+@keyframes peek-nudge {
+  0% { transform: translateX(0); }
+  30% { transform: translateX(-15px); }
+  60% { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+.featured-carousel.revealed .menu-card {
+  animation: peek-nudge 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.5s;
+}
+
 /* Mobile: featured cards fill viewport width */
 @media (max-width: 768px) {
   .featured-carousel {

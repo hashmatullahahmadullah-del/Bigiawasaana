@@ -9,6 +9,7 @@ const filesToCopy = [
   { src: 'favicon.jpg', dest: 'dist/favicon.jpg' },
   { src: 'dist/item-template.html', dest: 'functions/item-template.html' },
   { src: 'dist/blog-template.html', dest: 'functions/blog-template.html' },
+  { src: 'dist/blog.html', dest: 'functions/blog.html' },
   { src: 'dist/area-template.html', dest: 'functions/area-template.html' },
   { src: 'src/lib/deals-evaluator.js', dest: 'functions/deals-evaluator.js' }
 ];

@@ -399,41 +399,47 @@ window.loadAnalytics = loadAnalytics;
       confirmBtn.textContent = "Saving & Learning...";
 
       try {
-        // 1. Save mappings
+        // 1. Save mappings & Update Inventory
         for (const item of currentItems) {
-           if (item.name) {
-              const mapKey = item.name.toLowerCase().trim();
-              const mapData = {};
-              if (item.category) mapData.category = item.category;
-              if (item.matchedMenuIngredient) mapData.matchedMenuIngredient = item.matchedMenuIngredient;
-              
-              if (Object.keys(mapData).length > 0) {
-                 await setDoc(doc(db, 'receipt_mappings', mapKey), mapData, { merge: true });
-              }
-           }
-           
-           // 2. Update Inventory
-           if (item.name && item.quantity > 0) {
-              const invRef = doc(db, 'inventory', item.matchedMenuIngredient || item.name.toLowerCase().trim());
-              const invSnap = await getDoc(invRef);
-              
-              let newStock = item.quantity;
-              let priceHistory = [{ date: new Date().toISOString(), price: item.unitPrice, vendor: reviewMeta.innerText.includes('Vendor:') ? reviewMeta.innerText.split('Vendor:')[1].split('\u00a0')[0].trim() : 'Unknown' }];
-              
-              if (invSnap.exists()) {
-                 const invData = invSnap.data();
-                 newStock += (invData.stockQuantity || 0);
-                 priceHistory = [...(invData.priceHistory || []), ...priceHistory].slice(-10); // Keep last 10
-              }
-              
-              await setDoc(invRef, {
-                 name: item.matchedMenuIngredient ? (window.adminMenuData[item.matchedMenuIngredient]?.name || item.name) : item.name,
-                 category: item.category || 'other',
-                 stockQuantity: newStock,
-                 lastPrice: item.unitPrice,
-                 priceHistory: priceHistory,
-                 updatedAt: serverTimestamp()
-              }, { merge: true });
+           try {
+             if (item.name) {
+                const mapKey = item.name.toLowerCase().trim().replace(/\//g, '-');
+                const mapData = {};
+                if (item.category) mapData.category = item.category;
+                if (item.matchedMenuIngredient) mapData.matchedMenuIngredient = item.matchedMenuIngredient;
+                
+                if (Object.keys(mapData).length > 0 && mapKey) {
+                   await setDoc(doc(db, 'receipt_mappings', mapKey), mapData, { merge: true });
+                }
+             }
+             
+             // 2. Update Inventory
+             if (item.name && item.quantity > 0) {
+                const invKey = (item.matchedMenuIngredient || item.name.toLowerCase().trim()).replace(/\//g, '-');
+                if (!invKey) continue;
+                const invRef = doc(db, 'inventory', invKey);
+                const invSnap = await getDoc(invRef);
+                
+                let newStock = item.quantity;
+                let priceHistory = [{ date: new Date().toISOString(), price: item.unitPrice, vendor: reviewMeta.innerText.includes('Vendor:') ? reviewMeta.innerText.split('Vendor:')[1].split('\u00a0')[0].trim() : 'Unknown' }];
+                
+                if (invSnap.exists()) {
+                   const invData = invSnap.data();
+                   newStock += (invData.stockQuantity || 0);
+                   priceHistory = [...(invData.priceHistory || []), ...priceHistory].slice(-10); // Keep last 10
+                }
+                
+                await setDoc(invRef, {
+                   name: item.matchedMenuIngredient ? (window.adminMenuData && window.adminMenuData[item.matchedMenuIngredient] ? window.adminMenuData[item.matchedMenuIngredient].name : item.name) : item.name,
+                   category: item.category || 'other',
+                   stockQuantity: newStock,
+                   lastPrice: item.unitPrice,
+                   priceHistory: priceHistory,
+                   updatedAt: serverTimestamp()
+                }, { merge: true });
+             }
+           } catch(e) {
+             console.error("Error updating inventory/mapping for item", item, e);
            }
         }
 

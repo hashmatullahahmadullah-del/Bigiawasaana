@@ -103,15 +103,26 @@ exports.parseReceipt = functions
               
               const v1 = (parsed.vendor || "").toLowerCase().replace(/[^a-z0-9]/g, "");
               const v2 = (data.vendor || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+              const isVendorMatch = v1 && v2 && (v1.includes(v2) || v2.includes(v1) || v1 === v2);
               
-              if (v1 && v2 && (v1.includes(v2) || v2.includes(v1) || v1 === v2)) {
+              if (timeSinceCreated < 5 * 60 * 1000) {
                  isDuplicate = true;
                  dupVendor = data.vendor;
                  break;
-              } else if (timeSinceCreated < 5 * 60 * 1000) {
-                 isDuplicate = true;
-                 dupVendor = data.vendor;
-                 break;
+              } else if (isVendorMatch) {
+                 let date1 = parsed.purchaseDate;
+                 let date2 = null;
+                 if (data.purchaseDate && typeof data.purchaseDate.toDate === 'function') {
+                    // Adjust for local time representation or just grab the date part
+                    const d2 = data.purchaseDate.toDate();
+                    date2 = d2.getFullYear() + '-' + String(d2.getMonth() + 1).padStart(2, '0') + '-' + String(d2.getDate()).padStart(2, '0');
+                 }
+                 
+                 if (date1 && date2 && date1 === date2) {
+                    isDuplicate = true;
+                    dupVendor = data.vendor;
+                    break;
+                 }
               }
            }
         }
