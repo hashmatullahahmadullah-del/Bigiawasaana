@@ -394,13 +394,13 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
           
           <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border);">
             <h3 style="font-family: 'Barlow Condensed'; font-size: 20px; color: var(--accent); margin-bottom: 16px;">Explore More Halal Afghan Food</h3>
-            <p style="font-size: 14px; line-height: 1.8; color: var(--gray);">
-              ${allItems.filter(i => i.slug !== itemSlug).map(i => `<a href="/item/${i.slug}" style="color: var(--gray); text-decoration: none;">Order Halal ${i.name}</a>`).join(' | ')}
-            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+              ${allItems.filter(i => i.slug !== itemSlug && !i.hidden).map(i => `<a href="/item/${i.slug}" style="padding: 8px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; color: var(--gray); text-decoration: none; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--white)'; this.style.background='rgba(255,69,0,0.05)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--gray)'; this.style.background='rgba(255,255,255,0.02)'">${i.name}</a>`).join('')}
+            </div>
             <h3 style="font-family: 'Barlow Condensed'; font-size: 20px; color: var(--accent); margin-top: 32px; margin-bottom: 16px;">Delivery Service Areas</h3>
-            <p style="font-size: 14px; line-height: 1.8; color: var(--gray);">
-              ${areas.map(a => { const s = a.toLowerCase().replace(/\s+/g, '-'); return `<a href="/areas/${s}" style="color: var(--gray); text-decoration: none;">Halal Afghan Food Delivery in ${a}</a>`; }).join(' | ')}
-            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+              ${areas.map(a => { const s = a.toLowerCase().replace(/\s+/g, '-'); return `<a href="/areas/${s}" style="padding: 8px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; color: var(--gray); text-decoration: none; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--white)'; this.style.background='rgba(255,69,0,0.05)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--gray)'; this.style.background='rgba(255,255,255,0.02)'">Delivery to ${a}</a>`; }).join('')}
+            </div>
           </div>
 
         </div>
@@ -538,13 +538,13 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
           <!-- Internal Menu Links for Area Pages -->
           <div style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border); text-align: left;">
             <h3 style="font-family: 'Barlow Condensed'; font-size: 20px; color: var(--accent); margin-bottom: 16px;">Popular Delivery Items in ${areaData.name || areaId}</h3>
-            <p style="font-size: 14px; line-height: 1.8; color: var(--gray);">
-              <a href="/item/bigi-s-tikka-kabob" style="color: var(--gray); text-decoration: none;">Order Halal Chicken Tikka Kabob in ${areaData.name || areaId}</a> | 
-              <a href="/item/bigi-s-shami-kabob" style="color: var(--gray); text-decoration: none;">Order Halal Shami Kabob in ${areaData.name || areaId}</a> | 
-              <a href="/item/bigi-s-qabuli-palou" style="color: var(--gray); text-decoration: none;">Order Halal Qabuli Palou in ${areaData.name || areaId}</a> | 
-              <a href="/item/bigi-s-samosa" style="color: var(--gray); text-decoration: none;">Order Halal Samosa in ${areaData.name || areaId}</a> | 
-              <a href="/item/bigi-s-bolani" style="color: var(--gray); text-decoration: none;">Order Halal Bolani in ${areaData.name || areaId}</a>
-            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+              <a href="/item/bigi-s-tikka-kabob" style="padding: 8px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; color: var(--gray); text-decoration: none; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--white)'; this.style.background='rgba(255,69,0,0.05)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--gray)'; this.style.background='rgba(255,255,255,0.02)'">Chicken Tikka Kabob</a>
+              <a href="/item/bigi-s-shami-kabob" style="padding: 8px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; color: var(--gray); text-decoration: none; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--white)'; this.style.background='rgba(255,69,0,0.05)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--gray)'; this.style.background='rgba(255,255,255,0.02)'">Shami Kabob</a>
+              <a href="/item/bigi-s-qabuli-palou" style="padding: 8px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; color: var(--gray); text-decoration: none; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--white)'; this.style.background='rgba(255,69,0,0.05)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--gray)'; this.style.background='rgba(255,255,255,0.02)'">Qabuli Palou</a>
+              <a href="/item/bigi-s-samosa" style="padding: 8px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; color: var(--gray); text-decoration: none; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--white)'; this.style.background='rgba(255,69,0,0.05)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--gray)'; this.style.background='rgba(255,255,255,0.02)'">Samosa</a>
+              <a href="/item/bigi-s-bolani" style="padding: 8px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; color: var(--gray); text-decoration: none; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--white)'; this.style.background='rgba(255,69,0,0.05)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--gray)'; this.style.background='rgba(255,255,255,0.02)'">Bolani</a>
+            </div>
           </div>
 
         </div>
