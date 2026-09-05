@@ -645,32 +645,84 @@ body {
   justify-content: center;
   flex-wrap: wrap;
 }
-.btn-delivery {
-  display: flex;
+/* ── Delivery Partner Buttons ── */
+.delivery-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 32px;
-  background: var(--surface);
-  color: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 500;
-  font-size: 18px;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: 12px;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid transparent;
 }
-.btn-delivery:hover {
-  background: var(--white);
-  color: var(--bg);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+.delivery-btn img {
+  height: 20px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
 }
-.btn-delivery svg {
-  transition: transform 0.3s;
+.delivery-btn:hover img {
+  transform: scale(1.08);
 }
-.btn-delivery:hover svg {
-  transform: scale(1.1);
+
+/* Uber Eats */
+.delivery-btn-ubereats {
+  background: rgba(6, 193, 103, 0.08);
+  border-color: rgba(6, 193, 103, 0.35);
+  color: #06C167;
+}
+.delivery-btn-ubereats:hover {
+  background: #06C167;
+  border-color: #06C167;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(6, 193, 103, 0.3);
+}
+.delivery-btn-ubereats:hover img {
+  filter: brightness(10);
+}
+
+/* DoorDash */
+.delivery-btn-doordash {
+  background: rgba(255, 48, 8, 0.08);
+  border-color: rgba(255, 48, 8, 0.35);
+  color: #FF3008;
+}
+.delivery-btn-doordash:hover {
+  background: #FF3008;
+  border-color: #FF3008;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(255, 48, 8, 0.3);
+}
+.delivery-btn-doordash:hover img {
+  filter: brightness(10);
+}
+
+/* Size variants */
+.delivery-btn-sm {
+  padding: 8px 18px;
+  border-radius: 8px;
+  gap: 8px;
+}
+.delivery-btn-sm img {
+  height: 16px;
+}
+.delivery-btn-lg {
+  padding: 18px 36px;
+  border-radius: 14px;
+  gap: 12px;
+}
+.delivery-btn-lg img {
+  height: 28px;
 }
 
 .footer {
