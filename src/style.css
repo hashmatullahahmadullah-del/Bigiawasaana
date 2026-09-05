@@ -650,76 +650,80 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 14px 28px;
-  border-radius: 12px;
+  gap: 12px;
+  padding: 16px 32px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px; /* Matches btn-outline and btn-primary */
   text-decoration: none;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 1.2px;
+  font-size: 16px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s var(--ease);
   position: relative;
   overflow: hidden;
-  border: 1.5px solid transparent;
+  cursor: pointer;
+}
+.delivery-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+  z-index: 0;
 }
 .delivery-btn img {
-  height: 20px;
+  position: relative;
+  z-index: 1;
+  height: 22px;
   width: auto;
   max-width: 100%;
   object-fit: contain;
-  transition: transform 0.3s ease;
+  transition: all 0.3s var(--ease);
+  filter: grayscale(100%) opacity(0.6); /* Sleek monochrome look by default */
 }
 .delivery-btn:hover img {
-  transform: scale(1.08);
+  filter: grayscale(0%) opacity(1); /* Reveal full brand color on hover */
+  transform: scale(1.05);
 }
 
 /* Uber Eats */
-.delivery-btn-ubereats {
-  background: rgba(6, 193, 103, 0.08);
-  border-color: rgba(6, 193, 103, 0.35);
-  color: #06C167;
-}
 .delivery-btn-ubereats:hover {
-  background: #06C167;
   border-color: #06C167;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(6, 193, 103, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(6, 193, 103, 0.15);
 }
-.delivery-btn-ubereats:hover img {
-  filter: brightness(10);
+.delivery-btn-ubereats::before {
+  background: linear-gradient(45deg, transparent, rgba(6, 193, 103, 0.08), transparent);
+}
+.delivery-btn-ubereats:hover::before {
+  opacity: 1;
 }
 
 /* DoorDash */
-.delivery-btn-doordash {
-  background: rgba(255, 48, 8, 0.08);
-  border-color: rgba(255, 48, 8, 0.35);
-  color: #FF3008;
-}
 .delivery-btn-doordash:hover {
-  background: #FF3008;
   border-color: #FF3008;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(255, 48, 8, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 48, 8, 0.15);
 }
-.delivery-btn-doordash:hover img {
-  filter: brightness(10);
+.delivery-btn-doordash::before {
+  background: linear-gradient(45deg, transparent, rgba(255, 48, 8, 0.08), transparent);
+}
+.delivery-btn-doordash:hover::before {
+  opacity: 1;
 }
 
 /* Size variants */
 .delivery-btn-sm {
-  padding: 8px 18px;
-  border-radius: 8px;
-  gap: 8px;
+  padding: 10px 20px;
 }
 .delivery-btn-sm img {
   height: 16px;
 }
 .delivery-btn-lg {
-  padding: 18px 36px;
-  border-radius: 14px;
-  gap: 12px;
+  padding: 20px 40px;
 }
 .delivery-btn-lg img {
   height: 28px;
