@@ -2462,72 +2462,52 @@ body {
   transition: width 0.3s var(--ease);
 }
 
-/* Featured Menu Carousel */
-.featured-carousel {
+/* Sticky Horizontal Scroll – Featured Items */
+.sticky-scroll-section {
+  position: relative;
+  /* height is set dynamically by JS */
+}
+.sticky-scroll-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
   display: flex;
-  overflow-x: auto;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 0 24px;
+}
+.horizontal-track-wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+.horizontal-track {
+  display: flex;
   gap: 24px;
-  padding-bottom: 24px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scroll-snap-type: x mandatory;
+  padding: 24px 5vw;
+  width: max-content;
+  will-change: transform;
+  transition: transform 0.08s linear;
 }
-.featured-carousel::-webkit-scrollbar {
-  display: none;
-}
-.featured-carousel .menu-card {
+.horizontal-track .menu-card {
   min-width: 300px;
   max-width: 340px;
   flex-shrink: 0;
-  scroll-snap-align: start;
 }
-.featured-carousel .menu-card .menu-card-img {
+.horizontal-track .menu-card .menu-card-img {
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
 }
 
-/* Scroll Hint Animation */
-.scroll-hint-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  color: var(--accent);
-  font-family: 'Outfit', sans-serif;
-  font-size: 14px;
-  margin-bottom: 12px;
-  opacity: 0.9;
-}
-.scroll-hint-icon {
-  display: inline-block;
-  animation: slide-right-bounce 1.5s infinite ease-in-out;
-  font-size: 16px;
-}
-@keyframes slide-right-bounce {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(6px); }
-}
-
-/* Initial nudge animation for cards when revealed */
-@keyframes peek-nudge {
-  0% { transform: translateX(0); }
-  30% { transform: translateX(-15px); }
-  60% { transform: translateX(5px); }
-  100% { transform: translateX(0); }
-}
-.featured-carousel.revealed .menu-card {
-  animation: peek-nudge 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.5s;
-}
-
 /* Mobile: featured cards fill viewport width */
 @media (max-width: 768px) {
-  .featured-carousel {
+  .horizontal-track {
     gap: 16px;
-    scroll-padding-left: 16px;
+    padding: 24px 16px;
   }
-  .featured-carousel .menu-card {
+  .horizontal-track .menu-card {
     min-width: calc(100vw - 64px);
     max-width: calc(100vw - 64px);
   }

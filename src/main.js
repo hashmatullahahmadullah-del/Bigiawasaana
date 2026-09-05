@@ -1667,32 +1667,42 @@ function initReveal() {
 
 
 // ─────────────────────────────────────────────────────────────────
-// STICKY HORIZONTAL SCROLL
+// STICKY HORIZONTAL SCROLL  (vertical scroll → horizontal movement)
 // ─────────────────────────────────────────────────────────────────
 function initStickyScroll() {
-  const section = document.getElementById('menu');
-  const track = document.getElementById('horizontal-track');
+  const section = document.querySelector('.sticky-scroll-section');
+  const track   = document.getElementById('featured-menu-grid');
   if (!section || !track) return;
 
+  let ticking = false;
+
+  function recalc() {
+    // How far the track needs to slide left
+    const maxScrollX = Math.max(0, track.scrollWidth - window.innerWidth);
+    // Make the section tall enough so the user has room to scroll through the whole track
+    // 100vh for the sticky pin  +  extra height proportional to the horizontal distance
+    const sectionHeight = window.innerHeight + maxScrollX;
+    section.style.height = sectionHeight + 'px';
+    return { maxScrollX, sectionHeight };
+  }
+
+  let dims = recalc();
+  window.addEventListener('resize', () => { dims = recalc(); });
+
   window.addEventListener('scroll', () => {
-    const rect = section.getBoundingClientRect();
-    const scrollY = -rect.top;
-    
-    // Total scrollable height of the section (minus viewport height to make it stick to the bottom properly)
-    const maxScrollY = section.offsetHeight - window.innerHeight;
-    
-    // Calculate progress between 0 and 1
-    let progress = scrollY / maxScrollY;
-    progress = Math.max(0, Math.min(1, progress));
-    
-    // Calculate max horizontal translate
-    // We subtract window.innerWidth to ensure the last item is on screen
-    // Add 40px for margin/padding breathing room
-    let maxScrollX = track.scrollWidth - window.innerWidth + 40;
-    if (maxScrollX < 0) maxScrollX = 0;
-    
-    const translateX = maxScrollX * progress;
-    track.style.transform = `translate3d(-${translateX}px, 0, 0)`;
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const rect = section.getBoundingClientRect();
+      const scrolled = -rect.top;                          // how far past the top of the section
+      const maxScrollY = dims.sectionHeight - window.innerHeight;
+
+      let progress = scrolled / maxScrollY;
+      progress = Math.max(0, Math.min(1, progress));
+
+      track.style.transform = `translate3d(-${dims.maxScrollX * progress}px, 0, 0)`;
+      ticking = false;
+    });
   }, { passive: true });
 }
 
