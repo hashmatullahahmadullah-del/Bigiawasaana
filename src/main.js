@@ -1667,11 +1667,42 @@ function initReveal() {
 
 
 // ─────────────────────────────────────────────────────────────────
+// STICKY HORIZONTAL SCROLL
+// ─────────────────────────────────────────────────────────────────
+function initStickyScroll() {
+  const section = document.getElementById('menu');
+  const track = document.getElementById('horizontal-track');
+  if (!section || !track) return;
+
+  window.addEventListener('scroll', () => {
+    const rect = section.getBoundingClientRect();
+    const scrollY = -rect.top;
+    
+    // Total scrollable height of the section (minus viewport height to make it stick to the bottom properly)
+    const maxScrollY = section.offsetHeight - window.innerHeight;
+    
+    // Calculate progress between 0 and 1
+    let progress = scrollY / maxScrollY;
+    progress = Math.max(0, Math.min(1, progress));
+    
+    // Calculate max horizontal translate
+    // We subtract window.innerWidth to ensure the last item is on screen
+    // Add 40px for margin/padding breathing room
+    let maxScrollX = track.scrollWidth - window.innerWidth + 40;
+    if (maxScrollX < 0) maxScrollX = 0;
+    
+    const translateX = maxScrollX * progress;
+    track.style.transform = `translate3d(-${translateX}px, 0, 0)`;
+  }, { passive: true });
+}
+
+// ─────────────────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadMenuFromFirestore();
   updateCartUI();
+  initStickyScroll();
   if (typeof checkBusinessHours === 'function') {
     checkBusinessHours();
     setInterval(checkBusinessHours, 60000);
