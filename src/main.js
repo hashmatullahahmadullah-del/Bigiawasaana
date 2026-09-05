@@ -396,6 +396,9 @@ async function loadMenuFromFirestore() {
       // Build category pills dynamically from Firestore data
       buildCategoryPills();
       
+      // Render dynamic SEO item links on menu page
+      renderSEOItemLinks();
+      
       // Render featured menu on home page if element exists
       renderFeaturedMenu();
       
@@ -455,7 +458,25 @@ function buildCategoryPills() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// MENU RENDERING — with "Add to Cart" buttons always visible
+// DYNAMIC SEO ITEM LINKS
+// ─────────────────────────────────────────────────────────────────
+function renderSEOItemLinks() {
+  const container = document.getElementById('seo-item-links');
+  if (!container) return;
+  
+  const linksHtml = menuItems
+    .filter(i => !i.hidden)
+    .map(i => {
+      const slug = i.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      return `<a href="/item/${slug}" style="color:var(--gray);font-size:14px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--gray)'">Order Halal ${i.name}</a>`;
+    })
+    .join('<span style="color:var(--border);">|</span>');
+    
+  container.innerHTML = linksHtml;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// MENU RENDERING & MODALS (with "Add to Cart" buttons always visible)
 // ─────────────────────────────────────────────────────────────────
 function renderMenu(category) {
   const grid = document.getElementById('menu-grid');
