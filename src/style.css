@@ -2474,12 +2474,15 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   padding: 0 0 24px;
+  z-index: 2;
 }
 .horizontal-track-wrapper {
   width: 100%;
   overflow: hidden;
+  position: relative;
+  z-index: 2;
 }
 .horizontal-track {
   display: flex;
