@@ -105,7 +105,7 @@ exports.parseReceipt = functions
               const v2 = (data.vendor || "").toLowerCase().replace(/[^a-z0-9]/g, "");
               const isVendorMatch = v1 && v2 && (v1.includes(v2) || v2.includes(v1) || v1 === v2);
               
-              if (timeSinceCreated < 5 * 60 * 1000) {
+              if (timeSinceCreated < 5 * 60 * 1000 && isVendorMatch) {
                  isDuplicate = true;
                  dupVendor = data.vendor;
                  break;

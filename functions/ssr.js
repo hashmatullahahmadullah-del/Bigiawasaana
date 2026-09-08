@@ -639,7 +639,7 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
     allAreaSlugs.forEach(slug => {
       xml += `
   <url>
-    <loc>${baseUrl}/areas/\${slug}</loc>
+    <loc>${baseUrl}/areas/${slug}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -654,7 +654,7 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
         const itemSlug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         xml += `
   <url>
-    <loc>${baseUrl}/item/\${itemSlug}</loc>
+    <loc>${baseUrl}/item/${itemSlug}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -671,7 +671,7 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
       if (data.slug) {
         xml += `
   <url>
-    <loc>${baseUrl}/blog/\${data.slug}</loc>
+    <loc>${baseUrl}/blog/${data.slug}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

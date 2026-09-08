@@ -102,7 +102,7 @@ function getRandom(arr, cityId) {
 }
 
 const templatePath = path.join(process.cwd(), 'functions', 'area-template.html');
-const outDir = path.join(process.cwd(), 'public', 'areas');
+const outDir = path.join(process.cwd(), 'dist', 'areas');
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 let template = fs.readFileSync(templatePath, 'utf8');
 

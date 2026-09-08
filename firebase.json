@@ -59,6 +59,10 @@
     ],
     "rewrites": [
       {
+        "source": "/areas/**",
+        "function": "renderAreaPage"
+      },
+      {
         "source": "/m-img/**",
         "function": "serveMenuImage"
       },
