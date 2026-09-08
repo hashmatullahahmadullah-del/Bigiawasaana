@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&display=swap');
 
 :root {
-  /* Elegant & Warm Fine-Dining Palette */
-  --bg: #0f0d0a;
-  --surface: #1a1714;
-  --surface-light: #252119;
-  --border: #3a332a;
-  --white: #faf6f0;
-  --gray: #b8a99a;
-  --gray-light: #5c5248;
-  --accent: #c8963e; /* Saffron Gold */
-  --accent-light: #d4a64e;
-  --accent-hover: #b8862e;
-  --accent-border: rgba(200, 150, 62, 0.3);
+  /* Premium Dark Theme Palette */
+  --bg: #060606;
+  --surface: #121212;
+  --surface-light: #1e1e1e;
+  --border: #2a2a2a;
+  --white: #ffffff;
+  --gray: #b5b5b5;
+  --gray-light: #444444;
+  --accent: #ff4500; /* vibrant flame orange for Afghan grill */
+  --accent-light: #ff6b33;
+  --accent-hover: #ff571a;
+  --accent-border: rgba(255, 69, 0, 0.3);
   
   --space-s: 16px;
   --space-m: 32px;
@@ -98,18 +98,18 @@ body {
 /* Buttons */
 .btn-primary {
   background: var(--accent);
-  color: #0f0d0a;
+  color: var(--white);
   border: none;
-  padding: 16px 36px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 3px;
+  padding: 16px 32px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  border-radius: 0;
+  border-radius: 4px;
   cursor: pointer;
   transition: transform 0.3s var(--ease), background 0.3s, box-shadow 0.3s;
-  box-shadow: 0 4px 20px rgba(200, 150, 62, 0.25);
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
   position: relative;
   overflow: hidden;
   display: inline-block;
@@ -139,27 +139,27 @@ body {
 .btn-primary:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(200, 150, 62, 0.35);
+  box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
 }
 
 .btn-outline {
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
-  padding: 16px 36px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 3px;
+  padding: 16px 32px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  border-radius: 0;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s var(--ease);
   display: inline-block;
 }
 
 .btn-outline:hover {
-  background: rgba(200, 150, 62, 0.1);
+  background: rgba(255, 69, 0, 0.1);
 }
 
 /* Menu Grid */
@@ -2597,141 +2597,4 @@ body {
 @keyframes pulse-closed {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.85; }
-}
-
-/* ─── ELEGANT HERO (REDESIGN) ─── */
-.modern-hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background: url('/halal-tikka-kabob-los-angeles.webp') center/cover no-repeat;
-  position: relative;
-  padding-top: 72px;
-}
-
-.modern-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(15, 13, 10, 0.80) 0%,
-    rgba(15, 13, 10, 0.60) 40%,
-    rgba(15, 13, 10, 0.85) 100%
-  );
-  z-index: 1;
-}
-
-.modern-hero-split {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 60px 24px 80px;
-  max-width: 900px;
-}
-
-.modern-hero-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.modern-hero-badge {
-  font-family: 'Outfit', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 28px;
-  display: inline-block;
-  padding: 8px 20px;
-  border: 1px solid var(--accent-border);
-  border-radius: 0;
-  width: fit-content;
-}
-
-.modern-hero-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 600;
-  font-size: clamp(48px, 9vw, 96px);
-  line-height: 1.0;
-  text-transform: none;
-  color: var(--white);
-  margin-bottom: 24px;
-  letter-spacing: -0.02em;
-}
-
-.modern-hero-accent {
-  color: var(--accent);
-  font-style: italic;
-  -webkit-text-stroke: 0;
-}
-
-.modern-hero-divider {
-  width: 60px;
-  height: 1px;
-  background: var(--accent);
-  margin: 0 auto 28px;
-}
-
-.modern-hero-subtitle {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 300;
-  font-size: clamp(15px, 2vw, 18px);
-  color: var(--gray);
-  max-width: 520px;
-  line-height: 1.7;
-  margin-bottom: 48px;
-  letter-spacing: 0.3px;
-}
-
-.modern-hero-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
-}
-
-@media (min-width: 768px) {
-  .modern-hero-actions {
-    flex-direction: row;
-    justify-content: center;
-  }
-}
-
-/* Marquee — warm & refined */
-.modern-hero-marquee {
-  background: var(--surface);
-  padding: 14px 0;
-  overflow: hidden;
-  white-space: nowrap;
-  position: relative;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-
-.marquee-content {
-  display: inline-block;
-  white-space: nowrap;
-  animation: marquee 25s linear infinite;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  letter-spacing: 3px;
-  color: var(--accent);
-  text-transform: uppercase;
-}
-
-.marquee-content span {
-  margin: 0 24px;
-}
-
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
 }
