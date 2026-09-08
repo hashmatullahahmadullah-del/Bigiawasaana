@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Modern High-Contrast Streetwear Palette */
-  --bg: #09090b;
-  --surface: #18181b;
-  --surface-light: #27272a;
-  --border: #3f3f46;
-  --white: #ffffff;
-  --gray: #a1a1aa;
-  --gray-light: #52525b;
-  --accent: #E53935; /* Bold Saffron / Pomegranate Red */
-  --accent-light: #F44336;
-  --accent-hover: #D32F2F;
-  --accent-border: rgba(229, 57, 53, 0.3);
+  /* Elegant & Warm Fine-Dining Palette */
+  --bg: #0f0d0a;
+  --surface: #1a1714;
+  --surface-light: #252119;
+  --border: #3a332a;
+  --white: #faf6f0;
+  --gray: #b8a99a;
+  --gray-light: #5c5248;
+  --accent: #c8963e; /* Saffron Gold */
+  --accent-light: #d4a64e;
+  --accent-hover: #b8862e;
+  --accent-border: rgba(200, 150, 62, 0.3);
   
   --space-s: 16px;
   --space-m: 32px;
@@ -75,7 +75,7 @@
 body {
   background-color: var(--bg);
   color: var(--white);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -98,18 +98,18 @@ body {
 /* Buttons */
 .btn-primary {
   background: var(--accent);
-  color: var(--white);
+  color: #0f0d0a;
   border: none;
-  padding: 16px 32px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  padding: 16px 36px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   transition: transform 0.3s var(--ease), background 0.3s, box-shadow 0.3s;
-  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(200, 150, 62, 0.25);
   position: relative;
   overflow: hidden;
   display: inline-block;
@@ -139,27 +139,27 @@ body {
 .btn-primary:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
+  box-shadow: 0 8px 30px rgba(200, 150, 62, 0.35);
 }
 
 .btn-outline {
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
-  padding: 16px 32px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  padding: 16px 36px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   transition: all 0.3s var(--ease);
   display: inline-block;
 }
 
 .btn-outline:hover {
-  background: rgba(255, 69, 0, 0.1);
+  background: rgba(200, 150, 62, 0.1);
 }
 
 /* Menu Grid */
@@ -2599,162 +2599,136 @@ body {
   50% { opacity: 0.85; }
 }
 
-/* ─── MODERN HERO (REDESIGN) ─── */
+/* ─── ELEGANT HERO (REDESIGN) ─── */
 .modern-hero {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  background-color: var(--bg);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: url('/halal-tikka-kabob-los-angeles.webp') center/cover no-repeat;
   position: relative;
-  overflow: hidden;
-  padding-top: 72px; /* For fixed nav */
+  padding-top: 72px;
+}
+
+.modern-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 13, 10, 0.80) 0%,
+    rgba(15, 13, 10, 0.60) 40%,
+    rgba(15, 13, 10, 0.85) 100%
+  );
+  z-index: 1;
 }
 
 .modern-hero-split {
-  flex: 1;
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
-}
-
-@media (min-width: 1024px) {
-  .modern-hero-split {
-    flex-direction: row;
-    align-items: center;
-  }
+  align-items: center;
+  padding: 60px 24px 80px;
+  max-width: 900px;
 }
 
 .modern-hero-text {
-  flex: 1;
-  padding: clamp(40px, 8vw, 100px) clamp(24px, 5vw, 64px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  z-index: 2;
+  align-items: center;
 }
 
 .modern-hero-badge {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 2px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   display: inline-block;
-  padding: 6px 12px;
+  padding: 8px 20px;
   border: 1px solid var(--accent-border);
-  border-radius: 100px;
+  border-radius: 0;
   width: fit-content;
 }
 
 .modern-hero-title {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: clamp(52px, 9vw, 110px);
-  line-height: 0.9;
-  text-transform: uppercase;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: clamp(48px, 9vw, 96px);
+  line-height: 1.0;
+  text-transform: none;
   color: var(--white);
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
 }
 
 .modern-hero-accent {
-  color: transparent;
-  -webkit-text-stroke: 2px var(--accent);
+  color: var(--accent);
+  font-style: italic;
+  -webkit-text-stroke: 0;
+}
+
+.modern-hero-divider {
+  width: 60px;
+  height: 1px;
+  background: var(--accent);
+  margin: 0 auto 28px;
 }
 
 .modern-hero-subtitle {
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  font-size: clamp(16px, 2vw, 20px);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
+  font-size: clamp(15px, 2vw, 18px);
   color: var(--gray);
-  max-width: 500px;
-  line-height: 1.6;
+  max-width: 520px;
+  line-height: 1.7;
   margin-bottom: 48px;
+  letter-spacing: 0.3px;
 }
 
 .modern-hero-actions {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  align-items: center;
+  gap: 28px;
 }
 
 @media (min-width: 768px) {
   .modern-hero-actions {
     flex-direction: row;
-    align-items: center;
+    justify-content: center;
   }
 }
 
-.modern-hero-image {
-  flex: 1;
-  position: relative;
-  min-height: 50vh;
-}
-
-@media (min-width: 1024px) {
-  .modern-hero-image {
-    min-height: calc(100vh - 72px);
-  }
-}
-
-.modern-hero-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  position: absolute;
-  inset: 0;
-  filter: contrast(1.1) brightness(0.9);
-}
-
-.image-overlay-badge {
-  position: absolute;
-  bottom: 40px;
-  right: 40px;
-  background: var(--accent);
-  color: var(--white);
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  font-size: 24px;
-  padding: 24px;
-  border-radius: 50%;
-  width: 140px;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  text-transform: uppercase;
-  line-height: 1.1;
-  box-shadow: 0 20px 40px rgba(229, 57, 53, 0.4);
-  transform: rotate(-15deg);
-}
-
-/* Marquee */
+/* Marquee — warm & refined */
 .modern-hero-marquee {
-  background: var(--accent);
-  padding: 16px 0;
+  background: var(--surface);
+  padding: 14px 0;
   overflow: hidden;
   white-space: nowrap;
   position: relative;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .marquee-content {
   display: inline-block;
   white-space: nowrap;
-  animation: marquee 20s linear infinite;
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  letter-spacing: 2px;
-  color: var(--white);
+  animation: marquee 25s linear infinite;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: var(--accent);
   text-transform: uppercase;
 }
 
 .marquee-content span {
-  margin: 0 32px;
+  margin: 0 24px;
 }
 
 @keyframes marquee {
