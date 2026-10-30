@@ -1,4 +1,54 @@
 {
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/admin/orders.html",
+      "destination": "/admin?view=live-orders#live-orders-view",
+      "permanent": false
+    },
+    {
+      "source": "/admin/orders",
+      "destination": "/admin?view=live-orders#live-orders-view",
+      "permanent": false
+    },
+    {
+      "source": "/admin/order-manager",
+      "destination": "/admin?view=live-orders#live-orders-view",
+      "permanent": false
+    },
+    {
+      "source": "/blog/halal-smash-burger-reseda",
+      "destination": "/blog/halal-smash-burger-reseda-tarzana",
+      "permanent": true
+    },
+    {
+      "source": "/blog/100-percent-zabiha-halal-meat-san-fernando-valley",
+      "destination": "/blog/zabiha-halal-food-reseda-san-fernando-valley",
+      "permanent": true
+    },
+    {
+      "source": "/blog/afghan-party-trays-family-catering-los-angeles",
+      "destination": "/blog/best-halal-catering-los-angeles-weddings-events",
+      "permanent": true
+    },
+    {
+      "source": "/blog/what-to-order-afghan-restaurant-guide-los-angeles",
+      "destination": "/blog/complete-guide-to-afghan-food-los-angeles",
+      "permanent": true
+    },
+    {
+      "source": "/blog/7-afghan-dishes-to-try",
+      "destination": "/blog/complete-guide-to-afghan-food-los-angeles",
+      "permanent": true
+    },
+    {
+      "source": "/blog/ultimate-guide-authentic-afghan-street-food-los-angeles",
+      "destination": "/blog/complete-guide-to-afghan-food-los-angeles",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/areas/:area",
@@ -23,6 +73,14 @@
     {
       "source": "/tv2",
       "destination": "/tv2.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin.html"
     }
   ]
 }
