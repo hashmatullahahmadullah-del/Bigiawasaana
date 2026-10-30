@@ -31,7 +31,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "vFz6q2NqIu3mYxNlFkR5",
+    id: "HasuTY0MWin3nn5IkZcb",
     name: "Bigi's Chicken Tikka Kabob Plate",
     slug: "bigi-s-chicken-tikka-kabob-plate",
     categoryName: "Charcoal Kabobs",
@@ -57,7 +57,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "rO9xHwM7gX2jYqZ5pT8v",
+    id: "yfIiD4H87iuPMpR9zdoN",
     name: "Bigi's Tikka Kabab Plate",
     slug: "bigi-s-tikka-kabab-plate",
     categoryName: "Charcoal Kabobs",
@@ -83,7 +83,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "kL3wP9mQ8xZ1yR4vT7nB",
+    id: "XvAjowz3KjiWQopaHAvb",
     name: "Bigi's Chapli Kabob",
     slug: "bigi-s-chapli-kabob",
     categoryName: "Charcoal Kabobs",
@@ -109,7 +109,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "mJ8xK2nP5qR7yT9vW1zC",
+    id: "PgKqdCkeN8gwklvL4rlR",
     name: "Bigi's Cheese Kabob Stick",
     slug: "bigi-s-cheese-kabob-stick",
     categoryName: "Charcoal Kabobs",
@@ -135,7 +135,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "wP4xL8mK1yT7nQ9zR2vB",
+    id: "cv7CVaf8ZPl3RX31F8Vb",
     name: "Bigi's Qabuli Palau Lamb Shank",
     slug: "bigi-s-qabuli-palau-lamb-shank",
     categoryName: "Traditional Afghan Plates",
@@ -161,7 +161,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "bT7nM2xK9wQ4yR1zP8vL",
+    id: "sB2T62F4PX8EreJq9Q4a",
     name: "Bigi's Beef Gyro Rice Bowl",
     slug: "bigi-s-beef-gyro-rice-bowl",
     categoryName: "Traditional Afghan Plates",
@@ -187,7 +187,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "qR1zP8vLbT7nM2xK9wQ4",
+    id: "2lCvDYF1DilvP1caQjoL",
     name: "Bigi's Chicken Gyro Rice Bowl",
     slug: "bigi-s-chicken-gyro-rice-bowl",
     categoryName: "Traditional Afghan Plates",
@@ -213,7 +213,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "yT9vW1zCmJ8xK2nP5qR7",
+    id: "63S1WsuVjtkMfaLnYzIq",
     name: "Bigi's Smash Burger",
     slug: "bigi-s-smash-burger",
     categoryName: "Burgers & Sandwiches",
@@ -239,7 +239,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "nQ9zR2vBwP4xL8mK1yT7",
+    id: "NZJHy1ZIBfgYH47oC2Wz",
     name: "Bigi's Silk Road Wrap AKA Afghan Burger",
     slug: "bigi-s-silk-road-wrap-aka-afghan-burger",
     categoryName: "Burgers & Sandwiches",
@@ -265,7 +265,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "zR2vBwP4xL8mK1yT7nQ9",
+    id: "JbIeZPCUejQkuz5QAYnz",
     name: "Bigi's Beef Shawarma Wrap",
     slug: "bigi-s-beef-shawarma-wrap",
     categoryName: "Wraps & Rolls",
@@ -291,7 +291,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "xL8mK1yT7nQ9zR2vBwP4",
+    id: "gaN3Y2lOV6eHPYhC3Anb",
     name: "Bigi's Chicken Shawarma Wrap",
     slug: "bigi-s-chicken-shawarma-wrap",
     categoryName: "Wraps & Rolls",
@@ -317,7 +317,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "mK1yT7nQ9zR2vBwP4xL8",
+    id: "BNoJY3IGYgUxeLkdrMna",
     name: "Bigi's Bolani",
     slug: "bigi-s-bolani",
     categoryName: "Street Bites & Sides",
@@ -343,7 +343,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "yT7nQ9zR2vBwP4xL8mK1",
+    id: "FEMCaQpZlF1Tm0Q63TBz",
     name: "Bigi's Chicken Samosa",
     slug: "bigi-s-chicken-samosa",
     categoryName: "Street Bites & Sides",
@@ -369,7 +369,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "nQ9zR2vBwP4xL8mK1yT8",
+    id: "VbCgaDPsaZODs7u68uOK",
     name: "Bigi's Veg Samosa",
     slug: "bigi-s-veg-samosa",
     categoryName: "Street Bites & Sides",
@@ -395,7 +395,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "vBwP4xL8mK1yT7nQ9zR2",
+    id: "DOPmbJJnWGQdJXE38jTO",
     name: "Bigi's Chicken Soup",
     slug: "bigi-s-chicken-soup",
     categoryName: "Street Bites & Sides",
@@ -421,7 +421,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "wP4xL8mK1yT7nQ9zR2vA",
+    id: "O2EisQzW3PeTikdmr96N",
     name: "Bigi's Firni",
     slug: "bigi-s-firni",
     categoryName: "Desserts & Beverages",
@@ -447,7 +447,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "xL8mK1yT7nQ9zR2vBwP5",
+    id: "kXWoq1hkNx4azjZcuuf0",
     name: "Bigi's Doogh",
     slug: "bigi-s-doogh",
     categoryName: "Desserts & Beverages",
@@ -473,7 +473,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "mK1yT7nQ9zR2vBwP4xL9",
+    id: "dK5c0LLrWSIspnaykCGo",
     name: "Milk Tea - Chai",
     slug: "milk-tea-chai",
     categoryName: "Desserts & Beverages",
@@ -499,7 +499,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "yT7nQ9zR2vBwP4xL8mK2",
+    id: "umtvEZ6d98Rb4K0conY1",
     name: "Soft Drinks",
     slug: "soft-drinks",
     categoryName: "Desserts & Beverages",
@@ -521,7 +521,7 @@ const ITEMS = [
     ]
   },
   {
-    id: "nQ9zR2vBwP4xL8mK1yT9",
+    id: "9LXen2r7xbZMFFk9MVxG",
     name: "Bottled Water",
     slug: "bottled-water",
     categoryName: "Desserts & Beverages",

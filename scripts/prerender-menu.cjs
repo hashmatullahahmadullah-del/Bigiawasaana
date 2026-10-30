@@ -56,46 +56,22 @@ function generateMenuSchema() {
 }
 
 function generateMenuHtml() {
-  const categoriesMap = {};
-  ITEMS.forEach(item => {
-    if (!categoriesMap[item.categoryName]) {
-      categoriesMap[item.categoryName] = [];
-    }
-    categoriesMap[item.categoryName].push(item);
-  });
-
-  let html = '';
-  for (const [catName, items] of Object.entries(categoriesMap)) {
-    html += `
-    <div class="menu-category-section" style="margin-bottom: 48px;">
-      <h2 class="font-lalezar" style="font-size: 32px; color: var(--accent); margin-bottom: 24px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px;">${catName}</h2>
-      <div class="menu-category-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">`;
-
-    items.forEach(item => {
-      html += `
-        <div class="menu-card" data-item-id="${item.id}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
-          <a href="/item/${item.slug}" aria-label="View details for ${item.name}" style="display: block; width: 100%; aspect-ratio: 4/3; overflow: hidden; background: #1a1a1a;">
-            <img src="${item.img}" alt="${item.name}" class="menu-card-img" loading="lazy" width="400" height="300" style="width: 100%; height: 100%; object-fit: cover;">
+  return ITEMS.map(item => `
+        <div class="menu-card" data-item-id="${item.id}">
+          <a href="/item/${item.slug}" onclick="if(!event.ctrlKey&&!event.metaKey){event.preventDefault();openItemModal('${item.id}');}" aria-label="View details for ${item.name}" style="cursor: pointer; display: block; text-decoration: none;">
+            <img src="${item.img}" alt="${item.name}" class="menu-card-img" loading="lazy" width="400" height="300">
           </a>
-          <div class="menu-card-content" style="padding: 20px; display: flex; flex-direction: column; flex: 1;">
-            <a href="/item/${item.slug}" style="text-decoration: none; color: inherit;">
-              <h3 class="menu-card-title" style="font-family: 'Barlow Condensed'; font-size: 22px; text-transform: uppercase; margin-bottom: 8px; color: var(--white);">${item.name}</h3>
+          <div class="menu-card-content">
+            <a href="/item/${item.slug}" onclick="if(!event.ctrlKey&&!event.metaKey){event.preventDefault();openItemModal('${item.id}');}" style="text-decoration: none; color: inherit;">
+              <h3 class="menu-card-title" style="cursor: pointer;">${item.name}</h3>
             </a>
-            <p class="menu-card-desc" style="color: var(--gray); font-size: 14px; line-height: 1.5; margin-bottom: 16px; flex: 1;">${item.shortDesc}</p>
-            <div class="menu-card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
-              <span class="menu-card-price" style="font-size: 20px; font-weight: 700; color: var(--accent); font-family: 'Barlow Condensed';">$${item.price.toFixed(2)}</span>
-              <button type="button" class="add-to-cart-btn btn-add-cart" onclick="openItemModal('${item.id}')" aria-label="Order ${item.name}">ORDER</button>
+            <p class="menu-card-desc">${item.shortDesc}</p>
+            <div class="menu-card-footer">
+              <span class="menu-card-price">$${item.price.toFixed(2)}</span>
+              <button class="add-to-cart-btn btn-add-cart" onclick="openItemModal('${item.id}')">ADD</button>
             </div>
           </div>
-        </div>`;
-    });
-
-    html += `
-      </div>
-    </div>`;
-  }
-
-  return html;
+        </div>`).join('\n');
 }
 
 function generateSeoItemLinks() {
@@ -121,15 +97,28 @@ function prerenderMenuFile(filePath) {
     content = content.replace(schemaRegex, newSchema);
   }
 
-  // Replace #menu-grid
-  const menuGridRegex = /<div id="menu-grid" class="menu-grid reveal">[\s\S]*?<\/div>/i;
-  const newMenuGrid = `<div id="menu-grid" class="menu-grid reveal">\n${generateMenuHtml()}\n      </div>`;
-  content = content.replace(menuGridRegex, newMenuGrid);
+  // Replace #menu-grid with strict boundary markers
+  const menuGridRegex = /<!-- MENU_GRID_START -->[\s\S]*?<!-- MENU_GRID_END -->/i;
+  const newMenuGrid = `<!-- MENU_GRID_START -->\n      <div id="menu-grid" class="menu-grid reveal">\n${generateMenuHtml()}\n      </div>\n      <!-- MENU_GRID_END -->`;
+  
+  if (menuGridRegex.test(content)) {
+    content = content.replace(menuGridRegex, newMenuGrid);
+  } else {
+    // Fallback if boundary markers are missing
+    const rawGridRegex = /<div id="menu-grid" class="menu-grid reveal">[\s\S]*?<\/div>/i;
+    content = content.replace(rawGridRegex, newMenuGrid);
+  }
 
-  // Replace #seo-item-links
-  const seoLinksRegex = /<div id="seo-item-links" style="[^"]*">[\s\S]*?<\/div>/i;
-  const newSeoLinks = `<div id="seo-item-links" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:20px;padding:20px;border-top:1px solid var(--border);">\n        ${generateSeoItemLinks()}\n      </div>`;
-  content = content.replace(seoLinksRegex, newSeoLinks);
+  // Replace #seo-item-links with strict boundary markers
+  const seoLinksRegex = /<!-- SEO_LINKS_START -->[\s\S]*?<!-- SEO_LINKS_END -->/i;
+  const newSeoLinks = `<!-- SEO_LINKS_START -->\n      <div id="seo-item-links" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:20px;padding:20px;border-top:1px solid var(--border);">\n        ${generateSeoItemLinks()}\n      </div>\n      <!-- SEO_LINKS_END -->`;
+  
+  if (seoLinksRegex.test(content)) {
+    content = content.replace(seoLinksRegex, newSeoLinks);
+  } else {
+    const fallbackSeoRegex = /<div id="seo-item-links"[^>]*>[\s\S]*?<\/div>/i;
+    content = content.replace(fallbackSeoRegex, newSeoLinks);
+  }
 
   fs.writeFileSync(filePath, content, 'utf8');
   console.log(`Prerendered crawlable menu into: ${filePath}`);
