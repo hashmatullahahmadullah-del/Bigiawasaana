@@ -1,4 +1,4 @@
-const { functions, admin, db, getSquareClient, getLocationId, corsHandler } = require('./shared');
+const { functions, admin, db, getSquareClient, getLocationId, corsHandler, isAdminContext } = require('./shared');
 const crypto = require('crypto');
 const { ApiError } = require('square');
 
@@ -1365,5 +1365,154 @@ exports.refundSquarePayment = functions.https.onCall(async (data, context) => {
     totalRefunded: newTotalRefundedCents / 100,
     netTotal: newNetCents / 100,
     status: newStatus
+  };
+});
+
+// ─────────────────────────────────────────────────────────────────
+// Order Tracking & Secure Reorder
+// ─────────────────────────────────────────────────────────────────
+
+// Rate limiting: Max 40 requests per minute per IP
+const trackingRateLimits = new Map();
+function checkTrackingRateLimit(ip) {
+  if (!ip) return true;
+  const now = Date.now();
+  const windowMs = 60000;
+  let record = trackingRateLimits.get(ip);
+  if (!record || now - record.start > windowMs) {
+    record = { start: now, count: 1 };
+    trackingRateLimits.set(ip, record);
+    return true;
+  }
+  record.count++;
+  if (record.count > 40) {
+    return false;
+  }
+  return true;
+}
+
+// Constant-time token comparison via SHA-256 digests
+function constantTimeCompare(a, b) {
+  if (!a || !b || typeof a !== 'string' || typeof b !== 'string') return false;
+  const hashA = crypto.createHash('sha256').update(String(a).trim()).digest();
+  const hashB = crypto.createHash('sha256').update(String(b).trim()).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
+
+/**
+ * getOrderTracking
+ * Callable Cloud Function — validates access token on server before returning tracking data.
+ * Zero customer PII (phone, email, card details, payment IDs) is ever returned.
+ */
+exports.getOrderTracking = functions.https.onCall(async (data, context) => {
+  const callerIp = context.rawRequest?.headers?.['x-forwarded-for']?.split(',')?.[0]?.trim() || context.rawRequest?.ip || 'unknown';
+  if (!checkTrackingRateLimit(callerIp)) {
+    throw new functions.https.HttpsError('resource-exhausted', 'Too many requests. Please slow down.');
+  }
+
+  const { orderId, token } = data || {};
+  if (!orderId || typeof orderId !== 'string' || orderId.trim().length === 0 || orderId.length > 100) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing or invalid orderId.');
+  }
+  if (!token || typeof token !== 'string' || token.trim().length === 0 || token.length > 100) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing or invalid access token.');
+  }
+
+  const cleanOrderId = orderId.trim();
+  const cleanToken = token.trim();
+
+  const docRef = db.collection('orders').doc(cleanOrderId);
+  const snap = await docRef.get();
+
+  if (!snap.exists) {
+    throw new functions.https.HttpsError('permission-denied', 'Invalid order tracking link or order not found.');
+  }
+
+  const order = snap.data();
+  const isAdmin = isAdminContext(context);
+  const isKds = context.auth?.token?.kds === true;
+  const isTokenValid = constantTimeCompare(cleanToken, order.accessToken);
+
+  if (!isTokenValid && !isAdmin && !isKds) {
+    throw new functions.https.HttpsError('permission-denied', 'Invalid order tracking link or order not found.');
+  }
+
+  const gross = typeof order.total === 'number' ? order.total : (parseFloat(order.total) || 0);
+  const refundAmt = Number(order.refundedAmount || (order.refundedAmountCents ? order.refundedAmountCents / 100 : 0) || 0);
+  const firstName = order.customerName ? order.customerName.trim().split(/\s+/)[0] : 'Guest';
+
+  return {
+    success: true,
+    orderId: cleanOrderId,
+    orderNumber: order.squareOrderId ? order.squareOrderId.slice(-4).toUpperCase() : cleanOrderId.slice(-4).toUpperCase(),
+    customerFirstName: firstName,
+    status: order.status || 'pending',
+    total: gross,
+    refundedAmount: refundAmt,
+    cardBrand: order.cardBrand || null,
+    cardLast4: order.cardLast4 || null,
+    cancellationReason: order.cancellationReason || '',
+    refundReason: order.refundReason || '',
+    estimatedReadyAt: order.estimatedReadyAt || null,
+    pickup: {
+      pickupType: order.pickup?.pickupType || 'asap',
+      pickupTime: order.pickup?.pickupTime || null,
+      pickupDate: order.pickup?.pickupDate || null
+    },
+    items: Array.isArray(order.items) ? order.items.map(item => ({
+      name: item.name || 'Item',
+      quantity: item.quantity || item.qty || 1
+    })) : [],
+    returns: Array.isArray(order.returns) ? order.returns.map(ret => ({
+      items: ret.items || [],
+      amount: ret.amount || 0
+    })) : []
+  };
+});
+
+/**
+ * getReorderItems
+ * Callable Cloud Function — validates access token or customer session before returning items.
+ * Discloses ONLY catalog item IDs, variants, and quantities (NO PII, NO pricing).
+ */
+exports.getReorderItems = functions.https.onCall(async (data, context) => {
+  const callerIp = context.rawRequest?.headers?.['x-forwarded-for']?.split(',')?.[0]?.trim() || context.rawRequest?.ip || 'unknown';
+  if (!checkTrackingRateLimit(callerIp)) {
+    throw new functions.https.HttpsError('resource-exhausted', 'Too many requests. Please slow down.');
+  }
+
+  const { orderId, token } = data || {};
+  if (!orderId || typeof orderId !== 'string' || orderId.trim().length === 0 || orderId.length > 100) {
+    throw new functions.https.HttpsError('invalid-argument', 'Missing or invalid orderId.');
+  }
+
+  const cleanOrderId = orderId.trim();
+  const docRef = db.collection('orders').doc(cleanOrderId);
+  const snap = await docRef.get();
+
+  if (!snap.exists) {
+    throw new functions.https.HttpsError('permission-denied', 'Order not found or invalid credentials.');
+  }
+
+  const order = snap.data();
+  const isAdmin = isAdminContext(context);
+  const isOwnerUid = context.auth?.uid && order.customerId === context.auth.uid;
+  const isTokenValid = token && constantTimeCompare(token.trim(), order.accessToken);
+
+  if (!isTokenValid && !isOwnerUid && !isAdmin) {
+    throw new functions.https.HttpsError('permission-denied', 'Order not found or invalid credentials.');
+  }
+
+  return {
+    success: true,
+    items: Array.isArray(order.items) ? order.items.map(item => ({
+      itemId: item.itemId || null,
+      name: item.name || '',
+      quantity: item.quantity || item.qty || 1,
+      selectedVariant: item.selectedVariant || '',
+      selectedAddOns: Array.isArray(item.selectedAddOns) ? item.selectedAddOns : [],
+      isMeal: Boolean(item.isMeal),
+      mealUpgradeId: item.mealUpgradeId || null
+    })) : []
   };
 });

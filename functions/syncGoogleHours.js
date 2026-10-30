@@ -1,6 +1,7 @@
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const admin = require('firebase-admin');
+const { isAdminContext } = require('./shared');
 
 // Google Places API day numbers (0=Sunday in JS) — the legacy API uses 0-6 already
 // but in a different order. The API returns periods with day 0=Sunday through 6=Saturday.
@@ -117,7 +118,7 @@ exports.syncGoogleHours = onCall(
   { region: 'us-central1' },
   async (request) => {
     // Security Check: Only admins can sync Google hours
-    if (!request.auth || !request.auth.token || request.auth.token.email !== 'bigiawasaana@gmail.com') {
+    if (!isAdminContext(request)) {
       throw new HttpsError('permission-denied', 'Only administrators can sync Google hours.');
     }
 

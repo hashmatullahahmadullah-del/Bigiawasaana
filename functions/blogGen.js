@@ -1,9 +1,10 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { GoogleGenAI } = require("@google/genai");
+const { isAdminContext } = require("./shared");
 
 exports.generateSeoBlog = onCall({ maxInstances: 5 }, async (request) => {
   // Security Check: Only admins can generate SEO blogs
-  if (!request.auth || !request.auth.token || request.auth.token.email !== 'bigiawasaana@gmail.com') {
+  if (!isAdminContext(request)) {
     throw new HttpsError('permission-denied', 'Only administrators can generate SEO blogs.');
   }
 

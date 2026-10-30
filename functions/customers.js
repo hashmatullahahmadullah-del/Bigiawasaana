@@ -297,6 +297,62 @@ exports.lookupCustomer = functions.https.onCall(async (data, context) => {
  * Queries orders (limit 20, desc) & retail_orders (limit 10, desc)
  * Returns { orders, retailOrders, customer }
  */
+
+/**
+ * Shared PIN verification with rate-limiting and 15-minute brute-force lockout.
+ */
+async function verifyCustomerPinWithLockout(customerRef, customerData, candidatePin, phoneDigits) {
+  const now = Date.now();
+  let lockedUntilMs = 0;
+  if (customerData.lockedUntil?.toMillis) {
+    lockedUntilMs = customerData.lockedUntil.toMillis();
+  } else if (customerData.lockedUntil?.seconds) {
+    lockedUntilMs = customerData.lockedUntil.seconds * 1000;
+  } else if (customerData.lockedUntil) {
+    lockedUntilMs = new Date(customerData.lockedUntil).getTime();
+  }
+
+  if (lockedUntilMs > now) {
+    const minsRemaining = Math.max(1, Math.ceil((lockedUntilMs - now) / 60000));
+    throw new functions.https.HttpsError(
+      'resource-exhausted',
+      `Account is temporarily locked due to multiple incorrect PIN attempts. Please try again in ${minsRemaining} minute${minsRemaining === 1 ? '' : 's'}.`
+    );
+  }
+
+  const storedPinOrHash = customerData.pinHash || customerData.pin;
+  if (!storedPinOrHash) {
+    throw new functions.https.HttpsError('permission-denied', 'No PIN is set for this account.');
+  }
+
+  const isValid = verifyPin(candidatePin, storedPinOrHash, phoneDigits);
+  if (!isValid) {
+    const failedAttempts = (customerData.failedAttempts || 0) + 1;
+    const lockUpdates = { failedAttempts };
+    if (failedAttempts >= 5) {
+      lockUpdates.lockedUntil = admin.firestore.Timestamp.fromMillis(now + 15 * 60 * 1000);
+      lockUpdates.failedAttempts = 0;
+    }
+    await customerRef.update(lockUpdates).catch(() => {});
+    throw new functions.https.HttpsError('permission-denied', 'Invalid phone or PIN.');
+  }
+
+  // Reset Failed Attempts on successful PIN verification
+  const cleanupUpdates = {};
+  if (customerData.failedAttempts || customerData.lockedUntil) {
+    cleanupUpdates.failedAttempts = 0;
+    cleanupUpdates.lockedUntil = null;
+  }
+  if (!customerData.pinHash && customerData.pin) {
+    cleanupUpdates.pinHash = hashPin(candidatePin, phoneDigits);
+    cleanupUpdates.pin = admin.firestore.FieldValue.delete();
+  }
+  if (Object.keys(cleanupUpdates).length > 0) {
+    await customerRef.update(cleanupUpdates).catch(() => {});
+  }
+  return true;
+}
+
 exports.getOrderHistory = functions.https.onCall(async (data, context) => {
   const { phone, pin } = data || {};
   let phoneDigits = '';
@@ -385,51 +441,7 @@ exports.getOrderHistory = functions.https.onCall(async (data, context) => {
     customer = custSnap.data();
     const now = Date.now();
 
-    // ─── Brute-Force Rate Limiting & Lockout Check ───
-    let lockedUntilMs = 0;
-    if (customer.lockedUntil?.toMillis) {
-      lockedUntilMs = customer.lockedUntil.toMillis();
-    } else if (customer.lockedUntil?.seconds) {
-      lockedUntilMs = customer.lockedUntil.seconds * 1000;
-    } else if (customer.lockedUntil) {
-      lockedUntilMs = new Date(customer.lockedUntil).getTime();
-    }
-
-    if (lockedUntilMs > now) {
-      const minsRemaining = Math.max(1, Math.ceil((lockedUntilMs - now) / 60000));
-      throw new functions.https.HttpsError(
-        'resource-exhausted',
-        `Account is temporarily locked due to multiple incorrect PIN attempts. Please try again in ${minsRemaining} minute${minsRemaining === 1 ? '' : 's'}.`
-      );
-    }
-
-    const storedPinOrHash = customer.pinHash || customer.pin;
-    const isValid = verifyPin(pinStr, storedPinOrHash, phoneDigits);
-
-    if (!isValid) {
-      const failedAttempts = (customer.failedAttempts || 0) + 1;
-      const lockUpdates = { failedAttempts };
-      if (failedAttempts >= 5) {
-        lockUpdates.lockedUntil = admin.firestore.Timestamp.fromMillis(now + 15 * 60 * 1000); // 15-minute lockout
-        lockUpdates.failedAttempts = 0;
-      }
-      await customerRef.update(lockUpdates).catch(() => {});
-      throw new functions.https.HttpsError('permission-denied', 'Invalid phone or PIN.');
-    }
-
-    // Reset Failed Attempts on successful PIN verification
-    const cleanupUpdates = {};
-    if (customer.failedAttempts || customer.lockedUntil) {
-      cleanupUpdates.failedAttempts = 0;
-      cleanupUpdates.lockedUntil = null;
-    }
-    if (!customer.pinHash && customer.pin) {
-      cleanupUpdates.pinHash = hashPin(pinStr, phoneDigits);
-      cleanupUpdates.pin = admin.firestore.FieldValue.delete();
-    }
-    if (Object.keys(cleanupUpdates).length > 0) {
-      await customerRef.update(cleanupUpdates).catch(() => {});
-    }
+    await verifyCustomerPinWithLockout(customerRef, customer, pinStr, phoneDigits);
   }
 
   // Raw phone variations for querying orders safely

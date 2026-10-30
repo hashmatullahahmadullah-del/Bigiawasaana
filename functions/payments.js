@@ -1,4 +1,4 @@
-const { functions, admin, db, TAX_RATE, getSquareClient, getLocationId } = require('./shared');
+const { functions, admin, db, TAX_RATE, getSquareClient, getLocationId, isAdminContext } = require('./shared');
 const crypto = require('crypto');
 const { ApiError } = require('square');
 const { evaluateDeals } = require('./deals-evaluator');
@@ -312,7 +312,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
   // ── Step 4: Resolve Payment Source & Customer Card Vault ──
   let actualPaymentSourceId = sourceId;
   let squareCustomerId = null;
-  const { normalizePhone, verifyPin, hashPin } = require('./customers');
+  const { normalizePhone, verifyPin, hashPin, verifyCustomerPinWithLockout } = require('./customers');
   const phoneDigits = normalizePhone(customerPhone);
 
   if (sourceId.startsWith('ccof:')) {
@@ -324,14 +324,8 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
     if (!custSnap.exists) {
       throw new functions.https.HttpsError('permission-denied', 'Customer account not found.');
     }
-    const custData = custSnap.data();
-    const storedPin = custData.pinHash || custData.pin;
-    if (!storedPin) {
-      throw new functions.https.HttpsError('permission-denied', 'A 4-digit PIN is required to authorize payment with a saved card.');
-    }
-    if (!pin || !verifyPin(pin, storedPin, phoneDigits)) {
-      throw new functions.https.HttpsError('permission-denied', 'Incorrect 4-digit PIN for saved card authorization.');
-    }
+        const custData = custSnap.data();
+    await verifyCustomerPinWithLockout(custSnap.ref, custData, pin, phoneDigits);
     const savedCards = Array.isArray(custData.savedCards) ? custData.savedCards : [];
     const matchedCard = savedCards.find(c => c.id === sourceId);
     if (!matchedCard) {
@@ -461,7 +455,7 @@ exports.processSquarePayment = functions.https.onCall(async (data, context) => {
   }
 
   // ── Step 5: Generate access token for order status page ──
-  const accessToken = crypto.randomBytes(8).toString('hex');
+  const accessToken = crypto.randomBytes(16).toString('hex');
 
   
   // ── Step 5b: Resolve Customer Email (from input or customer profile) ──

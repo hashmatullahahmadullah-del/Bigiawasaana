@@ -13,7 +13,7 @@ exports.parseReceipt = functions
   .runWith({ timeoutSeconds: 120, memory: "256MB", secrets: [geminiApiKey] })
   .https.onCall(async (data, context) => {
     // Security Check: Only admins can parse receipts
-    if (!context.auth || !context.auth.token || context.auth.token.email !== 'bigiawasaana@gmail.com') {
+    if (!isAdminContext(context)) {
       throw new functions.https.HttpsError("permission-denied", "Only administrators can parse receipts.");
     }
 

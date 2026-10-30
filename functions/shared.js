@@ -29,6 +29,17 @@ function getSquareClient() {
   });
 }
 
+
+const ADMIN_EMAILS = [
+  'bigiawasaana@gmail.com',
+  'admin@bigiawasaana.com'
+];
+
+function isAdminContext(context) {
+  const email = (context?.auth?.token?.email || '').toLowerCase().trim();
+  return ADMIN_EMAILS.includes(email);
+}
+
 function getLocationId() {
   let config = {};
   try { config = functions.config().square || {}; } catch(e) { /* ignore config error */ }
@@ -42,5 +53,7 @@ module.exports = {
   corsHandler,
   TAX_RATE,
   getSquareClient,
-  getLocationId
+  getLocationId,
+  ADMIN_EMAILS,
+  isAdminContext
 };
