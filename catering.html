@@ -150,7 +150,7 @@
           Create your perfect Afghan catering menu. Select your favorite dishes, customize quantities, and receive an estimated price for your event.
         </p>
         <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
-          <button type="button" class="btn-primary" onclick="window.openPackageBuilder()" style="padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px;">
+          <button type="button" class="btn-primary" id="btn-start-builder" onclick="window.openPackageBuilder()" style="padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             <span>Build Your Own Package</span>
           </button>
@@ -316,24 +316,14 @@
         <!-- STEP 1: EVENT DETAILS -->
         <div id="builder-pane-step-1">
           <div style="margin-bottom: 24px;">
-            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 1: Event Information &amp; Guest Count</h3>
-            <p style="font-size: 13px; color: #999; margin: 0;">Tell us about your event so we can recommend accurate portions and availability.</p>
+            <h3 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 1: Event Information &amp; Guest Count</h3>
+            <p style="font-size: 13px; color: #aaa; margin: 0;">Tell us about your celebration so we can tailor portions and check kitchen availability.</p>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 20px;">
-            <div>
-              <label class="builder-label">Event Type *</label>
-              <select id="builder-event-type" class="builder-select" onchange="builderState.eventDetails.type = this.value">
-                <option value="Family Gathering">Family Gathering</option>
-                <option value="Birthday Party">Birthday Party</option>
-                <option value="Corporate Event">Corporate Event / Office Lunch</option>
-                <option value="Wedding / Engagement">Wedding / Engagement</option>
-                <option value="Graduation Celebration">Graduation Celebration</option>
-                <option value="Film Set Catering">Film Set Catering</option>
-                <option value="Other Celebration">Other Celebration</option>
-              </select>
-            </div>
+          <label class="builder-label">Select Event Type *</label>
+          <div class="event-type-grid" id="builder-event-type-grid"></div>
 
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 24px;">
             <div>
               <label class="builder-label">Event Date *</label>
               <input type="date" id="builder-event-date" class="builder-input" required onchange="builderState.eventDetails.date = this.value">
@@ -346,27 +336,41 @@
           </div>
 
           <!-- Guest Count Selection -->
-          <div style="margin-bottom: 24px; background: #141414; border: 1px solid #242424; padding: 18px; border-radius: 8px;">
-            <label class="builder-label" style="color: #fff; font-size: 12px; margin-bottom: 10px;">Select Number of Guests *</label>
+          <div style="margin-bottom: 24px; background: #141414; border: 1px solid #282828; padding: 22px; border-radius: 12px;">
+            <label class="builder-label" style="color: #fff; font-size: 13px; margin-bottom: 12px;">Select Number of Guests *</label>
             <div class="guest-pills-row">
               <button type="button" class="guest-pill" data-guests="10" onclick="window.selectGuestPill(10)">10 Guests</button>
-              <button type="button" class="guest-pill" data-guests="20" onclick="window.selectGuestPill(20)">20 Guests</button>
+              <button type="button" class="guest-pill" data-guests="25" onclick="window.selectGuestPill(25)">25 Guests</button>
               <button type="button" class="guest-pill active" data-guests="50" onclick="window.selectGuestPill(50)">50 Guests</button>
+              <button type="button" class="guest-pill" data-guests="75" onclick="window.selectGuestPill(75)">75 Guests</button>
               <button type="button" class="guest-pill" data-guests="100" onclick="window.selectGuestPill(100)">100 Guests</button>
+              <button type="button" class="guest-pill" data-guests="150" onclick="window.selectGuestPill(150)">150 Guests</button>
+              <button type="button" class="guest-pill" data-guests="200" onclick="window.selectGuestPill(200)">200+ Guests</button>
             </div>
-            <div style="display: flex; align-items: center; gap: 12px; max-width: 320px;">
+            <div style="display: flex; align-items: center; gap: 12px; max-width: 340px;">
               <span style="font-size: 13px; color: #888;">Or custom guest count:</span>
-              <input type="number" id="builder-guests-custom" min="5" max="500" value="50" class="builder-input" style="width: 110px;" oninput="window.handleGuestCustomChange(this.value)">
+              <input type="number" id="builder-guests-custom" min="5" max="500" value="50" class="builder-input" style="width: 120px;" oninput="window.handleGuestCustomChange(this.value)">
             </div>
+            <div id="builder-guest-hint" style="font-size: 12px; color: #FF4500; font-weight: 600; margin-top: 10px;"></div>
           </div>
 
           <!-- Fulfillment: Pickup vs Delivery -->
           <div style="margin-bottom: 20px;">
             <label class="builder-label">Fulfillment Method *</label>
-            <select id="builder-fulfillment" class="builder-select" onchange="window.handleFulfillmentChange(this.value)">
-              <option value="delivery">Delivery to Venue / Home (+$50 flat Valley delivery)</option>
-              <option value="pickup">Pickup from Trailer (18411 Victory Blvd, Reseda — Free)</option>
-            </select>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
+              <div class="service-toggle-card active" id="fulfillment-card-delivery" onclick="window.selectFulfillment('delivery')" style="margin: 0; padding: 18px;">
+                <div>
+                  <div style="font-weight: 700; color: #fff; font-size: 15px;">White-Glove Delivery</div>
+                  <div style="font-size: 12px; color: #888;">Direct to venue across Los Angeles (+$50 flat)</div>
+                </div>
+              </div>
+              <div class="service-toggle-card" id="fulfillment-card-pickup" onclick="window.selectFulfillment('pickup')" style="margin: 0; padding: 18px;">
+                <div>
+                  <div style="font-weight: 700; color: #fff; font-size: 15px;">Trailer Pickup (Free)</div>
+                  <div style="font-size: 12px; color: #888;">18411 Victory Blvd, Reseda, CA 91335</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div id="builder-address-container" style="margin-bottom: 20px;">
@@ -383,44 +387,44 @@
         <!-- STEP 2: PACKAGE TYPE (SCRATCH VS TEMPLATE) -->
         <div id="builder-pane-step-2" style="display: none;">
           <div style="margin-bottom: 20px;">
-            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 2: Choose Your Starting Point</h3>
-            <p style="font-size: 13px; color: #999; margin: 0;">Start from an administrator-crafted Afghan banquet or build every tray completely from scratch.</p>
+            <h3 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 2: Choose Your Banquet Style</h3>
+            <p style="font-size: 13px; color: #aaa; margin: 0;">Start from a chef-curated Afghan feast or handpick every single party tray from scratch.</p>
           </div>
 
           <div class="start-path-grid">
-            <div class="start-path-card" id="start-path-template" onclick="window.selectPackageType('template')">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF4500" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0;">Start With a Curated Package</h4>
+            <div class="start-path-card active" id="start-path-template" onclick="window.selectPackageType('template')">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF4500" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <h4 style="font-size: 17px; font-weight: 700; color: #fff; margin: 0;">Start With a Curated Banquet (Recommended)</h4>
               </div>
-              <p style="font-size: 13px; color: #aaa; margin: 0; line-height: 1.4;">
-                Select from our most popular party packages curated for weddings, family gatherings, and corporate events. Fully customizable in Step 3!
+              <p style="font-size: 13px; color: #aaa; margin: 0; line-height: 1.5;">
+                Select from our most beloved banquet menus balanced for weddings, gatherings, and team luncheons. You can customize dishes, trays, and quantities in Step 3!
               </p>
             </div>
 
-            <div class="start-path-card active" id="start-path-scratch" onclick="window.selectPackageType('custom_scratch')">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF4500" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0;">Build Completely From Scratch</h4>
+            <div class="start-path-card" id="start-path-scratch" onclick="window.selectPackageType('custom_scratch')">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF4500" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                <h4 style="font-size: 17px; font-weight: 700; color: #fff; margin: 0;">Build Completely From Scratch</h4>
               </div>
-              <p style="font-size: 13px; color: #aaa; margin: 0; line-height: 1.4;">
-                Handpick every single party tray, kabob skewer platter, appetizer, and dessert independently with exact portion control.
+              <p style="font-size: 13px; color: #aaa; margin: 0; line-height: 1.5;">
+                Handpick every party tray, kabob skewer platter, dumpling tray, and dessert independently with full culinary freedom.
               </p>
             </div>
           </div>
 
           <!-- Template Cards Carousel/Grid -->
           <div id="builder-templates-wrapper">
-            <h4 style="font-size: 15px; font-weight: 700; color: #fff; margin: 20px 0 12px;">Curated Package Options:</h4>
+            <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 24px 0 14px;">Select a Curated Afghan Banquet:</h4>
             <div class="templates-grid" id="builder-templates-grid"></div>
           </div>
         </div>
 
         <!-- STEP 3: INTERACTIVE FOOD SELECTION -->
         <div id="builder-pane-step-3" style="display: none;">
-          <div style="margin-bottom: 16px;">
-            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 3: Select Authentic Afghan Party Trays</h3>
-            <p style="font-size: 13px; color: #999; margin: 0;">Add and customize tray quantities. 100% hand-slaughtered Zabiha Halal meats cooked fresh over natural charcoal.</p>
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 3: Select Authentic Afghan Party Trays</h3>
+            <p style="font-size: 13px; color: #aaa; margin: 0;">Add and customize tray quantities. 100% hand-slaughtered Zabiha Halal meats cooked fresh over natural charcoal.</p>
           </div>
 
           <!-- Portion Assistant Bar -->
@@ -436,8 +440,11 @@
             <button type="button" class="cat-filter-btn" data-cat="beverages_extras" onclick="window.filterFoodCategory('beverages_extras')">Beverages &amp; Chutneys</button>
           </div>
 
-          <!-- Dishes Grid -->
-          <div class="catalog-cards-grid" id="builder-catalog-grid"></div>
+          <!-- Split Layout: Catalog Grid + Sticky Rail -->
+          <div class="step3-split-layout">
+            <div class="catalog-cards-grid" id="builder-catalog-grid"></div>
+            <div class="banquet-summary-rail" id="builder-banquet-rail"></div>
+          </div>
         </div>
 
         <!-- STEP 4: OPTIONAL SERVICES -->
@@ -622,7 +629,7 @@
         <div class="text-center-mobile">
           <div class="footer-label">Visit Us</div>
           <p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">18411 Victory Blvd<br>Reseda, CA 91335</p>
-          <p style="font-size: 13px; color: var(--gray);"><span class="footer-hours-display">Every Day 12PM–10:30PM</span></p>
+          <p style="font-size: 13px; color: var(--gray);"><span class="footer-hours-display">Mon–Sat: 01:00 PM – 10:30 PM<br>Sun: Closed</span></p>
         </div>
         <!-- 4. Connect -->
         <div class="text-center-mobile">

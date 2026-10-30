@@ -1,5 +1,5 @@
 /**
- * BIGI AWASAANA — Custom Catering Package Builder
+ * BIGI AWASAANA — Luxury Custom Catering Package Builder
  * Interactive Multi-Step Client Engine
  */
 
@@ -22,10 +22,11 @@ export const builderState = {
   },
   packageType: 'custom_scratch', // 'custom_scratch' | 'template'
   selectedTemplateId: null,
-  cartItems: {}, // { [dishId]: { id, name, portionSize, unitPrice, imageUrl, quantity, servingYield } }
+  cartItems: {}, // { [dishId]: { id, nameEn, portionSize, unitPrice, imageUrl, quantity, servingYield } }
   selectedServices: {}, // { [serviceId]: true }
   activeCategory: 'all'
 };
+
 window.builderState = builderState;
 window.nextStep = () => goToStep(Math.min(5, (builderState.currentStep || 1) + 1));
 window.prevStep = () => goToStep(Math.max(1, (builderState.currentStep || 1) - 1));
@@ -58,12 +59,14 @@ export function openPackageBuilder(presetGuests = null) {
     builderState.eventDetails.date = futureDate.toISOString().split('T')[0];
   }
 
-  // If cart is completely empty, start with 1 Qabuli Pulao and 1 Chapli Kabob
+  // Start with balanced starter feast if cart is empty
   if (Object.keys(builderState.cartItems).length === 0) {
     const defaultRice = DEFAULT_CATERING_CATALOG.find(d => d.id === 'qabuli-pulao-tray');
     const defaultKabob = DEFAULT_CATERING_CATALOG.find(d => d.id === 'chapli-kabob-tray');
+    const defaultBolani = DEFAULT_CATERING_CATALOG.find(d => d.id === 'bolani-potato-tray');
     if (defaultRice) builderState.cartItems[defaultRice.id] = { ...defaultRice, quantity: 2 };
     if (defaultKabob) builderState.cartItems[defaultKabob.id] = { ...defaultKabob, quantity: 2 };
+    if (defaultBolani) builderState.cartItems[defaultBolani.id] = { ...defaultBolani, quantity: 2 };
   }
 
   modal.classList.add('open');
@@ -135,23 +138,41 @@ export function goToStep(stepNum) {
 window.goToStep = goToStep;
 
 /**
- * Step 1: Event Details
+ * Step 1: Event Details & Guest Count
  */
+const EVENT_TYPES = [
+  { id: 'Wedding / Engagement', label: 'Wedding / Engagement', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>' },
+  { id: 'Family Gathering', label: 'Family Celebration', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+  { id: 'Corporate Lunch', label: 'Corporate Event', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>' },
+  { id: 'Birthday Party', label: 'Birthday Party', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v2"/><path d="M12 8v2"/><path d="M17 8v2"/></svg>' },
+  { id: 'Graduation', label: 'Graduation', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>' },
+  { id: 'Other', label: 'Other Special Banquet', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' }
+];
+
 function renderStep1() {
-  const typeSelect = document.getElementById('builder-event-type');
+  const typeContainer = document.getElementById('builder-event-type-grid');
+  if (typeContainer) {
+    typeContainer.innerHTML = EVENT_TYPES.map(t => {
+      const isSel = builderState.eventDetails.type === t.id;
+      return `
+        <div class="event-type-card ${isSel ? 'active' : ''}" onclick="window.selectEventType('${t.id}')">
+          <div class="event-type-icon">${t.icon}</div>
+          <div style="font-weight: 700; font-size: 13px; color: ${isSel ? '#FF4500' : '#fff'};">${t.label}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
   const dateInput = document.getElementById('builder-event-date');
   const timeInput = document.getElementById('builder-event-time');
   const guestCustomInput = document.getElementById('builder-guests-custom');
-  const fulfillmentSelect = document.getElementById('builder-fulfillment');
   const addressContainer = document.getElementById('builder-address-container');
   const addressInput = document.getElementById('builder-delivery-address');
   const instructionsInput = document.getElementById('builder-special-instructions');
 
-  if (typeSelect) typeSelect.value = builderState.eventDetails.type;
   if (dateInput) dateInput.value = builderState.eventDetails.date;
   if (timeInput) timeInput.value = builderState.eventDetails.time;
   if (guestCustomInput) guestCustomInput.value = builderState.eventDetails.guests;
-  if (fulfillmentSelect) fulfillmentSelect.value = builderState.eventDetails.fulfillment;
   if (addressInput) addressInput.value = builderState.eventDetails.deliveryAddress;
   if (instructionsInput) instructionsInput.value = builderState.eventDetails.specialInstructions;
 
@@ -164,7 +185,21 @@ function renderStep1() {
     const val = parseInt(pill.getAttribute('data-guests'), 10);
     pill.classList.toggle('active', val === builderState.eventDetails.guests);
   });
+
+  // Update guest recommendation note
+  const hintEl = document.getElementById('builder-guest-hint');
+  if (hintEl) {
+    const g = builderState.eventDetails.guests || 25;
+    const trayCount = Math.max(3, Math.round(g / 8));
+    hintEl.textContent = `Recommended for ${g} guests: ~${trayCount} party trays for a generous Afghan family-style feast.`;
+  }
 }
+
+export function selectEventType(type) {
+  builderState.eventDetails.type = type;
+  renderStep1();
+}
+window.selectEventType = selectEventType;
 
 export function selectGuestPill(count) {
   builderState.eventDetails.guests = count;
@@ -183,15 +218,20 @@ export function handleGuestCustomChange(val) {
 }
 window.handleGuestCustomChange = handleGuestCustomChange;
 
-export function handleFulfillmentChange(val) {
+export function selectFulfillment(val) {
   builderState.eventDetails.fulfillment = val;
+  const pickCard = document.getElementById('fulfillment-card-pickup');
+  const delCard = document.getElementById('fulfillment-card-delivery');
+  if (pickCard) pickCard.classList.toggle('active', val === 'pickup');
+  if (delCard) delCard.classList.toggle('active', val === 'delivery');
+
   const addressContainer = document.getElementById('builder-address-container');
   if (addressContainer) {
     addressContainer.style.display = val === 'delivery' ? 'block' : 'none';
   }
   updatePriceBreakdown();
 }
-window.handleFulfillmentChange = handleFulfillmentChange;
+window.selectFulfillment = selectFulfillment;
 
 /**
  * Step 2: Choose Package Type (Scratch vs Preset Template)
@@ -210,17 +250,24 @@ function renderStep2() {
       const isSelected = builderState.selectedTemplateId === tpl.id;
       html += `
         <div class="template-card ${isSelected ? 'active' : ''}" onclick="window.selectPackageTemplate('${tpl.id}')">
-          <img src="${tpl.imageUrl}" alt="${escapeHtml(tpl.titleEn)}" class="template-card-img" loading="lazy">
-          <div style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-              <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0;">${escapeHtml(tpl.titleEn)}</h4>
-              <span style="font-size: 11px; background: rgba(255,69,0,0.15); color: #ff6a00; padding: 2px 8px; border-radius: 99px; font-weight: 700;">Serves ~${tpl.recommendedGuests}</span>
+          <div style="position: relative;">
+            <img src="${tpl.imageUrl}" alt="${escapeHtml(tpl.titleEn)}" class="template-card-img" loading="lazy">
+            <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; color: #FF4500; border: 1px solid rgba(255,69,0,0.3);">
+              ~${tpl.recommendedGuests} Guests
             </div>
-            <div style="font-size: 12px; color: #ff6a00; margin-bottom: 6px; direction: rtl; font-family: 'Vazirmatn', sans-serif;">${escapeHtml(tpl.titleFa || '')}</div>
-            <p style="font-size: 13px; color: #999; margin: 0 0 12px; flex: 1; line-height: 1.4;">${escapeHtml(tpl.descriptionEn)}</p>
-            <button type="button" class="btn-outline btn-sm" style="width: 100%; border-color: ${isSelected ? '#FF4500' : '#333'}; color: ${isSelected ? '#FF4500' : '#fff'}; font-weight: 700;">
-              ${isSelected ? 'Selected Package' : 'Select Template'}
-            </button>
+          </div>
+          <div style="padding: 18px; flex: 1; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+              <h3 style="font-size: 17px; font-weight: 700; color: #fff; margin: 0;">${escapeHtml(tpl.titleEn)}</h3>
+            </div>
+            <div style="font-size: 12px; color: #ff6a00; font-family: 'Vazirmatn', sans-serif; direction: rtl; margin-bottom: 8px;">${escapeHtml(tpl.titleFa || '')}</div>
+            <p style="font-size: 13px; color: #999; margin: 0 0 14px; line-height: 1.5; flex: 1;">${escapeHtml(tpl.descriptionEn)}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #222; padding-top: 12px;">
+              <span style="font-size: 12px; color: #aaa; font-weight: 600;">Includes ${tpl.defaultItems.length} party dishes</span>
+              <button type="button" class="btn-primary btn-sm" style="padding: 8px 16px; font-size: 12px; font-weight: 700;">
+                ${isSelected ? 'Selected' : 'Select Feast'}
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -237,6 +284,10 @@ export function selectPackageType(type) {
   renderStep2();
 }
 window.selectPackageType = selectPackageType;
+window.startFromScratch = () => {
+  selectPackageType('custom_scratch');
+  goToStep(3);
+};
 
 export function selectPackageTemplate(templateId) {
   builderState.packageType = 'template';
@@ -244,7 +295,6 @@ export function selectPackageTemplate(templateId) {
 
   const tpl = DEFAULT_PACKAGE_TEMPLATES.find(t => t.id === templateId);
   if (tpl) {
-    // Clear and populate with template dishes
     builderState.cartItems = {};
     tpl.defaultItems.forEach(item => {
       const catalogItem = DEFAULT_CATERING_CATALOG.find(c => c.id === item.catalogId);
@@ -263,7 +313,7 @@ export function selectPackageTemplate(templateId) {
 window.selectPackageTemplate = selectPackageTemplate;
 
 /**
- * Step 3: Interactive Food Selection & Portion Helper
+ * Step 3: Interactive Food Selection & Smart Portion Advisor
  */
 function renderStep3() {
   renderPortionAssistant();
@@ -283,36 +333,38 @@ function renderStep3() {
 
     html += `
       <div class="catalog-food-card ${inCart ? 'in-cart' : ''}" id="dish-card-${dish.id}">
-        <div class="food-card-top">
-          <img src="${dish.imageUrl}" alt="${escapeHtml(dish.nameEn)}" class="food-card-thumb" loading="lazy">
-          <div style="flex: 1; display: flex; flex-direction: column;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-              <div>
-                <h4 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0 0 2px;">${escapeHtml(dish.nameEn)}</h4>
-                <div style="font-size: 12px; color: #ff6a00; direction: rtl; font-family: 'Vazirmatn', sans-serif;">${escapeHtml(dish.nameFa || '')}</div>
-              </div>
-              <div style="text-align: right; flex-shrink: 0;">
-                <div style="font-size: 16px; font-weight: 700; color: #FF4500;">$${dish.unitPrice.toFixed(2)}</div>
-                <div style="font-size: 11px; color: #888; text-transform: uppercase;">/${dish.pricingUnit}</div>
-              </div>
+        <div class="food-card-img-wrap">
+          <img src="${dish.imageUrl}" alt="${escapeHtml(dish.nameEn)}" loading="lazy">
+          <div class="food-card-badge">${escapeHtml(dish.dietary?.[0] || '100% Zabiha')}</div>
+        </div>
+        <div class="food-card-body">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px;">
+            <div>
+              <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0 0 2px;">${escapeHtml(dish.nameEn)}</h4>
+              <div style="font-size: 12px; color: #ff6a00; direction: rtl; font-family: 'Vazirmatn', sans-serif;">${escapeHtml(dish.nameFa || '')}</div>
             </div>
-
-            <p style="font-size: 12px; color: #aaa; margin: 6px 0; line-height: 1.4; flex: 1;">${escapeHtml(dish.descriptionEn)}</p>
-
-            <div style="font-size: 12px; color: #4caf50; font-weight: 600; margin-bottom: 10px;">
-              ${escapeHtml(dish.portionSize)}
+            <div style="text-align: right; flex-shrink: 0;">
+              <div style="font-size: 18px; font-weight: 800; color: #FF4500;">$${dish.unitPrice.toFixed(2)}</div>
+              <div style="font-size: 11px; color: #888; text-transform: uppercase;">/${dish.pricingUnit}</div>
             </div>
+          </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #222; padding-top: 10px;">
-              <span style="font-size: 12px; color: ${inCart ? '#FF4500' : '#888'}; font-weight: 700;">
-                ${inCart ? `Tray Total: $${(dish.unitPrice * qty).toFixed(2)}` : 'Add to package'}
-              </span>
+          <p style="font-size: 12px; color: #aaa; margin: 8px 0; line-height: 1.45; flex: 1;">${escapeHtml(dish.descriptionEn)}</p>
 
-              <div class="food-card-stepper">
-                <button type="button" class="stepper-btn" onclick="window.updateDishQuantity('${dish.id}', -1)" aria-label="Decrease quantity">-</button>
-                <span class="stepper-qty" id="qty-${dish.id}">${qty}</span>
-                <button type="button" class="stepper-btn" onclick="window.updateDishQuantity('${dish.id}', 1)" aria-label="Increase quantity">+</button>
-              </div>
+          <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span>${escapeHtml(dish.portionSize)}</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #222; padding-top: 12px; margin-top: auto;">
+            <span style="font-size: 13px; color: ${inCart ? '#FF4500' : '#888'}; font-weight: 700;">
+              ${inCart ? `$${(dish.unitPrice * qty).toFixed(2)}` : 'Add Tray'}
+            </span>
+
+            <div class="food-card-stepper">
+              <button type="button" class="stepper-btn" onclick="window.updateDishQuantity('${dish.id}', -1)" aria-label="Decrease quantity">-</button>
+              <span class="stepper-qty" id="qty-${dish.id}">${qty}</span>
+              <button type="button" class="stepper-btn" onclick="window.updateDishQuantity('${dish.id}', 1)" aria-label="Increase quantity">+</button>
             </div>
           </div>
         </div>
@@ -321,6 +373,104 @@ function renderStep3() {
   });
 
   container.innerHTML = html;
+  renderBanquetRail();
+}
+
+function renderPortionAssistant() {
+  const assistantEl = document.getElementById('builder-portion-assistant');
+  if (!assistantEl) return;
+
+  const targetGuests = builderState.eventDetails.guests || 25;
+  let totalYield = 0;
+  Object.values(builderState.cartItems).forEach(it => {
+    totalYield += ((it.servingYield || 20) * it.quantity);
+  });
+
+  const percentage = Math.min(150, Math.round((totalYield / targetGuests) * 100));
+  let badgeColor = '#f59e0b';
+  let statusText = `Feeds ~${totalYield} Servings (Target: ${targetGuests} Guests)`;
+
+  if (totalYield >= targetGuests && totalYield <= targetGuests * 1.4) {
+    badgeColor = '#10b981';
+    statusText = `Balanced Afghan Feast (${totalYield} Servings for ${targetGuests} Guests)`;
+  } else if (totalYield > targetGuests * 1.4) {
+    badgeColor = '#3b82f6';
+    statusText = `Generous Banquet (${totalYield} Servings for ${targetGuests} Guests)`;
+  }
+
+  assistantEl.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(255,69,0,0.15); display: flex; align-items: center; justify-content: center; color: #FF4500;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: #fff;">Afghan Feast Portion Advisor</div>
+        <div style="font-size: 13px; color: ${badgeColor}; font-weight: 600;">${statusText}</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 140px; height: 8px; background: #222; border-radius: 99px; overflow: hidden;">
+        <div style="width: ${percentage}%; height: 100%; background: ${badgeColor}; border-radius: 99px; transition: width 0.3s ease;"></div>
+      </div>
+      <span style="font-size: 12px; font-weight: 700; color: #aaa;">${percentage}%</span>
+    </div>
+  `;
+}
+
+function renderBanquetRail() {
+  const railContainer = document.getElementById('builder-banquet-rail');
+  if (!railContainer) return;
+
+  const items = Object.values(builderState.cartItems).filter(i => i.quantity > 0);
+  const prices = calculatePackagePrices();
+  const guests = builderState.eventDetails.guests || 25;
+  const perGuest = (prices.estimatedTotal / guests).toFixed(2);
+
+  let itemsHtml = '';
+  if (items.length === 0) {
+    itemsHtml = '<div style="color: #666; font-size: 13px; text-align: center; padding: 20px 0;">No party trays selected yet.</div>';
+  } else {
+    itemsHtml = items.map(it => `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #202020; font-size: 13px;">
+        <div style="flex: 1; padding-right: 8px;">
+          <div style="font-weight: 700; color: #fff;">${it.quantity}x ${escapeHtml(it.nameEn)}</div>
+          <div style="font-size: 11px; color: #888;">$${it.unitPrice.toFixed(2)} each</div>
+        </div>
+        <div style="font-weight: 700; color: #FF4500;">$${(it.unitPrice * it.quantity).toFixed(2)}</div>
+      </div>
+    `).join('');
+  }
+
+  railContainer.innerHTML = `
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #FF4500; margin-bottom: 8px;">
+      LIVE BANQUET CART
+    </div>
+    <div style="font-size: 13px; color: #888; margin-bottom: 16px;">
+      ${guests} Guests • ${builderState.eventDetails.fulfillment.toUpperCase()}
+    </div>
+
+    <div style="max-height: 260px; overflow-y: auto; margin-bottom: 16px; padding-right: 4px;">
+      ${itemsHtml}
+    </div>
+
+    <div style="border-top: 1px solid #282828; padding-top: 14px; margin-bottom: 18px;">
+      <div style="display: flex; justify-content: space-between; font-size: 13px; color: #aaa; margin-bottom: 6px;">
+        <span>Food Subtotal:</span>
+        <strong style="color: #fff;">$${prices.foodSubtotal.toFixed(2)}</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 15px; color: #fff; font-weight: 800;">
+        <span>Estimated Total:</span>
+        <span style="color: #FF4500;">$${prices.estimatedTotal.toFixed(2)}</span>
+      </div>
+      <div style="font-size: 11px; color: #888; text-align: right; margin-top: 2px;">
+        ~$${perGuest} per guest
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" onclick="window.nextStep()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 8px;">
+      Continue to Amenities &rarr;
+    </button>
+  `;
 }
 
 export function filterFoodCategory(cat) {
@@ -343,62 +493,32 @@ export function updateDishQuantity(dishId, delta) {
     delete builderState.cartItems[dishId];
   } else {
     builderState.cartItems[dishId] = {
-      ...dish,
+      id: dish.id,
+      nameEn: dish.nameEn,
+      nameFa: dish.nameFa,
+      category: dish.category,
+      unitPrice: dish.unitPrice,
+      portionSize: dish.portionSize,
+      imageUrl: dish.imageUrl,
+      servingYield: dish.servingYield,
       quantity: newQty
     };
   }
 
   // Update card UI
   const qtyEl = document.getElementById(`qty-${dishId}`);
-  const cardEl = document.getElementById(`dish-card-${dishId}`);
   if (qtyEl) qtyEl.textContent = newQty;
-  if (cardEl) cardEl.classList.toggle('in-cart', newQty > 0);
+
+  const card = document.getElementById(`dish-card-${dishId}`);
+  if (card) {
+    card.classList.toggle('in-cart', newQty > 0);
+  }
 
   renderPortionAssistant();
+  renderBanquetRail();
   updatePriceBreakdown();
 }
 window.updateDishQuantity = updateDishQuantity;
-
-function renderPortionAssistant() {
-  const bar = document.getElementById('builder-portion-assistant');
-  if (!bar) return;
-
-  const guests = builderState.eventDetails.guests || 50;
-
-  // Recommendations:
-  const recRice = Math.ceil(guests / 25);
-  const recKabobs = Math.ceil(guests / 25);
-  const recSides = Math.ceil(guests / 25);
-
-  // Current calculated capacity
-  let totalYield = 0;
-  Object.values(builderState.cartItems).forEach(it => {
-    if (it.category === 'rice_traditional' || it.category === 'kabobs_mains') {
-      totalYield += (it.servingYield || 25) * it.quantity;
-    }
-  });
-
-  const approxCapacity = Math.round(totalYield / 1.8); // Adjusted for multi-course meals
-
-  bar.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF4500" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
-      <div>
-        <div style="font-size: 13px; font-weight: 700; color: #fff;">
-          Serving Recommendation for ${guests} Guests
-        </div>
-        <div style="font-size: 12px; color: #bbb;">
-          Suggested: <strong>${recRice}</strong> Rice Trays &bull; <strong>${recKabobs}</strong> Kabob Platters &bull; <strong>${recSides}</strong> Sides/Appetizers
-        </div>
-      </div>
-    </div>
-    <div style="text-align: right;">
-      <span style="font-size: 12px; color: ${approxCapacity >= guests ? '#4caf50' : '#ff9800'}; font-weight: 700;">
-        Current Package Serves: ~${approxCapacity} Guests
-      </span>
-    </div>
-  `;
-}
 
 /**
  * Step 4: Optional Catering Services
@@ -408,24 +528,29 @@ function renderStep4() {
   if (!container) return;
 
   let html = '';
-  OPTIONAL_CATERING_SERVICES.forEach(s => {
-    const isChecked = !!builderState.selectedServices[s.id];
-    let priceText = `$${s.price.toFixed(2)}`;
-    if (s.priceUnit === 'per_guest') {
-      priceText = `$${s.price.toFixed(2)} / guest ($${(s.price * (builderState.eventDetails.guests || 1)).toFixed(2)} total)`;
+  OPTIONAL_CATERING_SERVICES.forEach(srv => {
+    const isSelected = !!builderState.selectedServices[srv.id];
+    let priceText = `$${srv.price.toFixed(2)}`;
+    if (srv.priceUnit === 'per_guest') {
+      const g = builderState.eventDetails.guests || 1;
+      priceText = `$${(srv.price * g).toFixed(2)} ($${srv.price.toFixed(2)}/guest)`;
+    } else if (srv.priceUnit === 'flat_set' || srv.priceUnit === 'flat_fee') {
+      priceText = `$${srv.price.toFixed(2)} flat fee`;
+    } else if (srv.priceUnit === 'event_shift') {
+      priceText = `$${srv.price.toFixed(2)} per staff`;
     }
 
     html += `
-      <div class="service-toggle-card ${isChecked ? 'active' : ''}" onclick="window.toggleServiceOption('${s.id}')">
-        <div style="display: flex; align-items: flex-start; gap: 14px;">
-          <input type="checkbox" ${isChecked ? 'checked' : ''} style="margin-top: 4px; accent-color: #FF4500; width: 18px; height: 18px;" onclick="event.stopPropagation(); window.toggleServiceOption('${s.id}')">
-          <div>
-            <h4 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0 0 4px;">${escapeHtml(s.name)}</h4>
-            <p style="font-size: 13px; color: #999; margin: 0; line-height: 1.4;">${escapeHtml(s.description)}</p>
-          </div>
+      <div class="service-toggle-card ${isSelected ? 'active' : ''}" onclick="window.toggleServiceOption('${srv.id}')">
+        <div style="flex: 1; padding-right: 16px;">
+          <div style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px;">${escapeHtml(srv.name)}</div>
+          <p style="font-size: 13px; color: #aaa; margin: 0; line-height: 1.4;">${escapeHtml(srv.description)}</p>
         </div>
-        <div style="text-align: right; flex-shrink: 0;">
-          <div style="font-size: 15px; font-weight: 700; color: #FF4500;">${priceText}</div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="font-size: 15px; font-weight: 700; color: #FF4500; white-space: nowrap;">${priceText}</div>
+          <div style="width: 22px; height: 22px; border-radius: 6px; border: 2px solid ${isSelected ? '#FF4500' : '#444'}; background: ${isSelected ? '#FF4500' : 'transparent'}; display: flex; align-items: center; justify-content: center; color: #fff;">
+            ${isSelected ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+          </div>
         </div>
       </div>
     `;
@@ -455,15 +580,15 @@ function renderStep5() {
   if (summaryDetailsContainer) {
     const e = builderState.eventDetails;
     summaryDetailsContainer.innerHTML = `
-      <div style="background: #151515; border: 1px solid #252525; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.6;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-          <div><span style="color: #888;">Event Type:</span> <strong style="color: #fff;">${escapeHtml(e.type)}</strong></div>
-          <div><span style="color: #888;">Date:</span> <strong style="color: #fff;">${escapeHtml(e.date)} at ${escapeHtml(e.time)}</strong></div>
-          <div><span style="color: #888;">Guests:</span> <strong style="color: #fff;">${escapeHtml(String(e.guests))} Guests</strong></div>
-          <div><span style="color: #888;">Fulfillment:</span> <strong style="color: #FF4500;">${e.fulfillment.toUpperCase()}</strong></div>
+      <div style="background: #141414; border: 1px solid #282828; border-radius: 12px; padding: 22px; margin-bottom: 24px; font-size: 14px; line-height: 1.6;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <div><span style="color: #888; font-size: 12px; text-transform: uppercase;">Event Type</span><br><strong style="color: #fff; font-size: 15px;">${escapeHtml(e.type)}</strong></div>
+          <div><span style="color: #888; font-size: 12px; text-transform: uppercase;">Event Date & Time</span><br><strong style="color: #fff; font-size: 15px;">${escapeHtml(e.date)} at ${escapeHtml(e.time)}</strong></div>
+          <div><span style="color: #888; font-size: 12px; text-transform: uppercase;">Guest Count</span><br><strong style="color: #FF4500; font-size: 15px;">${escapeHtml(String(e.guests))} Guests</strong></div>
+          <div><span style="color: #888; font-size: 12px; text-transform: uppercase;">Fulfillment</span><br><strong style="color: #10b981; font-size: 15px;">${e.fulfillment === 'delivery' ? 'Delivery (Greater LA)' : 'Trailer Pickup (Reseda)'}</strong></div>
         </div>
-        ${e.fulfillment === 'delivery' && e.deliveryAddress ? `<div style="margin-top: 8px;"><span style="color: #888;">Delivery Address:</span> <strong style="color: #fff;">${escapeHtml(e.deliveryAddress)}</strong></div>` : ''}
-        ${e.specialInstructions ? `<div style="margin-top: 8px;"><span style="color: #888;">Special Requests:</span> <span style="color: #ddd;">${escapeHtml(e.specialInstructions)}</span></div>` : ''}
+        ${e.fulfillment === 'delivery' && e.deliveryAddress ? `<div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #222;"><span style="color: #888; font-size: 12px;">Delivery Address:</span> <strong style="color: #fff;">${escapeHtml(e.deliveryAddress)}</strong></div>` : ''}
+        ${e.specialInstructions ? `<div style="margin-top: 10px;"><span style="color: #888; font-size: 12px;">Special Requests:</span> <span style="color: #ddd;">${escapeHtml(e.specialInstructions)}</span></div>` : ''}
       </div>
     `;
   }
@@ -472,25 +597,25 @@ function renderStep5() {
     const items = Object.values(builderState.cartItems);
     if (items.length === 0) {
       summaryDishesContainer.innerHTML = `
-        <div style="text-align: center; padding: 24px; color: #888; background: #151515; border-radius: 8px;">
+        <div style="text-align: center; padding: 28px; color: #888; background: #141414; border-radius: 12px;">
           No party trays selected yet. <button type="button" onclick="window.goToStep(3)" style="color: #FF4500; background: none; border: none; cursor: pointer; text-decoration: underline; font-weight: bold;">Select dishes</button>
         </div>
       `;
       return;
     }
 
-    let html = '<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">';
+    let html = '<div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">';
     items.forEach(it => {
       html += `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #151515; border: 1px solid #252525; border-radius: 8px; padding: 12px 16px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="${it.imageUrl}" alt="${escapeHtml(it.nameEn)}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #111;">
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #141414; border: 1px solid #282828; border-radius: 10px; padding: 14px 18px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="${it.imageUrl}" alt="${escapeHtml(it.nameEn)}" style="width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: #111;">
             <div>
-              <div style="font-size: 14px; font-weight: 700; color: #fff;">${it.quantity}x ${escapeHtml(it.nameEn)}</div>
+              <div style="font-size: 15px; font-weight: 700; color: #fff;">${it.quantity}x ${escapeHtml(it.nameEn)}</div>
               <div style="font-size: 12px; color: #888;">${escapeHtml(it.portionSize)}</div>
             </div>
           </div>
-          <div style="font-size: 15px; font-weight: 700; color: #fff;">
+          <div style="font-size: 16px; font-weight: 700; color: #FF4500;">
             $${(it.unitPrice * it.quantity).toFixed(2)}
           </div>
         </div>
@@ -565,65 +690,62 @@ export function updatePriceBreakdown() {
 }
 
 /**
- * Submit Package Request to Firebase / Cloud Function
+ * Submit Package Request
  */
-export async function submitCateringPackage(event) {
-  if (event) event.preventDefault();
+export async function submitCateringPackage(e) {
+  if (e && e.preventDefault) e.preventDefault();
 
-  const nameInput = document.getElementById('builder-client-name');
-  const emailInput = document.getElementById('builder-client-email');
-  const phoneInput = document.getElementById('builder-client-phone');
-  const contactMethodInput = document.getElementById('builder-client-contact-method');
-  const notesInput = document.getElementById('builder-client-notes');
-  const submitBtn = document.getElementById('builder-submit-btn');
+  const clientName = document.getElementById('builder-client-name')?.value.trim();
+  const clientEmail = document.getElementById('builder-client-email')?.value.trim();
+  const clientPhone = document.getElementById('builder-client-phone')?.value.trim();
+  const contactMethod = document.getElementById('builder-client-contact-method')?.value || 'email';
+  const notes = document.getElementById('builder-client-notes')?.value.trim();
 
-  if (!nameInput || !emailInput || !phoneInput) return;
-
-  const name = nameInput.value.trim();
-  const email = emailInput.value.trim();
-  const phone = phoneInput.value.trim();
-
-  if (!name || !email || !phone) {
+  if (!clientName || !clientEmail || !clientPhone) {
     alert('Please complete your name, email, and phone number.');
     return;
   }
 
-  const items = Object.values(builderState.cartItems);
+  const items = Object.values(builderState.cartItems).filter(i => i.quantity > 0);
   if (items.length === 0) {
     alert('Please select at least one party tray for your catering package.');
     goToStep(3);
     return;
   }
 
+  const submitBtn = document.getElementById('builder-submit-btn');
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting Package...';
+    submitBtn.innerHTML = 'Submitting Package Request...';
   }
 
   const payload = {
-    customerContact: {
-      name,
-      email,
-      phone,
-      preferredContact: contactMethodInput ? contactMethodInput.value : 'phone'
-    },
     eventDetails: {
       ...builderState.eventDetails,
-      specialInstructions: notesInput ? notesInput.value.trim() : builderState.eventDetails.specialInstructions
+      specialInstructions: builderState.eventDetails.specialInstructions || notes
     },
-    packageType: builderState.packageType,
-    templateId: builderState.selectedTemplateId,
+    clientInfo: {
+      name: clientName,
+      email: clientEmail,
+      phone: clientPhone,
+      preferredContactMethod: contactMethod,
+      notes: notes
+    },
     items: items.map(it => ({
-      id: it.id,
+      catalogId: it.id,
       name: it.nameEn,
       portionSize: it.portionSize,
-      imageUrl: it.imageUrl,
       quantity: it.quantity,
       unitPrice: it.unitPrice
     })),
     services: Object.keys(builderState.selectedServices).map(sId => {
       const s = OPTIONAL_CATERING_SERVICES.find(srv => srv.id === sId);
-      return { id: sId, name: s ? s.name : sId };
+      return {
+        serviceId: sId,
+        name: s ? s.name : sId,
+        price: s ? s.price : 0,
+        priceUnit: s ? s.priceUnit : 'flat'
+      };
     })
   };
 
@@ -632,53 +754,47 @@ export async function submitCateringPackage(event) {
     const submitFn = httpsCallable(functions, 'submitCateringPackageRequest');
     const result = await submitFn(payload);
 
-    const refNumber = result.data?.requestNumber || 'BA-PKG-CONFIRMED';
-    showSubmissionSuccess(refNumber, name, email);
-
+    showSuccessScreen(result.data.referenceNumber || 'BA-PKG-PENDING', result.data.estimatedTotal);
   } catch (err) {
-    console.error('Failed to submit via Cloud Function, falling back to direct Firestore:', err);
+    console.error('Error submitting catering package via Cloud Function:', err);
+    // Direct Firestore fallback
     try {
-      // Direct Firestore fallback
-      const prices = calculatePackagePrices();
-      const requestNumber = 'BA-PKG-' + Math.random().toString(16).substring(2, 6).toUpperCase();
-      await addDoc(collection(db, 'catering_package_requests'), {
-        requestNumber,
+      const ref = await addDoc(collection(db, 'catering_package_requests'), {
         ...payload,
-        estimatedPriceBreakdown: prices,
         status: 'new',
-        linkedQuoteId: null,
-        submittedAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        source: 'custom_package_builder_fallback'
       });
-
-      showSubmissionSuccess(requestNumber, name, email);
+      showSuccessScreen(`BA-PKG-${ref.id.substring(0, 6).toUpperCase()}`, calculatePackagePrices().estimatedTotal);
     } catch (dbErr) {
-      console.error('Final submission error:', dbErr);
-      alert('Could not submit catering package. Please check your network connection or call us at (323) 921-1646.');
+      console.error('Firestore fallback failed:', dbErr);
+      alert('We experienced a network error submitting your package. Please call us directly at (323) 921-1646.');
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit My Catering Package';
+        submitBtn.innerHTML = 'Request Official Catering Proposal';
       }
     }
   }
 }
 window.submitCateringPackage = submitCateringPackage;
 
-function showSubmissionSuccess(refNumber, name, email) {
-  const container = document.getElementById('builder-success-view');
-  const body = document.getElementById('builder-form-body');
-  const refEl = document.getElementById('success-ref-number');
-  const nameEl = document.getElementById('success-client-name');
-  const emailEl = document.getElementById('success-client-email');
+function showSuccessScreen(refNum, total) {
+  const formBody = document.getElementById('builder-form-body');
+  const footerActions = document.querySelector('.builder-footer-actions');
+  const mobileBar = document.querySelector('.builder-mobile-sticky-bar');
+  const stepsNav = document.querySelector('.builder-steps-nav');
+  const successView = document.getElementById('builder-success-view');
 
-  if (refEl) refEl.textContent = refNumber;
-  if (nameEl) nameEl.textContent = name;
-  if (emailEl) emailEl.textContent = email;
+  if (formBody) formBody.style.display = 'none';
+  if (footerActions) footerActions.style.display = 'none';
+  if (mobileBar) mobileBar.style.display = 'none';
+  if (stepsNav) stepsNav.style.display = 'none';
 
-  if (body) body.style.display = 'none';
-  if (container) container.style.display = 'block';
-
-  // Clear cart
-  builderState.cartItems = {};
-  builderState.selectedServices = {};
+  if (successView) {
+    successView.style.display = 'block';
+    const refEl = document.getElementById('success-pkg-ref');
+    if (refEl) refEl.textContent = refNum;
+    const totEl = document.getElementById('success-pkg-total');
+    if (totEl) totEl.textContent = typeof total === 'number' ? `$${total.toFixed(2)}` : total;
+  }
 }

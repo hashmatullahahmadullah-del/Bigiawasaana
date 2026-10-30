@@ -595,6 +595,8 @@ export function switchAdminView(targetId) {
     if (typeof window.renderCateringInquiries === 'function') window.renderCateringInquiries();
     if (typeof window.renderCateringQuotes === 'function') window.renderCateringQuotes();
     if (typeof window.renderConfirmedBookings === 'function') window.renderConfirmedBookings();
+    if (typeof window.renderPackageRequests === 'function') window.renderPackageRequests();
+    if (typeof window.renderCateringCatalog === 'function') window.renderCateringCatalog();
   }
 }
 window.switchAdminView = switchAdminView;

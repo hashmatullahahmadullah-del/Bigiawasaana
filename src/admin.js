@@ -1,5 +1,6 @@
 import * as analytics from './admin/analytics.js';
 import * as blog from './admin/blog.js';
+import * as catering from './admin/catering.js';
 import * as deals from './admin/deals.js';
 import * as expenses from './admin/expenses.js';
 import * as index from './admin/index.js';
@@ -14,6 +15,7 @@ import * as shared from './admin/shared.js';
 
 Object.assign(window, analytics);
 Object.assign(window, blog);
+Object.assign(window, catering);
 Object.assign(window, deals);
 Object.assign(window, expenses);
 Object.assign(window, index);

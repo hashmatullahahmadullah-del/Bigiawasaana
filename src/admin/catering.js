@@ -206,7 +206,7 @@ window.showCateringDetails = (inquiry) => {
     window.createQuoteFromInquiry(inquiry);
   };
 
-  modal.classList.add('open');
+  modal.style.display = 'flex'; modal.classList.add('open');
 };
 
 window.closeCateringModal = () => {
@@ -237,14 +237,14 @@ window.updateCateringStatus = async (id, status) => {
  * ─────────────────────────────────────────────────────────────────
  */
 export function renderCateringQuotes() {
-  const tbody = document.getElementById('quotes-table-body');
+  const tbody = document.getElementById('catering-quotes-table-body') || document.getElementById('quotes-table-body');
   if (!tbody) return;
 
   const quotes = state.quotes || [];
 
   // Filter quotes based on search and status
-  const searchTerm = (document.getElementById('quotes-search')?.value || '').toLowerCase().trim();
-  const statusFilter = document.getElementById('quotes-status-filter')?.value || 'all';
+  const searchTerm = (document.getElementById('quote-search-input')?.value || document.getElementById('quotes-search')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('quote-status-filter')?.value || document.getElementById('quotes-status-filter')?.value || 'all';
 
   const filtered = quotes.filter(q => {
     const matchesStatus = statusFilter === 'all' || q.status === statusFilter;
@@ -265,14 +265,14 @@ export function renderCateringQuotes() {
     .filter(q => q.status !== 'canceled')
     .reduce((sum, q) => sum + (Number(q.pricing?.total) || 0), 0);
 
-  const totalEl = document.getElementById('quotes-total-count');
+  const totalEl = document.getElementById('quotes-stat-total') || document.getElementById('quotes-total-count');
   if (totalEl) totalEl.textContent = totalQuotesCount;
-  const sentEl = document.getElementById('quotes-sent-count');
+  const sentEl = document.getElementById('quotes-stat-pending') || document.getElementById('quotes-sent-count');
   if (sentEl) sentEl.textContent = sentQuotesCount;
-  const confirmedEl = document.getElementById('quotes-confirmed-count');
+  const confirmedEl = document.getElementById('quotes-stat-accepted') || document.getElementById('quotes-confirmed-count');
   if (confirmedEl) confirmedEl.textContent = confirmedQuotesCount;
-  const valueEl = document.getElementById('quotes-pipeline-value');
-  if (valueEl) valueEl.textContent = `$${pipelineValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const valueEl = document.getElementById('quotes-stat-revenue') || document.getElementById('quotes-pipeline-value');
+  if (valueEl) valueEl.textContent = `${pipelineValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const badgeQuotes = document.getElementById('badge-cat-quotes');
   if (badgeQuotes) badgeQuotes.textContent = quotes.filter(q => q.status === 'draft' || q.status === 'sent').length;
@@ -481,43 +481,57 @@ export function openCreateQuoteModal(initialData = null) {
   const modal = document.getElementById('quote-editor-modal');
   if (!modal) return;
 
+  const quoteNumber = initialData?.quoteNumber || generateQuoteNumber();
+
   // Title & quote number
-  const quoteNumberInput = document.getElementById('qe-quote-number');
-  if (quoteNumberInput) {
-    quoteNumberInput.value = initialData?.quoteNumber || generateQuoteNumber();
+  const qnEl = document.getElementById('quote-editor-number-badge') || document.getElementById('qe-quote-number');
+  if (qnEl) {
+    if ('value' in qnEl) qnEl.value = quoteNumber;
+    qnEl.textContent = quoteNumber;
   }
 
-  const modalTitle = document.getElementById('qe-modal-title');
+  const modalTitle = document.getElementById('quote-editor-title') || document.getElementById('qe-modal-title');
   if (modalTitle) {
     modalTitle.textContent = currentEditingQuoteId ? `Edit Quote: ${initialData.quoteNumber}` : 'Create New Catering Quote';
   }
 
+  const setVal = (val, ...ids) => {
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) {
+        if ('value' in el) el.value = val;
+        else el.textContent = val;
+        return;
+      }
+    }
+  };
+
   // Pre-fill Customer fields
-  document.getElementById('qe-cust-name').value = initialData?.customer?.name || '';
-  document.getElementById('qe-cust-phone').value = initialData?.customer?.phone || '';
-  document.getElementById('qe-cust-email').value = initialData?.customer?.email || '';
-  document.getElementById('qe-cust-company').value = initialData?.customer?.company || '';
-  document.getElementById('qe-linked-inquiry-id').value = initialData?.inquiryId || '';
+  setVal(initialData?.customer?.name || '', 'quote-client-name', 'qe-cust-name');
+  setVal(initialData?.customer?.phone || '', 'quote-client-phone', 'qe-cust-phone');
+  setVal(initialData?.customer?.email || '', 'quote-client-email', 'qe-cust-email');
+  setVal(initialData?.customer?.company || '', 'quote-client-company', 'qe-cust-company');
+  setVal(initialData?.inquiryId || '', 'quote-linked-inquiry', 'qe-linked-inquiry-id');
 
   // Pre-fill Event fields
-  document.getElementById('qe-event-title').value = initialData?.event?.title || 'Catering Event';
-  document.getElementById('qe-event-date').value = initialData?.event?.date || '';
-  document.getElementById('qe-event-start').value = initialData?.event?.startTime || '17:00';
-  document.getElementById('qe-event-end').value = initialData?.event?.endTime || '21:00';
-  document.getElementById('qe-event-guests').value = initialData?.event?.guests || 50;
-  document.getElementById('qe-event-service').value = initialData?.event?.serviceType || 'buffet_dropoff';
-  document.getElementById('qe-event-address').value = initialData?.event?.location?.address || '';
-  document.getElementById('qe-event-notes').value = initialData?.event?.location?.notes || '';
+  setVal(initialData?.event?.title || 'Catering Event', 'quote-event-title', 'qe-event-title');
+  setVal(initialData?.event?.date || '', 'quote-event-date', 'qe-event-date');
+  setVal(initialData?.event?.startTime || '17:00', 'quote-event-time', 'qe-event-start');
+  setVal(initialData?.event?.endTime || '21:00', 'qe-event-end');
+  setVal(initialData?.event?.guests || 50, 'quote-guest-count', 'qe-event-guests');
+  setVal(initialData?.event?.serviceType || 'drop_off', 'quote-service-style', 'qe-event-service');
+  setVal(initialData?.event?.location?.address || '', 'quote-venue-address', 'qe-event-address');
+  setVal(initialData?.event?.location?.notes || '', 'quote-special-notes', 'qe-event-notes');
 
   // Pre-fill Pricing fields
-  document.getElementById('qe-delivery-fee').value = initialData?.pricing?.deliveryFee !== undefined ? initialData.pricing.deliveryFee : 50;
-  document.getElementById('qe-setup-fee').value = initialData?.pricing?.setupFee !== undefined ? initialData.pricing.setupFee : 0;
-  document.getElementById('qe-tax-rate').value = initialData?.pricing?.taxRate !== undefined ? (initialData.pricing.taxRate * 100) : 9.5;
-  document.getElementById('qe-discount').value = initialData?.pricing?.discount || 0;
-  document.getElementById('qe-deposit-pct').value = initialData?.pricing?.depositPercentage || 30;
+  setVal(initialData?.pricing?.deliveryFee !== undefined ? initialData.pricing.deliveryFee : 50, 'quote-delivery-fee', 'qe-delivery-fee');
+  setVal(initialData?.pricing?.setupFee !== undefined ? initialData.pricing.setupFee : 0, 'qe-setup-fee');
+  setVal(initialData?.pricing?.taxRate !== undefined ? (initialData.pricing.taxRate * 100) : 9.5, 'qe-tax-rate');
+  setVal(initialData?.pricing?.discount || 0, 'quote-discount', 'qe-discount');
+  setVal(initialData?.pricing?.depositPercentage || 30, 'quote-deposit-pct', 'qe-deposit-pct');
 
   // Pre-fill Terms
-  document.getElementById('qe-notes').value = initialData?.terms?.customNotes || 'Includes Afghan flatbread, green cilantro chutney, and garlic yogurt sauce.';
+  setVal(initialData?.terms?.customNotes || 'Includes Afghan flatbread, green cilantro chutney, and garlic yogurt sauce.', 'quote-special-notes', 'qe-notes');
 
   // If no items yet, add default popular trays
   if (currentQuoteItems.length === 0) {
@@ -599,7 +613,7 @@ window.createQuoteFromInquiry = (inquiry) => {
  * Render Items inside Quote Editor
  */
 export function renderQuoteEditorItems() {
-  const container = document.getElementById('qe-items-container');
+  const container = document.getElementById('quote-editor-items-container') || document.getElementById('qe-items-container');
   if (!container) return;
 
   if (currentQuoteItems.length === 0) {
@@ -759,11 +773,12 @@ window.selectDishForQuote = (id, name, img, price) => {
  */
 export function recalculateQuoteTotals() {
   const subtotal = currentQuoteItems.reduce((sum, item) => sum + ((item.quantity || 1) * (item.unitPrice || 0)), 0);
-  const deliveryFee = parseFloat(document.getElementById('qe-delivery-fee')?.value) || 0;
+  const deliveryFee = parseFloat(document.getElementById('quote-delivery-fee')?.value || document.getElementById('qe-delivery-fee')?.value) || 0;
   const setupFee = parseFloat(document.getElementById('qe-setup-fee')?.value) || 0;
-  const taxRate = (parseFloat(document.getElementById('qe-tax-rate')?.value) || 9.5) / 100;
-  const discount = parseFloat(document.getElementById('qe-discount')?.value) || 0;
-  const depositPct = parseFloat(document.getElementById('qe-deposit-pct')?.value) || 30;
+  const isExempt = document.getElementById('quote-tax-exempt')?.checked || false;
+  const taxRate = isExempt ? 0 : (parseFloat(document.getElementById('qe-tax-rate')?.value) || 9.5) / 100;
+  const discount = parseFloat(document.getElementById('quote-discount')?.value || document.getElementById('qe-discount')?.value) || 0;
+  const depositPct = parseFloat(document.getElementById('quote-deposit-pct')?.value || document.getElementById('qe-deposit-pct')?.value) || 30;
 
   const taxableAmount = Math.max(0, subtotal - discount);
   const taxAmount = Math.round(taxableAmount * taxRate * 100) / 100;
@@ -773,20 +788,18 @@ export function recalculateQuoteTotals() {
   const remainingBalance = Math.max(0, grandTotal - depositAmount);
 
   // Update Summary UI
-  const subtotalEl = document.getElementById('qe-calc-subtotal');
-  if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+  const setText = (txt, ...ids) => {
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    }
+  };
 
-  const taxEl = document.getElementById('qe-calc-tax');
-  if (taxEl) taxEl.textContent = `$${taxAmount.toFixed(2)}`;
-
-  const totalEl = document.getElementById('qe-calc-total');
-  if (totalEl) totalEl.textContent = `$${grandTotal.toFixed(2)}`;
-
-  const depositEl = document.getElementById('qe-calc-deposit');
-  if (depositEl) depositEl.textContent = `$${depositAmount.toFixed(2)}`;
-
-  const balanceEl = document.getElementById('qe-calc-balance');
-  if (balanceEl) balanceEl.textContent = `$${remainingBalance.toFixed(2)}`;
+  setText(`${subtotal.toFixed(2)}`, 'quote-subtotal-display', 'qe-calc-subtotal');
+  setText(`${taxAmount.toFixed(2)}`, 'quote-tax-display', 'qe-calc-tax');
+  setText(`${grandTotal.toFixed(2)}`, 'quote-grand-total-display', 'qe-calc-total');
+  setText(`${depositAmount.toFixed(2)}`, 'quote-deposit-due-display', 'qe-calc-deposit');
+  setText(`${remainingBalance.toFixed(2)}`, 'quote-balance-due-display', 'qe-calc-balance');
 
   return {
     subtotal,
@@ -807,12 +820,23 @@ window.recalculateQuoteTotals = recalculateQuoteTotals;
  * Save Quote Draft / Update Firestore
  */
 window.saveQuoteDraft = async () => {
-  const quoteNumber = document.getElementById('qe-quote-number').value.trim() || generateQuoteNumber();
-  const customerName = document.getElementById('qe-cust-name').value.trim();
-  const customerPhone = document.getElementById('qe-cust-phone').value.trim();
-  const customerEmail = document.getElementById('qe-cust-email').value.trim();
-  const customerCompany = document.getElementById('qe-cust-company').value.trim();
-  const linkedInquiryId = document.getElementById('qe-linked-inquiry-id').value.trim();
+  const getVal = (defaultVal, ...ids) => {
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) {
+        if ('value' in el && el.value !== undefined) return el.value.trim();
+        if (el.textContent) return el.textContent.trim();
+      }
+    }
+    return defaultVal;
+  };
+
+  const quoteNumber = getVal(generateQuoteNumber(), 'quote-editor-number-badge', 'qe-quote-number');
+  const customerName = getVal('', 'quote-client-name', 'qe-cust-name');
+  const customerPhone = getVal('', 'quote-client-phone', 'qe-cust-phone');
+  const customerEmail = getVal('', 'quote-client-email', 'qe-cust-email');
+  const customerCompany = getVal('', 'quote-client-company', 'qe-cust-company');
+  const linkedInquiryId = getVal('', 'quote-linked-inquiry', 'qe-linked-inquiry-id');
 
   if (!customerName || !customerPhone) {
     alert('Please provide at least a customer name and phone number.');
@@ -831,15 +855,15 @@ window.saveQuoteDraft = async () => {
       company: customerCompany
     },
     event: {
-      title: document.getElementById('qe-event-title').value.trim() || 'Catering Event',
-      date: document.getElementById('qe-event-date').value || '',
-      startTime: document.getElementById('qe-event-start').value || '17:00',
-      endTime: document.getElementById('qe-event-end').value || '21:00',
-      guests: parseInt(document.getElementById('qe-event-guests').value) || 50,
-      serviceType: document.getElementById('qe-event-service').value || 'buffet_dropoff',
+      title: getVal('Catering Event', 'quote-event-title', 'qe-event-title'),
+      date: getVal('', 'quote-event-date', 'qe-event-date'),
+      startTime: getVal('17:00', 'quote-event-time', 'qe-event-start'),
+      endTime: getVal('21:00', 'qe-event-end'),
+      guests: parseInt(getVal('50', 'quote-guest-count', 'qe-event-guests')) || 50,
+      serviceType: getVal('drop_off', 'quote-service-style', 'qe-event-service'),
       location: {
-        address: document.getElementById('qe-event-address').value.trim() || '',
-        notes: document.getElementById('qe-event-notes').value.trim() || ''
+        address: getVal('', 'quote-venue-address', 'qe-event-address'),
+        notes: getVal('', 'quote-special-notes', 'qe-event-notes')
       }
     },
     items: currentQuoteItems,
@@ -850,7 +874,7 @@ window.saveQuoteDraft = async () => {
     terms: {
       meatStandard: '100% Hand-Slaughtered Zabiha Halal',
       cancellationPolicy: 'Deposits are refundable up to 7 days prior to event.',
-      customNotes: document.getElementById('qe-notes').value.trim() || ''
+      customNotes: getVal('Includes Afghan flatbread, green cilantro chutney, and garlic yogurt sauce.', 'quote-special-notes', 'qe-notes')
     },
     updatedAt: serverTimestamp()
   };

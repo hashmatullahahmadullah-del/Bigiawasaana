@@ -16,15 +16,28 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 100px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s ease, box-shadow 0.3s ease;
-  will-change: transform;
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), background 0.25s ease, box-shadow 0.25s ease, border-radius 0.25s ease, width 0.25s ease, top 0.25s ease;
+  will-change: transform, width, top;
   overflow: hidden;
 }
 
 .site-nav.scrolled {
+  top: 0 !important;
+  left: 50% !important;
+  transform: translate(-50%, var(--nav-banner-offset-scrolled, 0px)) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
   background: #080808 !important;
-  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.85) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.95) !important;
+}
+
+body.has-store-closed-banner .site-nav.scrolled {
+  --nav-banner-offset-scrolled: var(--banner-height, 40px);
 }
 
 .site-nav .container {
