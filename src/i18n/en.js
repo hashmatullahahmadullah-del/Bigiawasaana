@@ -12,10 +12,12 @@ export default {
   // Admin Nav Links
   'admin.nav.overview': 'Overview',
   'admin.nav.orders': 'Orders',
+  'admin.nav.liveOrders': 'Live Orders',
+  'admin.nav.allOrders': 'All Orders',
   'admin.nav.menu': 'Menu Manager',
   'admin.nav.crm': 'Customers (CRM)',
-  'admin.nav.marketing': 'Marketing',
-  'admin.nav.promotions': 'Promotions',
+  'admin.nav.marketing': 'Marketing & Promotions',
+  'admin.nav.promotions': 'Marketing & Promotions',
   'admin.nav.loyalty': 'Loyalty',
   'admin.nav.reviews': 'Reviews',
   'admin.nav.unitEconomics': 'Unit Economics',
@@ -25,6 +27,7 @@ export default {
 
   // Customer Site Nav Links
   'nav.menu': 'Menu',
+  'nav.orders': 'My Orders',
   'nav.specials': 'Specials',
   'nav.location': 'Location',
   'nav.catering': 'Catering',

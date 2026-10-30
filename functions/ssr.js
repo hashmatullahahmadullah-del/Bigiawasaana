@@ -23,7 +23,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
       html = html.replace(/{{TITLE}}/g, 'Blog Post Not Found | Bigi Awasaana');
       html = html.replace(/{{META_DESC}}/g, "We couldn't find the article you're looking for.");
       html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
-      html = html.replace(/{{OG_IMAGE}}/g, 'https://bigiawasaana.com/logo.webp');
+      html = html.replace(/{{OG_IMAGE}}/g, 'https://www.bigiawasaana.com/logo.webp');
       html = html.replace(/{{POST_SLUG}}/g, postSlug);
       html = html.replace(/{{SCHEMA_DATA}}/g, '');
       html = html.replace(/{{META_KEYWORDS}}/g, '');
@@ -44,12 +44,17 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
     const postDoc = snapshot.docs[0];
     const post = postDoc.data();
 
+    // Check if redirected (301 Permanent Redirect)
+    if (post.status === "redirected" && post.redirectUrl) {
+      return res.redirect(301, post.redirectUrl);
+    }
+
     // Check if published
     if (!post.isPublished) {
       html = html.replace(/{{TITLE}}/g, 'Draft | Bigi Awasaana');
       html = html.replace(/{{META_DESC}}/g, "Draft post.");
       html = html.replace(/{{META_ROBOTS}}/g, '<meta name="robots" content="noindex">');
-      html = html.replace(/{{OG_IMAGE}}/g, 'https://bigiawasaana.com/logo.webp');
+      html = html.replace(/{{OG_IMAGE}}/g, 'https://www.bigiawasaana.com/logo.webp');
       html = html.replace(/{{POST_SLUG}}/g, postSlug);
       html = html.replace(/{{SCHEMA_DATA}}/g, '');
       html = html.replace(/{{META_KEYWORDS}}/g, '');
@@ -58,11 +63,16 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
       return res.status(404).send(html);
     }
 
-    const title = post.title + ' | Bigi Awasaana Blog';
+    const isDari = postSlug === 'afghan-food-dari-los-angeles' || post.language === 'fa';
+    html = html.replace(/{{HTML_LANG}}/g, isDari ? 'fa' : 'en');
+    html = html.replace(/{{HTML_DIR}}/g, isDari ? ' dir="rtl"' : '');
+
+    const rawTitle = (post.title || '').replace(/\s*\|\s*Bigi Awasaana.*$/i, '').trim();
+    const title = rawTitle ? `${rawTitle} | Bigi Awasaana` : 'Bigi Awasaana Blog';
     const desc = post.excerpt || `Read ${post.title} on the Bigi Awasaana Blog.`;
-    let image = post.coverImage || 'https://bigiawasaana.com/logo.webp';
+    let image = post.coverImage || 'https://www.bigiawasaana.com/logo.webp';
     if (image.startsWith('/')) {
-      image = `https://bigiawasaana.com${image}`;
+      image = `https://www.bigiawasaana.com${image}`;
     }
     const pubDate = post.publishedAt ? new Date(post.publishedAt.toMillis()).toISOString() : new Date().toISOString();
     const modDate = post.updatedAt ? new Date(post.updatedAt.toMillis()).toISOString() : pubDate;
@@ -86,7 +96,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
       "@type": "BlogPosting",
       "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": `https://bigiawasaana.com/blog/${postSlug}`
+        "@id": `https://www.bigiawasaana.com/blog/${postSlug}`
       },
       "headline": post.title,
       "description": desc,
@@ -100,7 +110,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
         "name": "Bigi Awasaana",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://bigiawasaana.com/logo.webp"
+          "url": "https://www.bigiawasaana.com/logo.webp"
         }
       },
       "datePublished": pubDate,
@@ -120,19 +130,19 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
           "@type": "ListItem",
           "position": 1,
           "name": "Home",
-          "item": "https://bigiawasaana.com/"
+          "item": "https://www.bigiawasaana.com/"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Blog",
-          "item": "https://bigiawasaana.com/blog"
+          "item": "https://www.bigiawasaana.com/blog"
         },
         {
           "@type": "ListItem",
           "position": 3,
           "name": post.title,
-          "item": `https://bigiawasaana.com/blog/${postSlug}`
+          "item": `https://www.bigiawasaana.com/blog/${postSlug}`
         }
       ]
     };
@@ -177,8 +187,8 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
             <div class="blog-share">
               <span class="share-text">Share this article</span>
               <div class="share-buttons">
-                <a href="https://twitter.com/intent/tweet?url=https://bigiawasaana.com/blog/${postSlug}&text=${encodeURIComponent(post.title)}" target="_blank" class="share-btn">Twitter</a>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=https://bigiawasaana.com/blog/${postSlug}" target="_blank" class="share-btn">Facebook</a>
+                <a href="https://twitter.com/intent/tweet?url=https://www.bigiawasaana.com/blog/${postSlug}&text=${encodeURIComponent(post.title)}" target="_blank" class="share-btn">Twitter</a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.bigiawasaana.com/blog/${postSlug}" target="_blank" class="share-btn">Facebook</a>
               </div>
             </div>
           </div>
@@ -270,7 +280,7 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
               We couldn't find the menu item you're looking for. It might have been removed or renamed.
             </p>
             <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-              <a href="/menu.html" class="btn-primary" style="min-width: 160px;">View Menu</a>
+              <a href="/menu" class="btn-primary" style="min-width: 160px;">View Menu</a>
             </div>
           </div>
         </section>
@@ -291,11 +301,11 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
     const itemDesc = selectedItem.desc || selectedItem.description || `Delicious ${itemName} prepared fresh.`;
     let itemImg = selectedItem.img || selectedItem.image || selectedItem.imageUrl || '/assets/logo.webp';
     if (itemImg.startsWith('/')) {
-      itemImg = `https://bigiawasaana.com${itemImg}`;
+      itemImg = `https://www.bigiawasaana.com${itemImg}`;
     }
     
     // Create SEO title and desc
-    const title = `${itemName} Near Me in Reseda, CA | Bigi Awasaana`;
+    const title = `${itemName} in Reseda | Halal Afghan Menu | Bigi Awasaana`;
     const description = `Order the best ${itemName} near you. ${itemDesc}`;
     const keywords = `best ${itemName} Reseda, ${itemName} near me, Afghan food Reseda, halal food Reseda, halal food truck Los Angeles, Afghan food truck near me, Zabiha Halal, delivery area Reseda, pickup area Reseda`;
     
@@ -354,7 +364,7 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
         <div class="container" style="max-width: 1000px; margin: 0 auto;">
           
           <!-- Back button -->
-          <a href="/menu.html" style="display: inline-flex; align-items: center; gap: 8px; color: var(--gray); text-decoration: none; font-family: 'Barlow Condensed'; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 32px; font-weight: 600;">
+          <a href="/menu" style="display: inline-flex; align-items: center; gap: 8px; color: var(--gray); text-decoration: none; font-family: 'Barlow Condensed'; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 32px; font-weight: 600;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             Back to Menu
           </a>
@@ -382,7 +392,7 @@ exports.renderItemPage = functions.https.onRequest(async (req, res) => {
 
               <!-- CTA Buttons -->
               <div style="display: flex; flex-direction: column; gap: 16px;">
-                <a href="/menu.html" class="btn-primary" style="text-align: center; width: 100%;">Order for Pickup</a>
+                <a href="/menu" class="btn-primary" style="text-align: center; width: 100%;">Order for Pickup</a>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                   <a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" class="btn-outline" style="text-align: center; padding: 12px; border-color: rgba(6, 193, 103, 0.5); background: rgba(6, 193, 103, 0.1);">Uber Eats</a>
                   <a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" class="btn-outline" style="text-align: center; padding: 12px; border-color: rgba(255, 48, 8, 0.5); background: rgba(255, 48, 8, 0.1);">DoorDash</a>
@@ -449,7 +459,7 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
               We couldn't find the neighborhood page you're looking for. It might have been moved or doesn't exist yet.
             </p>
             <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-              <a href="/menu.html" class="btn-primary" style="min-width: 160px;">View Menu</a>
+              <a href="/menu" class="btn-primary" style="min-width: 160px;">View Menu</a>
               <a href="/" class="btn-outline" style="min-width: 160px;">Go Home</a>
             </div>
           </div>
@@ -480,8 +490,8 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
       "@context": "https://schema.org",
       "@type": "FoodEstablishment",
       "name": "Bigi Awasaana",
-      "image": "https://bigiawasaana.com/logo.webp",
-      "url": "https://bigiawasaana.com/areas/${areaId}",
+      "image": "https://www.bigiawasaana.com/logo.webp",
+      "url": "https://www.bigiawasaana.com/areas/${areaId}",
       "telephone": "+13239211646",
       "servesCuisine": ["Afghan", "Middle Eastern", "Halal"],
       "areaServed": {
@@ -512,7 +522,7 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
             ${areaData.introText ? `<p>${areaData.introText}</p>` : '<p>Experience the authentic taste of the Silk Road right here in the San Fernando Valley.</p>'}
           </div>
           <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
-            <a href="/menu.html" class="btn-primary">Order for Pickup</a>
+            <a href="/menu" class="btn-primary">Order for Pickup</a>
             <a href="/#delivery" class="btn-outline">Order Delivery</a>
           </div>
           
@@ -568,7 +578,7 @@ exports.renderAreaPage = functions.https.onRequest(async (req, res) => {
 // ─────────────────────────────────────────────────────────────────
 exports.renderSitemap = functions.https.onRequest(async (req, res) => {
   try {
-    const baseUrl = 'https://bigiawasaana.com';
+    const baseUrl = 'https://www.bigiawasaana.com';
     const now = new Date().toISOString().split('T')[0];
     
     // Core static URLs
@@ -619,10 +629,8 @@ exports.renderSitemap = functions.https.onRequest(async (req, res) => {
 
     // Static area pages (always present as generated HTML files)
     const staticAreaSlugs = [
-      'reseda', 'encino', 'sherman-oaks', 'woodland-hills', 'tarzana', 'calabasas',
-      'canoga-park', 'chatsworth', 'granada-hills', 'lake-balboa', 'mission-hills',
-      'north-hills', 'north-hollywood', 'northridge', 'porter-ranch', 'studio-city',
-      'sun-valley', 'sylmar', 'van-nuys', 'west-hills', 'winnetka'
+      'reseda', 'tarzana', 'winnetka', 'lake-balboa', 'northridge',
+      'canoga-park', 'west-hills', 'van-nuys', 'encino', 'woodland-hills'
     ];
 
     // Merge with any Firestore-published areas (deduplication)
@@ -742,6 +750,66 @@ exports.renderBlogIndex = functions.https.onRequest(async (req, res) => {
     res.status(200).send(html);
   } catch (error) {
     console.error('Error in renderBlogIndex:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ============================================================================
+// renderShopCatalog (SSR for /shop)
+// ============================================================================
+exports.renderShopCatalog = functions.https.onRequest(async (req, res) => {
+  try {
+    const templatePath = path.join(__dirname, 'shop-template.html');
+    if (!fs.existsSync(templatePath)) {
+      return res.status(404).send('Shop template not found');
+    }
+    const html = fs.readFileSync(templatePath, 'utf8');
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    res.status(200).send(html);
+  } catch (error) {
+    console.error('Error in renderShopCatalog:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ============================================================================
+// renderRetailItemPage (SSR for /shop/item/**)
+// ============================================================================
+exports.renderRetailItemPage = functions.https.onRequest(async (req, res) => {
+  try {
+    const urlParts = req.path.split('/').filter(Boolean);
+    const itemSlug = urlParts[urlParts.length - 1];
+
+    const templatePath = path.join(__dirname, 'shop-template.html');
+    if (!fs.existsSync(templatePath)) {
+      return res.status(404).send('Shop template not found');
+    }
+    let html = fs.readFileSync(templatePath, 'utf8');
+
+    if (itemSlug && itemSlug !== 'shop' && itemSlug !== 'item') {
+      try {
+        const snapshot = await db.collection('retail_items').where('slug', '==', itemSlug).limit(1).get();
+        if (!snapshot.empty) {
+          const item = snapshot.docs[0].data();
+          const itemName = item.name || 'Afghan Specialty Product';
+          const itemDesc = item.description || "Authentic Afghan specialty product from Bigi Awasaana. Shipped nationwide.";
+          const itemImage = item.image || 'https://www.bigiawasaana.com/hero-food-spread.jpg';
+
+          html = html.replace(/<title>[\s\S]*?<\/title>/, '<title>' + itemName + ' | Nationwide Shipping | Bigi Awasaana</title>');
+          html = html.replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="' + itemDesc.replace(/"/g, '&quot;') + '">');
+          html = html.replace(/<meta property="og:title" content="[^"]*">/, '<meta property="og:title" content="' + itemName + ' | Bigi Awasaana">');
+          html = html.replace(/<meta property="og:description" content="[^"]*">/, '<meta property="og:description" content="' + itemDesc.replace(/"/g, '&quot;') + '">');
+          html = html.replace(/<meta property="og:image" content="[^"]*">/, '<meta property="og:image" content="' + itemImage + '">');
+        }
+      } catch (err) {
+        console.warn('Could not fetch retail item for SSR:', err);
+      }
+    }
+
+    res.set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    res.status(200).send(html);
+  } catch (error) {
+    console.error('Error in renderRetailItemPage:', error);
     res.status(500).send('Internal Server Error');
   }
 });

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/copy-assets.js && node generate-advanced-seo.mjs",
+    "build": "node scripts/optimize-images.cjs && node generate-advanced-seo.mjs && vite build && node scripts/copy-assets.js && node scripts/prerender-menu.cjs && node scripts/prerender-items.cjs && node scripts/prerender-blog.cjs && node scripts/generate-sitemap.cjs",
     "preview": "vite preview",
     "lint": "eslint ."
   },
@@ -17,6 +17,7 @@
     "firebase-admin": "^14.2.0",
     "firebase-tools": "^15.17.0",
     "postcss": "^8.5.15",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.4.1",
     "vite": "^8.0.10"
   },

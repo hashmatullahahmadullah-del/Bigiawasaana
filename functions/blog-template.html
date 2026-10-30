@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{HTML_LANG}}"{{HTML_DIR}}>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{TITLE}}</title>
-  <link rel="canonical" href="https://bigiawasaana.com/blog/{{POST_SLUG}}">
+  <link rel="canonical" href="https://www.bigiawasaana.com/blog/{{POST_SLUG}}">
   <meta name="description" content="{{META_DESC}}">
   {{META_KEYWORDS}}
   {{META_ROBOTS}}
@@ -14,7 +14,7 @@
   <meta property="og:description" content="{{META_DESC}}">
   <meta property="og:image" content="{{OG_IMAGE}}">
   <meta property="og:type" content="article">
-  <meta property="og:url" content="https://bigiawasaana.com/blog/{{POST_SLUG}}">
+  <meta property="og:url" content="https://www.bigiawasaana.com/blog/{{POST_SLUG}}">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
@@ -30,7 +30,13 @@
     {{BREADCRUMB_SCHEMA}}
   </script>
 
-  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+    
+  
+  
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  
+  
+  <link rel="stylesheet" href="/src/account-auth.css">
   <style>
     /* Blog Layout */
     .blog-article {
@@ -97,7 +103,9 @@
     }
     .blog-cover {
       width: 100%;
-      height: clamp(300px, 50vw, 600px);
+      aspect-ratio: 16 / 9;
+      height: auto;
+      max-height: 600px;
       object-fit: cover;
       border-radius: 16px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.5);
@@ -115,6 +123,67 @@
       color: #d1d1d1;
     }
     
+    
+    /* Quill Rich Text & Alignment */
+    .ql-align-center { text-align: center; }
+    .ql-align-right { text-align: right; }
+    .ql-align-justify { text-align: justify; }
+    .ql-size-small { font-size: 0.85em; }
+    .ql-size-large { font-size: 1.35em; }
+    .ql-size-huge { font-size: 1.75em; }
+
+    /* RTL & Dari/Persian Post Typography */
+    [dir="rtl"], .blog-content[dir="rtl"], .blog-content [dir="rtl"] {
+      direction: rtl;
+      text-align: right;
+      font-family: 'Vazirmatn', 'Outfit', sans-serif;
+    }
+
+    /* Bigi Order CTA Card */
+    .bigi-order-cta {
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .bigi-order-cta:hover {
+      border-color: rgba(255, 106, 0, 0.5) !important;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7), 0 0 32px rgba(255, 106, 0, 0.12) !important;
+    }
+    .bigi-order-cta .btn-cta-primary:hover {
+      background: #ff7d1a !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(255, 106, 0, 0.5) !important;
+    }
+    .bigi-order-cta .btn-cta-secondary:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      border-color: rgba(255, 255, 255, 0.4) !important;
+      transform: translateY(-2px);
+    }
+    [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3 {
+      font-family: 'Vazirmatn', 'Barlow Condensed', sans-serif;
+      letter-spacing: 0;
+    }
+
+    .blog-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 28px 0;
+      color: var(--white);
+    }
+    .blog-content table th, .blog-content table td {
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+    }
+    .blog-content table th {
+      background: var(--surface);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.5px;
+    }
+    .blog-content hr {
+      margin: 40px 0;
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
     /* Rich Text Formatting */
     .blog-content h2, .blog-content h3 {
       font-family: 'Barlow Condensed', sans-serif;
@@ -214,16 +283,11 @@
       color: #fff;
     }
   </style>
-  <script type="module" crossorigin src="/assets/blogTemplate-CXDjuTl5.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-CC_37BaN.js">
-  <link rel="modulepreload" crossorigin href="/assets/index.esm-pDFsUPFd.js">
-  <link rel="modulepreload" crossorigin href="/assets/firebase-DgaPNSpc.js">
-  <link rel="modulepreload" crossorigin href="/assets/index.esm-DvyZrb1c.js">
-  <link rel="modulepreload" crossorigin href="/assets/i18n-BsDcoE3H.js">
-  <link rel="modulepreload" crossorigin href="/assets/main-D8n3YG4K.js">
-  <link rel="modulepreload" crossorigin href="/assets/nav-Djc-caL9.js">
-  <link rel="stylesheet" crossorigin href="/assets/style-BX5drmUd.css">
-  <link rel="stylesheet" crossorigin href="/assets/mobile-nav-DddCCUSr.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
 </head>
 <body>
 
@@ -231,30 +295,42 @@
   <nav class="site-nav">
     <div class="container">
       <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
-        <img src="/logo.webp" alt="Bigi Awasaana Logo" width="128" height="64">
+        <img src="/logo.webp" alt="Bigi Awasaana Logo" width="128" height="64" fetchpriority="high">
       </a>
       <ul class="nav-links">
-        <li><a href="/menu">Menu</a></li>
-        <li><a href="/specials">Specials</a></li>
-        <li><a href="/locations">Location</a></li>
-        <li><a href="/catering">Catering</a></li>
-        <li><a href="/blog" class="active">Blog</a></li>
-        <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
+        <li><a href="/menu" data-i18n="nav.menu">Menu</a></li>
+        <li><a href="/menu" class="nav-cta-primary">ORDER NOW</a></li>
+        <li><a href="/locations" data-i18n="nav.location">Location & Hours</a></li>
+        <li><a href="/catering" data-i18n="nav.catering">Catering</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/shop" style="color: var(--accent); font-weight: 600;">Shop</a></li>
+        <li><a href="/order-history.html" data-i18n="nav.orders">My Orders</a></li>
+        <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><a href="tel:+13239211646" class="nav-cta-outline">(323) 921-1646</a></li>
       </ul>
-      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="nav-actions">
+        <button type="button" class="nav-mobile-signin-btn" id="nav-mobile-signin-btn" aria-label="Sign In or Account">
+          <svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="nav-signin-text">Sign In</span>
+        </button>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </nav>
 
   <!-- Mobile Drawer -->
   <div class="nav-mobile-drawer" id="nav-mobile-drawer">
-    <a href="/menu">Menu</a>
-    <a href="/specials">Specials</a>
-    <a href="/locations">Location</a>
-    <a href="/catering">Catering</a>
-    <a href="/blog" class="active">Blog</a>
-    <a href="tel:+13239211646" class="btn-primary" style="margin-top: 16px;">(323) 921-1646</a>
+    <a href="/menu" data-i18n="nav.menu">Menu</a>
+    <a href="/menu" style="color: var(--accent); font-weight: 700;">Order Now</a>
+    <a href="/order-history.html" data-i18n="nav.orders" style="font-weight: 600;">My Orders & Rewards</a>
+    <a href="/locations" data-i18n="nav.location">Location & Hours</a>
+    <a href="/catering" data-i18n="nav.catering">Catering</a>
+    <a href="/blog">Blog</a>
+    <a href="/shop" style="color: var(--accent); font-weight: 700;">Shop</a>
+    <button class="site-lang-toggle" aria-label="Switch language" style="margin: 16px 24px 16px 24px; padding: 8px 16px; font-size: 14px; font-family: 'Outfit', sans-serif; width: fit-content; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; letter-spacing: 1px; font-weight: 500;">EN | فا</button>
+    <a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a>
   </div>
 
   <main id="main-content">
@@ -273,7 +349,7 @@
           <div class="footer-label">Explore</div>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <a href="/menu" class="footer-link">Menu</a>
-            <a href="/specials" class="footer-link">Specials</a>
+            <a href="/shop" class="footer-link">Shop</a>            <a href="/specials" class="footer-link">Specials</a>
             <a href="/locations" class="footer-link">Location & Hours</a>
             <a href="/catering" class="footer-link">Catering</a>
             <a href="/faq" class="footer-link">FAQ</a>
@@ -292,6 +368,7 @@
       </div>
     </div>
   </footer>
-
+
+  <script type="module" src="/nav.bundle.js"></script>
 </body>
 </html>

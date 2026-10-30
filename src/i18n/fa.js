@@ -12,10 +12,12 @@ export default {
   // Admin Nav Links
   'admin.nav.overview': 'نمای کلی',
   'admin.nav.orders': 'سفارشات',
+  'admin.nav.liveOrders': 'سفارشات زنده',
+  'admin.nav.allOrders': 'همه سفارشات',
   'admin.nav.menu': 'مدیریت منو',
   'admin.nav.crm': 'مشتریان (CRM)',
-  'admin.nav.marketing': 'بازاریابی',
-  'admin.nav.promotions': 'تخفیف‌ها',
+  'admin.nav.marketing': 'بازاریابی و تخفیف‌ها',
+  'admin.nav.promotions': 'بازاریابی و تخفیف‌ها',
   'admin.nav.loyalty': 'وفاداری',
   'admin.nav.reviews': 'نظرات',
   'admin.nav.unitEconomics': 'اقتصاد واحد',
@@ -25,6 +27,7 @@ export default {
 
   // Customer Site Nav Links
   'nav.menu': 'منو',
+  'nav.orders': 'سفارشات من',
   'nav.specials': 'ویژه‌ها',
   'nav.location': 'آدرس',
   'nav.catering': 'کیترینگ',

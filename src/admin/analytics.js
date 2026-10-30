@@ -7,6 +7,109 @@ import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, deleteDoc,
 
 window.profitChartInst = null;
 window.profitChartInst = null;
+
+// ─── Global Chart Configuration State & Handlers ───
+window.currentProfitRange = (typeof window !== 'undefined' && window.innerWidth <= 768) ? 7 : 30;
+window.currentProfitMode = 'compare'; // 'compare' (grouped bar), 'profit' (standalone profit), 'all' (combo)
+window.includeFixedCostsInChart = true;
+
+window.setProfitChartRange = (days) => {
+  window.currentProfitRange = days;
+  document.querySelectorAll('[id^="btn-chart-range-"]').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`btn-chart-range-${days}`)?.classList.add('active');
+  
+  const innerWrapper = document.getElementById('profitChartInnerWrapper');
+  const swipeHint = document.getElementById('chart-swipe-hint');
+  if (innerWrapper) {
+    if (window.innerWidth <= 768) {
+      if (days === 30) {
+        innerWrapper.style.minWidth = '750px';
+        if (swipeHint) swipeHint.style.display = 'inline';
+      } else if (days === 14) {
+        innerWrapper.style.minWidth = '450px';
+        if (swipeHint) swipeHint.style.display = 'inline';
+      } else {
+        innerWrapper.style.minWidth = '100%';
+        if (swipeHint) swipeHint.style.display = 'none';
+      }
+    } else {
+      innerWrapper.style.minWidth = '100%';
+      if (swipeHint) swipeHint.style.display = 'none';
+    }
+  }
+
+  updateProfitDashboard();
+};
+
+window.setProfitChartMode = (mode) => {
+  window.currentProfitMode = mode;
+  document.querySelectorAll('[id^="btn-chart-mode-"]').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`btn-chart-mode-${mode}`)?.classList.add('active');
+  
+  const subtitle = document.getElementById('profit-chart-subtitle');
+  if (subtitle) {
+    if (mode === 'compare') {
+      subtitle.textContent = 'Side-by-side comparison of daily sales (green) vs expenses (red).';
+    } else if (mode === 'profit') {
+      subtitle.textContent = 'Daily net profit or loss (green = profitable, red = loss day).';
+    } else {
+      subtitle.textContent = 'All metrics layered with sales, expenses, and net profit.';
+    }
+  }
+
+  updateProfitDashboard();
+};
+
+window.toggleFixedCosts = () => {
+  window.includeFixedCostsInChart = !window.includeFixedCostsInChart;
+  const btn = document.getElementById('btn-toggle-fixed-costs');
+  const label = document.getElementById('label-toggle-fixed-costs');
+  
+  const fc = profitDataCache.fixedCosts || {};
+  const totalMonthlyFC = (parseFloat(fc.rent)||0) + (parseFloat(fc.commissaryRent)||0) + (parseFloat(fc.insurance)||0) + (parseFloat(fc.other)||0);
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dailyFixedCost = totalMonthlyFC > 0 ? (totalMonthlyFC / daysInMonth) : 0;
+
+  if (btn) {
+    if (window.includeFixedCostsInChart) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  }
+  if (label) {
+    label.textContent = window.includeFixedCostsInChart ? `Overhead: ${dailyFixedCost.toFixed(0)}/d` : 'Overhead: OFF';
+  }
+  updateProfitDashboard();
+};
+
+export function updateFixedCostsSummaryUI() {
+  const rent = parseFloat(document.getElementById('fc-home-rent')?.value) || 0;
+  const commissaryRent = parseFloat(document.getElementById('fc-commissary-rent')?.value) || 0;
+  const insurance = parseFloat(document.getElementById('fc-insurance')?.value) || 0;
+  const other = parseFloat(document.getElementById('fc-other')?.value) || 0;
+  
+  const total = rent + commissaryRent + insurance + other;
+  
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const monthName = now.toLocaleString('en-US', { month: 'long' });
+  const daily = total > 0 ? (total / daysInMonth) : 0;
+  
+  const monthlyEl = document.getElementById('fc-calc-monthly');
+  const dailyEl = document.getElementById('fc-calc-daily');
+  const noteEl = document.getElementById('fc-calc-note');
+  
+  if (monthlyEl) monthlyEl.textContent = `${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mo`;
+  if (dailyEl) dailyEl.textContent = `${daily.toFixed(2)} / day`;
+  if (noteEl) noteEl.innerHTML = `Divided by <strong>${daysInMonth} days</strong> in ${monthName}. Added daily to profit calculations.`;
+  
+  const toggleBtnLabel = document.getElementById('label-toggle-fixed-costs');
+  if (toggleBtnLabel) {
+    toggleBtnLabel.textContent = window.includeFixedCostsInChart ? `Overhead: ${daily.toFixed(0)}/d` : 'Overhead: OFF';
+  }
+}
 export let profitDataCache = {
   fixedCosts: { rent: 0, commissaryRent: 0, insurance: 0, other: 0 },
   sales: [],
@@ -18,11 +121,12 @@ export async function loadProfitData() {
   const fcSnap = await getDoc(doc(db, 'settings', 'fixed_costs'));
   if (fcSnap.exists()) {
     profitDataCache.fixedCosts = fcSnap.data();
-    document.getElementById('fc-home-rent').value = profitDataCache.fixedCosts.rent || 0;
-    document.getElementById('fc-commissary-rent').value = profitDataCache.fixedCosts.commissaryRent || 0;
-    document.getElementById('fc-insurance').value = profitDataCache.fixedCosts.insurance || 0;
-    document.getElementById('fc-other').value = profitDataCache.fixedCosts.other || 0;
+    if (document.getElementById('fc-home-rent')) document.getElementById('fc-home-rent').value = profitDataCache.fixedCosts.rent || 0;
+    if (document.getElementById('fc-commissary-rent')) document.getElementById('fc-commissary-rent').value = profitDataCache.fixedCosts.commissaryRent || 0;
+    if (document.getElementById('fc-insurance')) document.getElementById('fc-insurance').value = profitDataCache.fixedCosts.insurance || 0;
+    if (document.getElementById('fc-other')) document.getElementById('fc-other').value = profitDataCache.fixedCosts.other || 0;
   }
+  updateFixedCostsSummaryUI();
 
   // Set default date for sales entry
   const today = new Date().toISOString().split('T')[0];
@@ -66,6 +170,20 @@ export async function loadProfitData() {
 export function updateProfitDashboard() {
   const container = document.getElementById('eco-tab-profit');
   if (!container || container.style.display === 'none') return;
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const currentDayOfMonth = now.getDate();
+  const monthShort = now.toLocaleString('en-US', { month: 'short' });
+
+  // Calculate daily fixed cost based on current month days
+  const fc = profitDataCache.fixedCosts || {};
+  const totalMonthlyFC = (parseFloat(fc.rent)||0) + (parseFloat(fc.commissaryRent)||0) + (parseFloat(fc.insurance)||0) + (parseFloat(fc.other)||0);
+  const dailyFixedCost = totalMonthlyFC > 0 ? (totalMonthlyFC / daysInMonth) : 0;
+
+  updateFixedCostsSummaryUI();
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -112,11 +230,6 @@ export function updateProfitDashboard() {
     }
   });
 
-  // 3. Calculate Fixed Costs per day
-  const fc = profitDataCache.fixedCosts;
-  const totalMonthlyFC = (parseFloat(fc.rent)||0) + (parseFloat(fc.commissaryRent)||0) + (parseFloat(fc.insurance)||0) + (parseFloat(fc.other)||0);
-  const dailyFixedCost = totalMonthlyFC / 30;
-
   // Ensure last 30 days exist in the map, even if 0
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
@@ -127,72 +240,50 @@ export function updateProfitDashboard() {
 
   // Sort dates
   const sortedDates = Object.keys(dailyData).sort();
+
+  // ── True Month-to-Date (MTD) Calculation ──
+  // Calculate from 1st of current month through today
+  let mtdSales = 0;
+  let mtdVarExpenses = 0;
+  let mtdDaysCount = 0;
+
+  for (let d = 1; d <= currentDayOfMonth; d++) {
+    const dStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dData = dailyData[dStr] || { sales: 0, expenses: 0 };
+    mtdSales += (dData.sales || 0);
+    mtdVarExpenses += (dData.expenses || 0);
+    mtdDaysCount++;
+  }
+
+  const mtdFixedCost = dailyFixedCost * mtdDaysCount;
+  const mtdTotalExpenses = mtdVarExpenses + mtdFixedCost;
+  const mtdProfit = mtdSales - mtdTotalExpenses;
+
+  // Update MTD Stat Cards
+  const ueSales = document.getElementById('ue-mtd-sales');
+  if (ueSales) ueSales.textContent = '$' + mtdSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   
-  let totalSales = 0;
-  let totalExpenses = 0;
-  let totalProfit = 0;
-
-  const labels = [];
-  const salesDataset = [];
-  const expensesDataset = [];
-  const profitDataset = [];
-
-  sortedDates.forEach(date => {
-    labels.push(date.substring(5)); // MM-DD
-    const dSales = dailyData[date].sales;
-    const dExp = dailyData[date].expenses + dailyFixedCost;
-    const dProfit = dSales - dExp;
-    
-    totalSales += dSales;
-    totalExpenses += dExp;
-    totalProfit += dProfit;
-
-    salesDataset.push(dSales);
-    expensesDataset.push(dExp);
-    profitDataset.push(dProfit);
-  });
-
-  // Update UI Stats
-  document.getElementById('dash-30d-sales').textContent = '$' + totalSales.toFixed(2);
-  document.getElementById('dash-30d-expenses').textContent = '$' + totalExpenses.toFixed(2);
-  const profitEl = document.getElementById('dash-30d-profit');
-  profitEl.textContent = '$' + totalProfit.toFixed(2);
-  profitEl.style.color = totalProfit >= 0 ? 'var(--accent)' : '#f44336';
-
-  // 1. Profit Margin
-  let profitMargin = 0;
-  if (totalSales > 0) {
-    profitMargin = (totalProfit / totalSales) * 100;
-  }
-  const pmEl = document.getElementById('dash-profit-margin');
-  if (pmEl) {
-    pmEl.textContent = profitMargin.toFixed(1) + '%';
-    if (profitMargin >= 15) pmEl.style.color = '#4caf50'; // green
-    else if (profitMargin >= 5) pmEl.style.color = '#ff9800'; // orange
-    else pmEl.style.color = '#f44336'; // red
+  const ueExpenses = document.getElementById('ue-mtd-expenses');
+  if (ueExpenses) ueExpenses.textContent = '$' + mtdTotalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  
+  const ueProfit = document.getElementById('ue-mtd-profit');
+  if (ueProfit) {
+    const sign = mtdProfit >= 0 ? '' : '-';
+    ueProfit.textContent = (sign === '-' ? '-$' : '$') + Math.abs(mtdProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    ueProfit.style.color = mtdProfit >= 0 ? '#10b981' : '#f43f5e';
   }
 
-  // 2. Avg Daily Sales (only days with >0 sales)
-  let daysWithSales = 0;
-  let bestDayLabel = '--';
-  let bestDaySales = -1;
-  sortedDates.forEach(date => {
-    const s = dailyData[date].sales;
-    if (s > 0) daysWithSales++;
-    if (s > bestDaySales) {
-      bestDaySales = s;
-      bestDayLabel = date.substring(5) + ' ($' + s.toFixed(0) + ')';
-    }
-  });
+  // Subtitles on MTD cards
+  const ueSalesSub = document.getElementById('ue-mtd-sales-sub');
+  if (ueSalesSub) ueSalesSub.textContent = `${monthShort} 1 – ${monthShort} ${currentDayOfMonth} (${mtdDaysCount} days)`;
 
-  const avgSalesEl = document.getElementById('dash-avg-daily-sales');
-  if (avgSalesEl) {
-    avgSalesEl.textContent = daysWithSales > 0 ? '$' + (totalSales / daysWithSales).toFixed(2) : '$0.00';
-  }
+  const ueExpSub = document.getElementById('ue-mtd-expenses-sub');
+  if (ueExpSub) ueExpSub.textContent = `Food: $${mtdVarExpenses.toFixed(0)} + Fixed: $${mtdFixedCost.toFixed(0)}`;
 
-  const bestDayEl = document.getElementById('dash-best-day');
-  if (bestDayEl) {
-    bestDayEl.textContent = bestDaySales > 0 ? bestDayLabel : '--';
+  const ueProfitSub = document.getElementById('ue-mtd-profit-sub');
+  if (ueProfitSub) {
+    const margin = mtdSales > 0 ? ((mtdProfit / mtdSales) * 100).toFixed(1) : '0.0';
+    ueProfitSub.textContent = `${margin}% net margin`;
   }
 
   // Render Chart
@@ -203,68 +294,299 @@ export function updateProfitDashboard() {
     window.profitChartInst.destroy();
   }
 
+  // Filter dates for selected timeframe (7D, 14D, or 30D)
+  const range = window.currentProfitRange || 30;
+  const displayDates = sortedDates.slice(-range);
+
+  // Sync active UI pill states
+  document.querySelectorAll('[id^="btn-chart-range-"]').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`btn-chart-range-${range}`)?.classList.add('active');
+  document.querySelectorAll('[id^="btn-chart-mode-"]').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`btn-chart-mode-${window.currentProfitMode || 'compare'}`)?.classList.add('active');
+
+  const btnToggleFixed = document.getElementById('btn-toggle-fixed-costs');
+  if (btnToggleFixed) {
+    if (window.includeFixedCostsInChart) btnToggleFixed.classList.add('active');
+    else btnToggleFixed.classList.remove('active');
+  }
+
+  // Calculate Period Summary Stats for selected timeframe
+  let periodSales = 0;
+  let periodVarExp = 0;
+  let periodFixedExp = 0;
+
+  displayDates.forEach(date => {
+    const s = dailyData[date]?.sales || 0;
+    const v = dailyData[date]?.expenses || 0;
+    const f = window.includeFixedCostsInChart ? dailyFixedCost : 0;
+    periodSales += s;
+    periodVarExp += v;
+    periodFixedExp += f;
+  });
+
+  const periodTotalExp = periodVarExp + periodFixedExp;
+  const periodProfit = periodSales - periodTotalExp;
+
+  const sumSalesEl = document.getElementById('chart-sum-sales');
+  const sumVarExpEl = document.getElementById('chart-sum-var-exp');
+  const sumFixedExpEl = document.getElementById('chart-sum-fixed-exp');
+  const sumProfitEl = document.getElementById('chart-sum-profit');
+  const sumHintEl = document.getElementById('chart-sum-hint');
+
+  if (sumSalesEl) sumSalesEl.textContent = '$' + periodSales.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (sumVarExpEl) sumVarExpEl.textContent = '$' + periodVarExp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (sumFixedExpEl) {
+    if (window.includeFixedCostsInChart) {
+      sumFixedExpEl.textContent = '$' + periodFixedExp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      sumFixedExpEl.style.color = '#f43f5e';
+    } else {
+      sumFixedExpEl.textContent = 'Excluded';
+      sumFixedExpEl.style.color = 'var(--text-muted)';
+    }
+  }
+  if (sumProfitEl) {
+    const sign = periodProfit >= 0 ? '+' : '';
+    sumProfitEl.textContent = sign + '$' + periodProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    sumProfitEl.style.color = periodProfit >= 0 ? '#10b981' : '#f43f5e';
+  }
+  if (sumHintEl) {
+    const margin = periodSales > 0 ? (periodProfit / periodSales) * 100 : 0;
+    const ovhStatus = window.includeFixedCostsInChart ? 'incl. fixed overhead' : 'raw gross margin (overhead excluded)';
+    if (periodProfit >= 0) {
+      sumHintEl.innerHTML = `<span style="color: #10b981; font-weight: 600;">Profitable</span> (+${margin.toFixed(1)}% margin, ${ovhStatus})`;
+    } else {
+      sumHintEl.innerHTML = `<span style="color: #f43f5e; font-weight: 600;">Expenses Exceeded Sales</span> (${ovhStatus})`;
+    }
+  }
+
+  // Format Labels and Datasets
+  const chartLabels = [];
+  const chartSales = [];
+  const chartExpenses = [];
+  const chartProfit = [];
+  const profitBarColors = [];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  displayDates.forEach(dateStr => {
+    const parts = dateStr.split('-');
+    const m = parseInt(parts[1], 10) - 1;
+    const dayNum = parseInt(parts[2], 10);
+    const dObj = new Date(parseInt(parts[0], 10), m, dayNum);
+
+    const isSmall = typeof window !== 'undefined' && window.innerWidth <= 640;
+    if (range <= 7) {
+      chartLabels.push(isSmall ? dayNames[dObj.getDay()] : `${dayNames[dObj.getDay()]} ${m+1}/${dayNum}`);
+    } else if (range <= 14) {
+      chartLabels.push(isSmall ? `${m+1}/${dayNum}` : `${monthNames[m]} ${dayNum}`);
+    } else {
+      chartLabels.push(`${m+1}/${dayNum}`);
+    }
+
+    const dSales = dailyData[dateStr]?.sales || 0;
+    const dVarExp = dailyData[dateStr]?.expenses || 0;
+    const dFixedExp = window.includeFixedCostsInChart ? dailyFixedCost : 0;
+    const dTotalExp = dVarExp + dFixedExp;
+    const dProfit = dSales - dTotalExp;
+
+    chartSales.push(parseFloat(dSales.toFixed(2)));
+    chartExpenses.push(parseFloat(dTotalExp.toFixed(2)));
+    chartProfit.push(parseFloat(dProfit.toFixed(2)));
+    profitBarColors.push(dProfit >= 0 ? 'rgba(16, 185, 129, 0.85)' : 'rgba(244, 63, 94, 0.85)');
+  });
+
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.06)';
+  const tickColor = isLight ? '#64748b' : '#94a3b8';
+  const zeroLineColor = isLight ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.25)';
+
+  let datasets = [];
+  let chartType = 'bar';
+
+  const expenseLabel = window.includeFixedCostsInChart ? 'Total Costs (Food + Fixed) ($)' : 'Food & Supplies ($)';
+
+  if (window.currentProfitMode === 'compare') {
+    // Mode 1: Clean Grouped Bar Chart (Sales vs Expenses side-by-side)
+    chartType = 'bar';
+    datasets = [
+      {
+        label: 'Gross Sales ($)',
+        data: chartSales,
+        backgroundColor: 'rgba(16, 185, 129, 0.85)',
+        hoverBackgroundColor: '#10b981',
+        borderRadius: 5,
+        borderSkipped: false,
+        maxBarThickness: range === 7 ? 36 : (range === 14 ? 22 : 14),
+        categoryPercentage: 0.8,
+        barPercentage: 0.9
+      },
+      {
+        label: expenseLabel,
+        data: chartExpenses,
+        backgroundColor: 'rgba(244, 63, 94, 0.8)',
+        hoverBackgroundColor: '#f43f5e',
+        borderRadius: 5,
+        borderSkipped: false,
+        maxBarThickness: range === 7 ? 36 : (range === 14 ? 22 : 14),
+        categoryPercentage: 0.8,
+        barPercentage: 0.9
+      }
+    ];
+  } else if (window.currentProfitMode === 'profit') {
+    // Mode 2: Clean Net Profit Bars (Green above $0, Red below $0)
+    chartType = 'bar';
+    datasets = [
+      {
+        label: window.includeFixedCostsInChart ? 'Net Profit ($)' : 'Gross Profit ($)',
+        data: chartProfit,
+        backgroundColor: profitBarColors,
+        borderRadius: 5,
+        borderSkipped: false,
+        maxBarThickness: range === 7 ? 48 : (range === 14 ? 28 : 16)
+      }
+    ];
+  } else {
+    // Mode 3: All Metrics Combined (Grouped bars + Profit line)
+    chartType = 'bar';
+    datasets = [
+      {
+        type: 'line',
+        label: window.includeFixedCostsInChart ? 'Net Profit ($)' : 'Gross Profit ($)',
+        data: chartProfit,
+        borderColor: '#38bdf8',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        pointBackgroundColor: profitBarColors,
+        pointBorderColor: '#fff',
+        pointRadius: range <= 14 ? 5 : 3,
+        tension: 0.3,
+        order: 1
+      },
+      {
+        type: 'bar',
+        label: 'Gross Sales ($)',
+        data: chartSales,
+        backgroundColor: 'rgba(16, 185, 129, 0.75)',
+        borderRadius: 4,
+        maxBarThickness: range === 7 ? 28 : (range === 14 ? 18 : 10),
+        order: 2
+      },
+      {
+        type: 'bar',
+        label: expenseLabel,
+        data: chartExpenses,
+        backgroundColor: 'rgba(244, 63, 94, 0.7)',
+        borderRadius: 4,
+        maxBarThickness: range === 7 ? 28 : (range === 14 ? 18 : 10),
+        order: 3
+      }
+    ];
+  }
+
   window.profitChartInst = new Chart(ctx, {
-    type: 'bar', // Base type for combo chart
+    type: chartType,
     data: {
-      labels: labels,
-      datasets: [
-        {
-          type: 'line',
-          label: 'Sales ($)',
-          data: salesDataset,
-          borderColor: '#4caf50',
-          backgroundColor: 'transparent',
-          borderWidth: 2,
-          tension: 0.4,
-          order: 2
-        },
-        {
-          type: 'bar',
-          label: 'Total Expenses ($)',
-          data: expensesDataset,
-          backgroundColor: 'rgba(244,67,54,0.7)',
-          borderRadius: 4,
-          order: 3
-        },
-        {
-          type: 'line',
-          label: 'Net Profit ($)',
-          data: profitDataset,
-          borderColor: '#2196f3',
-          backgroundColor: 'rgba(33,150,243,0.1)',
-          fill: true,
-          tension: 0.4,
-          borderWidth: 3,
-          order: 1
-        }
-      ]
+      labels: chartLabels,
+      datasets: datasets
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 250
+      },
       interaction: {
         mode: 'index',
-        intersect: false,
+        intersect: false
       },
       plugins: {
-        legend: { labels: { color: '#ccc' } },
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: {
+            color: tickColor,
+            font: { size: 12, family: "'Outfit', sans-serif" },
+            usePointStyle: true,
+            boxWidth: 8,
+            boxHeight: 8,
+            padding: 14
+          }
+        },
         tooltip: {
+          backgroundColor: isLight ? 'rgba(15, 23, 42, 0.95)' : 'rgba(24, 24, 27, 0.95)',
+          titleColor: '#fff',
+          bodyColor: '#e2e8f0',
+          titleFont: { size: 13, weight: 'bold' },
+          bodyFont: { size: 12 },
+          padding: 12,
+          cornerRadius: 8,
+          borderColor: isLight ? 'transparent' : 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
           callbacks: {
-            footer: (tooltipItems) => {
-              let sales = 0; let profit = 0;
-              tooltipItems.forEach(ti => {
-                if(ti.dataset.label.includes('Sales')) sales = ti.parsed.y;
-                if(ti.dataset.label.includes('Profit')) profit = ti.parsed.y;
-              });
-              if (sales > 0) return `Margin: ${((profit/sales)*100).toFixed(1)}%`;
+            title: (items) => {
+              const idx = items[0]?.dataIndex;
+              if (idx !== undefined && displayDates[idx]) {
+                const parts = displayDates[idx].split('-');
+                const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                return dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+              }
               return '';
+            },
+            label: (item) => {
+              const val = item.parsed.y;
+              const prefix = val >= 0 ? '$' : '-$';
+              return ` ${item.dataset.label}: ${prefix}${Math.abs(val).toFixed(2)}`;
+            },
+            afterBody: (tooltipItems) => {
+              const idx = tooltipItems[0]?.dataIndex;
+              if (idx === undefined) return [];
+              const dateStr = displayDates[idx];
+              const s = dailyData[dateStr]?.sales || 0;
+              const vExp = dailyData[dateStr]?.expenses || 0;
+              const fExp = window.includeFixedCostsInChart ? dailyFixedCost : 0;
+              const tExp = vExp + fExp;
+              const p = s - tExp;
+              const margin = s > 0 ? ((p / s) * 100).toFixed(1) : '0.0';
+              const sign = p >= 0 ? '+' : '';
+              
+              const lines = [];
+              lines.push('─────────────────────────');
+              lines.push(`• Food & Supplies: $${vExp.toFixed(2)}`);
+              if (window.includeFixedCostsInChart && dailyFixedCost > 0) {
+                lines.push(`• Fixed Overhead: $${dailyFixedCost.toFixed(2)}`);
+              }
+              const profitLabel = window.includeFixedCostsInChart ? 'Net Profit' : 'Gross Profit';
+              lines.push(`• ${profitLabel}: ${sign}$${p.toFixed(2)} (${margin}% margin)`);
+              return lines;
             }
           }
         }
       },
       scales: {
-        y: { grid: { color: '#333' }, ticks: { color: '#aaa' } },
-        x: { grid: { color: '#333' }, ticks: { color: '#aaa' } }
+        y: {
+          grid: {
+            color: (c) => (c.tick?.value === 0 ? zeroLineColor : gridColor),
+            lineWidth: (c) => (c.tick?.value === 0 ? 1.5 : 1)
+          },
+          ticks: {
+            color: tickColor,
+            font: { size: 11 },
+            callback: (val) => '$' + val
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: tickColor,
+            font: { size: range <= 7 ? 12 : (range <= 14 ? 11 : 10) },
+            maxRotation: 0,
+            autoSkip: range > 14
+          }
+        }
       }
     }
   });
@@ -334,7 +656,6 @@ export function updateProfitDashboard() {
   }
 
   // === NEW: Week over Week Comparison ===
-  const now = new Date();
   const currentDayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
   
   const thisWeekStart = new Date(now);
@@ -443,6 +764,11 @@ window.renderEconomicsProfit = () => {
 
 export const fixedForm = document.getElementById('fixed-costs-form');
 if (fixedForm) {
+  // Real-time calculation on input change
+  ['fc-home-rent', 'fc-commissary-rent', 'fc-insurance', 'fc-other'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateFixedCostsSummaryUI);
+  });
+
   fixedForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const rent = parseFloat(document.getElementById('fc-home-rent').value) || 0;
@@ -456,9 +782,14 @@ if (fixedForm) {
         updatedAt: serverTimestamp()
       }, { merge: true });
       
-      document.getElementById('fc-status').textContent = "Fixed costs saved!";
+      const now = new Date();
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const total = rent + commissaryRent + insurance + other;
+      const daily = total > 0 ? (total / daysInMonth) : 0;
+
+      document.getElementById('fc-status').textContent = `Fixed costs saved! (${daily.toFixed(2)}/day)`;
       setTimeout(() => document.getElementById('fc-status').textContent = "", 3000);
-      showToast("Fixed Costs Saved");
+      showToast(`Fixed Costs Saved (${daily.toFixed(2)}/day)`);
       loadProfitData();
     } catch(err) {
       console.error(err);

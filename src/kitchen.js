@@ -2,6 +2,7 @@ import { db, app } from './firebase.js';
 import { collection, query, where, orderBy as fsOrderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getAuth, signInAnonymously } from 'firebase/auth';
+import { iconBell, iconBellOff, iconFlame, iconClock, iconPackage, iconSmartphone, iconGlobe, iconMaximize, iconMinimize, iconCheck, iconX } from './icons.js';
 
 // ─────────────────────────────────────────────────────────────────
 // WAKE LOCK (Prevent Screen Sleep)
@@ -13,9 +14,9 @@ async function requestWakeLock() {
     if ('wakeLock' in navigator) {
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => {
-        console.log('Screen Wake Lock released');
+
       });
-      console.log('Screen Wake Lock acquired');
+
     }
   } catch (err) {
     console.error('Wake Lock error:', err.name, err.message);
@@ -36,7 +37,7 @@ const fullscreenBtn = document.getElementById('kds-fullscreen-btn');
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => {
-      console.warn("Fullscreen error:", err);
+
       alert("Press F11 to enter fullscreen.");
     });
   } else {
@@ -48,7 +49,7 @@ if (fullscreenBtn) {
 }
 document.addEventListener('fullscreenchange', () => {
   if (fullscreenBtn) {
-    fullscreenBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
+    fullscreenBtn.innerHTML = document.fullscreenElement ? iconMinimize(20, 'ui-icon ui-icon-no-margin') : iconMaximize(20, 'ui-icon ui-icon-no-margin');
   }
 });
 
@@ -415,7 +416,7 @@ function showAlarmBanner() {
   if (alarmBanner) return;
   alarmBanner = document.createElement('div');
   alarmBanner.id = 'kds-alarm-banner';
-  alarmBanner.innerHTML = '🔔 NEW ORDER — TAP TO SILENCE';
+  alarmBanner.innerHTML = `${iconBell(20, 'ui-icon')} NEW ORDER — TAP TO SILENCE`;
   alarmBanner.addEventListener('click', stopAlarm);
   document.body.appendChild(alarmBanner);
 }
@@ -432,10 +433,10 @@ document.getElementById('kds-mute-btn').addEventListener('click', (e) => {
   const btn = e.currentTarget;
   if (isMuted) {
     btn.classList.add('muted');
-    btn.textContent = '🔕';
+    btn.innerHTML = iconBellOff(20, 'ui-icon ui-icon-no-margin');
   } else {
     btn.classList.remove('muted');
-    btn.textContent = '🔔';
+    btn.innerHTML = iconBell(20, 'ui-icon ui-icon-no-margin');
     // Init audio context on user gesture
     if (!audioContext) {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -507,7 +508,7 @@ function initKDS() {
 let pollFailCount = 0;
 async function pollSquareOrders() {
   try {
-    console.log("Polling Square orders...");
+
     const resp = await fetch('https://us-central1-bigi-awasaana-7b3ce.cloudfunctions.net/syncSquareOrders');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     pollFailCount = 0; // Reset on success
@@ -582,8 +583,8 @@ function renderOrders() {
       ubereats:     { label: 'UE · Uber Eats',      cls: 'badge-ubereats',     isDelivery: true },
       grubhub:      { label: 'GH · Grubhub',        cls: 'badge-grubhub',      isDelivery: true },
       squareonline: { label: 'SQ · Square Online',   cls: 'badge-squareonline', isDelivery: false },
-      website:      { label: '🌐 Website',           cls: 'badge-website',      isDelivery: false },
-      pos:          { label: '📱 POS',               cls: 'badge-pos',          isDelivery: false },
+      website:      { label: `${iconGlobe(14, 'ui-icon')} Website`, cls: 'badge-website', isDelivery: false },
+      pos:          { label: `${iconSmartphone(14, 'ui-icon')} POS`, cls: 'badge-pos', isDelivery: false },
     };
 
     const badge = platformBadges[order.source];
@@ -591,7 +592,7 @@ function renderOrders() {
     if (badge) {
       platformBadgeHtml = `<div class="kds-platform-badge ${badge.cls}">${badge.label}</div>`;
       if (badge.isDelivery) {
-        platformBadgeHtml += `<p class="kds-delivery-note">📦 ${t('Delivery — driver will collect')}</p>`;
+        platformBadgeHtml += `<p class="kds-delivery-note">${iconPackage(14, 'ui-icon')} ${t('Delivery — driver will collect')}</p>`;
       }
     }
       
@@ -599,9 +600,9 @@ function renderOrders() {
     if (order.pickup) {
       if (order.pickup.type === 'scheduled') {
         const reqTimeStr = order.pickup.requestedTime?.toDate()?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) || '';
-        platformBadgeHtml += `<div class="kds-platform-badge" style="background: var(--accent); color: white; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 8px;">🕒 ${t('SCHEDULED')}: ${reqTimeStr}</div>`;
+        platformBadgeHtml += `<div class="kds-platform-badge" style="background: var(--accent); color: white; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 8px;">${iconClock(16, 'ui-icon ui-icon-no-margin')} ${t('SCHEDULED')}: ${reqTimeStr}</div>`;
       } else {
-         platformBadgeHtml += `<div class="kds-platform-badge" style="background: rgba(255,255,255,0.2); color: white; display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 8px;">🔥 ${t('ASAP')}</div>`;
+         platformBadgeHtml += `<div class="kds-platform-badge" style="background: rgba(255,255,255,0.2); color: white; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 8px;">${iconFlame(16, 'ui-icon ui-icon-no-margin')} ${t('ASAP')}</div>`;
       }
     }
 
@@ -615,13 +616,13 @@ function renderOrders() {
     // Status action button
     let actionBtnHtml = '';
     if (order.status === 'pending') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-pending" onclick="changeOrderStatus('${order.id}', 'preparing')">▶ START COOKING</button>`;
+      actionBtnHtml = `<button class="kds-card-action kds-btn-pending" onclick="changeOrderStatus('${order.id}', 'preparing')">START COOKING</button>`;
     } else if (order.status === 'preparing') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-preparing" onclick="changeOrderStatus('${order.id}', 'ready')">✓ MARK READY</button>`;
+      actionBtnHtml = `<button class="kds-card-action kds-btn-preparing" onclick="changeOrderStatus('${order.id}', 'ready')">${iconCheck(16, 'ui-icon')} MARK READY</button>`;
     } else if (order.status === 'ready') {
-      actionBtnHtml = `<button class="kds-card-action kds-btn-ready" onclick="changeOrderStatus('${order.id}', 'completed')">✓ COMPLETE</button>`;
+      actionBtnHtml = `<button class="kds-card-action kds-btn-ready" onclick="changeOrderStatus('${order.id}', 'completed')">${iconCheck(16, 'ui-icon')} COMPLETE</button>`;
     } else if (order.status === 'completed') {
-      actionBtnHtml = `<div class="kds-card-done-label">✓ DONE</div>`;
+      actionBtnHtml = `<div class="kds-card-done-label">${iconCheck(16, 'ui-icon')} DONE</div>`;
     }
 
     card.innerHTML = `
@@ -635,7 +636,7 @@ function renderOrders() {
             <div class="kds-card-elapsed">${timeDisplay}</div>
             <div class="kds-card-time">${formatTime(order.createdAt)}</div>
           </div>
-          <button class="kds-card-remove-btn" onclick="hideOrder('${order.id}')" aria-label="Remove Order">✕</button>
+          <button class="kds-card-remove-btn" onclick="hideOrder('${order.id}')" aria-label="Remove Order">${iconX(14, 'ui-icon ui-icon-no-margin')}</button>
         </div>
       </div>
       ${platformBadgeHtml}

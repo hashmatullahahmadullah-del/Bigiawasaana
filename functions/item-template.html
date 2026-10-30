@@ -7,10 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{TITLE}}</title>
   <meta name="description" content="{{META_DESC}}">
-  <meta name="keywords" content="{{META_KEYWORDS}}">
   {{META_ROBOTS}}
 
-  <link rel="canonical" href="https://bigiawasaana.com/item/{{ITEM_SLUG}}">
+  <link rel="canonical" href="https://www.bigiawasaana.com/item/{{ITEM_SLUG}}">
 
   <link rel="icon" type="image/jpeg" href="/favicon.jpg">
 
@@ -18,7 +17,7 @@
   <meta property="og:title" content="{{TITLE}}">
   <meta property="og:description" content="{{META_DESC}}">
   <meta property="og:type" content="restaurant">
-  <meta property="og:url" content="https://bigiawasaana.com/item/{{ITEM_SLUG}}">
+  <meta property="og:url" content="https://www.bigiawasaana.com/item/{{ITEM_SLUG}}">
   <meta property="og:locale" content="en_US">
   <meta property="og:image" content="{{OG_IMAGE}}">
   
@@ -29,16 +28,27 @@
 
   <!-- Schema Data -->
   {{SCHEMA_DATA}}
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  
+  
 
-  <script type="module" crossorigin src="/assets/modulepreload-polyfill-CC_37BaN.js"></script>
-  <script type="module" crossorigin src="/assets/index.esm-pDFsUPFd.js"></script>
-  <script type="module" crossorigin src="/assets/firebase-DgaPNSpc.js"></script>
-  <script type="module" crossorigin src="/assets/index.esm-DvyZrb1c.js"></script>
-  <script type="module" crossorigin src="/assets/i18n-BsDcoE3H.js"></script>
-  <script type="module" crossorigin src="/assets/main-D8n3YG4K.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/style-BX5drmUd.css">
-  <link rel="stylesheet" crossorigin href="/assets/mobile-nav-DddCCUSr.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/assets/modulepreload-polyfill-BQdWdB5M.js"></script>
+  <script type="module" crossorigin src="/assets/preload-helper-BlojH8Eq.js"></script>
+  <script type="module" crossorigin src="/assets/rolldown-runtime-CQdaUd_C.js"></script>
+  <script type="module" crossorigin src="/assets/vendor-firebase-app-BbJWkEE5.js"></script>
+  <script type="module" crossorigin src="/assets/vendor-firebase-firestore-D7RqVGmE.js"></script>
+  <script type="module" crossorigin src="/assets/firebase-DcbiDMTt.js"></script>
+  <script type="module" crossorigin src="/assets/analytics-D8B4XyPD.js"></script>
+  <script type="module" crossorigin src="/assets/vendor-icons-Dd7EHmUJ.js"></script>
+  <script type="module" crossorigin src="/assets/main-KtDloFvH.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/style-DvH3_y7g.css">
+  <link rel="stylesheet" crossorigin href="/assets/mobile-nav-DGGLcHT_.css">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
+  <link rel="stylesheet" href="/src/account-auth.css">
 </head>
 <body>
 
@@ -46,32 +56,42 @@
   <nav class="site-nav">
     <div class="container">
       <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
-        <img src="/logo.webp" alt="Bigi Awasaana Logo" width="128" height="64">
+        <img src="/logo.webp" alt="Bigi Awasaana Logo" width="128" height="64" fetchpriority="high">
       </a>
       <ul class="nav-links">
         <li><a href="/menu" data-i18n="nav.menu">Menu</a></li>
-        <li><a href="/specials" data-i18n="nav.specials">Specials</a></li>
-        <li><a href="/locations" data-i18n="nav.location">Location</a></li>
+        <li><a href="/menu" class="nav-cta-primary">ORDER NOW</a></li>
+        <li><a href="/locations" data-i18n="nav.location">Location & Hours</a></li>
         <li><a href="/catering" data-i18n="nav.catering">Catering</a></li>
-        <li><a href="/#delivery" data-i18n="nav.delivery">Delivery</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/shop" style="color: var(--accent); font-weight: 600;">Shop</a></li>
+        <li><a href="/order-history.html" data-i18n="nav.orders">My Orders</a></li>
         <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
-        <li><a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a></li>
+        <li><a href="tel:+13239211646" class="nav-cta-outline">(323) 921-1646</a></li>
       </ul>
-      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="nav-actions">
+        <button type="button" class="nav-mobile-signin-btn" id="nav-mobile-signin-btn" aria-label="Sign In or Account">
+          <svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="nav-signin-text">Sign In</span>
+        </button>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </nav>
 
   <!-- Mobile Drawer -->
   <div class="nav-mobile-drawer" id="nav-mobile-drawer">
     <a href="/menu" data-i18n="nav.menu">Menu</a>
-    <a href="/specials" data-i18n="nav.specials">Specials</a>
-    <a href="/locations" data-i18n="nav.location">Location</a>
+    <a href="/menu" style="color: var(--accent); font-weight: 700;">Order Now</a>
+    <a href="/order-history.html" data-i18n="nav.orders" style="font-weight: 600;">My Orders & Rewards</a>
+    <a href="/locations" data-i18n="nav.location">Location & Hours</a>
     <a href="/catering" data-i18n="nav.catering">Catering</a>
-    <a href="/#delivery" data-i18n="nav.delivery">Delivery</a>
-    <button class="site-lang-toggle btn-outline" aria-label="Switch language" style="margin: 0 24px 16px 24px; padding: 6px 12px; font-size: 14px; font-family: 'Outfit'; width: fit-content; cursor: pointer;">EN | فا</button>
-    <a href="tel:+13239211646" class="nav-cta">📞 (323) 921-1646</a>
+    <a href="/blog">Blog</a>
+    <a href="/shop" style="color: var(--accent); font-weight: 700;">Shop</a>
+    <button class="site-lang-toggle" aria-label="Switch language" style="margin: 16px 24px 16px 24px; padding: 8px 16px; font-size: 14px; font-family: 'Outfit', sans-serif; width: fit-content; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; letter-spacing: 1px; font-weight: 500;">EN | فا</button>
+    <a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a>
   </div>
 
   <main id="main-content">
@@ -93,7 +113,7 @@
           <div class="footer-label">Explore</div>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <a href="/menu" class="footer-link">Menu</a>
-            <a href="/specials" class="footer-link">Specials</a>
+            <a href="/shop" class="footer-link">Shop</a>            <a href="/specials" class="footer-link">Specials</a>
             <a href="/locations" class="footer-link">Location & Hours</a>
             <a href="/catering" class="footer-link">Catering</a>
             <a href="/faq" class="footer-link">FAQ</a>
@@ -103,7 +123,7 @@
         <div class="text-center-mobile">
           <div class="footer-label">Visit Us</div>
           <p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">18411 Victory Blvd<br>Reseda, CA 91335</p>
-          <p style="font-size: 13px; color: var(--gray);"><span class="footer-hours-display">Every Day 12PM–10:30PM</span></p>
+          <p style="font-size: 13px; color: var(--gray);"><span class="footer-hours-display">Mon–Sat 01:00 PM–10:30 PM (Sun Closed)</span></p>
         </div>
         <!-- 4. Connect -->
         <div class="text-center-mobile">
@@ -129,56 +149,6 @@
       </div>
     </div>
   </footer>
-
-  <!-- Cart FAB (hidden until launch) -->
-  <button class="btn-primary cart-fab" onclick="toggleCart(true)" id="cart-fab" aria-label="Open cart" style="display: none;">
-    <span style="font-size: 16px;">BAG</span>
-    <span id="cart-count-badge" class="cart-badge">0</span>
-  </button>
-
-  <!-- Cart Drawer (hidden until launch) -->
-  <div id="cart-drawer" style="position: fixed; top: 0; bottom: 0; right: -100%; width: 100%; max-width: 460px; height: 100%; z-index: 2000; transition: right 0.4s var(--ease); display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,0.5);">
-    <div style="padding: var(--space-m); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="font-size: 18px; letter-spacing: 2px;">YOUR ORDER</h2>
-      <button onclick="toggleCart(false)" aria-label="Close cart" style="background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; padding: 10px;">&times;</button>
-    </div>
-    
-    <div id="cart-items" style="flex: 1; overflow-y: auto; padding: var(--space-m);"></div>
-
-    <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface);">
-      <div style="margin-bottom: var(--space-s);">
-        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Order Name</label>
-        <input type="text" id="customer-name" placeholder="E.g., John Doe" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
-      </div>
-      <div style="margin-bottom: var(--space-m);">
-        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Phone Number</label>
-        <input type="tel" id="customer-phone" placeholder="(123) 456-7890" style="width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 2px;" required>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-m); font-size: 20px; font-weight: 700; font-family: 'Barlow Condensed'; letter-spacing: 1px;">
-        <span>TOTAL</span>
-        <span id="cart-total">$0.00</span>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button class="btn-primary" style="width: 100%;" onclick="placeOrder('cloud')">Confirm Order</button>
-        <button class="btn-outline" style="width: 100%; background: #25D366; color: #fff; border: none;" onclick="placeOrder('whatsapp')">Order via WhatsApp</button>
-      </div>
-      <p style="font-size: 10px; color: var(--gray); text-align: center; margin-top: 16px; letter-spacing: 0.5px; line-height: 1.4;">Pay with cash at pickup. All orders include live tracking.</p>
-
-      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center;">
-        <p style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; margin-bottom: 12px;">Prefer Delivery?</p>
-        <div style="display: flex; gap: 8px; justify-content: center;">
-          <a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" class="delivery-btn delivery-btn-ubereats delivery-btn-sm">
-            <img loading="lazy" src="/ubereats_logo.svg" alt="Uber Eats">
-          </a>
-          <a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" class="delivery-btn delivery-btn-doordash delivery-btn-sm">
-            <img loading="lazy" src="/doordash_logo.svg" alt="DoorDash">
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Item Details Modal -->
   <div id="item-details-modal" class="payment-modal-overlay" style="display: none;">
@@ -213,5 +183,6 @@
   </div>
 
   <div id="toast-container"></div>
+  <script type="module" src="/nav.bundle.js"></script>
 </body>
 </html>

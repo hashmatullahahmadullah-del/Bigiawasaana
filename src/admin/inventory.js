@@ -3,6 +3,7 @@ import { state } from './shared.js';
 import { db } from '../firebase.js';
 import { collection, doc, updateDoc, addDoc, setDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { t } from '../i18n/index.js';
+import { iconAlertTriangle } from '../icons.js';
 
 
 
@@ -70,7 +71,7 @@ export function renderEconomicsDashboardAlert() {
   if (!container) return;
   
   let flaggedItems = [];
-  Object.entries(window.adminMenuData || {}).forEach(([id, item]) => {
+  Object.entries(window.adminMenuData || {}).forEach(([, item]) => {
     const eco = calculateItemEconomics(item);
     if (eco.foodCostPercent > (state.unitSettings.foodCostWarningThreshold || 30)) {
       flaggedItems.push({ name: item.name, percent: eco.foodCostPercent });
@@ -79,7 +80,7 @@ export function renderEconomicsDashboardAlert() {
 
   if (flaggedItems.length > 0) {
     let alertHtml = `<div style="background: rgba(244, 67, 54, 0.1); border-left: 4px solid #f44336; padding: 16px; border-radius: 4px;">`;
-    alertHtml += `<h3 style="color: #f44336; margin: 0 0 8px 0; font-family: 'Barlow Condensed'; font-size: 18px; letter-spacing: 1px;">⚠️ High Food Cost Alert</h3>`;
+    alertHtml += `<h3 style="color: #f44336; margin: 0 0 8px 0; font-family: 'Barlow Condensed'; font-size: 18px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">${iconAlertTriangle(18, 'ui-icon ui-icon-no-margin')} High Food Cost Alert</h3>`;
     alertHtml += `<ul style="margin: 0; padding-left: 20px; color: var(--gray); font-size: 14px;">`;
     flaggedItems.forEach(i => {
       alertHtml += `<li><strong>${i.name}</strong> is running at <span style="color: #f44336; font-weight: bold;">${i.percent.toFixed(1)}%</span> food cost.</li>`;

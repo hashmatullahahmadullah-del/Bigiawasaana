@@ -1,6 +1,7 @@
 import { db } from './firebase.js';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { initNav } from './nav.js';
+import { iconCheckCircle, iconAlertTriangle } from './icons.js';
 
 // Init mobile nav
 initNav();
@@ -58,11 +59,13 @@ if (cateringForm) {
 
       // Success
       cateringForm.reset();
-      catStatus.style.display = 'block';
+      catStatus.style.display = 'flex';
+      catStatus.style.alignItems = 'center';
+      catStatus.style.gap = '8px';
       catStatus.style.background = 'rgba(37, 211, 102, 0.1)';
       catStatus.style.borderColor = '#25D366';
       catStatus.style.color = '#25D366';
-      catStatus.textContent = '✅ Inquiry sent! We will contact you within 24 hours.';
+      catStatus.innerHTML = `${iconCheckCircle(18)} Inquiry sent! We will contact you within 24 hours.`;
 
       setTimeout(() => {
         catStatus.style.display = 'none';
@@ -70,11 +73,13 @@ if (cateringForm) {
 
     } catch (err) {
       console.error('Catering form error:', err);
-      catStatus.style.display = 'block';
+      catStatus.style.display = 'flex';
+      catStatus.style.alignItems = 'center';
+      catStatus.style.gap = '8px';
       catStatus.style.background = 'rgba(255,69,0,0.1)';
       catStatus.style.borderColor = 'var(--accent)';
       catStatus.style.color = 'var(--accent)';
-      catStatus.textContent = '❌ Something went wrong. Please call us at (323) 421-1646.';
+      catStatus.innerHTML = `${iconAlertTriangle(18)} Something went wrong. Please call us at (323) 421-1646.`;
     } finally {
       catSubmitBtn.disabled = false;
       catSubmitBtn.textContent = 'Submit Inquiry';

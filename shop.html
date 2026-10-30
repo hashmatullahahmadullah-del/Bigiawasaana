@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="canonical" href="https://www.bigiawasaana.com/shop">
+  <title>Bigi Spices & Retail | Nationwide Shipping</title>
+  <meta name="description" content="Shop Bigi Awasaana's authentic Afghan spices. Nationwide shipping available.">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#111111">
+  <link rel="apple-touch-icon" href="/logo.webp">
+  
+  <!-- Square Web Payments SDK -->
+  <script src="https://web.squarecdn.com/v1/square.js"></script>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Bigi Spices & Retail | Nationwide Shipping">
+  <meta property="og:description" content="Shop Bigi Awasaana's authentic Afghan spices and specialty products. Shipped nationwide to your door.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.bigiawasaana.com/shop">
+  <meta property="og:image" content="https://www.bigiawasaana.com/hero-food-spread.jpg">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Bigi Spices & Retail | Nationwide Shipping | Bigi Awasaana">
+  <meta name="twitter:description" content="Shop Bigi Awasaana's authentic Afghan spices and specialty products. Shipped nationwide to your door.">
+  <meta name="twitter:image" content="https://www.bigiawasaana.com/hero-food-spread.jpg">
+
+  <!-- Shop Schema -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Store",
+  "name": "Bigi Awasaana Spices & Retail",
+  "url": "https://www.bigiawasaana.com/shop",
+  "description": "Authentic Afghan spices and specialty products shipped nationwide.",
+  "image": "https://www.bigiawasaana.com/hero-food-spread.jpg",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "18351 Sherman Way",
+    "addressLocality": "Reseda",
+    "addressRegion": "CA",
+    "postalCode": "91335",
+    "addressCountry": "US"
+  }
+}
+  </script>
+
+  <!-- Breadcrumb Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.bigiawasaana.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Menu", "item": "https://www.bigiawasaana.com/menu" }
+    ]
+  }
+  </script>
+  
+  
+  
+  <meta name="thumbnail" content="https://www.bigiawasaana.com/hero-food-spread.jpg">
+  <!-- Square Web Payments SDK -->
+  <script src="https://web.squarecdn.com/v1/square.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
+        <img src="/logo.webp" alt="Bigi Awasaana Logo" width="128" height="64" fetchpriority="high">
+      </a>
+      <ul class="nav-links">
+        <li><a href="/menu" data-i18n="nav.menu">Menu</a></li>
+        <li><a href="/menu" class="nav-cta-primary">ORDER NOW</a></li>
+        <li><a href="/locations" data-i18n="nav.location">Location & Hours</a></li>
+        <li><a href="/catering" data-i18n="nav.catering">Catering</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/shop" class="active" style="color: var(--accent); font-weight: 600;">Shop</a></li>
+        <li><a href="/order-history.html" data-i18n="nav.orders">My Orders</a></li>
+        <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><a href="tel:+13239211646" class="nav-cta-outline">(323) 921-1646</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button type="button" class="nav-mobile-signin-btn" id="nav-mobile-signin-btn" aria-label="Sign In or Account">
+          <svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="nav-signin-text">Sign In</span>
+        </button>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+      <div class="nav-mobile-drawer" id="nav-mobile-drawer">
+    <a href="/menu" data-i18n="nav.menu">Menu</a>
+    <a href="/menu" style="color: var(--accent); font-weight: 700;">Order Now</a>
+    <a href="/order-history.html" data-i18n="nav.orders" style="font-weight: 600;">My Orders & Rewards</a>
+    <a href="/locations" data-i18n="nav.location">Location & Hours</a>
+    <a href="/catering" data-i18n="nav.catering">Catering</a>
+    <a href="/blog">Blog</a>
+    <a href="/shop" style="color: var(--accent); font-weight: 700;">Shop</a>
+    <button class="site-lang-toggle" aria-label="Switch language" style="margin: 16px 24px 16px 24px; padding: 8px 16px; font-size: 14px; font-family: 'Outfit', sans-serif; width: fit-content; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; letter-spacing: 1px; font-weight: 500;">EN | فا</button>
+    <a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a>
+  </div>
+
+  <main id="main-content">
+  <!-- Shop Header with Background Image -->
+  <header class="page-header py-xl" style="position: relative; background-image: url('/hero-food-spread.jpg'); background-size: cover; background-position: center; padding: 80px 20px;">
+    <!-- Dark Gradient Overlay -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(17,17,17,0.7) 0%, rgba(17,17,17,0.95) 100%); z-index: 1;"></div>
+    
+    <div class="container" style="position: relative; z-index: 2; text-align: center;">
+      <h1 class="font-lalezar" style="font-size: clamp(40px, 8vw, 72px); line-height: 1.1; margin-bottom: 12px; color: var(--white); text-shadow: 0 4px 12px rgba(0,0,0,0.5);">BIGI SPICES & RETAIL</h1>
+      <p style="color: #e0e0e0; font-size: 18px; max-width: 600px; margin: 0 auto 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Authentic Afghan spices & specialty products — shipped nationwide directly to your door.</p>
+      
+      <div style="display: inline-block; background: rgba(230, 81, 0, 0.15); border: 1px solid var(--accent); padding: 8px 16px; border-radius: 4px;">
+        <p style="color: var(--accent); font-size: 14px; font-weight: 700; font-family: 'Barlow Condensed'; letter-spacing: 2px; text-transform: uppercase; margin: 0; display: inline-flex; align-items: center; gap: 6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> FAST NATIONWIDE SHIPPING</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Trust Badges Section -->
+  <section style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 24px 20px;">
+    <div class="container" style="display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 16px; color: var(--white);">
+        <div style="color: var(--gray);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1px; color: var(--white);">SECURE CHECKOUT</h4>
+          <p style="margin: 0; font-size: 13px; color: var(--gray);">256-bit encrypted payments</p>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; color: var(--white);">
+        <div style="color: var(--gray);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1px; color: var(--white);">PREMIUM QUALITY</h4>
+          <p style="margin: 0; font-size: 13px; color: var(--gray);">Authentic & hand-mixed</p>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; color: var(--white);">
+        <div style="color: var(--gray);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1px; color: var(--white);">FAST DISPATCH</h4>
+          <p style="margin: 0; font-size: 13px; color: var(--gray);">Orders ship within 48 hrs</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Retail Products (Populated by shop.js) -->
+  <section id="menu" class="menu-section py-l" style="padding-top: 64px; padding-bottom: 80px;">
+    <div class="container">
+      <div id="menu-grid" class="menu-grid reveal"></div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- 1. Brand -->
+        <div class="text-center-mobile">
+          <a href="/"><img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
+          <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Real food. Real flavor. Bigi Awasaana.</p>
+        </div>
+        <!-- 2. Explore -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Explore</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="/menu" class="footer-link">Menu</a>
+            <a href="/shop" class="footer-link">Shop</a>            <a href="/locations" class="footer-link">Location & Hours</a>
+            <a href="/catering" class="footer-link">Catering</a>
+            <a href="/specials" class="footer-link">Specials</a>
+            <a href="/blog" class="footer-link">Blog</a>
+            <a href="/faq" class="footer-link">FAQ</a>
+          </div>
+        </div>
+        <!-- 3. Visit Us -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Visit Us</div>
+          <p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">18411 Victory Blvd<br>Reseda, CA 91335</p>
+          <p style="font-size: 13px; color: var(--gray);"><span class="footer-hours-display">Mon–Sat 01:00 PM–10:30 PM (Sun Closed)</span></p>
+        </div>
+        <!-- 4. Connect -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Connect</div>
+          <p style="font-size: 13px; margin-bottom: 8px;"><a href="tel:+13239211646" class="footer-link">(323) 921-1646</a></p>
+          <p style="font-size: 13px; margin-bottom: 16px;"><a href="mailto:bigiawasaana@gmail.com" class="footer-link">bigiawasaana@gmail.com</a></p>
+          <div class="social-icons" style="display: flex; gap: 12px; justify-content: flex-start;">
+            <a href="https://www.instagram.com/bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+            <a href="https://www.tiktok.com/@bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="TikTok"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 15.68a6.34 6.34 0 0 0 6.27 6.36 6.34 6.34 0 0 0 6.25-6.36V7.98a8.51 8.51 0 0 0 4.33 1.15V5.55a4.93 4.93 0 0 1-2.26-.86z"/></svg></a>
+            <a href="https://www.facebook.com/bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.312h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg></a>
+            <a href="https://www.youtube.com/@bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.501 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.377.55 9.377.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+        <p style="margin: 0;">&copy; 2026 Bigi Awasaana. All rights reserved.</p>
+        <div style="display: flex; gap: 16px;">
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Cart FAB (always visible) -->
+  <button class="btn-primary cart-fab" onclick="toggleCart(true)" id="cart-fab" aria-label="Open cart">
+    <span style="font-size: 16px;">BAG</span>
+    <span id="cart-count-badge" class="cart-badge">0</span>
+  </button>
+
+  <!-- Cart Drawer -->
+  <div id="cart-drawer" style="position: fixed; top: 0; bottom: 0; right: -100%; width: 100%; max-width: 460px; height: 100%; z-index: 2000; transition: right 0.4s var(--ease); display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,0.5);">
+    <div style="padding: var(--space-m); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 32px; font-family: 'Barlow Condensed'; font-weight: 700; letter-spacing: 2px; margin: 0;">YOUR BAG</h2>
+      <button onclick="toggleCart(false)" aria-label="Close cart" style="background: none; border: none; color: var(--gray); font-size: 24px; cursor: pointer; padding: 10px;">&times;</button>
+    </div>
+    
+    <div style="flex: 1; min-height: 0; overflow-y: auto; background: var(--bg);">
+      <div id="cart-items" style="padding: var(--space-m);">
+        <!-- Cart items injected here by shop.js -->
+      </div>
+    </div>
+
+    <div style="padding: var(--space-m); border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0;">
+      <!-- Price Breakdown -->
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--gray);">
+          <span>Subtotal</span>
+          <span id="cart-subtotal">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--gray);">
+          <span>Shipping (USPS / UPS)</span>
+          <span id="cart-shipping">$5.00</span>
+        </div>
+        <div style="border-top: 1px dashed var(--border); padding-top: 8px; display: flex; justify-content: space-between; font-size: 20px; font-weight: 700; font-family: 'Barlow Condensed'; letter-spacing: 1px;">
+          <span>TOTAL</span>
+          <span id="cart-total">$0.00</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" style="width: 100%;" onclick="showCheckoutModal()" id="checkout-btn">Proceed to Checkout &rarr;</button>
+      <p style="text-align: center; font-size: 12px; color: var(--gray); margin-top: 8px;">&#128230; Nationwide shipping via USPS &amp; UPS</p>
+      <p style="text-align: center; font-size: 11px; color: var(--gray); margin-top: 4px;">Secure checkout powered by Square</p>
+    </div>
+  </div>
+
+  <!-- Square Payment Modal (overlay) -->
+  <div id="checkout-modal" class="payment-modal-overlay" style="display: none;">
+    <div class="payment-modal">
+      <div class="payment-modal-header">
+        <h2 style="font-size: 32px; letter-spacing: 2px; font-family: 'Barlow Condensed'; font-weight: 700; margin: 0;">SHIPPING CHECKOUT</h2>
+        <button onclick="closeCheckoutModal()" aria-label="Close checkout modal" style="background: none; border: none; color: var(--gray); font-size: 28px; cursor: pointer; padding: 4px 8px; line-height: 1;">&times;</button>
+      </div>
+
+      <div style="margin-bottom: var(--space-s);">
+        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Full Name</label>
+        <input type="text" id="ship-name" placeholder="John Doe" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px;" required>
+      </div>
+      
+      <div style="display: flex; gap: 12px; margin-bottom: var(--space-s);">
+        <div style="flex: 1;">
+          <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Email</label>
+          <input type="email" id="ship-email" placeholder="john@example.com" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px;" required>
+        </div>
+        <div style="flex: 1;">
+          <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Phone</label>
+          <input type="tel" id="ship-phone" placeholder="(123) 456-7890" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px;" required>
+        </div>
+      </div>
+
+      <div style="margin-bottom: var(--space-s);">
+        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Street Address</label>
+        <input type="text" id="ship-address" placeholder="123 Main St" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px;" required>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+        <div style="flex: 2; min-width: 140px;">
+          <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">City</label>
+          <input type="text" id="ship-city" placeholder="Los Angeles" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px;" required>
+        </div>
+        <div style="flex: 1; min-width: 70px;">
+          <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">State</label>
+          <input type="text" id="ship-state" placeholder="CA" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px;" required>
+        </div>
+        <div style="flex: 1; min-width: 90px;">
+          <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">ZIP</label>
+          <input type="text" id="ship-zip" placeholder="90001" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px;" required>
+        </div>
+      </div>
+
+      <div style="margin-bottom: var(--space-m);">
+        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Country</label>
+        <select id="ship-country" style="width: 100%; background: var(--surface); border: 1px solid var(--border); padding: 14px; color: var(--white); font-family: 'Outfit'; font-size: 14px; border-radius: 4px;">
+          <option value="US" selected>United States</option>
+          <option value="CA">Canada</option>
+          <option value="GB">United Kingdom</option>
+          <option value="AU">Australia</option>
+          <option value="MX">Mexico</option>
+          <option value="FR">France</option>
+          <option value="DE">Germany</option>
+          <option value="JP">Japan</option>
+        </select>
+      </div>
+
+      
+      <div id="shipping-options-container" style="margin-bottom: var(--space-m); padding: 16px; background: rgba(255,255,255,0.02); border-radius: 4px; border: 1px solid var(--border);">
+        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 12px;">Shipping Method</label>
+        <div id="shipping-rates-list" style="font-size: 14px; color: var(--gray); display: flex; flex-direction: column; gap: 8px;">
+          Enter your destination ZIP code to calculate live rates...
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        
+        <button id="apple-pay-button" type="button" aria-label="Pay with Apple Pay" style="display: none; width: 100%; height: 44px; margin-bottom: 12px; background: #000; color: #fff; border: 1px solid #000; border-radius: 4px; cursor: pointer; align-items: center; justify-content: center; padding: 0; box-sizing: border-box; -webkit-appearance: -apple-pay-button; -apple-pay-button-type: buy; -apple-pay-button-style: black;">
+          <span class="apple-pay-content" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+            <svg style="width: 16px; height: 20px; fill: currentColor; transform: translateY(-1px);" viewBox="0 0 384 512">
+              <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path>
+            </svg>
+            <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 19px; font-weight: 500; letter-spacing: 0.2px;">Pay</span>
+          </span>
+        </button>
+        <div id="google-pay-button" style="margin-bottom: 12px; display: none; width: 100%; min-height: 44px;"></div>
+<label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 10px;">Payment Details</label>
+        <div id="card-container" style="min-height: 90px;"></div>
+        <div id="card-errors" style="color: #ff4444; font-size: 13px; margin-top: 8px; min-height: 18px;"></div>
+      </div>
+
+      <button id="card-button" class="btn-primary" style="width: 100%; padding: 16px; border-radius: 8px; font-size: 18px; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(230, 81, 0, 0.3);">
+        Submit Order
+      </button>
+    </div>
+  </div>
+
+  </div>
+
+  <div id="toast-container"></div>
+  <script type="module" src="/src/shop.js"></script>
+  <script type="module">
+    import { initNav } from '/src/nav.js';
+    initNav();
+  </script>
+
+  <!-- Product Detail Modal -->
+  <div id="product-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--surface); width: 100%; max-width: 900px; max-height: 90vh; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden;">
+      <button onclick="closeProductModal()" style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.5); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 10;">&times;</button>
+      
+      <div id="product-modal-content" style="display: flex; flex-wrap: wrap; overflow-y: auto;">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

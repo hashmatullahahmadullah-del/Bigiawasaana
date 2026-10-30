@@ -10,8 +10,13 @@ if (!admin.apps.length) {
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 exports.parseReceipt = functions
-  .runWith({ timeoutSeconds: 60, memory: "256MB", secrets: [geminiApiKey] })
+  .runWith({ timeoutSeconds: 120, memory: "256MB", secrets: [geminiApiKey] })
   .https.onCall(async (data, context) => {
+    // Security Check: Only admins can parse receipts
+    if (!context.auth || !context.auth.token || context.auth.token.email !== 'bigiawasaana@gmail.com') {
+      throw new functions.https.HttpsError("permission-denied", "Only administrators can parse receipts.");
+    }
+
     const { storagePath } = data;
 
     if (!storagePath) {
@@ -61,7 +66,7 @@ exports.parseReceipt = functions
 
       // 4. Call Gemini to parse the image
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.1-flash-lite",
         contents: [
           {
             role: 'user',

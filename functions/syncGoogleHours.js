@@ -116,6 +116,11 @@ async function fetchGoogleHours() {
 exports.syncGoogleHours = onCall(
   { region: 'us-central1' },
   async (request) => {
+    // Security Check: Only admins can sync Google hours
+    if (!request.auth || !request.auth.token || request.auth.token.email !== 'bigiawasaana@gmail.com') {
+      throw new HttpsError('permission-denied', 'Only administrators can sync Google hours.');
+    }
+
     const result = await fetchGoogleHours();
 
     const db = admin.firestore();

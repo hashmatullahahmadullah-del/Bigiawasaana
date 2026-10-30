@@ -1,44 +1,93 @@
-import { compressImage } from './menu.js';
 import { showToast } from './orders.js';
 import { escapeHtml } from './shared.js';
-import { app, db, storage } from '../firebase.js';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc, serverTimestamp, limit } from 'firebase/firestore';
+import { app, db } from '../firebase.js';
+import { storage } from '../storage.js';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, getDoc, setDoc, deleteDoc, serverTimestamp, limit, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, deleteObject } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import Chart from 'chart.js/auto';
+import { iconCheckCircle, iconAlertTriangle } from '../icons.js';
 
+
+window.pageViewsChartInst = null;
 
 export function loadAnalytics() {
+  const filterEl = document.getElementById('analytics-date-filter');
+  const filterVal = filterEl ? filterEl.value : '7';
+  
+  // Calculate cutoff timestamp based on filter
+  let cutoffDate = null;
+  const now = new Date();
+  
+  if (filterVal === '1') {
+    // Today: from 00:00:00 of today
+    cutoffDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  } else if (filterVal !== 'all') {
+    const days = parseInt(filterVal, 10) || 7;
+    cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    cutoffDate.setHours(0, 0, 0, 0);
+  }
+
+  // Update chart title based on filter
+  const chartTitleEl = document.getElementById('analytics-chart-title');
+  if (chartTitleEl) {
+    const titleMap = {
+      '1': 'Traffic Overview (Today)',
+      '7': 'Traffic Overview (Last 7 Days)',
+      '30': 'Traffic Overview (Last 30 Days)',
+      '90': 'Traffic Overview (Last 90 Days)',
+      'all': 'Traffic Overview (All Time)'
+    };
+    chartTitleEl.textContent = titleMap[filterVal] || 'Traffic Overview';
+  }
+
   const aq = query(collection(db, 'page_views'), orderBy('timestamp', 'desc'), limit(5000));
   
   if (window.analyticsUnsub) window.analyticsUnsub();
   
   window.analyticsUnsub = onSnapshot(aq, (snapshot) => {
-    // Read date filter
-    const filterEl = document.getElementById('analytics-date-filter');
-    const filterVal = filterEl ? filterEl.value : 'all';
-    
-    let cutoffDate = null;
-    if (filterVal !== 'all') {
-      cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - parseInt(filterVal));
-      cutoffDate.setHours(0, 0, 0, 0);
-    }
-    
     let totalViews = 0;
     let blogViews = 0;
     let menuViews = 0;
     
     const pageCounts = {};
     const referrerCounts = {};
+    const dailyViewsMap = {};
     
+    // Generate empty buckets for the date range so chart is continuous
+    if (filterVal === '1') {
+      // Hours up to now for Today
+      const maxHour = Math.max(12, now.getHours());
+      for (let h = 0; h <= maxHour; h++) {
+        const hourLabel = `${h % 12 === 0 ? 12 : h % 12} ${h >= 12 ? 'PM' : 'AM'}`;
+        dailyViewsMap[hourLabel] = 0;
+      }
+    } else {
+      const daysCount = filterVal === 'all' ? 30 : (parseInt(filterVal, 10) || 7);
+      for (let i = daysCount - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dayNum = String(d.getDate()).padStart(2, '0');
+        const dateKey = `${y}-${m}-${dayNum}`;
+        dailyViewsMap[dateKey] = 0;
+      }
+    }
+
     snapshot.forEach(d => {
       const data = d.data();
       
-      // Date filtering
-      if (cutoffDate && data.timestamp) {
-        const viewDate = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
-        if (viewDate < cutoffDate) return;
+      // Parse timestamp
+      let viewDate = null;
+      if (data.timestamp) {
+        viewDate = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+      }
+      
+      // Apply date filter
+      if (cutoffDate && viewDate && viewDate < cutoffDate) {
+        return;
       }
       
       totalViews++;
@@ -47,7 +96,7 @@ export function loadAnalytics() {
       const referrer = data.referrer || 'Direct';
       
       // Categorize
-      if (path.startsWith('/blog/')) {
+      if (path.startsWith('/blog')) {
         blogViews++;
       }
       if (path.startsWith('/menu')) {
@@ -57,54 +106,303 @@ export function loadAnalytics() {
       // Tally pages
       pageCounts[path] = (pageCounts[path] || 0) + 1;
       
-      // Tally referrers (clean up referrers a bit)
+      // Tally referrers (clean up referrers)
       let cleanRef = referrer;
       try {
-        if (referrer !== 'Direct' && referrer !== 'Internal') {
+        if (referrer && referrer !== 'Direct' && referrer !== 'Internal') {
           const url = new URL(referrer);
-          cleanRef = url.hostname; // e.g. www.google.com
+          cleanRef = url.hostname.replace(/^www\./, '');
         }
-      } catch(e) { console.warn(e); }
-      
+      } catch (e) {
+        cleanRef = referrer;
+      }
       referrerCounts[cleanRef] = (referrerCounts[cleanRef] || 0) + 1;
+      
+      // Tally for chart
+      if (viewDate) {
+        if (filterVal === '1') {
+          const h = viewDate.getHours();
+          const hourLabel = `${h % 12 === 0 ? 12 : h % 12} ${h >= 12 ? 'PM' : 'AM'}`;
+          if (dailyViewsMap[hourLabel] !== undefined) {
+            dailyViewsMap[hourLabel]++;
+          }
+        } else {
+          const y = viewDate.getFullYear();
+          const m = String(viewDate.getMonth() + 1).padStart(2, '0');
+          const dayNum = String(viewDate.getDate()).padStart(2, '0');
+          const dateKey = `${y}-${m}-${dayNum}`;
+          if (dailyViewsMap[dateKey] !== undefined) {
+            dailyViewsMap[dateKey]++;
+          } else if (filterVal === 'all') {
+            dailyViewsMap[dateKey] = (dailyViewsMap[dateKey] || 0) + 1;
+          }
+        }
+      }
     });
     
-    // Update Stats
-    document.getElementById('analytics-total-views').textContent = totalViews;
-    document.getElementById('analytics-blog-views').textContent = blogViews;
-    document.getElementById('analytics-menu-views').textContent = menuViews;
+    // Update Stats Card Numbers
+    const atvEl = document.getElementById('analytics-total-views'); if (atvEl) atvEl.textContent = totalViews.toLocaleString();
+    const abvEl = document.getElementById('analytics-blog-views'); if (abvEl) abvEl.textContent = blogViews.toLocaleString();
+    const amvEl = document.getElementById('analytics-menu-views'); if (amvEl) amvEl.textContent = menuViews.toLocaleString();
+    
+    // Render Chart
+    renderPageViewsChart(dailyViewsMap, filterVal);
     
     // Render Top Pages
-    const sortedPages = Object.keys(pageCounts).map(p => ({ path: p, count: pageCounts[p] })).sort((a, b) => b.count - a.count).slice(0, 10);
-    const topPagesTbody = document.getElementById('analytics-top-pages');
-    if (sortedPages.length === 0) {
-      topPagesTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">No data for this period</td></tr>`;
-    } else {
-      topPagesTbody.innerHTML = sortedPages.map(sp => `
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td data-label="URL Path" style="padding: 12px 0;">${sp.path}</td>
-          <td data-label="Views" style="padding: 12px 0; text-align: right; color: var(--accent); font-weight: 600;">${sp.count}</td>
-        </tr>
-      `).join('');
-    }
+    renderTopPagesTable(pageCounts);
     
     // Render Top Referrers
-    const sortedRefs = Object.keys(referrerCounts).map(r => ({ ref: r, count: referrerCounts[r] })).sort((a, b) => b.count - a.count).slice(0, 10);
-    const topRefsTbody = document.getElementById('analytics-top-sources');
-    if (sortedRefs.length === 0) {
-      topRefsTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 16px; color: var(--gray);">No data for this period</td></tr>`;
-    } else {
-      topRefsTbody.innerHTML = sortedRefs.map(sr => `
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td data-label="Source" style="padding: 12px 0; text-transform: capitalize;">${sr.ref.replace('www.', '')}</td>
-          <td data-label="Visits" style="padding: 12px 0; text-align: right; color: var(--accent); font-weight: 600;">${sr.count}</td>
-        </tr>
-      `).join('');
+    renderTopSourcesTable(referrerCounts);
+  }, (err) => {
+    console.error('Error fetching analytics page views:', err);
+  });
+}
+
+function renderPageViewsChart(dailyViewsMap, filterVal) {
+  const canvas = document.getElementById('pageViewsChart');
+  if (!canvas) return;
+  
+  // Format labels and data points
+  const keys = Object.keys(dailyViewsMap);
+  if (filterVal !== '1') {
+    keys.sort(); // Sort chronological dates
+  }
+  
+  const labels = keys.map(k => {
+    if (filterVal === '1') return k;
+    const parts = k.split('-');
+    if (parts.length === 3) {
+      const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    return k;
+  });
+  
+  const dataPoints = keys.map(k => dailyViewsMap[k]);
+  
+  // Destroy existing chart to prevent canvas reuse errors
+  if (window.pageViewsChartInst) {
+    try {
+      window.pageViewsChartInst.destroy();
+    } catch (e) {
+      // Non-fatal
+    }
+    window.pageViewsChartInst = null;
+  }
+  
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  
+  // Create gradient
+  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+  gradient.addColorStop(0, 'rgba(255, 69, 0, 0.45)');
+  gradient.addColorStop(0.65, 'rgba(255, 69, 0, 0.1)');
+  gradient.addColorStop(1, 'rgba(255, 69, 0, 0.0)');
+  
+  const isMobile = window.innerWidth <= 768;
+  
+  window.pageViewsChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Page Views',
+        data: dataPoints,
+        borderColor: '#ff4500',
+        backgroundColor: gradient,
+        borderWidth: isMobile ? 2 : 2.5,
+        tension: 0.35,
+        fill: true,
+        pointBackgroundColor: '#ff4500',
+        pointBorderColor: '#121212',
+        pointBorderWidth: 2,
+        pointRadius: isMobile ? (keys.length > 14 ? 1.5 : 3) : 4,
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#ff4500'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(18, 18, 18, 0.95)',
+          titleColor: '#fff',
+          bodyColor: '#ff7733',
+          borderColor: 'rgba(255, 69, 0, 0.3)',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              const count = context.parsed.y || 0;
+              return `${count.toLocaleString()} ${count === 1 ? 'view' : 'views'}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.04)',
+            drawBorder: false
+          },
+          ticks: {
+            color: 'rgba(255, 255, 255, 0.55)',
+            font: {
+              family: "'Outfit', sans-serif",
+              size: isMobile ? 10 : 12
+            },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: isMobile ? 6 : 12
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(255, 255, 255, 0.06)',
+            drawBorder: false
+          },
+          ticks: {
+            color: 'rgba(255, 255, 255, 0.55)',
+            font: {
+              family: "'Outfit', sans-serif",
+              size: isMobile ? 10 : 12
+            },
+            precision: 0,
+            stepSize: 1
+          }
+        }
+      }
     }
   });
 }
 
+function renderTopPagesTable(pageCounts) {
+  const topPagesTbody = document.getElementById('analytics-top-pages');
+  if (!topPagesTbody) return;
+  
+  const sortedPages = Object.keys(pageCounts)
+    .map(p => ({ path: p, count: pageCounts[p] }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+    
+  if (sortedPages.length === 0) {
+    topPagesTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">No page view data recorded for this period</td></tr>`;
+    return;
+  }
+  
+  topPagesTbody.innerHTML = sortedPages.map(sp => {
+    let label = sp.path;
+    let badge = 'Page';
+    let badgeColor = 'rgba(255,255,255,0.08)';
+    let badgeTextColor = 'var(--text-muted)';
+    
+    if (sp.path === '/' || sp.path === '/index.html') {
+      label = 'Home (/)';
+      badge = 'Home';
+      badgeColor = 'rgba(255, 69, 0, 0.15)';
+      badgeTextColor = 'var(--accent)';
+    } else if (sp.path.startsWith('/menu')) {
+      label = 'Menu (/menu)';
+      badge = 'Menu';
+      badgeColor = 'rgba(249, 168, 37, 0.15)';
+      badgeTextColor = '#f9a825';
+    } else if (sp.path.startsWith('/blog/')) {
+      label = sp.path.replace('/blog/', '');
+      badge = 'Blog';
+      badgeColor = 'rgba(59, 130, 246, 0.15)';
+      badgeTextColor = '#60a5fa';
+    } else if (sp.path === '/blog') {
+      label = 'Blog Feed (/blog)';
+      badge = 'Blog';
+      badgeColor = 'rgba(59, 130, 246, 0.15)';
+      badgeTextColor = '#60a5fa';
+    } else if (sp.path.startsWith('/locations')) {
+      label = 'Locations & Hours';
+      badge = 'Location';
+    } else if (sp.path.startsWith('/catering')) {
+      label = 'Catering';
+      badge = 'Catering';
+    } else if (sp.path.startsWith('/shop')) {
+      label = 'Shop / Merchandise';
+      badge = 'Shop';
+    }
+    
+    return `
+      <tr style="border-bottom: 1px solid var(--border-admin);">
+        <td style="padding: 12px 16px; max-width: 240px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; overflow: hidden;">
+            <span style="font-size: 11px; font-weight: 700; color: ${badgeTextColor}; background: ${badgeColor}; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; flex-shrink: 0;">${badge}</span>
+            <a href="${sp.path}" target="_blank" rel="noopener" title="${sp.path}" style="color: var(--text-main); text-decoration: none; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+              ${escapeHtml(label)}
+            </a>
+          </div>
+        </td>
+        <td style="padding: 12px 16px; text-align: right; color: var(--accent); font-weight: 700; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; white-space: nowrap;">
+          ${sp.count.toLocaleString()}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderTopSourcesTable(referrerCounts) {
+  const topRefsTbody = document.getElementById('analytics-top-sources');
+  if (!topRefsTbody) return;
+  
+  const sortedRefs = Object.keys(referrerCounts)
+    .map(r => ({ ref: r, count: referrerCounts[r] }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+    
+  if (sortedRefs.length === 0) {
+    topRefsTbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">No referral data recorded for this period</td></tr>`;
+    return;
+  }
+  
+  topRefsTbody.innerHTML = sortedRefs.map(sr => {
+    let icon = '🌐';
+    const lower = sr.ref.toLowerCase();
+    if (lower.includes('google')) icon = '🔍';
+    else if (lower.includes('instagram')) icon = '📸';
+    else if (lower.includes('tiktok')) icon = '🎵';
+    else if (lower.includes('facebook')) icon = '👥';
+    else if (lower.includes('yelp')) icon = '⭐';
+    else if (lower.includes('direct')) icon = '🔗';
+    
+    return `
+      <tr style="border-bottom: 1px solid var(--border-admin);">
+        <td style="padding: 12px 16px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 14px;">${icon}</span>
+            <span style="color: var(--text-main); font-size: 13px; font-weight: 500; text-transform: capitalize;">
+              ${escapeHtml(sr.ref)}
+            </span>
+          </div>
+        </td>
+        <td style="padding: 12px 16px; text-align: right; color: var(--accent); font-weight: 700; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; white-space: nowrap;">
+          ${sr.count.toLocaleString()}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
 window.loadAnalytics = loadAnalytics;
+window.renderPageViewsChart = renderPageViewsChart;
+window.renderTopPagesTable = renderTopPagesTable;
+window.renderTopSourcesTable = renderTopSourcesTable;
 
 // Expense Capture Logic
 {
@@ -238,7 +536,7 @@ window.loadAnalytics = loadAnalytics;
           
           if (result.data && result.data.duplicate) {
                duplicateCount++;
-               try { await deleteObject(storageReference); } catch(e) {}
+               try { await deleteObject(storageReference); } catch(e) { /* ignore */ }
                const dupModal = document.getElementById('duplicate-warning-modal');
                if (dupModal) {
                  document.getElementById('dup-modal-vendor').textContent = result.data.vendor || 'Unknown Vendor';
@@ -296,7 +594,7 @@ window.loadAnalytics = loadAnalytics;
       reviewMeta.innerHTML = `
         <strong>Vendor:</strong> ${data.vendor || "Unknown"} &nbsp;
         <strong>Total:</strong> ${data.total != null ? parseFloat(data.total).toFixed(2) : "\u2014"} &nbsp;
-        ${data.needsReview ? '<span style="color:#b00;">\u26a0 Needs review</span>' : ""}
+        ${data.needsReview ? `<span style="color:#ef4444; display: inline-flex; align-items: center; gap: 4px;">${iconAlertTriangle} Needs review</span>` : ""}
       `;
 
       let ingredientOptions = `<option value="">-- No Link --</option>`;
@@ -371,7 +669,7 @@ window.loadAnalytics = loadAnalytics;
           try { 
             const { deleteObject, ref } = await import('firebase/storage');
             await deleteObject(ref(storage, currentStoragePath)); 
-          } catch (e) {}
+          } catch (e) { /* ignore */ }
         }
         showToast("Draft deleted.");
       } catch (err) {
@@ -454,7 +752,7 @@ window.loadAnalytics = loadAnalytics;
 
         showToast("Expense confirmed!");
 
-        if (statusEl) statusEl.textContent = "✅ Expense confirmed, learned, and inventory updated.";
+        if (statusEl) statusEl.innerHTML = `${iconCheckCircle(16, 'ui-icon')} Expense confirmed, learned, and inventory updated.`;
         reviewSection.classList.remove('open');
           setTimeout(() => reviewSection.style.display = 'none', 300);
         if (receiptActions) receiptActions.style.display = "none";
@@ -477,7 +775,6 @@ window.loadAnalytics = loadAnalytics;
 
   // Setup Expense Analytics Chart
   let expenseChartInst = null;
-  let expenseTopItemsChartInst = null;
   let expenseVendorChartInst = null;
   let priceTrendChartInst = null;
 
@@ -664,7 +961,7 @@ window.loadAnalytics = loadAnalytics;
               alertDiv.style.alignItems = 'center';
               alertDiv.style.gap = '12px';
               alertDiv.innerHTML = `
-                <span style="font-size: 20px;">🚨</span>
+                <span>${iconAlertTriangle(20, 'ui-icon ui-icon-no-margin')}</span>
                 <div>
                   <strong>Price Hike Alert:</strong> 
                   ${itemName} is up <strong>${percentIncrease.toFixed(1)}%</strong> this month. 
@@ -772,7 +1069,6 @@ window.loadAnalytics = loadAnalytics;
 
   const renderExpenseAnalytics = (docsArray) => {
     const ctxCategory = document.getElementById('expenseChart');
-    const ctxTopItems = document.getElementById('expenseTopItemsChart');
     const ctxVendor = document.getElementById('expenseVendorChart');
     if (!ctxCategory) return;
     
@@ -854,7 +1150,7 @@ window.loadAnalytics = loadAnalytics;
         }
         if (catFilter) {
           const lowerCat = catFilter.toLowerCase();
-          sortedItems = sortedItems.filter(([itemName, data]) => (data.category || "").toLowerCase().includes(lowerCat));
+          sortedItems = sortedItems.filter(([, data]) => (data.category || "").toLowerCase().includes(lowerCat));
         }
 
         if (sortedItems.length === 0) {
@@ -1292,7 +1588,7 @@ window.loadAnalytics = loadAnalytics;
               tr.innerHTML = `
                 <td data-label="Date" style="padding: 16px;">${dateStr}</td>
                 <td data-label="Vendor" style="padding: 16px; font-weight: 600;">${vendor} <br><span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">${itemCount} items</span></td>
-                <td data-label="Total" style="padding: 16px; font-weight: bold; color: var(--accent-admin);">$${parsedDataTotal.toFixed(2)}</td>
+                <td data-label="Total" style="padding: 16px; font-weight: bold; color: var(--accent-admin);">${totalStr}</td>
                 <td data-label="Status" style="padding: 16px;">${statusBadge}</td>
                 <td data-label="Action" style="padding: 16px; text-align: right;">
                   <button class="btn-outline btn-small" onclick="window.transferReceiptToInventory('${data.id}')" style="margin-right: 8px;">Transfer to Inv</button>

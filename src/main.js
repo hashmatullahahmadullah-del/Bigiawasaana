@@ -1,10 +1,9 @@
 import './style.css';
-import { db } from './firebase.js';
-import { collection, addDoc, getDocs, serverTimestamp, onSnapshot, query, where } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { app } from './firebase.js';
+import { db, app } from './firebase.js';
+import { collection, addDoc, getDocs, serverTimestamp, onSnapshot, query, where, doc, getDoc } from 'firebase/firestore';
 import { evaluateDeals } from './lib/deals-evaluator.js';
 import { getLang, t } from './i18n/index.js';
+import { iconBolt, iconCard, iconCheck, iconFlame, iconPlus, iconMinus, iconTrash, iconUtensils, iconSparkle, iconGift, iconDrinkCan, iconSkewer, iconVoucher, renderTierBadge } from './icons.js';
 import './analytics.js';
 
 // ─────────────────────────────────────────────────────────────────
@@ -16,16 +15,119 @@ const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
 const SQUARE_LOCATION_ID = import.meta.env.VITE_SQUARE_LOCATION_ID;
 const TAX_RATE = 0.1025; // LA County / Reseda sales tax rate (10.25%)
 
-// Firebase Functions
-const functions = getFunctions(app);
-const processSquarePayment = httpsCallable(functions, 'processSquarePayment');
+// Firebase Functions (lazy loaded only on payment/checkout flow)
+let functionsModulePromise = null;
+async function callFirebaseFunction(name, data) {
+  if (!functionsModulePromise) {
+    functionsModulePromise = import('firebase/functions').then(({ getFunctions, httpsCallable }) => {
+      return { functions: getFunctions(app), httpsCallable };
+    });
+  }
+  const { functions, httpsCallable } = await functionsModulePromise;
+  const callable = httpsCallable(functions, name);
+  return callable(data);
+}
 
-// Menu data loaded from Firestore
-let menuItems = [];
+// Menu data loaded from Firestore (with fallback default plates)
+const DEFAULT_MENU_ITEMS = [
+  {
+    id: 'chicken-tikka-kabob-plate',
+    name: 'Chicken Breast Tikka Kabob Plate',
+    desc: 'Charcoal-grilled halal chicken breast marinated in saffron, garlic, and Afghan spices.',
+    price: 20.99,
+    category: 'afghan plates',
+    img: '/halal-tikka-kabob-los-angeles.webp',
+    featured: true
+  },
+  {
+    id: 'kobideh-kabob-plate',
+    name: "Bigi's Kobideh Kabob Skewer",
+    desc: 'Charcoal-grilled halal ground beef kobideh skewer served with saffron basmati rice and fresh salad.',
+    price: 19.99,
+    category: 'afghan plates',
+    img: '/m-img/1787957249457_BigiAwasaana_KobidehKabob.webp',
+    featured: true
+  },
+  {
+    id: 'beef-tenderloin-tikka-plate',
+    name: 'Beef Tenderloin Tikka Kabob Plate',
+    desc: 'Tender cubes of halal beef tenderloin grilled over natural hardwood lump charcoal.',
+    price: 23.99,
+    category: 'afghan plates',
+    img: '/halal-tikka-kabob-los-angeles.webp',
+    featured: true
+  },
+  {
+    id: 'umtvEZ6d98Rb4K0conY1',
+    name: 'Soft Drink (Can)',
+    desc: 'Chilled canned soda of your choice.',
+    price: 2.45,
+    category: 'drinks',
+    variants: [{ name: 'Coca Cola' }, { name: 'Diet Coke' }, { name: 'Sprite' }, { name: 'Fanta' }]
+  }
+];
+
+let menuItems = [...DEFAULT_MENU_ITEMS];
+window.menuItems = menuItems;
 // State
+const CART_STORAGE_KEY = 'bigi_cart';
 let cart = [];
-let activeDeals = [];
+let activeDeals = [
+  {
+    id: 'kabob-lovers-deal',
+    title: 'Kabob Lovers Deal',
+    description: 'Order any 2 Kabob Plates and get a FREE Soft Drink of your choice!',
+    badge: 'LIMITED TIME COMBO',
+    active: true,
+    showOnSite: true,
+    type: 'free_item',
+    conditions: { minQty: 2 },
+    reward: { rewardItemIds: ['umtvEZ6d98Rb4K0conY1'], discountPercent: 100 }
+  }
+];
 let appliedPromoCodes = []; // list of manually applied codes
+
+function loadSavedCart() {
+  try {
+    const saved = localStorage.getItem(CART_STORAGE_KEY) || localStorage.getItem('bigi_cart_backup');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cart = parsed
+          .filter(i => i && typeof i === 'object')
+          .map(i => {
+            const price = parseFloat(i.price) || parseFloat(i.originalPrice) || 0;
+            const qty = parseInt(i.qty, 10) || 1;
+            return {
+              ...i,
+              name: i.name || 'Menu Item',
+              price: price,
+              qty: Math.max(1, qty),
+              cartKey: i.cartKey || `${i.id || Math.random()}||`
+            };
+          })
+          .filter(i => i.price > 0 || i.isLoyaltyReward || i.isReward || i.isFree);
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load saved cart:', e);
+  }
+}
+
+function saveCart() {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    localStorage.setItem('bigi_cart_backup', JSON.stringify(cart));
+  } catch (e) {
+    console.warn('Failed to save cart:', e);
+  }
+}
+
+// Initial cart load from localStorage immediately
+loadSavedCart();
+window.loadSavedCart = loadSavedCart;
+window.saveCart = saveCart;
+window.updateCartUI = updateCartUI;
 
 let squareCard = null; // Square card payment method instance
 
@@ -38,27 +140,65 @@ let pickupConfig = {
   maxScheduleDaysAhead: 3,
   slotIntervalMinutes: 15,
   prepBufferBeforeCloseMinutes: 30,
-  businessHours: { open: "12:00", close: "22:30" }
+  businessHours: { open: "13:00", close: "22:30" }
 };
 let activeAsapOrderCount = 0;
 
 // Load Pickup Config
-import { doc } from 'firebase/firestore';
-onSnapshot(doc(db, 'settings', 'pickupConfig'), (docSnap) => {
-  if (docSnap.exists()) {
-    pickupConfig = { ...pickupConfig, ...docSnap.data() };
-    updateAsapEstimate();
-    if (typeof checkBusinessHours === 'function') checkBusinessHours();
-    updateFooterHours();
-  }
-});
+const isHomepage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '';
 
-onSnapshot(doc(db, 'liveStats', 'current'), (docSnap) => {
-  if (docSnap.exists()) {
-    activeAsapOrderCount = docSnap.data().activeAsapOrderCount || 0;
-    updateAsapEstimate();
+if (isHomepage) {
+  // 1. Sync store hours synchronously from localStorage cache to prevent layout shift
+  try {
+    const cachedConfig = localStorage.getItem('pickupConfig');
+    if (cachedConfig) {
+      pickupConfig = { ...pickupConfig, ...JSON.parse(cachedConfig) };
+      if (typeof checkBusinessHours === 'function') checkBusinessHours();
+      updateFooterHours();
+    }
+  } catch (e) {}
+
+  // 2. Fetch single one-time getDoc after first paint without opening long-lived channels
+  const fetchStoreConfig = async () => {
+    try {
+      const docSnap = await getDoc(doc(db, 'settings', 'pickupConfig'));
+      if (docSnap.exists()) {
+        pickupConfig = { ...pickupConfig, ...docSnap.data() };
+        try { localStorage.setItem('pickupConfig', JSON.stringify(pickupConfig)); } catch (e) {}
+        if (typeof checkBusinessHours === 'function') checkBusinessHours();
+        updateFooterHours();
+      }
+    } catch (e) {
+      // Fail silently without console errors on network timeout
+    }
+  };
+
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(fetchStoreConfig, { timeout: 3500 });
+    } else {
+      setTimeout(fetchStoreConfig, 1500);
+    }
   }
-});
+} else {
+  // Realtime listeners for active ordering surfaces (menu, checkout, cart)
+  onSnapshot(doc(db, 'settings', 'pickupConfig'), (docSnap) => {
+    if (docSnap.exists()) {
+      pickupConfig = { ...pickupConfig, ...docSnap.data() };
+      try { localStorage.setItem('pickupConfig', JSON.stringify(pickupConfig)); } catch (e) {}
+      updateAsapEstimate();
+      if (typeof checkBusinessHours === 'function') checkBusinessHours();
+      updateFooterHours();
+    }
+  }, () => {});
+
+  onSnapshot(doc(db, 'liveStats', 'current'), (docSnap) => {
+    if (docSnap.exists()) {
+      activeAsapOrderCount = docSnap.data().activeAsapOrderCount || 0;
+      updateAsapEstimate();
+    }
+  }, () => {});
+}
 
 function updateFooterHours() {
   if (!pickupConfig.businessHours) return;
@@ -78,9 +218,15 @@ function updateFooterHours() {
   }
 
   const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const openDaysStr = pickupConfig.openDays && pickupConfig.openDays.length === 7 
-    ? 'Every Day' 
-    : (pickupConfig.openDays || [0,1,2,3,4,5,6]).map(d => daysMap[d].substring(0,3)).join(', ');
+  const openDays = pickupConfig.openDays || [1, 2, 3, 4, 5, 6];
+  let openDaysStr = 'Mon–Sat (Sun Closed)';
+  if (openDays.length === 7) {
+    openDaysStr = 'Every Day';
+  } else if (openDays.length === 6 && !openDays.includes(0)) {
+    openDaysStr = 'Mon–Sat (Sun Closed)';
+  } else {
+    openDaysStr = openDays.map(d => daysMap[d].substring(0,3)).join(', ');
+  }
     
   function formatTime(time24) {
     const [h, m] = time24.split(':').map(Number);
@@ -93,13 +239,13 @@ function updateFooterHours() {
   const openTime = formatTime(pickupConfig.businessHours.open);
   const closeTime = formatTime(pickupConfig.businessHours.close);
   
-  // Format 1: "Every Day 12PM-10:30PM"
+  // Format 1: e.g. "Mon–Sat (Sun Closed) 1:00 PM–10:30 PM"
   const fullText = `${openDaysStr} ${openTime}–${closeTime}`;
   document.querySelectorAll('.footer-hours-display').forEach(el => {
     el.textContent = fullText;
   });
   
-  // Format 2: "12:00 PM - 10:30 PM" (Used in hero/location headers)
+  // Format 2: e.g. "1:00 PM – 10:30 PM" (Used in hero/location headers)
   const timeOnlyText = `${openTime} – ${closeTime}`;
   document.querySelectorAll('.hero-hours-display').forEach(el => {
     el.textContent = timeOnlyText;
@@ -122,7 +268,7 @@ function checkBusinessHours() {
     window.isStoreClosed = true;
 
     let banner = document.getElementById('store-closed-banner');
-    const message = 'We are temporarily closed. Please check back soon for updates on our reopening. Thank you for your patience! 🙏';
+    const message = 'We are temporarily closed. Please check back soon for updates on our reopening. Thank you for your patience!';
 
     if (!banner) {
       banner = document.createElement('div');
@@ -200,8 +346,24 @@ function checkBusinessHours() {
       }
       banner.innerHTML = `<span><svg style="width:20px;height:20px;fill:currentColor;vertical-align:middle;margin-right:8px" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-.22-13h-.06c-.4 0-.72.32-.72.72v4.72c0 .35.18.68.49.86l4.15 2.49c.34.2.78.1.98-.24a.71.71 0 00-.25-.99l-3.87-2.3V7.72c0-.4-.32-.72-.72-.72z"/></svg>${message}</span>`;
     }
+    document.body.classList.add('has-store-closed-banner');
+    const updateBannerHeight = () => {
+      requestAnimationFrame(() => {
+        if (banner) {
+          const h = banner.getBoundingClientRect().height;
+          if (h) document.documentElement.style.setProperty('--banner-height', `${Math.round(h)}px`);
+        }
+      });
+    };
+    updateBannerHeight();
+    if (!window.__bannerResizeBound) {
+      window.__bannerResizeBound = true;
+      window.addEventListener('resize', updateBannerHeight);
+    }
   } else {
     if (banner) banner.remove();
+    document.body.classList.remove('has-store-closed-banner');
+    document.documentElement.style.setProperty('--banner-height', '0px');
   }
 }
 
@@ -324,6 +486,17 @@ function updateTimeSlots() {
 // ─────────────────────────────────────────────────────────────────
 async function loadMenuFromFirestore() {
   const grid = document.getElementById('menu-grid');
+  if (!grid) {
+    if (document.getElementById('featured-menu-grid')) {
+      renderFeaturedMenu();
+    }
+    return;
+  }
+  await fetchMenuData();
+}
+
+async function fetchMenuData() {
+  const grid = document.getElementById('menu-grid');
   if (grid) {
     grid.innerHTML = `
       <div class="skeleton-card">
@@ -376,6 +549,7 @@ async function loadMenuFromFirestore() {
       }
 
       menuItems = snapshot.docs.map(doc => {
+        window.menuItems = menuItems;
         const data = doc.data();
         return {
           id: doc.id,
@@ -406,6 +580,9 @@ async function loadMenuFromFirestore() {
       if (typeof window.renderSpecials === 'function') {
         window.renderSpecials();
       }
+      if (typeof handleDealParam === 'function') {
+        handleDealParam();
+      }
     }
   } catch (error) {
     console.error('Error loading menu from Firestore:', error);
@@ -420,6 +597,242 @@ async function loadMenuFromFirestore() {
 
   renderMenu('all');
   initDealsListener();
+  handleReorderParam();
+  handleAddItemParam();
+  handleDealParam();
+  handleRedeemParam();
+}
+
+
+
+function addToCartRewardItem(item, reward) {
+  const cartKey = 'reward_' + (reward.voucherCode || item.id);
+  const existing = cart.find(i => i.cartKey === cartKey || (i.isLoyaltyReward && i.voucherCode === reward.voucherCode));
+  if (existing) {
+    showToast('Reward item is already in your bag!');
+    if (typeof toggleCart === 'function') toggleCart(true);
+    return;
+  }
+
+  cart.push({
+    id: item.id,
+    cartKey: cartKey,
+    name: item.name || reward.rewardTitle || 'Reward Item',
+    price: 0.00,
+    originalPrice: item.price || 0.00,
+    qty: 1,
+    img: item.img || reward.imageUrl || '',
+    isLoyaltyReward: true,
+    voucherCode: reward.voucherCode,
+    rewardId: reward.rewardId,
+    pointsSpent: reward.pointsCost
+  });
+
+  saveCart();
+  updateCartUI();
+  showToast('Added free ' + item.name + ' to your bag!');
+  setTimeout(() => {
+    if (typeof toggleCart === 'function') toggleCart(true);
+  }, 350);
+}
+
+function handleRedeemParam() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const voucher = urlParams.get('redeem') || urlParams.get('voucher');
+    const storedVoucher = sessionStorage.getItem('bigi_pending_reward');
+
+    if (voucher || storedVoucher) {
+      let reward = null;
+      try {
+        if (storedVoucher) reward = JSON.parse(storedVoucher);
+      } catch (e) {}
+
+      const tryAdd = () => {
+        if (menuItems && menuItems.length > 0) {
+          if (reward) {
+            let item = null;
+            if (reward.menuItemId) {
+              item = menuItems.find(m => m.id === reward.menuItemId);
+            }
+            if (!item && reward.menuItemName) {
+              item = menuItems.find(m => m.name && m.name.toLowerCase().includes(reward.menuItemName.toLowerCase()));
+            }
+            if (!item && reward.rewardTitle) {
+              item = menuItems.find(m => m.name && reward.rewardTitle.toLowerCase().includes(m.name.toLowerCase()));
+            }
+
+            if (item) {
+              addToCartRewardItem(item, reward);
+              sessionStorage.removeItem('bigi_pending_reward');
+              const cleanUrl = window.location.pathname;
+              window.history.replaceState({}, document.title, cleanUrl);
+              return true;
+            } else if (reward.rewardType === 'discount_fixed') {
+              sessionStorage.removeItem('bigi_pending_reward');
+              showToast('Loyalty voucher ' + reward.voucherCode + ' ($5 off) applied!');
+              if (typeof toggleCart === 'function') toggleCart(true);
+              const cleanUrl = window.location.pathname;
+              window.history.replaceState({}, document.title, cleanUrl);
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      if (!tryAdd()) {
+        setTimeout(tryAdd, 500);
+        setTimeout(tryAdd, 1500);
+      }
+    }
+  } catch (err) {
+    console.error('Error handling redeem param:', err);
+  }
+}
+
+function handleDealParam() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dealId = urlParams.get('deal');
+    if (!dealId) return;
+
+    const tryOpen = () => {
+      if (typeof openDealModal === 'function' && activeDeals && activeDeals.length > 0) {
+        const found = activeDeals.find(d => d.id === dealId);
+        if (found) {
+          openDealModal(found.id);
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+          return true;
+        }
+      }
+      return false;
+    };
+
+    if (!tryOpen()) {
+      setTimeout(tryOpen, 400);
+      setTimeout(tryOpen, 1000);
+    }
+  } catch (err) {
+    console.error('Error handling deal param:', err);
+  }
+}
+
+function handleAddItemParam() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const addItemId = urlParams.get('addItem');
+    if (!addItemId) return;
+
+    const item = menuItems.find(m => m.id === addItemId);
+    if (!item) return;
+
+    const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
+
+    if (isSimple) {
+      addToCartDirect(item.id);
+      setTimeout(() => {
+        if (typeof toggleCart === 'function') toggleCart(true);
+      }, 350);
+    } else {
+      setTimeout(() => {
+        if (typeof openItemModal === 'function') openItemModal(item.id);
+      }, 350);
+    }
+
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  } catch (err) {
+    console.error('Error handling addItem param:', err);
+  }
+}
+
+async function handleReorderParam() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const reorderId = urlParams.get('reorder');
+    if (!reorderId) return;
+
+    const snap = await getDoc(doc(db, 'orders', reorderId));
+    if (!snap.exists()) {
+      showToast('Could not find past order to reorder.');
+      return;
+    }
+
+    const orderData = snap.data();
+    const orderItems = orderData.items || [];
+    if (orderItems.length === 0) return;
+
+    let addedCount = 0;
+    orderItems.forEach(oi => {
+      let menuItem = null;
+      if (oi.itemId) {
+        menuItem = menuItems.find(m => m.id === oi.itemId);
+      }
+      if (!menuItem) {
+        const cleanName = (oi.name || '').split('(')[0].split('[')[0].trim().toLowerCase();
+        menuItem = menuItems.find(m => m.name.toLowerCase() === cleanName);
+      }
+
+      if (menuItem) {
+        const qty = Math.max(1, parseInt(oi.quantity || oi.qty, 10) || 1);
+        const variantText = oi.selectedVariant || '';
+        const addOnsText = Array.isArray(oi.selectedAddOns) ? oi.selectedAddOns : [];
+        const isMeal = !!oi.isMeal;
+        const mealUpgradeId = oi.mealUpgradeId || null;
+        const mealSuffix = isMeal ? '|MEAL' : '';
+        const cartKey = oi.cartKey || `${menuItem.id}|${variantText}|${addOnsText.join(',')}${mealSuffix}`;
+
+        const oiPrice = parseFloat(oi.price);
+        const basePrice = parseFloat(menuItem.price) || 0;
+        const finalPrice = (!isNaN(oiPrice) && oiPrice > 0) ? oiPrice : basePrice;
+
+        const existing = cart.find(c => c.cartKey === cartKey);
+        if (existing) {
+          existing.qty = (parseInt(existing.qty, 10) || 0) + qty;
+        } else {
+          cart.push({
+            ...menuItem,
+            cartKey,
+            qty,
+            price: finalPrice,
+            originalPrice: basePrice,
+            selectedVariant: variantText,
+            selectedAddOns: addOnsText,
+            isMeal,
+            mealUpgradeId,
+            mealUpgradeCost: 0
+          });
+        }
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      const dealTitle = currentDealItem ? currentDealItem.title : 'Deal';
+  saveCart();
+      updateCartUI();
+      toggleCart(true);
+      showToast(`Added ${addedCount} item${addedCount === 1 ? '' : 's'} from your past order!`);
+      if (orderData.customerName) {
+        const nameInput = document.getElementById('customer-name');
+        if (nameInput && !nameInput.value.trim()) nameInput.value = orderData.customerName;
+      }
+      if (orderData.customerPhone) {
+        const phoneInput = document.getElementById('customer-phone');
+        if (phoneInput && !phoneInput.value.trim()) {
+          phoneInput.value = orderData.customerPhone;
+          phoneInput.dispatchEvent(new Event('blur'));
+        }
+      }
+    }
+
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  } catch (err) {
+    console.error('Error reordering items:', err);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -502,28 +915,31 @@ function renderMenu(category) {
     
     let badgeHtml = '';
     if (item.featured) {
-      badgeHtml = `<div class="menu-badge">⭐ Featured</div>`;
+      badgeHtml = `<div class="menu-badge">Featured</div>`;
     } else if (item.category === 'bigi street meals') {
-      badgeHtml = `<div class="menu-badge">🔥 Special</div>`;
+      badgeHtml = `<div class="menu-badge">Special</div>`;
     }
 
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" loading="lazy" width="400" height="300">`
       : `<div class="premium-fallback">
-           <div class="premium-fallback-icon">🍽</div>
+           <div class="premium-fallback-icon">${iconUtensils(28)}</div>
          </div>`;
          
     const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
     const clickAction = isSimple ? `addToCartDirect('${item.id}', event)` : `openItemModal('${item.id}')`;
+    const itemSlug = item.slug || (item.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     
     card.innerHTML = `
       ${badgeHtml}
-      <div onclick="openItemModal('${item.id}')" style="cursor: pointer;">
+      <a href="/item/${itemSlug}" onclick="if(!event.ctrlKey&&!event.metaKey){event.preventDefault();openItemModal('${item.id}');}" style="cursor: pointer; display: block; text-decoration: none;">
         ${imgHtml}
-      </div>
+      </a>
       <div class="menu-card-content">
-        <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
-        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 INCLUDES FRIES & DRINK</div>` : ''}
+        <a href="/item/${itemSlug}" onclick="if(!event.ctrlKey&&!event.metaKey){event.preventDefault();openItemModal('${item.id}');}" style="text-decoration: none; color: inherit;">
+          <h3 class="menu-card-title" style="cursor: pointer;">${displayName}</h3>
+        </a>
+        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px;">${iconFlame(14)} INCLUDES FRIES & DRINK</div>` : ''}
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${item.price.toFixed(2)}</span>
@@ -549,6 +965,14 @@ function renderFeaturedMenu() {
     featuredItems = menuItems.filter(item => !item.hidden).slice(0, 3);
   }
 
+  window.addFeaturedItemToMenu = function(id, event) {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    window.location.href = `/menu?addItem=${encodeURIComponent(id)}`;
+  };
+
   featuredItems.forEach(item => {
     const card = document.createElement('div');
     card.className = 'menu-card';
@@ -558,34 +982,38 @@ function renderFeaturedMenu() {
     const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
-    let badgeHtml = `<div class="menu-badge">⭐ Featured</div>`;
+    let badgeHtml = `<div class="menu-badge">Featured</div>`;
     
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" width="400" height="300">`
       : `<div class="premium-fallback">
-           <div class="premium-fallback-icon">🍽</div>
+           <div class="premium-fallback-icon">${iconUtensils(28)}</div>
          </div>`;
-         
-    const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
-    const clickAction = isSimple ? `addToCartDirect('${item.id}', event)` : `openItemModal('${item.id}')`;
+    
+    const itemSlug = item.slug || (item.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     
     card.innerHTML = `
       ${badgeHtml}
-      <div onclick="openItemModal('${item.id}')" style="cursor: pointer;">
+      <a href="/item/${itemSlug}" style="display: block; cursor: pointer; text-decoration: none;">
         ${imgHtml}
-      </div>
+      </a>
       <div class="menu-card-content">
-        <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
-        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 INCLUDES FRIES & DRINK</div>` : ''}
+        <a href="/item/${itemSlug}" style="text-decoration: none; color: inherit;">
+          <h3 class="menu-card-title" style="cursor: pointer;">${displayName}</h3>
+        </a>
+        ${item.category === 'bigi street meals' ? `<div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px;">${iconFlame(14)} INCLUDES FRIES & DRINK</div>` : ''}
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
-          <button class="add-to-cart-btn btn-add-cart" onclick="${clickAction}">ADD</button>
+          <button type="button" class="add-to-cart-btn btn-add-cart" onclick="addFeaturedItemToMenu('${item.id}', event)">ADD</button>
         </div>
       </div>
     `;
     grid.appendChild(card);
   });
+  if (typeof initFeaturedCarousel === 'function') {
+    initFeaturedCarousel();
+  }
 }
 window.renderFeaturedMenu = renderFeaturedMenu;
 
@@ -606,12 +1034,12 @@ function renderSpecials() {
     const displayName = lang === 'fa' && item.name_fa ? item.name_fa : item.name;
     const displayDesc = lang === 'fa' && item.desc_fa ? item.desc_fa : item.desc;
     
-    let badgeHtml = `<div class="menu-badge">🔥 Special</div>`;
+    let badgeHtml = `<div class="menu-badge">Special</div>`;
     
     const imgHtml = item.img 
       ? `<img src="${item.img}" alt="${displayName}" class="menu-card-img" width="400" height="300">`
       : `<div class="premium-fallback">
-           <div class="premium-fallback-icon">🍽</div>
+           <div class="premium-fallback-icon">${iconUtensils(28)}</div>
          </div>`;
          
     const isSimple = (!item.variants || item.variants.length === 0) && (!item.addOns || item.addOns.length === 0) && !item.mealLinkId && item.category !== 'bigi street meals';
@@ -624,7 +1052,7 @@ function renderSpecials() {
       </div>
       <div class="menu-card-content">
         <h3 class="menu-card-title" onclick="openItemModal('${item.id}')" style="cursor: pointer;">${displayName}</h3>
-        <div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px;">🔥 LIMITED TIME SPECIAL</div>
+        <div style="color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px;">${iconFlame(14)} LIMITED TIME SPECIAL</div>
         <p class="menu-card-desc">${displayDesc}</p>
         <div class="menu-card-footer">
           <span class="menu-card-price">$${(item.price || 0).toFixed(2)}</span>
@@ -640,18 +1068,53 @@ window.renderSpecials = renderSpecials;
 // ─────────────────────────────────────────────────────────────────
 // DEALS RENDERING & LISTENER
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// DEALS RENDERING & INTERACTIVE DEAL BUILDER
+// ─────────────────────────────────────────────────────────────────
+let currentDealItem = null;
+let dealSelectedPlates = {}; // { [itemId]: count }
+let dealSelectedRewardVariant = 'Coca Cola';
+
+window.handleDealClick = handleDealClick;
+window.openDealModal = openDealModal;
+window.closeDealModal = closeDealModal;
+window.adjustDealPlateQty = adjustDealPlateQty;
+window.selectDealReward = selectDealReward;
+window.addDealToCart = addDealToCart;
+
 function initDealsListener() {
   const dealsRef = collection(db, 'deals');
   const q = query(dealsRef, where('active', '==', true));
   
-  onSnapshot(q, (snapshot) => {
-    activeDeals = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    renderDealsGrid();
-    updateCartUI(); // re-eval deals when deals change
-  });
+  if (isHomepage) {
+    getDocs(q).then(snapshot => {
+      activeDeals = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      renderDealsGrid();
+      updateCartUI();
+      handleDealParam();
+    }).catch(() => {});
+  } else {
+    onSnapshot(q, (snapshot) => {
+      activeDeals = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      renderDealsGrid();
+      updateCartUI();
+      handleDealParam();
+    }, () => {});
+  }
+}
+
+function handleDealClick(dealId, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  openDealModal(dealId);
 }
 
 function renderDealsGrid() {
@@ -671,19 +1134,467 @@ function renderDealsGrid() {
     dealsToRender.forEach(deal => {
       const card = document.createElement('div');
       card.className = 'promo-card';
+      card.onclick = (e) => handleDealClick(deal.id, e);
       
-      const badgeHtml = deal.badge ? `<div class="promo-badge">${deal.badge}</div>` : '';
+      const badgeText = deal.badge || 'CHEF\'S SPECIAL COMBO';
       
       card.innerHTML = `
-        ${badgeHtml}
+        <div class="promo-top-bar">
+          <div class="promo-badge-pill">
+            <span class="promo-pulse-dot"></span>
+            <span>${escapeHtml(badgeText)}</span>
+          </div>
+          <div class="promo-value-tag">SAVE $2.45</div>
+        </div>
         <div class="promo-card-content">
-          <h3 class="promo-title">${deal.title}</h3>
-          <p class="promo-desc">${deal.description || ''}</p>
+          <h3 class="promo-title">${escapeHtml(deal.title)}</h3>
+          <p class="promo-desc">${escapeHtml(deal.description || '')}</p>
+          <div class="promo-features-grid">
+            <div class="promo-feature-chip">
+              ${iconSkewer(15)}
+              <span>2x Kabob Platters</span>
+            </div>
+            <span class="promo-feature-plus">+</span>
+            <div class="promo-feature-chip promo-feature-free">
+              ${iconDrinkCan(15)}
+              <span>1x FREE Soft Drink</span>
+            </div>
+          </div>
+        </div>
+        <div class="promo-card-footer">
+          <div class="promo-footer-info">
+            <span class="promo-status-label">Online Exclusive Combo</span>
+            <span class="promo-savings-sub">Includes basmati rice, salad &amp; naan</span>
+          </div>
+          <button type="button" class="promo-claim-btn" aria-label="Claim Deal: ${escapeHtml(deal.title)}" onclick="handleDealClick('${deal.id}', event)">
+            <span>Claim Deal</span>
+            <span class="claim-arrow">→</span>
+          </button>
         </div>
       `;
       grid.appendChild(card);
     });
   });
+}
+
+function ensureDealModal() {
+  let modal = document.getElementById('deal-details-modal');
+  if (modal) return modal;
+
+  modal = document.createElement('div');
+  modal.id = 'deal-details-modal';
+  modal.className = 'payment-modal-overlay';
+  modal.style.display = 'none';
+  modal.innerHTML = `
+    <div class="payment-modal item-modal deal-modal-container" style="padding: 0;">
+      <button type="button" onclick="closeDealModal()" aria-label="Close deal modal" class="deal-modal-close-btn">&times;</button>
+      
+      <div class="item-modal-left" id="deal-modal-hero">
+        <div class="deal-hero-overlay"></div>
+        <div class="deal-hero-content">
+          <div class="deal-hero-pill-row">
+            <span id="deal-modal-badge" class="deal-hero-badge">EXCLUSIVE DEAL</span>
+            <span class="deal-hero-saving-pill">SAVE $2.45</span>
+          </div>
+          <h2 id="deal-modal-hero-title" class="deal-hero-title">Kabob Lovers Deal</h2>
+          <p id="deal-modal-desc" class="deal-hero-desc">Order any 2 Kabob Plates and get a FREE Soft Drink of your choice!</p>
+          
+          <div class="deal-hero-perks">
+            <div class="deal-hero-perk-item">
+              <span class="perk-check">${iconCheck(13)}</span>
+              <span>2 Authentic Charcoal Kabob Plates</span>
+            </div>
+            <div class="deal-hero-perk-item">
+              <span class="perk-check">${iconCheck(13)}</span>
+              <span>1 Complimentary Chilled Soft Drink</span>
+            </div>
+            <div class="deal-hero-perk-item">
+              <span class="perk-check">${iconCheck(13)}</span>
+              <span>Includes Saffron Basmati Rice, Naan &amp; Chutney</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="item-modal-right">
+        <div class="item-modal-scrollable">
+          <div class="deal-stepper-card">
+            <div class="deal-stepper-header">
+              <span id="deal-modal-progress-text" class="deal-stepper-text">Step 1: Choose 2 Kabob Plates</span>
+              <span id="deal-modal-progress-count" class="deal-stepper-count">0 / 2 selected</span>
+            </div>
+            <div class="deal-stepper-track">
+              <div id="deal-stepper-fill" class="deal-stepper-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="deal-builder-section">
+            <div class="deal-section-title">
+              <span class="step-badge">1</span>
+              <div>
+                <h3 class="step-heading">Select Your 2 Kabob Plates</h3>
+                <span class="step-subheading">Mix &amp; match your favorite charcoal-grilled skewers</span>
+              </div>
+            </div>
+            <div id="deal-qualifying-items-container" class="deal-plates-list"></div>
+          </div>
+
+          <div class="deal-builder-section">
+            <div class="deal-section-title">
+              <span class="step-badge step-badge-free">${iconSparkle(13)}</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 class="step-heading">Choose Your Free Drink</h3>
+                <span class="badge-free-pill">FREE</span>
+              </div>
+            </div>
+            <div id="deal-reward-items-container"></div>
+          </div>
+        </div>
+        
+        <div class="item-modal-footer">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #71717a;">Total Bundle</div>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <span id="deal-modal-total-price" class="deal-footer-price">$0.00</span>
+              <span id="deal-modal-orig-price" style="font-size: 14px; color: #71717a; text-decoration: line-through; display: none;"></span>
+            </div>
+          </div>
+          <button id="deal-modal-add-btn" class="deal-submit-btn" disabled onclick="addDealToCart()">
+            Select 2 plates to claim
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function openDealModal(dealId) {
+  // If menu items are not ready yet, retry in 250ms
+  if (!menuItems || menuItems.length === 0) {
+    setTimeout(() => openDealModal(dealId), 250);
+    return;
+  }
+
+  const deal = activeDeals.find(d => d.id === dealId) || activeDeals[0];
+  if (!deal) {
+    showToast('Promotion currently unavailable');
+    return;
+  }
+
+  currentDealItem = deal;
+  dealSelectedPlates = {};
+  dealSelectedRewardVariant = 'Coca Cola';
+
+  const modal = ensureDealModal();
+  if (!modal) return;
+
+  // Set Hero & Header Info
+  const heroTitle = document.getElementById('deal-modal-hero-title');
+  if (heroTitle) heroTitle.textContent = deal.title;
+
+  const heroBadge = document.getElementById('deal-modal-badge');
+  if (heroBadge) heroBadge.textContent = deal.badge || 'EXCLUSIVE DEAL';
+
+  const descEl = document.getElementById('deal-modal-desc');
+  if (descEl) descEl.textContent = deal.description || '';
+
+  // Extract Qualifying Plates
+  const cond = deal.conditions || {};
+  const reqQty = cond.minQty || 2;
+  const eligiblePlates = menuItems.filter(item => {
+    if (item.hidden) return false;
+    const cat = (item.category || '').toLowerCase();
+    const isIdMatch = cond.itemIds && cond.itemIds.includes(item.id);
+    const isCatMatch = cond.categoryIds && cond.categoryIds.some(c => c.toLowerCase() === cat);
+    if (cond.itemIds?.length > 0 || cond.categoryIds?.length > 0) {
+      return isIdMatch || isCatMatch;
+    }
+    return cat.includes('plate') || cat.includes('platter') || cat.includes('kabob');
+  });
+
+  // Extract Reward Item (Drink)
+  const reward = deal.reward || {};
+  let rewardItem = null;
+  if (reward.rewardItemIds && reward.rewardItemIds.length > 0) {
+    rewardItem = menuItems.find(m => reward.rewardItemIds.includes(m.id));
+  }
+  if (!rewardItem) {
+    rewardItem = menuItems.find(m => m.name.toLowerCase().includes('soft drink')) || menuItems.find(m => (m.category || '').toLowerCase().includes('drink'));
+  }
+
+  // Pre-select 1 of the first eligible plate so the user is 1 tap away
+  if (eligiblePlates.length > 0 && reqQty > 0) {
+    dealSelectedPlates[eligiblePlates[0].id] = 1;
+  }
+
+  // Render Qualifying Items (Step 1)
+  const platesContainer = document.getElementById('deal-qualifying-items-container');
+  if (platesContainer) {
+    platesContainer.innerHTML = eligiblePlates.map(plate => {
+      const imgHtml = plate.img 
+        ? `<img src="${plate.img}" alt="" class="deal-item-thumb" onerror="this.onerror=null; this.style.display='none'; const fb = this.nextElementSibling; if(fb) fb.style.display='flex';">
+           <div class="deal-item-thumb" style="display:none;align-items:center;justify-content:center;background:#18181b;color:var(--accent);">${iconSkewer(22)}</div>`
+        : `<div class="deal-item-thumb" style="display:flex;align-items:center;justify-content:center;background:#18181b;color:var(--accent);">${iconSkewer(22)}</div>`;
+      
+      const currentQty = dealSelectedPlates[plate.id] || 0;
+      return `
+        <div class="deal-item-card ${currentQty > 0 ? 'has-qty' : ''}" id="deal-plate-row-${plate.id}">
+          <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
+            ${imgHtml}
+            <div style="min-width: 0;">
+              <div style="font-weight: 700; font-size: 15px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${escapeHtml(plate.name)}
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                <span style="font-size: 14px; color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700;">
+                  $${(plate.price || 0).toFixed(2)}
+                </span>
+                <span style="font-size: 11px; color: #71717a;">• Saffron rice &amp; salad</span>
+              </div>
+            </div>
+          </div>
+          <div class="deal-item-counter">
+            <button type="button" class="deal-counter-btn" onclick="adjustDealPlateQty('${plate.id}', -1)" aria-label="Decrease quantity">${iconMinus(13)}</button>
+            <span class="deal-counter-val" id="deal-qty-${plate.id}">${currentQty}</span>
+            <button type="button" class="deal-counter-btn" onclick="adjustDealPlateQty('${plate.id}', 1)" aria-label="Increase quantity">${iconPlus(13)}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Render Reward Drink Flavors (Step 2)
+  const rewardContainer = document.getElementById('deal-reward-items-container');
+  if (rewardContainer) {
+    const flavors = (rewardItem && rewardItem.variants && rewardItem.variants.length > 0)
+      ? rewardItem.variants.map(v => v.name)
+      : ['Coca Cola', 'Diet Coke', 'Sprite', 'Fanta'];
+    
+    dealSelectedRewardVariant = flavors[0];
+
+    rewardContainer.innerHTML = `
+      <div class="deal-flavor-grid">
+        ${flavors.map(flavor => `
+          <div class="deal-flavor-card ${flavor === dealSelectedRewardVariant ? 'selected' : ''}" onclick="selectDealReward('${flavor}')">
+            <div class="deal-radio-circle">
+              <span class="deal-radio-dot"></span>
+            </div>
+            <div>
+              <div class="flavor-name">${escapeHtml(flavor)}</div>
+              <div class="flavor-free-tag">FREE INCLUDED</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  updateDealModalState();
+  modal.style.display = 'flex';
+}
+
+function adjustDealPlateQty(plateId, delta) {
+  if (!currentDealItem) return;
+  const reqQty = currentDealItem.conditions?.minQty || 2;
+  const currentQty = dealSelectedPlates[plateId] || 0;
+  const currentTotal = Object.values(dealSelectedPlates).reduce((a, b) => a + b, 0);
+
+  if (delta > 0 && currentTotal >= reqQty) {
+    showToast(`You can select up to ${reqQty} plates for this deal`);
+    return;
+  }
+
+  const nextQty = Math.max(0, currentQty + delta);
+  if (nextQty === 0) {
+    delete dealSelectedPlates[plateId];
+  } else {
+    dealSelectedPlates[plateId] = nextQty;
+  }
+
+  // Update UI row
+  const qtyEl = document.getElementById(`deal-qty-${plateId}`);
+  if (qtyEl) qtyEl.textContent = nextQty;
+
+  const rowEl = document.getElementById(`deal-plate-row-${plateId}`);
+  if (rowEl) {
+    if (nextQty > 0) rowEl.classList.add('has-qty');
+    else rowEl.classList.remove('has-qty');
+  }
+
+  updateDealModalState();
+}
+
+function selectDealReward(flavor) {
+  dealSelectedRewardVariant = flavor;
+  document.querySelectorAll('.deal-flavor-card').forEach(card => {
+    const nameEl = card.querySelector('.flavor-name');
+    if (nameEl && nameEl.textContent.trim() === flavor) {
+      card.classList.add('selected');
+    } else {
+      card.classList.remove('selected');
+    }
+  });
+  updateDealModalState();
+}
+
+function updateDealModalState() {
+  if (!currentDealItem) return;
+  const reqQty = currentDealItem.conditions?.minQty || 2;
+  const totalSelected = Object.values(dealSelectedPlates).reduce((a, b) => a + b, 0);
+
+  const progressText = document.getElementById('deal-modal-progress-text');
+  const progressCount = document.getElementById('deal-modal-progress-count');
+  const stepperFill = document.getElementById('deal-stepper-fill');
+  const addBtn = document.getElementById('deal-modal-add-btn');
+  const totalPriceEl = document.getElementById('deal-modal-total-price');
+  const origPriceEl = document.getElementById('deal-modal-orig-price');
+
+  if (progressCount) {
+    progressCount.textContent = `${totalSelected} / ${reqQty} selected`;
+  }
+
+  // Calculate Subtotal for selected plates
+  let platesTotal = 0;
+  Object.keys(dealSelectedPlates).forEach(id => {
+    const count = dealSelectedPlates[id];
+    const plate = menuItems.find(m => m.id === id);
+    if (plate) {
+      platesTotal += (plate.price || 0) * count;
+    }
+  });
+
+  if (totalPriceEl) {
+    totalPriceEl.textContent = `$${platesTotal.toFixed(2)}`;
+  }
+  if (origPriceEl) {
+    if (platesTotal > 0) {
+      origPriceEl.style.display = 'inline';
+      origPriceEl.textContent = `$${(platesTotal + 2.45).toFixed(2)}`;
+    } else {
+      origPriceEl.style.display = 'none';
+    }
+  }
+
+  // Update Stepper Progress Bar Fill
+  const fillPct = Math.min(100, Math.round((totalSelected / reqQty) * 100));
+  if (stepperFill) {
+    stepperFill.style.width = `${fillPct}%`;
+    if (fillPct === 100) stepperFill.classList.add('completed');
+    else stepperFill.classList.remove('completed');
+  }
+
+  const isComplete = totalSelected === reqQty && dealSelectedRewardVariant;
+
+  if (isComplete) {
+    if (progressText) progressText.innerHTML = `<span style="color: #ffffff; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">${iconCheck(14)} All ${reqQty} Plates Selected • Free Drink Unlocked!</span>`;
+    if (addBtn) {
+      addBtn.disabled = false;
+      addBtn.innerHTML = `Add Deal to Bag — $${platesTotal.toFixed(2)}`;
+    }
+  } else {
+    const remaining = reqQty - totalSelected;
+    if (progressText) progressText.textContent = `Step 1: Choose ${remaining} more plate${remaining > 1 ? 's' : ''}`;
+    if (addBtn) {
+      addBtn.disabled = true;
+      addBtn.innerHTML = `Select ${remaining} more plate${remaining > 1 ? 's' : ''} to claim`;
+    }
+  }
+}
+
+function closeDealModal() {
+  const modal = document.getElementById('deal-details-modal');
+  if (modal) modal.style.display = 'none';
+  currentDealItem = null;
+  dealSelectedPlates = {};
+}
+
+function addDealToCart() {
+  if (!currentDealItem) return;
+  const reqQty = currentDealItem.conditions?.minQty || 2;
+  const totalSelected = Object.values(dealSelectedPlates).reduce((a, b) => a + b, 0);
+
+  if (totalSelected !== reqQty) {
+    showToast(`Please select ${reqQty} plates to claim this deal`);
+    return;
+  }
+
+  // 1. Add selected plates to cart
+  Object.keys(dealSelectedPlates).forEach(plateId => {
+    const count = dealSelectedPlates[plateId];
+    const plate = menuItems.find(m => m.id === plateId);
+    if (!plate) return;
+
+    for (let i = 0; i < count; i++) {
+      const cartKey = `${plate.id}||`;
+      const existing = cart.find(c => c.cartKey === cartKey);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          ...plate,
+          cartKey: cartKey,
+          qty: 1,
+          price: plate.price,
+          originalPrice: plate.price,
+          selectedVariant: '',
+          selectedAddOns: [],
+          isMeal: false
+        });
+      }
+    }
+  });
+
+  // 2. Add free reward drink to cart
+  const reward = currentDealItem.reward || {};
+  let drinkItem = null;
+  if (reward.rewardItemIds && reward.rewardItemIds.length > 0) {
+    drinkItem = menuItems.find(m => reward.rewardItemIds.includes(m.id));
+  }
+  if (!drinkItem) {
+    drinkItem = menuItems.find(m => m.name.toLowerCase().includes('soft drink')) || menuItems.find(m => (m.category || '').toLowerCase().includes('drink'));
+  }
+
+  if (drinkItem) {
+    const variant = dealSelectedRewardVariant || 'Coca Cola';
+    const drinkKey = `${drinkItem.id}|${variant}|`;
+    const existingDrink = cart.find(c => c.cartKey === drinkKey);
+    if (existingDrink) {
+      existingDrink.qty += 1;
+    } else {
+      cart.push({
+        ...drinkItem,
+        cartKey: drinkKey,
+        qty: 1,
+        price: drinkItem.price,
+        originalPrice: drinkItem.price,
+        selectedVariant: variant,
+        selectedAddOns: [],
+        isMeal: false
+      });
+    }
+  }
+
+  saveCart();
+  const dealTitle = currentDealItem ? currentDealItem.title : "Deal";
+  closeDealModal();
+  updateCartUI();
+  toggleCart(true);
+  showToast(`${dealTitle} added to bag with Free Drink!`);
+}
+
+// Attach listener to deal modal add button
+function attachDealModalAddBtn() {
+  const dealAddBtn = document.getElementById('deal-modal-add-btn');
+  if (dealAddBtn) {
+    dealAddBtn.addEventListener('click', addDealToCart);
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', attachDealModalAddBtn);
+} else {
+  attachDealModalAddBtn();
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -836,7 +1747,7 @@ function openItemModal(id) {
 
       const mealIconHtml = currentMealUpgrade.img 
         ? `<img src="${currentMealUpgrade.img}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" alt="Meal Upgrade">`
-        : `<div style="font-size: 32px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">🍔🍟</div>`;
+        : `<div style="display:flex; align-items:center; justify-content:center; width:50px; height:50px; border-radius:8px; background:var(--surface); color:var(--accent);">${iconUtensils(24)}</div>`;
 
       mealContainer.innerHTML = `
         <label class="kiosk-meal-upgrade">
@@ -980,7 +1891,9 @@ function addConfiguredItemToCart() {
   }
   
   closeItemModal();
+  saveCart();
   updateCartUI();
+  toggleCart(true);
   const mealLabel = isMealUpgrade ? ' (Meal)' : '';
   showToast(`${currentModalItem.name}${mealLabel} added to cart`);
 }
@@ -1007,7 +1920,9 @@ window.addToCartDirect = (id, event) => {
       isMeal: false
     });
   }
+  saveCart();
   updateCartUI();
+  toggleCart(true);
   showToast(`${item.name} added to bag`);
 };
 
@@ -1019,22 +1934,89 @@ window.addToCart = (id) => {
   openItemModal(id);
 };
 
-window.updateQty = (cartKey, delta) => {
-  const existing = cart.find(i => i.cartKey === cartKey);
-  if (existing) {
-    existing.qty += delta;
-    if (existing.qty <= 0) {
-      cart = cart.filter(i => i.cartKey !== cartKey);
-    }
+window.changeCartQty = (index, delta) => {
+  const i = parseInt(index, 10);
+  if (isNaN(i) || i < 0 || i >= cart.length) return;
+  const item = cart[i];
+  if (!item) return;
+
+  const currentQty = parseInt(item.qty, 10) || 1;
+  const newQty = currentQty + delta;
+  if (newQty <= 0) {
+    const itemName = item.name || 'Item';
+    cart.splice(i, 1);
+    saveCart();
+    updateCartUI();
+    showToast(`Removed ${itemName} from bag`);
+    return;
   }
+
+  item.qty = newQty;
+  saveCart();
   updateCartUI();
 };
+
+window.removeCartItem = (index) => {
+  const i = parseInt(index, 10);
+  if (isNaN(i) || i < 0 || i >= cart.length) return;
+  const item = cart[i];
+  const itemName = item ? (item.name || 'Item') : 'Item';
+  cart.splice(i, 1);
+  saveCart();
+  updateCartUI();
+  showToast(`Removed ${itemName} from bag`);
+};
+
+window.updateQty = (cartKey, delta) => {
+  const existingIndex = cart.findIndex(i => i.cartKey === cartKey || i.id === cartKey);
+  if (existingIndex !== -1) {
+    window.changeCartQty(existingIndex, delta);
+  } else {
+    saveCart();
+    updateCartUI();
+  }
+};
+
+function renderCartLoyaltySection(container) {
+  const existing = document.getElementById('cart-loyalty-section');
+  if (existing) existing.remove();
+
+  if (!window.__recognizedCustomer || !container) return;
+  const customer = window.__recognizedCustomer;
+  const name = customer.name || 'Member';
+  const tier = customer.tier 
+    ? (customer.tier.charAt(0).toUpperCase() + customer.tier.slice(1).toLowerCase()) 
+    : 'Bronze';
+  const points = customer.loyaltyPoints ?? customer.points ?? 0;
+
+  const loyaltyEl = document.createElement('div');
+  loyaltyEl.id = 'cart-loyalty-section';
+  loyaltyEl.style.cssText = `
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--gray);
+  `;
+  loyaltyEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;">${renderTierBadge(tier)} <span style="color: var(--white); font-weight: 500;">${escapeHtml(name)}</span> <span>•</span> <span style="color: var(--accent); font-weight: 600;">${points} pts</span></span>`;
+  container.prepend(loyaltyEl);
+}
 
 function updateCartUI() {
   const itemsContainer = document.getElementById('cart-items');
   const countBadge = document.getElementById('cart-count-badge');
   const totalEl = document.getElementById('cart-total');
   
+  const cartFab = document.getElementById('cart-fab');
+  if (cartFab) {
+    cartFab.style.display = 'flex';
+  }
+
   if (!itemsContainer || !countBadge || !totalEl) return;
   
   itemsContainer.innerHTML = '';
@@ -1043,20 +2025,27 @@ function updateCartUI() {
   
   if (cart.length === 0) {
     itemsContainer.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 250px; color: var(--gray); text-align: center;"><p>Your bag is empty.</p></div>';
+    renderCartLoyaltySection(itemsContainer);
     countBadge.textContent = 0;
     totalEl.textContent = `$0.00`;
   } else {
-    // Calculate subtotal and count first
+    // Sanitize cart items and calculate subtotal/count safely
     cart.forEach(item => {
+      const p = parseFloat(item.price);
+      item.price = (!isNaN(p) && p >= 0) ? p : (parseFloat(item.originalPrice) || 0);
+      const q = parseInt(item.qty, 10);
+      item.qty = (!isNaN(q) && q >= 1) ? q : 1;
       subtotal += item.price * item.qty;
       count += item.qty;
     });
+    if (isNaN(subtotal) || subtotal < 0) subtotal = 0;
 
     const targetAmount = 30.00;
-    const progress = Math.min(100, (subtotal / targetAmount) * 100);
+    const progress = Math.min(100, Math.max(0, (subtotal / targetAmount) * 100));
+    const remaining = Math.max(0, targetAmount - subtotal);
     const progressText = subtotal >= targetAmount 
-      ? `🎉 You've unlocked a Free Doogh!` 
-      : `Add $${(targetAmount - subtotal).toFixed(2)} more for a Free Doogh!`;
+      ? `<span style="display:inline-flex;align-items:center;gap:6px;">${iconSparkle(15)} You've unlocked a Free Doogh!</span>` 
+      : `Add $${remaining.toFixed(2)} more for a Free Doogh!`;
 
     itemsContainer.innerHTML = `
       <div class="cart-progress-container">
@@ -1067,36 +2056,53 @@ function updateCartUI() {
       </div>
     `;
 
-    // 1. Render items
-    cart.forEach(item => {
+    renderCartLoyaltySection(itemsContainer);
+
+    // 1. Render items safely with index-based controls & dedicated remove button
+    cart.forEach((item, index) => {
       const el = document.createElement('div');
       el.className = 'cart-item';
 
       const imgHtml = item.img 
-        ? `<img src="${item.img}" alt="${item.name}" class="cart-item-img">`
-        : `<div class="cart-item-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gray);">🍽</div>`;
+        ? `<img src="${item.img}" alt="${escapeHtml(item.name || 'Menu item')}" class="cart-item-img">`
+        : `<div class="cart-item-img" style="background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--gray);">${iconUtensils(16)}</div>`;
 
       let modsHtml = '';
       if (item.selectedVariant) {
-        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 4px;">• ${item.selectedVariant}</div>`;
+        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 4px;">• ${escapeHtml(item.selectedVariant)}</div>`;
       }
       if (item.selectedAddOns && item.selectedAddOns.length > 0) {
-        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 2px;">• ${item.selectedAddOns.join(', ')}</div>`;
+        modsHtml += `<div style="font-size: 12px; color: var(--gray); margin-top: 2px;">• ${item.selectedAddOns.map(a => escapeHtml(a)).join(', ')}</div>`;
+      }
+      if (item.isLoyaltyReward) {
+        modsHtml += `<div style="font-size: 11px; font-weight: 700; color: #ffffff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 4px; padding: 2px 6px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">${iconGift(13)} Loyalty Reward (FREE)</div>`;
       }
 
       const displayTitle = item.isMeal ? `${item.name} (Meal Upgrade)` : item.name;
+      const itemPrice = parseFloat(item.price) || 0;
+      const itemQty = Math.max(1, parseInt(item.qty, 10) || 1);
+      const lineTotal = itemPrice * itemQty;
 
       el.innerHTML = `
         ${imgHtml}
         <div class="cart-item-details">
-          <div class="cart-item-title">${displayTitle}</div>
+          <div class="cart-item-title">${escapeHtml(displayTitle)}</div>
           ${modsHtml}
-          <div class="cart-item-price" style="margin-top: 6px;">$${(item.price * item.qty).toFixed(2)}</div>
+          <div class="cart-item-price" style="margin-top: 6px;">${item.isLoyaltyReward ? '<strong style="color: #ffffff; font-weight: 700;">FREE ($0.00)</strong>' : `${lineTotal.toFixed(2)}`}</div>
         </div>
-        <div class="cart-item-controls">
-          <button class="qty-btn" onclick="updateQty('${item.cartKey}', -1)">-</button>
-          <span style="font-size: 14px; font-weight: 600;">${item.qty}</span>
-          <button class="qty-btn" onclick="updateQty('${item.cartKey}', 1)">+</button>
+        <div class="cart-item-actions">
+          <div class="cart-item-controls" role="group" aria-label="Item quantity">
+            <button type="button" class="cart-qty-btn cart-qty-minus" onclick="changeCartQty(${index}, -1)" aria-label="${itemQty === 1 ? 'Remove from bag' : 'Decrease quantity'}" title="${itemQty === 1 ? 'Remove' : 'Decrease'}">
+              ${itemQty === 1 ? iconTrash(14) : iconMinus(14)}
+            </button>
+            <span class="cart-qty-val" aria-label="Quantity">${itemQty}</span>
+            <button type="button" class="cart-qty-btn cart-qty-plus" onclick="changeCartQty(${index}, 1)" aria-label="Increase quantity" title="Increase">
+              ${iconPlus(14)}
+            </button>
+          </div>
+          <button type="button" class="cart-item-remove-btn" onclick="removeCartItem(${index})" aria-label="Remove ${escapeHtml(displayTitle)}" title="Remove item">
+            ${iconTrash(16)}
+          </button>
         </div>
       `;
       itemsContainer.appendChild(el);
@@ -1115,8 +2121,8 @@ function updateCartUI() {
       let dealsHtml = `<div style="font-size: 12px; font-family: 'Barlow Condensed'; letter-spacing: 1px; color: var(--accent); margin-bottom: 8px;">APPLIED PROMOTIONS</div>`;
       evalResult.appliedDeals.forEach(deal => {
         dealsHtml += `
-          <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; color: var(--accent);">
-            <span>✓ ${deal.title}</span>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; color: var(--accent); align-items: center;">
+            <span style="display: inline-flex; align-items: center; gap: 6px;">${iconCheck(14)} ${escapeHtml(deal.title)}</span>
             <span>-$${(deal.discountCents / 100).toFixed(2)}</span>
           </div>
         `;
@@ -1124,57 +2130,150 @@ function updateCartUI() {
       dealsContainer.innerHTML = dealsHtml;
       itemsContainer.appendChild(dealsContainer);
     }
+
+    // 2b. Proactive Unclaimed Deal Nudge
+    if (evalResult.appliedDeals.length === 0 && activeDeals && activeDeals.length > 0) {
+      const eligibleUnclaimed = activeDeals.find(d => {
+        if (!d.active || (d.type !== 'bogo' && d.type !== 'free_item')) return false;
+        const cond = d.conditions;
+        if (!cond) return false;
+        let matchCount = 0;
+        cart.forEach(cItem => {
+          const mInfo = menuItems.find(m => m.id === cItem.id) || {};
+          const cat = (mInfo.category || '').toLowerCase();
+          const isId = cond.itemIds && cond.itemIds.includes(cItem.id);
+          const isCat = cond.categoryIds && cond.categoryIds.some(c => c.toLowerCase() === cat);
+          if (isId || isCat) matchCount += (cItem.qty || 1);
+        });
+        const req = cond.minQty || 1;
+        if (matchCount < req) return false;
+        const hasDrink = cart.some(cItem => d.reward?.rewardItemIds?.includes(cItem.id));
+        return !hasDrink;
+      });
+
+      if (eligibleUnclaimed) {
+        const nudgeDiv = document.createElement('div');
+        nudgeDiv.className = 'cart-deal-nudge';
+        nudgeDiv.innerHTML = `
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">Deal Unlocked</div>
+            <div style="font-size: 13px; font-weight: 600; color: #fff;">Get 1 FREE Drink with ${escapeHtml(eligibleUnclaimed.title)}</div>
+          </div>
+          <button type="button" class="cart-deal-nudge-btn" onclick="openDealModal('${eligibleUnclaimed.id}')">
+            + Claim Drink
+          </button>
+        `;
+        itemsContainer.appendChild(nudgeDiv);
+      }
+    }
+    if (false) {
+    }
     
     countBadge.textContent = count;
+    const finalTotal = Math.max(0, subtotal - discountAmount);
     totalEl.innerHTML = discountAmount > 0 
-      ? `<span style="text-decoration: line-through; color: var(--gray); font-size: 14px; margin-right: 8px;">$${subtotal.toFixed(2)}</span>$${(subtotal - discountAmount).toFixed(2)}`
+      ? `<span style="text-decoration: line-through; color: var(--gray); font-size: 14px; margin-right: 8px;">$${subtotal.toFixed(2)}</span>$${finalTotal.toFixed(2)}`
       : `$${subtotal.toFixed(2)}`;
   }
   
-  // Disable checkout button if cart is empty
+  // Checkout button handling
   const checkoutBtn = document.getElementById('checkout-btn');
   if (checkoutBtn) {
+    // Clear any inline styling overrides so .btn-primary controls the look
+    checkoutBtn.style.background = '';
+    checkoutBtn.style.color = '';
+    checkoutBtn.style.border = '';
+    checkoutBtn.style.boxShadow = '';
+    checkoutBtn.className = 'btn-primary';
+
     if (cart.length === 0) {
       checkoutBtn.disabled = true;
-      checkoutBtn.textContent = 'Cart is empty';
+      checkoutBtn.textContent = 'Bag is empty';
     } else {
-      // If store is closed AND ASAP is selected, disable checkout
+      checkoutBtn.disabled = false;
+      const hasPaymentModal = !!document.getElementById('payment-modal');
       const pType = document.querySelector('input[name="pickup_type"]:checked')?.value || 'asap';
-      if (window.isStoreClosed && pType === 'asap') {
-        checkoutBtn.disabled = true;
-        checkoutBtn.textContent = 'Store Closed (Select Scheduled)';
-        checkoutBtn.style.background = '#333';
-        checkoutBtn.style.color = '#999';
+      if (hasPaymentModal && window.isStoreClosed && pType === 'asap') {
+        checkoutBtn.textContent = 'STORE CLOSED · SCHEDULE PICKUP';
       } else {
-        checkoutBtn.disabled = false;
-        checkoutBtn.textContent = 'Proceed to Checkout';
-        checkoutBtn.style.background = 'var(--primary)';
-        checkoutBtn.style.color = 'var(--dark)';
+        checkoutBtn.textContent = 'PROCEED TO CHECKOUT →';
       }
     }
-    checkoutBtn.style.opacity = cart.length === 0 ? '0.5' : '1';
   }
 }
+
+window.handleCheckoutClick = () => {
+  if (!cart || cart.length === 0) {
+    showToast('Your bag is empty.');
+    return;
+  }
+  const pType = document.querySelector('input[name="pickup_type"]:checked')?.value || 'asap';
+  if (window.isStoreClosed && pType === 'asap') {
+    const schedRadio = document.querySelector('input[name="pickup_type"][value="scheduled"]');
+    if (schedRadio) {
+      schedRadio.checked = true;
+      if (typeof togglePickupType === 'function') togglePickupType();
+      const schedBox = document.getElementById('scheduled-pickup-options') || document.querySelector('.pickup-toggle-wrap');
+      if (schedBox) {
+        schedBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        schedBox.style.outline = '1px solid var(--accent)';
+        schedBox.style.borderRadius = '4px';
+        setTimeout(() => { if (schedBox) schedBox.style.outline = 'none'; }, 2000);
+      }
+      showToast('Switched to Scheduled Pickup!');
+    }
+    return;
+  }
+  if (typeof openPaymentModal === 'function' && document.getElementById('payment-modal')) {
+    openPaymentModal();
+  } else {
+    placeOrder('online');
+  }
+};
 
 window.toggleCart = (show) => {
   const drawer = document.getElementById('cart-drawer');
   if (drawer) {
     drawer.style.right = show ? '0' : '-100%';
+  } else if (show) {
+    window.location.href = '/menu?openCart=true';
   }
 };
 
 // ─────────────────────────────────────────────────────────────────
 // SQUARE WEB PAYMENTS — Payment Modal
 // ─────────────────────────────────────────────────────────────────
-let squarePayments;
+let squarePayments = null;
+let googlePayInstance = null;
+let applePayInstance = null;
+let currentPaymentRequest = null;
+
+async function ensureSquareLoaded() {
+  if (window.Square) return window.Square;
+  return new Promise((resolve, reject) => {
+    let script = document.getElementById('square-sdk-script');
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'square-sdk-script';
+      script.src = 'https://web.squarecdn.com/v1/square.js';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+    script.addEventListener('load', () => resolve(window.Square));
+    script.addEventListener('error', () => reject(new Error('Failed to load Square Payments SDK')));
+  });
+}
 
 async function initSquarePayments() {
-  if (!window.Square) {
+  try {
+    await ensureSquareLoaded();
+  } catch (err) {
     console.error('Square SDK not loaded — check if https://web.squarecdn.com/v1/square.js is blocked.');
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) checkoutBtn.textContent = 'Payment Unavailable';
     return;
   }
+  if (!window.Square) return;
 
   try {
     if (!squarePayments) {
@@ -1184,11 +2283,24 @@ async function initSquarePayments() {
     console.log('Square Web Payments initialized successfully.');
   } catch (err) {
     console.error('Failed to initialize Square Web Payments:', err);
-    const checkoutBtn = document.getElementById('checkout-btn');
-    if (checkoutBtn) checkoutBtn.textContent = 'Payment Setup Error';
     showToast('Payment system could not load: ' + err.message);
   }
 }
+
+window.placeOrder = (type) => {
+  if (typeof window.openPaymentModal === 'function' && document.getElementById('payment-modal')) {
+    window.openPaymentModal();
+  } else {
+    try {
+      const nameVal = document.getElementById('customer-name')?.value?.trim();
+      const phoneVal = document.getElementById('customer-phone')?.value?.trim();
+      if (nameVal) localStorage.setItem('bigi_customer_name', nameVal);
+      if (phoneVal) localStorage.setItem('bigi_customer_phone', phoneVal);
+    } catch (e) {}
+    saveCart();
+    window.location.href = '/menu?openCart=true';
+  }
+};
 
 window.openPaymentModal = async () => {
   if (cart.length === 0) {
@@ -1264,6 +2376,16 @@ window.openPaymentModal = async () => {
     document.getElementById('modal-tip-display').textContent = `$${safeTip.toFixed(2)}`;
     document.getElementById('modal-total').textContent = `$${total.toFixed(2)}`;
     document.getElementById('pay-total').textContent = `$${total.toFixed(2)}`;
+    if (currentPaymentRequest && typeof currentPaymentRequest.update === 'function') {
+      try {
+        currentPaymentRequest.update({
+          total: {
+            amount: total.toFixed(2),
+            label: 'Bigi Awasaana Order',
+          },
+        });
+      } catch (e) {}
+    }
   }
 
   summaryEl.innerHTML = `
@@ -1312,6 +2434,98 @@ window.openPaymentModal = async () => {
 
   document.getElementById('pay-total').textContent = `$${(discountedSubtotal + tax).toFixed(2)}`;
 
+  // ── Setup Saved Cards (Card on File) ──
+  const savedCardContainer = document.getElementById('saved-payment-method-container');
+  const savedCardsList = document.getElementById('saved-cards-list');
+  const savedCardAuth = document.getElementById('saved-card-auth-container');
+  const newCardSection = document.getElementById('new-card-form-section');
+  const digitalWallets = document.getElementById('digital-wallets');
+  const savedPinInput = document.getElementById('saved-card-pin');
+
+  const customerCards = window.__recognizedCustomer?.savedCards || [];
+
+  if (customerCards.length > 0) {
+    if (savedCardContainer) savedCardContainer.style.display = 'block';
+    if (savedCardAuth) savedCardAuth.style.display = 'block';
+    if (newCardSection) newCardSection.style.display = 'none';
+    if (digitalWallets) digitalWallets.style.display = 'block';
+
+    // Auto-fill PIN if user already authenticated in this session
+    if (savedPinInput) {
+      savedPinInput.value = '';
+      try {
+        const auth = JSON.parse(sessionStorage.getItem('bigi_order_auth') || '{}');
+        const currentPhoneDigits = (document.getElementById('customer-phone')?.value || '').replace(/\D/g, '');
+        const authPhoneDigits = (auth.phone || '').replace(/\D/g, '');
+        if (auth.pin && (currentPhoneDigits === authPhoneDigits || !currentPhoneDigits)) {
+          savedPinInput.value = auth.pin;
+        }
+      } catch (e) {}
+    }
+
+    if (savedCardsList) {
+      savedCardsList.innerHTML = customerCards.map((card, idx) => `
+        <label class="saved-card-option" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface); border: 1px solid ${idx === 0 ? 'var(--accent)' : 'var(--border)'}; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="radio" name="payment_card_choice" value="${card.id}" ${idx === 0 ? 'checked' : ''} style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;" onchange="window.__onPaymentChoiceChange(this.value)">
+            <span style="display:flex;align-items:center;color:var(--white);">${iconCard(20)}</span>
+            <div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--white);">${escapeHtml(card.brand.toUpperCase())} •••• ${escapeHtml(card.last4)}</div>
+              <div style="font-size: 12px; color: var(--gray);">Exp ${card.expMonth ? String(card.expMonth).padStart(2,'0') : '••'}/${card.expYear ? String(card.expYear).slice(-2) : '••'}</div>
+            </div>
+          </div>
+          <span style="font-size: 11px; font-weight: 700; color: #ffffff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); padding: 3px 8px; border-radius: 4px; text-transform: uppercase;">1-Tap</span>
+        </label>
+      `).join('') + `
+        <label class="saved-card-option" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+          <input type="radio" name="payment_card_choice" value="new_card" style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;" onchange="window.__onPaymentChoiceChange(this.value)">
+          <span style="display:flex;align-items:center;color:var(--accent);">${iconPlus(16)}</span>
+          <span style="font-size: 14px; color: var(--white); font-weight: 500;">Pay with a new card</span>
+        </label>
+      `;
+    }
+
+    const payBtn = document.getElementById('pay-button');
+    if (payBtn) {
+      payBtn.innerHTML = `${iconBolt(16)} 1-TAP PURCHASE — <span id="pay-total">$${(discountedSubtotal + tax).toFixed(2)}</span>`;
+    }
+  } else {
+    if (savedCardContainer) savedCardContainer.style.display = 'none';
+    if (savedCardAuth) savedCardAuth.style.display = 'none';
+    if (newCardSection) newCardSection.style.display = 'block';
+    if (digitalWallets) digitalWallets.style.display = 'block';
+    const payBtn = document.getElementById('pay-button');
+    if (payBtn) {
+      payBtn.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(discountedSubtotal + tax).toFixed(2)}</span>`;
+    }
+  }
+
+  window.__onPaymentChoiceChange = (choice) => {
+    const isNew = choice === 'new_card';
+    if (newCardSection) newCardSection.style.display = isNew ? 'block' : 'none';
+    if (savedCardAuth) savedCardAuth.style.display = isNew ? 'none' : 'block';
+    // Digital wallets remain available for 1-tap express checkout
+    if (digitalWallets) digitalWallets.style.display = 'block';
+
+    document.querySelectorAll('.saved-card-option').forEach(label => {
+      const radio = label.querySelector('input[type="radio"]');
+      if (radio && radio.checked && !isNew) {
+        label.style.borderColor = 'var(--accent)';
+      } else {
+        label.style.borderColor = 'var(--border)';
+      }
+    });
+
+    const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
+    const currentTotal = (discountedSubtotal + tax + tipRaw).toFixed(2);
+    const payBtn = document.getElementById('pay-button');
+    if (payBtn) {
+      payBtn.innerHTML = isNew 
+        ? `COMPLETE PURCHASE — <span id="pay-total">$${currentTotal}</span>` 
+        : `${iconBolt(16)} 1-TAP PURCHASE — <span id="pay-total">$${currentTotal}</span>`;
+    }
+  };
+
   // Ensure Square card is initialized (handles close → reopen race condition)
   if (!squareCard) {
     await initSquarePayments();
@@ -1329,11 +2543,35 @@ window.openPaymentModal = async () => {
     document.getElementById('card-errors').textContent = 'Payment form could not load. Please refresh the page.';
   }
 
-  // Attach Digital Wallets
+  // Destroy previous digital wallet instances cleanly to prevent Square SDK duplicate attach errors
+  if (googlePayInstance) {
+    try { await googlePayInstance.destroy(); } catch(e) {}
+    googlePayInstance = null;
+  }
+  applePayInstance = null;
+  currentPaymentRequest = null;
+
+  const gpEl = document.getElementById('google-pay-button');
+  if (gpEl) {
+    gpEl.innerHTML = '';
+    gpEl.style.display = 'none';
+  }
+  const apEl = document.getElementById('apple-pay-button');
+  if (apEl) {
+    apEl.style.display = 'none';
+  }
+  const dividerEl = document.getElementById('wallets-or-divider');
+  if (dividerEl) {
+    dividerEl.style.display = 'none';
+  }
+
+  // Attach Digital Wallets (Google Pay & Apple Pay)
   if (squarePayments) {
+    let hasDigitalWallet = false;
     try {
       const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
-      const totalAmount = (discountedSubtotal + tax + tipRaw).toFixed(2);
+      const safeTip = Math.min(tipRaw, 100);
+      const totalAmount = (discountedSubtotal + tax + safeTip).toFixed(2);
       
       const req = squarePayments.paymentRequest({
         countryCode: 'US',
@@ -1343,134 +2581,178 @@ window.openPaymentModal = async () => {
           label: 'Bigi Awasaana Order',
         },
       });
+      currentPaymentRequest = req;
 
-      // Apple Pay
+      // ── Apple Pay (Native Web Payments SDK - does not use .attach()) ──
       try {
         const applePay = await squarePayments.applePay(req);
-        await applePay.attach('#apple-pay-button', {
-          buttonColor: 'black',
-          buttonType: 'plain'
-        });
+        applePayInstance = applePay;
         const apBtn = document.getElementById('apple-pay-button');
-        apBtn.style.display = 'block';
-        apBtn.onclick = null;
-        apBtn.addEventListener('click', async () => {
-          let pickupPayload;
-          try {
-            pickupPayload = getPickupPayload();
-          } catch (err) {
-            showToast(err.message);
-            return;
-          }
-          
-          try {
-            const result = await applePay.tokenize();
-            if (result.status === 'OK') {
-              // Show processing screen
-              document.getElementById('card-container').style.display = 'none';
-              document.getElementById('apple-pay-button').style.display = 'none';
-              document.getElementById('google-pay-button').style.display = 'none';
-              if (document.getElementById('fake-apple-pay-button')) document.getElementById('fake-apple-pay-button').style.display = 'none';
-              document.getElementById('pay-button').style.display = 'none';
-              document.getElementById('payment-processing').style.display = 'flex';
+        if (apBtn) {
+          apBtn.style.display = 'flex';
+          hasDigitalWallet = true;
 
-              await processSquareToken(result.token, {
-                customerName: document.getElementById('customer-name').value.trim(),
-                customerPhone: document.getElementById('customer-phone').value.trim(),
-                tipCents: Math.round((parseFloat(document.getElementById('tip-input')?.value || '0') || 0) * 100),
-                pickupType: pickupPayload.pickupType,
-                pickupTime: pickupPayload.pickupTime
-              });
-            } else {
-              document.getElementById('card-errors').textContent = result.errors?.map(e => e.message).join(', ') || 'Apple Pay failed.';
+          apBtn.onclick = async (e) => {
+            e.preventDefault();
+            // Validate pickup synchronously before triggering payment sheet
+            let pickupPayload;
+            try {
+              pickupPayload = getPickupPayload();
+            } catch (err) {
+              showToast(err.message);
+              return;
             }
-          } catch (e) {
-            console.error('Apple Pay error:', e);
-            document.getElementById('card-errors').textContent = e.message || 'Apple Pay payment failed.';
-          }
-        });
-      } catch (e) {
-        console.log('Apple Pay not natively supported, showing dummy button for display.');
-        const fakeApBtn = document.getElementById('fake-apple-pay-button');
-        if (fakeApBtn) {
-          fakeApBtn.style.display = 'flex';
-          fakeApBtn.onclick = () => {
-            document.getElementById('card-errors').textContent = 'Apple Pay is only available on iOS devices.';
+
+            try {
+              // Tokenize must be called directly within user gesture without intervening async calls
+              const result = await applePay.tokenize();
+              if (result.status === 'OK') {
+                // Show processing screen
+                document.getElementById('card-container').style.display = 'none';
+                if (document.getElementById('apple-pay-button')) document.getElementById('apple-pay-button').style.display = 'none';
+                if (document.getElementById('google-pay-button')) document.getElementById('google-pay-button').style.display = 'none';
+                if (document.getElementById('wallets-or-divider')) document.getElementById('wallets-or-divider').style.display = 'none';
+                if (document.getElementById('saved-payment-method-container')) document.getElementById('saved-payment-method-container').style.display = 'none';
+                if (document.getElementById('saved-card-auth-container')) document.getElementById('saved-card-auth-container').style.display = 'none';
+                if (document.getElementById('new-card-form-section')) document.getElementById('new-card-form-section').style.display = 'none';
+                document.getElementById('pay-button').style.display = 'none';
+                document.getElementById('payment-processing').style.display = 'flex';
+
+                await processSquareToken(result.token, {
+                  customerName: document.getElementById('customer-name')?.value.trim(),
+                  customerPhone: document.getElementById('customer-phone')?.value.trim(),
+                  customerEmail: document.getElementById('customer-email')?.value.trim() || undefined,
+                  tipCents: Math.round((parseFloat(document.getElementById('tip-input')?.value || '0') || 0) * 100),
+                  pickupType: pickupPayload.pickupType,
+                  pickupTime: pickupPayload.pickupTime
+                });
+              } else {
+                document.getElementById('card-errors').textContent = result.errors?.map(err => err.message).join(', ') || 'Apple Pay failed.';
+              }
+            } catch (apErr) {
+              console.error('Apple Pay tokenize error:', apErr);
+              document.getElementById('card-errors').textContent = apErr.message || 'Apple Pay payment failed.';
+            }
           };
         }
+      } catch (apInitErr) {
+        console.log('Apple Pay not supported on this browser/device:', apInitErr.message || apInitErr);
+        const apBtn = document.getElementById('apple-pay-button');
+        if (apBtn) apBtn.style.display = 'none';
       }
 
-      // Google Pay
+      // ── Google Pay (Square Web Payments SDK) ──
       try {
         const googlePay = await squarePayments.googlePay(req);
-        await googlePay.attach('#google-pay-button', {
-          buttonColor: 'white',
-          buttonType: 'pay',
-          buttonSizeMode: 'fill'
-        });
+        googlePayInstance = googlePay;
         const gpBtn = document.getElementById('google-pay-button');
-        gpBtn.style.display = 'block';
-        gpBtn.onclick = null;
-        gpBtn.addEventListener('click', async () => {
-          let pickupPayload;
-          try {
-            pickupPayload = getPickupPayload();
-          } catch (err) {
-            showToast(err.message);
-            return;
-          }
-          
-          try {
-            const result = await googlePay.tokenize();
-            if (result.status === 'OK') {
-              // Show processing screen
-              document.getElementById('card-container').style.display = 'none';
-              document.getElementById('apple-pay-button').style.display = 'none';
-              document.getElementById('google-pay-button').style.display = 'none';
-              if (document.getElementById('fake-apple-pay-button')) document.getElementById('fake-apple-pay-button').style.display = 'none';
-              document.getElementById('pay-button').style.display = 'none';
-              document.getElementById('payment-processing').style.display = 'flex';
+        if (gpBtn) {
+          gpBtn.innerHTML = '';
+          await googlePay.attach('#google-pay-button', {
+            buttonColor: 'default',
+            buttonType: 'long',
+            buttonSizeMode: 'fill',
+            buttonRadius: 6
+          });
+          gpBtn.style.display = 'block';
+          hasDigitalWallet = true;
 
-              await processSquareToken(result.token, {
-                customerName: document.getElementById('customer-name').value.trim(),
-                customerPhone: document.getElementById('customer-phone').value.trim(),
-                tipCents: Math.round((parseFloat(document.getElementById('tip-input')?.value || '0') || 0) * 100),
-                pickupType: pickupPayload.pickupType,
-                pickupTime: pickupPayload.pickupTime
-              });
-            } else {
-              document.getElementById('card-errors').textContent = result.errors?.map(e => e.message).join(', ') || 'Google Pay failed.';
+          gpBtn.onclick = async (e) => {
+            e.preventDefault();
+            let pickupPayload;
+            try {
+              pickupPayload = getPickupPayload();
+            } catch (err) {
+              showToast(err.message);
+              return;
             }
-          } catch (e) {
-            console.error('Google Pay error:', e);
-            document.getElementById('card-errors').textContent = e.message || 'Google Pay payment failed.';
-          }
-        });
-      } catch (e) {
-        console.log('Google Pay not supported:', e);
+
+            try {
+              const result = await googlePay.tokenize();
+              if (result.status === 'OK') {
+                // Show processing screen
+                document.getElementById('card-container').style.display = 'none';
+                if (document.getElementById('apple-pay-button')) document.getElementById('apple-pay-button').style.display = 'none';
+                if (document.getElementById('google-pay-button')) document.getElementById('google-pay-button').style.display = 'none';
+                if (document.getElementById('wallets-or-divider')) document.getElementById('wallets-or-divider').style.display = 'none';
+                if (document.getElementById('saved-payment-method-container')) document.getElementById('saved-payment-method-container').style.display = 'none';
+                if (document.getElementById('saved-card-auth-container')) document.getElementById('saved-card-auth-container').style.display = 'none';
+                if (document.getElementById('new-card-form-section')) document.getElementById('new-card-form-section').style.display = 'none';
+                document.getElementById('pay-button').style.display = 'none';
+                document.getElementById('payment-processing').style.display = 'flex';
+
+                await processSquareToken(result.token, {
+                  customerName: document.getElementById('customer-name')?.value.trim(),
+                  customerPhone: document.getElementById('customer-phone')?.value.trim(),
+                  customerEmail: document.getElementById('customer-email')?.value.trim() || undefined,
+                  tipCents: Math.round((parseFloat(document.getElementById('tip-input')?.value || '0') || 0) * 100),
+                  pickupType: pickupPayload.pickupType,
+                  pickupTime: pickupPayload.pickupTime
+                });
+              } else {
+                document.getElementById('card-errors').textContent = result.errors?.map(err => err.message).join(', ') || 'Google Pay failed.';
+              }
+            } catch (gpErr) {
+              console.error('Google Pay tokenize error:', gpErr);
+              document.getElementById('card-errors').textContent = gpErr.message || 'Google Pay payment failed.';
+            }
+          };
+        }
+      } catch (gpInitErr) {
+        console.log('Google Pay not supported or failed to initialize:', gpInitErr.message || gpInitErr);
+        const gpBtn = document.getElementById('google-pay-button');
+        if (gpBtn) gpBtn.style.display = 'none';
       }
 
-    } catch (e) {
-      console.error('Digital wallet setup error:', e);
+      // Show divider only if at least one digital wallet is active
+      const divider = document.getElementById('wallets-or-divider');
+      if (divider) {
+        divider.style.display = hasDigitalWallet ? 'flex' : 'none';
+      }
+
+    } catch (walletErr) {
+      console.error('Digital wallet setup error:', walletErr);
     }
   }
 };
 
-window.closePaymentModal = () => {
+window.closePaymentModal = async () => {
   const modal = document.getElementById('payment-modal');
-  modal.style.display = 'none';
+  if (modal) modal.style.display = 'none';
 
   // Destroy the card instance — openPaymentModal will re-create it on demand
   if (squareCard) {
-    try { squareCard.destroy(); } catch(e) { console.warn(e); }
+    try { await squareCard.destroy(); } catch(e) { console.warn(e); }
     squareCard = null;
   }
+
+  // Cleanly destroy Google Pay instance
+  if (googlePayInstance) {
+    try { await googlePayInstance.destroy(); } catch(e) { console.warn(e); }
+    googlePayInstance = null;
+  }
+  applePayInstance = null;
+  currentPaymentRequest = null;
   
-  // Hide digital wallet buttons to reset state
-  document.getElementById('apple-pay-button').style.display = 'none';
-  document.getElementById('google-pay-button').style.display = 'none';
-  document.getElementById('apple-pay-button').innerHTML = '';
-  document.getElementById('google-pay-button').innerHTML = '';
+  // Hide digital wallet buttons to reset state (preserve Apple Pay button DOM structure)
+  const apBtn = document.getElementById('apple-pay-button');
+  if (apBtn) apBtn.style.display = 'none';
+  
+  const gpBtn = document.getElementById('google-pay-button');
+  if (gpBtn) {
+    gpBtn.style.display = 'none';
+    gpBtn.innerHTML = '';
+  }
+
+  const divider = document.getElementById('wallets-or-divider');
+  if (divider) divider.style.display = 'none';
+
+  const savedCardContainer = document.getElementById('saved-payment-method-container');
+  const savedCardAuth = document.getElementById('saved-card-auth-container');
+  const newCardSection = document.getElementById('new-card-form-section');
+  if (savedCardContainer) savedCardContainer.style.display = 'none';
+  if (savedCardAuth) savedCardAuth.style.display = 'none';
+  if (newCardSection) newCardSection.style.display = 'block';
 };
 
 window.editPickupTime = () => {
@@ -1503,8 +2785,10 @@ function getPickupPayload() {
 window.handlePayment = async () => {
   const nameInput = document.getElementById('customer-name');
   const phoneInput = document.getElementById('customer-phone');
+  const emailInput = document.getElementById('customer-email');
   const customerName = nameInput?.value.trim();
   const customerPhone = phoneInput?.value.trim();
+  const customerEmail = emailInput?.value.trim() || undefined;
 
   if (!customerName || !customerPhone) {
     showToast('Name and phone are required.');
@@ -1529,10 +2813,56 @@ window.handlePayment = async () => {
   const errorsEl = document.getElementById('card-errors');
   const cardContainer = document.getElementById('card-container');
   const processingDiv = document.getElementById('payment-processing');
+  const savedCardContainer = document.getElementById('saved-payment-method-container');
+  const savedCardAuth = document.getElementById('saved-card-auth-container');
+  const newCardSection = document.getElementById('new-card-form-section');
 
   payBtn.disabled = true;
   payBtn.textContent = 'Processing...';
   errorsEl.textContent = '';
+
+  const selectedChoice = document.querySelector('input[name="payment_card_choice"]:checked')?.value;
+  const isPayingWithSavedCard = selectedChoice && selectedChoice.startsWith('ccof:');
+
+  if (isPayingWithSavedCard) {
+    // 1-Tap Checkout with Saved Card
+    const pinInput = document.getElementById('saved-card-pin');
+    let pin = pinInput?.value.trim();
+    if (!pin) {
+      try {
+        const auth = JSON.parse(sessionStorage.getItem('bigi_order_auth') || '{}');
+        pin = auth.pin || '';
+      } catch (e) {}
+    }
+
+    if (!pin || pin.length !== 4) {
+      errorsEl.textContent = 'Please enter your 4-digit PIN to authorize payment with your saved card.';
+      payBtn.disabled = false;
+      payBtn.innerHTML = `${iconBolt(16)} 1-TAP PURCHASE — <span id="pay-total">${document.getElementById('modal-total')?.textContent || '$0.00'}</span>`;
+      if (pinInput) pinInput.focus();
+      return;
+    }
+
+    if (savedCardContainer) savedCardContainer.style.display = 'none';
+    if (savedCardAuth) savedCardAuth.style.display = 'none';
+    if (newCardSection) newCardSection.style.display = 'none';
+    if (processingDiv) processingDiv.style.display = 'flex';
+
+    await processSquareToken(selectedChoice, {
+      customerName,
+      customerPhone,
+      customerEmail,
+      tipCents,
+      pickupType,
+      pickupTime,
+      pin
+    });
+    return;
+  }
+
+  // Paying with New Card
+  const saveCardCheckbox = document.getElementById('save-card-checkbox');
+  const saveCard = Boolean(saveCardCheckbox?.checked);
 
   if (!squareCard) {
     errorsEl.textContent = 'Payment form not ready. Please close and reopen the checkout.';
@@ -1544,16 +2874,19 @@ window.handlePayment = async () => {
   try {
     const result = await squareCard.tokenize();
     if (result.status === 'OK') {
-      
-      cardContainer.style.display = 'none';
-      processingDiv.style.display = 'flex';
+      if (cardContainer) cardContainer.style.display = 'none';
+      if (savedCardContainer) savedCardContainer.style.display = 'none';
+      if (newCardSection) newCardSection.style.display = 'none';
+      if (processingDiv) processingDiv.style.display = 'flex';
 
       await processSquareToken(result.token, {
         customerName,
         customerPhone,
+        customerEmail,
         tipCents,
         pickupType,
-        pickupTime
+        pickupTime,
+        saveCard
       });
     } else {
       const errMsg = result.errors && result.errors.length > 0
@@ -1572,17 +2905,21 @@ window.handlePayment = async () => {
   }
 };
 
-async function processSquareToken(token, { customerName, customerPhone, tipCents, pickupType, pickupTime }) {
+async function processSquareToken(token, { customerName, customerPhone, customerEmail, tipCents, pickupType, pickupTime, saveCard, pin }) {
+  const emailVal = customerEmail || document.getElementById('customer-email')?.value.trim() || window.__recognizedCustomer?.email || undefined;
   try {
     // We send tipCents explicitly. The server calculates subtotals & taxes using evaluateDeals.
-    const res = await processSquarePayment({
+    const res = await callFirebaseFunction('processSquarePayment', {
       sourceId: token,
       customerName,
       customerPhone,
+      customerEmail: emailVal,
       items: cart,
       tipCents,
       pickupType,
-      pickupTime
+      pickupTime,
+      saveCard: Boolean(saveCard),
+      pin: pin || undefined
     });
 
     const result = res;
@@ -1592,47 +2929,80 @@ async function processSquareToken(token, { customerName, customerPhone, tipCents
       document.getElementById('payment-success').style.display = 'block';
       document.getElementById('success-message').textContent = result.data.message;
 
-    // Generate QR code for order status page
-    const orderId = result.data.orderId;
-    const accessToken = result.data.accessToken;
-    const statusUrl = `${window.location.origin}/order-status.html?orderId=${orderId}&token=${accessToken}`;
-    const qrContainer = document.getElementById('qr-code-container');
-    if (qrContainer && window.QRCode) {
-      qrContainer.innerHTML = '';
-      new window.QRCode(qrContainer, {
-        text: statusUrl,
-        width: 160,
-        height: 160,
-        colorDark: '#ffffff',
-        colorLight: '#000000',
-        correctLevel: window.QRCode.CorrectLevel.M,
-      });
+      // If user provided a PIN during saved card payment, persist to sessionStorage for seamless future orders
+      if (pin && customerPhone) {
+        try {
+          sessionStorage.setItem('bigi_order_auth', JSON.stringify({ phone: customerPhone, pin }));
+        } catch (e) {}
+      }
+
+      // Generate QR code for order status page
+      const orderId = result.data.orderId;
+      const accessToken = result.data.accessToken;
+      const statusUrl = `${window.location.origin}/order-status.html?orderId=${orderId}&token=${accessToken}`;
+      const qrContainer = document.getElementById('qr-code-container');
+      if (qrContainer && window.QRCode) {
+        qrContainer.innerHTML = '';
+        new window.QRCode(qrContainer, {
+          text: statusUrl,
+          width: 160,
+          height: 160,
+          colorDark: '#ffffff',
+          colorLight: '#000000',
+          correctLevel: window.QRCode.CorrectLevel.M,
+        });
+      }
+      const trackBtn = document.getElementById('track-order-btn');
+      if (trackBtn) {
+        trackBtn.href = statusUrl;
+        trackBtn.style.display = 'inline-block';
+      }
+
+      // Clear cart
+      cart = [];
+      saveCart();
+      document.getElementById('customer-name').value = '';
+      document.getElementById('customer-phone').value = '';
+      if (document.getElementById('customer-email')) document.getElementById('customer-email').value = '';
+      window.__recognizedCustomer = null;
+      hideReturningCustomerBanner();
+      if (typeof updateCartUI === 'function') updateCartUI();
+      if (typeof window.toggleCart === 'function') window.toggleCart(false);
+
+      showToast('Payment successful! Your order receipt was sent to your email.');
     }
-    const trackBtn = document.getElementById('track-order-btn');
-    if (trackBtn) {
-      trackBtn.href = statusUrl;
-      trackBtn.style.display = 'inline-block';
-    }
-
-    // Clear cart
-    cart = [];
-    document.getElementById('customer-name').value = '';
-    document.getElementById('customer-phone').value = '';
-    if (typeof updateCartUI === 'function') updateCartUI();
-    if (typeof window.toggleCart === 'function') window.toggleCart(false);
-
-    showToast('Payment successful! Your order is being prepared.');
-    } // End of if (result.data.success)
-
   } catch (err) {
     console.error('Payment error:', err);
     const _processing = document.getElementById('payment-processing');
     const _cardContainer = document.getElementById('card-container');
+    const _newCardSection = document.getElementById('new-card-form-section');
+    const _savedCardContainer = document.getElementById('saved-payment-method-container');
+    const _savedCardAuth = document.getElementById('saved-card-auth-container');
     const _payBtn = document.getElementById('pay-button');
     const _errorsEl = document.getElementById('card-errors');
 
     if (_processing) _processing.style.display = 'none';
-    if (_cardContainer) _cardContainer.style.display = 'block';
+    const _digitalWallets = document.getElementById('digital-wallets');
+    if (_digitalWallets) _digitalWallets.style.display = 'block';
+    if (applePayInstance) {
+      const _ap = document.getElementById('apple-pay-button');
+      if (_ap) _ap.style.display = 'flex';
+    }
+    if (googlePayInstance) {
+      const _gp = document.getElementById('google-pay-button');
+      if (_gp) _gp.style.display = 'block';
+    }
+    const _divider = document.getElementById('wallets-or-divider');
+    if (_divider && (applePayInstance || googlePayInstance)) {
+      _divider.style.display = 'flex';
+    }
+    if (token.startsWith('ccof:')) {
+      if (_savedCardContainer) _savedCardContainer.style.display = 'block';
+      if (_savedCardAuth) _savedCardAuth.style.display = 'block';
+    } else {
+      if (_newCardSection) _newCardSection.style.display = 'block';
+      if (_cardContainer) _cardContainer.style.display = 'block';
+    }
     if (_payBtn) {
       _payBtn.style.display = 'block';
       _payBtn.disabled = false;
@@ -1642,7 +3012,10 @@ async function processSquareToken(token, { customerName, customerPhone, tipCents
       const discountedSubtotal = subtotal - discountAmount;
       const tipRaw = parseFloat(document.getElementById('tip-input')?.value || '0') || 0;
       const tip = Math.min(tipRaw, 100);
-      _payBtn.innerHTML = `COMPLETE PURCHASE — <span id="pay-total">$${(discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2)}</span>`;
+      const curTot = (discountedSubtotal * (1 + TAX_RATE) + tip).toFixed(2);
+      _payBtn.innerHTML = token.startsWith('ccof:')
+        ? `${iconBolt(16)} 1-TAP PURCHASE — <span id="pay-total">$${curTot}</span>`
+        : `COMPLETE PURCHASE — <span id="pay-total">$${curTot}</span>`;
     }
 
     const errorMsg = err.message || 'Payment failed. Please try again.';
@@ -1688,52 +3061,224 @@ function initReveal() {
 
 
 // ─────────────────────────────────────────────────────────────────
-// STICKY HORIZONTAL SCROLL  (vertical scroll → horizontal movement)
+// FEATURED ITEMS CONTINUOUS FLOW STREAM & TOUCH SWIPE
 // ─────────────────────────────────────────────────────────────────
-function initStickyScroll() {
-  const section = document.querySelector('.sticky-scroll-section');
-  const track   = document.getElementById('featured-menu-grid');
-  if (!section || !track) return;
+let featuredAnimFrame = null;
+let featuredIsPaused = false;
+let featuredResumeTimer = null;
 
-  let ticking = false;
+function initFeaturedCarousel() {
+  const track = document.getElementById('featured-menu-grid');
+  if (!track) return;
 
-  function recalc() {
-    // How far the track needs to slide left
-    const maxScrollX = Math.max(0, track.scrollWidth - window.innerWidth);
-    // Make the section tall enough so the user has room to scroll through the whole track
-    // 100vh for the sticky pin  +  extra height proportional to the horizontal distance
-    const sectionHeight = window.innerHeight + maxScrollX;
-    section.style.height = sectionHeight + 'px';
-    return { maxScrollX, sectionHeight };
+  const prevBtn = document.getElementById('featured-prev-btn');
+  const nextBtn = document.getElementById('featured-next-btn');
+  const hintEl = document.getElementById('featured-swipe-hint');
+
+  // Cancel any prior animation loop
+  if (featuredAnimFrame) {
+    cancelAnimationFrame(featuredAnimFrame);
+    featuredAnimFrame = null;
+  }
+  if (featuredResumeTimer) {
+    clearTimeout(featuredResumeTimer);
+    featuredResumeTimer = null;
   }
 
-  let dims = recalc();
-  window.addEventListener('resize', () => { dims = recalc(); });
+  // Seamless Infinite Looping: Clone cards once so set A and set B are identical
+  const originalCards = Array.from(track.querySelectorAll('.menu-card:not([data-clone])'));
+  if (originalCards.length === 0) return;
 
-  window.addEventListener('scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const rect = section.getBoundingClientRect();
-      const scrolled = -rect.top;                          // how far past the top of the section
-      const maxScrollY = dims.sectionHeight - window.innerHeight;
+  // Clean any old clones
+  track.querySelectorAll('.menu-card[data-clone]').forEach(c => c.remove());
 
-      let progress = scrolled / maxScrollY;
-      progress = Math.max(0, Math.min(1, progress));
+  // Append cloned cards with data-clone="true"
+  originalCards.forEach(card => {
+    const clone = card.cloneNode(true);
+    clone.setAttribute('data-clone', 'true');
+    track.appendChild(clone);
+  });
 
-      track.style.transform = `translate3d(-${dims.maxScrollX * progress}px, 0, 0)`;
-      ticking = false;
-    });
+  function getHalfWidth() {
+    return track.scrollWidth / 2;
+  }
+
+  function pauseFlow() {
+    featuredIsPaused = true;
+    if (featuredResumeTimer) {
+      clearTimeout(featuredResumeTimer);
+      featuredResumeTimer = null;
+    }
+  }
+
+  function resumeFlowWithDelay(delay = 1800) {
+    if (featuredResumeTimer) clearTimeout(featuredResumeTimer);
+    featuredResumeTimer = setTimeout(() => {
+      featuredIsPaused = false;
+      lastTime = performance.now();
+    }, delay);
+  }
+
+  function dismissHint() {
+    if (hintEl && !hintEl.classList.contains('hidden')) {
+      hintEl.classList.add('hidden');
+    }
+  }
+
+  // 1. Continuous RAF Flow Loop
+  let lastTime = performance.now();
+  const speed = 0.65; // ~39px/sec smooth continuous drift
+
+  function flowStep(now) {
+    const delta = Math.min(32, now - lastTime);
+    lastTime = now;
+
+    if (!featuredIsPaused) {
+      const halfWidth = getHalfWidth();
+      if (halfWidth > 0) {
+        track.scrollLeft += speed * (delta / 16.67);
+
+        // Seamless wrap forward
+        if (track.scrollLeft >= halfWidth) {
+          track.scrollLeft -= halfWidth;
+        }
+      }
+    }
+
+    featuredAnimFrame = requestAnimationFrame(flowStep);
+  }
+
+  featuredIsPaused = false;
+  lastTime = performance.now();
+  featuredAnimFrame = requestAnimationFrame(flowStep);
+
+  // 2. Touch Events (Full natural swipe & drag)
+  track.addEventListener('touchstart', () => {
+    pauseFlow();
+    dismissHint();
   }, { passive: true });
+
+  track.addEventListener('touchend', () => {
+    resumeFlowWithDelay(2000);
+  }, { passive: true });
+
+  // Seamless wrap during user swipe
+  track.addEventListener('scroll', () => {
+    dismissHint();
+    const halfWidth = getHalfWidth();
+    if (halfWidth > 0) {
+      if (track.scrollLeft >= halfWidth * 1.9) {
+        track.scrollLeft -= halfWidth;
+      } else if (track.scrollLeft <= 5 && featuredIsPaused) {
+        track.scrollLeft += halfWidth;
+      }
+    }
+  }, { passive: true });
+
+  // 3. Desktop Hover Pause
+  track.addEventListener('mouseenter', () => {
+    pauseFlow();
+  });
+
+  track.addEventListener('mouseleave', () => {
+    resumeFlowWithDelay(800);
+  });
+
+  // 4. Desktop Mouse Drag to Scroll
+  let isMouseDown = false;
+  let hasDragged = false;
+  let startX = 0;
+  let scrollStart = 0;
+
+  track.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    isMouseDown = true;
+    hasDragged = false;
+    pauseFlow();
+    dismissHint();
+    startX = e.pageX - track.offsetLeft;
+    scrollStart = track.scrollLeft;
+    track.classList.add('dragging');
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isMouseDown) {
+      isMouseDown = false;
+      track.classList.remove('dragging');
+      resumeFlowWithDelay(1800);
+      setTimeout(() => { hasDragged = false; }, 60);
+    }
+  });
+
+  track.addEventListener('mousemove', (e) => {
+    if (!isMouseDown) return;
+    const x = e.pageX - track.offsetLeft;
+    if (Math.abs(x - startX) > 6) {
+      hasDragged = true;
+    }
+    e.preventDefault();
+    const walk = (x - startX) * 1.4;
+    track.scrollLeft = scrollStart - walk;
+  });
+
+  track.addEventListener('click', (e) => {
+    if (hasDragged) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  // 5. Chevron Navigation Buttons
+  if (prevBtn) {
+    prevBtn.onclick = () => {
+      pauseFlow();
+      dismissHint();
+      track.scrollBy({ left: -240, behavior: 'smooth' });
+      resumeFlowWithDelay(2800);
+    };
+  }
+  if (nextBtn) {
+    nextBtn.onclick = () => {
+      pauseFlow();
+      dismissHint();
+      track.scrollBy({ left: 240, behavior: 'smooth' });
+      resumeFlowWithDelay(2800);
+    };
+  }
 }
+window.initFeaturedCarousel = initFeaturedCarousel;
 
 // ─────────────────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+function checkOpenCartParam() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('openCart') === 'true' || urlParams.get('cart') === 'open') {
+      setTimeout(() => {
+        toggleCart(true);
+      }, 350);
+    }
+  } catch (e) {}
+}
+
+function initMainApp() {
+  loadSavedCart();
   loadMenuFromFirestore();
   updateCartUI();
-  initStickyScroll();
+  checkOpenCartParam();
+  try {
+    const savedName = localStorage.getItem('bigi_customer_name');
+    const savedPhone = localStorage.getItem('bigi_customer_phone');
+    const nameInput = document.getElementById('customer-name');
+    const phoneInput = document.getElementById('customer-phone');
+    if (nameInput && !nameInput.value.trim() && savedName) nameInput.value = savedName;
+    if (phoneInput && !phoneInput.value.trim() && savedPhone) {
+      phoneInput.value = savedPhone;
+      phoneInput.dispatchEvent(new Event('blur'));
+    }
+  } catch (e) {}
+  initFeaturedCarousel();
   if (typeof checkBusinessHours === 'function') {
     checkBusinessHours();
     setInterval(checkBusinessHours, 60000);
@@ -1776,21 +3321,223 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initReveal();
-  initSquarePayments();
-});
-// CART PROMO LISTENER
-onSnapshot(doc(db, 'settings', 'cart_promo'), (docSnap) => {
-  const container = document.getElementById('cart-promo-container');
-  if (!container) return;
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    if (data.active && data.html) {
-      container.innerHTML = data.html;
-    } else {
-      container.innerHTML = `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); text-align: center;"><p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">Looking for delivery?</p><div style="display: flex; gap: 12px; justify-content: center;"><a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">Uber Eats</a><span style="color: var(--border);">|</span><a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">DoorDash</a></div></div>`;
+  initCustomerLookup();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMainApp);
+} else {
+  initMainApp();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// RETURNING CUSTOMER LOOKUP & LOYALTY BANNER
+// ─────────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatTierBadge(tier) {
+  if (!tier) return 'Bronze';
+  const t = String(tier).toLowerCase();
+  if (t.includes('gold')) return 'Gold';
+  if (t.includes('silver')) return 'Silver';
+  return 'Bronze';
+}
+
+function getOrCreateReturningCustomerBanner() {
+  let banner = document.getElementById('returning-customer-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'returning-customer-banner';
+    banner.style.cssText = `
+      display: none;
+      margin-top: 12px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: rgba(230, 81, 0, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--white);
+      animation: fadeIn 0.3s ease;
+    `;
+    const phoneInput = document.getElementById('customer-phone');
+    if (phoneInput && phoneInput.parentElement) {
+      phoneInput.parentElement.insertAdjacentElement('afterend', banner);
+    } else if (phoneInput) {
+      phoneInput.insertAdjacentElement('afterend', banner);
     }
   }
+  return banner;
+}
+
+function showReturningCustomerBanner(customer) {
+  const banner = getOrCreateReturningCustomerBanner();
+  if (!banner) return;
+
+  const name = customer.name || 'Friend';
+  const points = customer.loyaltyPoints ?? customer.points ?? 0;
+  const tier = customer.tier || 'bronze';
+  const tierBadgeHtml = renderTierBadge(tier, true);
+  const totalOrders = customer.totalOrders ?? customer.ordersCount ?? customer.orderCount ?? (Array.isArray(customer.orders) ? customer.orders.length : 0);
+
+  banner.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+      <span style="font-weight: 600; color: var(--white); display: inline-flex; align-items: center; gap: 6px;">Welcome back, ${escapeHtml(name)}! <span style="color: var(--primary);">${iconSparkle(16)}</span></span>
+      ${tierBadgeHtml}
+    </div>
+    <div style="font-size: 13px; color: var(--gray); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+      <span>You have <strong style="color: var(--accent); font-weight: 600;">${points}</strong> loyalty point${points === 1 ? '' : 's'}</span>
+      <span>${totalOrders} total order${totalOrders === 1 ? '' : 's'}</span>
+    </div>
+  `;
+  banner.style.display = 'block';
+}
+
+function hideReturningCustomerBanner() {
+  const banner = document.getElementById('returning-customer-banner');
+  if (banner) {
+    banner.style.display = 'none';
+  }
+}
+
+function initCustomerLookup() {
+  const phoneInput = document.getElementById('customer-phone');
+  if (!phoneInput || phoneInput.__customerLookupBound) return;
+  phoneInput.__customerLookupBound = true;
+
+  phoneInput.addEventListener('blur', async () => {
+    const value = phoneInput.value.trim();
+    const digits = value.replace(/\D/g, '');
+
+    if (digits.length >= 10) {
+      try {
+        const result = await callFirebaseFunction('lookupCustomer', { phone: value });
+        const data = result?.data || {};
+
+        if (data.found) {
+          const customer = data.customer || data;
+          window.__recognizedCustomer = customer;
+
+          const nameInput = document.getElementById('customer-name');
+          if (nameInput && !nameInput.value.trim() && customer.name) {
+            nameInput.value = customer.name;
+          }
+
+          showReturningCustomerBanner(customer);
+          updateCartUI();
+        } else {
+          hideReturningCustomerBanner();
+          window.__recognizedCustomer = null;
+          updateCartUI();
+        }
+      } catch (err) {
+        console.warn('Customer lookup error:', err);
+        hideReturningCustomerBanner();
+        window.__recognizedCustomer = null;
+        updateCartUI();
+      }
+    } else {
+      hideReturningCustomerBanner();
+      window.__recognizedCustomer = null;
+      updateCartUI();
+    }
+  });
+}
+
+if (document.readyState !== 'loading') {
+  initCustomerLookup();
+}
+
+// Option 2 Auth Integration: Auto-fill checkout fields when customer logs in
+function getLoggedInCustomer() {
+  try {
+    const raw = sessionStorage.getItem('bigi_auth_customer');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+function applyLoggedInCustomerToForm(customer) {
+  const cust = customer || getLoggedInCustomer();
+  if (!cust) return;
+
+  const nameInput = document.getElementById('customer-name');
+  const phoneInput = document.getElementById('customer-phone');
+  const emailInput = document.getElementById('customer-email');
+
+  if (nameInput && !nameInput.value.trim() && cust.name) {
+    nameInput.value = cust.name;
+  }
+  if (phoneInput && !phoneInput.value.trim() && cust.phone) {
+    phoneInput.value = cust.phone;
+  }
+  if (emailInput && !emailInput.value.trim() && cust.email) {
+    emailInput.value = cust.email;
+  }
+  window.__recognizedCustomer = cust;
+  showReturningCustomerBanner(cust);
+  if (typeof updateCartUI === 'function') updateCartUI();
+}
+
+window.addEventListener('bigi:auth-changed', (e) => {
+  if (e.detail) {
+    applyLoggedInCustomerToForm(e.detail);
+  } else {
+    hideReturningCustomerBanner();
+    window.__recognizedCustomer = null;
+    if (typeof updateCartUI === 'function') updateCartUI();
+  }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    applyLoggedInCustomerToForm();
+  }, 350);
+});
+
+// CART PROMO LISTENER (only active on pages with a cart drawer)
+if (document.getElementById('cart-promo-container')) {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    const container = document.getElementById('cart-promo-container');
+    if (container) {
+      container.innerHTML = `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); text-align: center;"><p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">Looking for delivery?</p><div style="display: flex; gap: 12px; justify-content: center;"><a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">Uber Eats</a><span style="color: var(--border);">|</span><a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">DoorDash</a></div></div>`;
+    }
+  } else if (isHomepage) {
+    getDoc(doc(db, 'settings', 'cart_promo')).then((docSnap) => {
+      const container = document.getElementById('cart-promo-container');
+      if (!container) return;
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.active && data.html) {
+          container.innerHTML = data.html;
+        } else {
+          container.innerHTML = `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); text-align: center;"><p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">Looking for delivery?</p><div style="display: flex; gap: 12px; justify-content: center;"><a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">Uber Eats</a><span style="color: var(--border);">|</span><a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">DoorDash</a></div></div>`;
+        }
+      }
+    }).catch(() => {});
+  } else {
+    onSnapshot(doc(db, 'settings', 'cart_promo'), (docSnap) => {
+      const container = document.getElementById('cart-promo-container');
+      if (!container) return;
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.active && data.html) {
+          container.innerHTML = data.html;
+        } else {
+          container.innerHTML = `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); text-align: center;"><p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">Looking for delivery?</p><div style="display: flex; gap: 12px; justify-content: center;"><a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">Uber Eats</a><span style="color: var(--border);">|</span><a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" style="font-size: 13px; font-weight: 500; text-decoration: underline; color: var(--white);">DoorDash</a></div></div>`;
+        }
+      }
+    }, () => {});
+  }
+}
 
 import { welcomeLangs } from './welcome.js';
 
@@ -1802,9 +3549,12 @@ document.addEventListener('DOMContentLoaded', () => {
   welcomeText.classList.add('welcome-animating');
   setInterval(() => {
     welcomeText.classList.remove('welcome-animating');
-    void welcomeText.offsetWidth; // trigger reflow
-    i = (i + 1) % welcomeLangs.length;
-    welcomeText.textContent = welcomeLangs[i];
-    welcomeText.classList.add('welcome-animating');
+    requestAnimationFrame(() => {
+      i = (i + 1) % welcomeLangs.length;
+      welcomeText.textContent = welcomeLangs[i];
+      welcomeText.classList.add('welcome-animating');
+    });
   }, 3000);
 });
+
+import './blog-sync.js';

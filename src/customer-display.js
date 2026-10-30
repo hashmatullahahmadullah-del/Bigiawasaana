@@ -1,6 +1,7 @@
 import { db, app } from './firebase.js';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from 'firebase/auth';
+import { iconMaximize, iconMinimize, iconVolume2, iconVolumeX } from './icons.js';
 
 let audioContext = null;
 let audioEnabled = false;
@@ -13,7 +14,7 @@ const fullscreenBtn = document.getElementById('cd-fullscreen-btn');
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => {
-      console.warn("Fullscreen error:", err);
+
       alert("Press F11 to enter fullscreen.");
     });
   } else {
@@ -27,7 +28,7 @@ if (fullscreenBtn) {
 
 document.addEventListener('fullscreenchange', () => {
   if (fullscreenBtn) {
-    fullscreenBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
+    fullscreenBtn.innerHTML = document.fullscreenElement ? iconMinimize(20, 'ui-icon ui-icon-no-margin') : iconMaximize(20, 'ui-icon ui-icon-no-margin');
   }
 });
 
@@ -68,7 +69,7 @@ function playReadyChime() {
   }
 }
 
-document.getElementById('cd-init-audio').addEventListener('click', (e) => {
+document.getElementById('cd-init-audio')?.addEventListener('click', (e) => {
   if (!audioContext) {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
   }
@@ -77,7 +78,7 @@ document.getElementById('cd-init-audio').addEventListener('click', (e) => {
   }
   audioEnabled = !audioEnabled;
   e.currentTarget.classList.toggle('enabled', audioEnabled);
-  e.currentTarget.textContent = audioEnabled ? '🔊' : '🔇';
+  e.currentTarget.innerHTML = audioEnabled ? iconVolume2(20, 'ui-icon ui-icon-no-margin') : iconVolumeX(20, 'ui-icon ui-icon-no-margin');
   if (audioEnabled) playReadyChime();
 });
 
@@ -91,9 +92,9 @@ async function requestWakeLock() {
     if ('wakeLock' in navigator) {
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => {
-        console.log('Screen Wake Lock released');
+
       });
-      console.log('Screen Wake Lock acquired');
+
     }
   } catch (err) {
     console.error('Wake Lock error:', err.name, err.message);

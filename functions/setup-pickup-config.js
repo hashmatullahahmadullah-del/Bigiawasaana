@@ -1,5 +1,15 @@
 const admin = require('firebase-admin');
-admin.initializeApp();
+const fs = require('fs');
+const credPath = 'C:\\Users\\User\\AppData\\Roaming\\firebase\\bigiawasaana_gmail_com_application_default_credentials.json';
+if (fs.existsSync(credPath)) {
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = credPath;
+}
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+    projectId: 'bigi-awasaana-7b3ce'
+  });
+}
 const db = admin.firestore();
 
 async function setupPickupConfig() {
@@ -11,8 +21,8 @@ async function setupPickupConfig() {
     maxScheduleDaysAhead: 7, // Allow people to schedule orders up to a week in advance
     slotIntervalMinutes: 15, // Pickup slots every 15 minutes (e.g. 5:00, 5:15, 5:30)
     prepBufferBeforeCloseMinutes: 30, // Stop taking new orders 30 minutes before closing (10:00 PM cutoff)
-    businessHours: { open: "12:00", close: "22:30" }, // 12:00 PM to 10:30 PM
-    openDays: [0, 1, 2, 3, 4, 5, 6] // 0=Sunday, 6=Saturday (Open every day)
+    businessHours: { open: "13:00", close: "22:30" }, // 1:00 PM to 10:30 PM
+    openDays: [1, 2, 3, 4, 5, 6] // 1=Monday to 6=Saturday (Sunday: Closed)
   };
 
   try {

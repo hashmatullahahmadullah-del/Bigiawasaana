@@ -1,7 +1,7 @@
 import { showToast } from './orders.js';
 import { state } from './shared.js';
 import { db } from '../firebase.js';
-import { collection, onSnapshot, doc, updateDoc, addDoc, setDoc, deleteDoc, serverTimestamp, Timestamp, limit } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, addDoc, setDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 
 
@@ -54,7 +54,6 @@ export function formatDateForDatetimeLocal(timestamp) {
 }
 
 window.initDealsListener = () => {
-  const container = document.getElementById('admin-deals-list');
   const filterSelect = document.getElementById('deal-filter');
   
   const unsub = onSnapshot(collection(db, 'deals'), (snapshot) => {
@@ -286,7 +285,8 @@ window.editDeal = (id) => {
   // Set basic form values
   document.getElementById('deal-id').value = deal.id;
   document.getElementById('deal-title').value = deal.title || '';
-    document.getElementById('deal-promo-code').value = deal.promoCode || '';
+  const promoEl = document.getElementById('deal-promo-code');
+  if (promoEl) promoEl.value = deal.promoCode || '';
   document.getElementById('deal-badge').value = deal.badge || '';
   document.getElementById('deal-desc').value = deal.description || '';
   document.getElementById('deal-type').value = deal.type || 'percent_off';
@@ -330,12 +330,19 @@ window.editDeal = (id) => {
   });
 
   // Toggle buttons
-  document.getElementById('deal-form-title').textContent = `Edit Deal: ${deal.title}`;
+  const formTitle = document.getElementById('deal-form-title-text');
+  if (formTitle) formTitle.textContent = `Edit Deal: ${deal.title}`;
+  const chevron = document.getElementById('deal-form-chevron');
+  if (chevron) chevron.textContent = '▲';
+  if (dealForm) {
+    dealForm.classList.add('open');
+    dealForm.style.display = 'flex';
+  }
   document.getElementById('deal-save-btn').textContent = 'Update Promotion';
   document.getElementById('deal-cancel-btn').style.display = 'block';
 
   // Scroll to form
-  document.getElementById('deals-view').scrollIntoView({ behavior: 'smooth' });
+  (document.getElementById('deal-form') || document.getElementById('marketing-view'))?.scrollIntoView({ behavior: 'smooth' });
 };
 
 // Form Reset / Cancel Edit
@@ -345,7 +352,10 @@ export const dealCancelBtn = document.getElementById('deal-cancel-btn');
 export const resetDealForm = () => {
   if (dealForm) dealForm.reset();
   document.getElementById('deal-id').value = '';
-  document.getElementById('deal-form-title').textContent = 'Create New Deal';
+  const promoEl = document.getElementById('deal-promo-code');
+  if (promoEl) promoEl.value = '';
+  const formTitle = document.getElementById('deal-form-title-text');
+  if (formTitle) formTitle.textContent = 'Create New Deal';
   document.getElementById('deal-save-btn').textContent = 'Save Promotion';
   if (dealCancelBtn) dealCancelBtn.style.display = 'none';
 
@@ -354,6 +364,24 @@ export const resetDealForm = () => {
   document.querySelectorAll('input[name="cond-cat-checkbox"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('input[name="reward-item-checkbox"]').forEach(cb => cb.checked = false);
 };
+
+
+const toggleDealBtn = document.getElementById('toggle-deal-form-btn');
+const dealFormChevron = document.getElementById('deal-form-chevron');
+
+if (toggleDealBtn && dealForm) {
+  toggleDealBtn.addEventListener('click', () => {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      dealForm.classList.toggle('open');
+      if (dealFormChevron) dealFormChevron.textContent = dealForm.classList.contains('open') ? '▲' : '▼';
+    } else {
+      const isHidden = dealForm.style.display === 'none';
+      dealForm.style.display = isHidden ? 'flex' : 'none';
+      if (dealFormChevron) dealFormChevron.textContent = isHidden ? '▲' : '▼';
+    }
+  });
+}
 
 if (dealCancelBtn) {
   dealCancelBtn.addEventListener('click', resetDealForm);
@@ -372,6 +400,7 @@ if (dealForm) {
     // Parse input fields
     const title = document.getElementById('deal-title').value;
     const badge = document.getElementById('deal-badge').value;
+    const promoCode = document.getElementById('deal-promo-code')?.value.trim().toUpperCase() || null;
     const description = document.getElementById('deal-desc').value;
     const type = document.getElementById('deal-type').value;
     const priority = parseInt(document.getElementById('deal-priority').value) || 0;
@@ -415,6 +444,7 @@ if (dealForm) {
     const dealDoc = {
       title: title.trim(),
       badge: badge.trim(),
+      promoCode: promoCode || null,
       description: description.trim(),
       type,
       active,

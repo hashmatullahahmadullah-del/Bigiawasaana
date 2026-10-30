@@ -2,14 +2,84 @@
 import { db } from './firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
 import { getLang, setLang, toggleLang, applyTranslations } from './i18n/index.js';
+import { trackPageView } from './analytics.js';
+
+// Setup Consent Mode defaults (denied until user grants consent)
+window.dataLayer = window.dataLayer || [];
+function gtag(){window.dataLayer.push(arguments);}
+window.gtag = gtag;
+gtag('consent', 'default', {
+  'analytics_storage': 'denied',
+  'ad_storage': 'denied'
+});
+
+// Dynamic Auth loader — only loads Firebase Auth/Functions/CSS when requested
+let authModulePromise = null;
+export function getAccountAuth() {
+  if (!authModulePromise) {
+    authModulePromise = import('./account-auth.js').then(m => {
+      m.initAccountAuth();
+      return m;
+    });
+  }
+  return authModulePromise;
+}
 
 export function initNav(activePage = '') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initNav(activePage));
+    return;
+  }
+
+  // Record page view in Firestore analytics (deferred non-critical)
+  try {
+    trackPageView();
+  } catch (err) {
+    // Non-fatal
+  }
+
   const hamburger = document.getElementById('nav-hamburger');
   const drawer = document.getElementById('nav-mobile-drawer');
   
   // Sync global business hours on all pages
   syncGlobalBusinessHours();
   initCookieBanner();
+  
+  // Update header sign-in pill from session cache synchronously
+  try {
+    const cachedCustomer = JSON.parse(sessionStorage.getItem('bigi_auth_customer') || 'null');
+    if (cachedCustomer && cachedCustomer.name) {
+      const mobileBtn = document.getElementById('nav-mobile-signin-btn');
+      if (mobileBtn) {
+        const firstName = cachedCustomer.name.split(' ')[0] || 'Account';
+        const signinText = mobileBtn.querySelector('.nav-signin-text');
+        if (signinText) signinText.textContent = firstName;
+      }
+    }
+  } catch (e) {}
+
+  // Option 2 Customer Auth: Attach click listener to load auth on-demand
+  const signinBtn = document.getElementById('nav-mobile-signin-btn');
+  if (signinBtn) {
+    signinBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const authMod = await getAccountAuth();
+      if (sessionStorage.getItem('bigi_auth_customer')) {
+        authMod.openAccountDrawer();
+      } else {
+        authMod.openAuthModal();
+      }
+    });
+  }
+
+  // If a session exists, defer auth state reconciliation to idle
+  if (sessionStorage.getItem('bigi_auth_customer') || sessionStorage.getItem('bigi_order_auth')) {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => getAccountAuth(), { timeout: 3500 });
+    } else {
+      setTimeout(() => getAccountAuth(), 2000);
+    }
+  }
   
   // Check if we should initialize analytics right away
   try {
@@ -23,10 +93,31 @@ export function initNav(activePage = '') {
 
   if (!hamburger || !drawer) return;
 
-  hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('open');
-    drawer.classList.toggle('open');
+  // Ensure backdrop exists for smooth mobile drawer focus
+  let backdrop = document.getElementById('nav-mobile-backdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'nav-mobile-backdrop';
+    backdrop.className = 'nav-mobile-backdrop';
+    document.body.appendChild(backdrop);
+  }
+
+  const toggleDrawer = (force) => {
+    const isOpen = typeof force === 'boolean' ? force : !drawer.classList.contains('open');
+    hamburger.classList.toggle('open', isOpen);
+    drawer.classList.toggle('open', isOpen);
+    if (backdrop) backdrop.classList.toggle('open', isOpen);
+    document.body.classList.toggle('nav-drawer-open', isOpen);
+  };
+
+  hamburger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleDrawer();
   });
+
+  if (backdrop) {
+    backdrop.addEventListener('click', () => toggleDrawer(false));
+  }
 
   // Language setup
   setLang(getLang());
@@ -44,19 +135,25 @@ export function initNav(activePage = '') {
     });
   });
 
-  // Close drawer when a link is clicked
-  drawer.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      hamburger.classList.remove('open');
-      drawer.classList.remove('open');
+  // Close drawer when any interactive element is clicked (except language toggle)
+  drawer.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('click', () => {
+      if (el.classList.contains('site-lang-toggle')) return;
+      toggleDrawer(false);
     });
   });
 
   // Close on outside click
   document.addEventListener('click', (e) => {
     if (!hamburger.contains(e.target) && !drawer.contains(e.target)) {
-      hamburger.classList.remove('open');
-      drawer.classList.remove('open');
+      toggleDrawer(false);
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) {
+      toggleDrawer(false);
     }
   });
 
@@ -128,61 +225,86 @@ function renderPopup(data, lastUpdate, dismissedKey) {
   });
 }
 
-function syncGlobalBusinessHours() {
-  getDoc(doc(db, 'settings', 'pickupConfig')).then((docSnap) => {
-    if (!docSnap.exists()) return;
-    const pickupConfig = docSnap.data();
-
-    // If temporarily closed, show that status everywhere
-    if (pickupConfig.temporarilyClosed) {
-      document.querySelectorAll('.footer-hours-display').forEach(el => {
-        el.textContent = 'Temporarily Closed';
-      });
-      document.querySelectorAll('.hero-hours-display').forEach(el => {
-        el.textContent = 'Temporarily Closed';
-      });
-      document.querySelectorAll('.hero-days-display').forEach(el => {
-        el.textContent = '';
-      });
-      return;
-    }
-
-    if (!pickupConfig.businessHours) return;
-    
-    const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const openDaysStr = pickupConfig.openDays && pickupConfig.openDays.length === 7 
-      ? 'Every Day' 
-      : (pickupConfig.openDays || [0,1,2,3,4,5,6]).map(d => daysMap[d].substring(0,3)).join(', ');
-      
-    function formatTime(time24) {
-      if(!time24) return '';
-      const [h, m] = time24.split(':').map(Number);
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      let displayH = h % 12;
-      displayH = displayH ? displayH : 12;
-      return `${displayH}${m > 0 ? ':' + String(m).padStart(2, '0') : ''}${ampm}`;
-    }
-    
-    const openTime = formatTime(pickupConfig.businessHours.open);
-    const closeTime = formatTime(pickupConfig.businessHours.close);
-    
-    // Format 1: "Every Day 12PM-10:30PM"
-    const fullText = `${openDaysStr} ${openTime}–${closeTime}`;
+function applyHoursConfig(pickupConfig) {
+  if (!pickupConfig) return;
+  if (pickupConfig.temporarilyClosed) {
     document.querySelectorAll('.footer-hours-display').forEach(el => {
-      el.textContent = fullText;
+      el.textContent = 'Temporarily Closed';
     });
-    
-    // Format 2: "12:00 PM - 10:30 PM" (Used in hero/location headers)
-    const timeOnlyText = `${openTime} – ${closeTime}`;
     document.querySelectorAll('.hero-hours-display').forEach(el => {
-      el.textContent = timeOnlyText;
+      el.textContent = 'Temporarily Closed';
     });
-    
-    // Format 3: Update "Open Every Day" separately if needed
     document.querySelectorAll('.hero-days-display').forEach(el => {
-      el.textContent = openDaysStr === 'Every Day' ? 'Every Day' : openDaysStr;
+      el.textContent = '';
     });
-  }).catch(err => console.error("Error syncing business hours:", err));
+    return;
+  }
+
+  if (!pickupConfig.businessHours) return;
+  
+  const daysMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const openDays = pickupConfig.openDays || [1, 2, 3, 4, 5, 6];
+  let openDaysStr = 'Mon–Sat (Sun Closed)';
+  if (openDays.length === 7) {
+    openDaysStr = 'Every Day';
+  } else if (openDays.length === 6 && !openDays.includes(0)) {
+    openDaysStr = 'Mon–Sat (Sun Closed)';
+  } else {
+    openDaysStr = openDays.map(d => daysMap[d].substring(0,3)).join(', ');
+  }
+    
+  function formatTime(time24) {
+    if(!time24) return '';
+    const [h, m] = time24.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    let displayH = h % 12;
+    displayH = displayH ? displayH : 12;
+    return `${displayH}${m > 0 ? ':' + String(m).padStart(2, '0') : ''}${ampm}`;
+  }
+  
+  const openTime = formatTime(pickupConfig.businessHours.open);
+  const closeTime = formatTime(pickupConfig.businessHours.close);
+  
+  const fullText = `${openDaysStr} ${openTime}–${closeTime}`;
+  document.querySelectorAll('.footer-hours-display').forEach(el => {
+    el.textContent = fullText;
+  });
+  
+  const timeOnlyText = `${openTime} – ${closeTime}`;
+  document.querySelectorAll('.hero-hours-display').forEach(el => {
+    el.textContent = timeOnlyText;
+  });
+  
+  document.querySelectorAll('.hero-days-display').forEach(el => {
+    el.textContent = openDaysStr === 'Every Day' ? 'Every Day' : openDaysStr;
+  });
+}
+
+function syncGlobalBusinessHours() {
+  try {
+    const cached = localStorage.getItem('pickupConfig');
+    if (cached) {
+      applyHoursConfig(JSON.parse(cached));
+    }
+  } catch (e) {}
+
+  const isHome = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '';
+  if (isHome) return;
+
+  const fetchHours = () => {
+    getDoc(doc(db, 'settings', 'pickupConfig')).then((docSnap) => {
+      if (!docSnap.exists()) return;
+      const pickupConfig = docSnap.data();
+      try { localStorage.setItem('pickupConfig', JSON.stringify(pickupConfig)); } catch (e) {}
+      applyHoursConfig(pickupConfig);
+    }).catch(() => {});
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(fetchHours, { timeout: 3500 });
+  } else {
+    setTimeout(fetchHours, 2000);
+  }
 }
 
 function initCookieBanner() {
@@ -190,6 +312,8 @@ function initCookieBanner() {
 
   const banner = document.createElement('div');
   banner.id = 'cookie-banner';
+  banner.setAttribute('role', 'region');
+  banner.setAttribute('aria-label', 'Cookie Consent');
   banner.style.cssText = `
     position: fixed;
     bottom: 0; left: 0; right: 0;
@@ -210,12 +334,12 @@ function initCookieBanner() {
       <h3 style="margin: 0 0 8px 0; font-family: 'Barlow Condensed'; letter-spacing: 1px; color: var(--accent);">WE VALUE YOUR PRIVACY</h3>
       <p style="margin: 0; font-size: 14px; color: var(--gray); line-height: 1.5;">
         We use essential cookies to keep items in your cart and keep you logged in. We also use optional analytics cookies to help us improve our menu and website. 
-        <a href="/privacy.html" style="color: var(--white); text-decoration: underline;">Learn more</a>.
+        <a href="/privacy.html" style="color: var(--white); text-decoration: underline;">Read our privacy policy</a>.
       </p>
     </div>
     <div style="display: flex; gap: 12px; flex-shrink: 0;">
-      <button id="cookie-reject" class="btn-outline" style="padding: 12px 24px; font-size: 14px;">Reject Non-Essential</button>
-      <button id="cookie-accept" class="btn-primary" style="padding: 12px 24px; font-size: 14px;">Accept All</button>
+      <button id="cookie-reject" type="button" class="btn-outline" style="padding: 12px 24px; font-size: 14px;">Reject Non-Essential</button>
+      <button id="cookie-accept" type="button" class="btn-primary" style="padding: 12px 24px;">Accept All</button>
     </div>
   `;
 
@@ -234,24 +358,36 @@ function initCookieBanner() {
 }
 
 function initAnalytics() {
-  const measurementId = 'G-KMWPNQK580'; // REPLACE WITH YOUR ACTUAL GA4 MEASUREMENT ID
+  const measurementId = 'G-KMWPNQK580';
   
-  // Prevent duplicate initialization
-  if (window.dataLayer) return;
+  // Prevent duplicate initialization site-wide
+  if (window.__gtagInitialized || document.querySelector(`script[src*="${measurementId}"]`)) {
+    return;
+  }
+  window.__gtagInitialized = true;
   
-  // Create script tag for gtag.js
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
-  document.head.appendChild(script);
+  const injectGtag = () => {
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){window.dataLayer.push(arguments);}
+    window.gtag = gtag;
 
-  // Initialize dataLayer and gtag function
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  window.gtag = gtag; // Expose globally just in case
-  
-  gtag('js', new Date());
-  gtag('config', measurementId);
-  
-  console.log("Analytics initialized.");
+    gtag('consent', 'update', {
+      'analytics_storage': 'granted'
+    });
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+    document.head.appendChild(script);
+
+    gtag('js', new Date());
+    gtag('config', measurementId);
+    console.log("Analytics initialized.");
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(injectGtag, { timeout: 3000 });
+  } else {
+    setTimeout(injectGtag, 1500);
+  }
 }

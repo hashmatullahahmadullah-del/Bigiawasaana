@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders & Rewards | Bigi Awasaana</title>
+  <link rel="canonical" href="https://www.bigiawasaana.com/order-history">
+  <meta name="description" content="View your past food orders, retail spice orders, and loyalty points with Bigi Awasaana halal Afghan cuisine in Los Angeles.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <link rel="apple-touch-icon" href="/logo.webp">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#111111">
+
+  <!-- Fonts -->
+  
+  
+  
+
+  <script>
+    try {
+      if (sessionStorage.getItem('bigi_auth_customer') || sessionStorage.getItem('bigi_order_auth')) {
+        document.documentElement.classList.add('has-auth-session');
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Core Site Stylesheets -->
+  
+  
+  <link rel="stylesheet" href="/src/account-auth.css">
+
+  <style>
+    /* ─── Page Container & Baseline Layout ─── */
+    body {
+      background-color: var(--bg, #060606);
+      color: var(--white, #ffffff);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    .page-container {
+      flex: 1;
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(100px, 14vw, 130px) 20px 80px;
+      box-sizing: border-box;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4 {
+      font-family: 'Barlow Condensed', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Buttons (Flat Luxury Monochrome) */
+    .btn-primary {
+      background: #ffffff !important;
+      color: #0b0b0b !important;
+      border: 1px solid #ffffff !important;
+      border-radius: 6px !important;
+      padding: 14px 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: none !important;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #e4e4e7 !important;
+      border-color: #e4e4e7 !important;
+      color: #0b0b0b !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #18181b;
+      color: #e4e4e7;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      padding: 9px 16px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: none !important;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-secondary:hover {
+      background: #27272a;
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+      box-shadow: none !important;
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--accent, #ff4500);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .btn-link:hover {
+      color: var(--accent-light, #ff6b33);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface, #121212);
+      border: 1px solid var(--border, #2a2a2a);
+      border-radius: 12px;
+      padding: 32px 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Alert / Messages */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .alert.show {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #86efac;
+    }
+
+    .alert-info {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+    }
+
+    /* ─── Verification Card ─── */
+    .verify-box {
+      max-width: 440px;
+      margin: 16px auto 40px;
+      text-align: center;
+    }
+
+    .verify-icon {
+      font-size: 44px;
+      margin-bottom: 12px;
+      line-height: 1;
+    }
+
+    .verify-title {
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--white);
+    }
+
+    .verify-subtitle {
+      color: var(--gray, #b5b5b5);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--gray, #b5b5b5);
+      margin-bottom: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface-light, #1e1e1e);
+      border: 1px solid var(--border, #2a2a2a);
+      border-radius: 6px;
+      padding: 13px 16px;
+      color: var(--white, #fff);
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px; /* Prevents auto-zoom on iOS */
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: none !important;
+    }
+
+    .pin-input {
+      letter-spacing: 12px;
+      font-size: 24px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .pin-input::placeholder {
+      letter-spacing: 4px;
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .verify-helper {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .verify-helper a {
+      color: var(--accent, #ff4500);
+      text-decoration: none;
+    }
+
+    .verify-helper a:hover {
+      text-decoration: underline;
+    }
+
+    /* ─── History View & Visibility Modes ─── */
+    #history-section {
+      display: none;
+    }
+    #verification-section {
+      display: block;
+    }
+    html.has-auth-session #history-section {
+      display: block;
+    }
+    html.has-auth-session #verification-section {
+      display: none;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .history-title {
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    /* Customer Loyalty Card */
+    .loyalty-banner {
+      background: linear-gradient(135deg, #181818 0%, #121212 100%);
+      border: 1px solid var(--border, #2a2a2a);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .loyalty-banner::before {
+      display: none;
+    }
+
+    .customer-profile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border, #2a2a2a);
+    }
+
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .avatar-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #1f1f23;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .profile-name {
+      font-size: clamp(20px, 3.5vw, 24px);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 4px;
+      color: var(--white);
+    }
+
+    .profile-phone {
+      font-size: 13px;
+      color: var(--gray, #b5b5b5);
+    }
+
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+
+    .tier-gold {
+      background: rgba(249, 168, 37, 0.15);
+      border-color: #f9a825;
+      color: #f9a825;
+    }
+
+    .tier-silver {
+      background: rgba(192, 192, 192, 0.15);
+      border-color: #c0c0c0;
+      color: #e0e0e0;
+    }
+
+    .tier-bronze {
+      background: rgba(205, 127, 50, 0.15);
+      border-color: #cd7f32;
+      color: #df9e59;
+    }
+
+    .loyalty-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border, #2a2a2a);
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(22px, 3.5vw, 26px);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .stat-value.highlight {
+      color: #ffffff;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray, #b5b5b5);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Tier Progress Bar */
+    .progress-section {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .progress-title {
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .progress-subtitle {
+      color: var(--gray);
+    }
+
+    .progress-bar-track {
+      height: 8px;
+      background: var(--surface-light, #1e1e1e);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: #ffffff;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.6s ease-out;
+    }
+
+    /* ─── Tabs Navigation ─── */
+    .tab-navigation {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border, #2a2a2a);
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--gray, #b5b5b5);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 18px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      color: var(--white);
+    }
+
+    .tab-btn.active {
+      color: #ffffff;
+      border-bottom-color: #ffffff;
+    }
+
+    .tab-badge {
+      background: #1f1f23;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #a1a1aa;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+    }
+
+    .tab-btn.active .tab-badge {
+      background: #ffffff;
+      color: #0b0b0b;
+      border-color: #ffffff;
+    }
+
+    /* ─── Order Cards ─── */
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .order-card {
+      background: var(--surface, #121212);
+      border: 1px solid var(--border, #2a2a2a);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .order-card:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .order-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border, #2a2a2a);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .order-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .order-date {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .order-number {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      color: var(--gray);
+      letter-spacing: 0.5px;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+
+    .status-pending {
+      background: rgba(234, 179, 8, 0.15);
+      color: #facc15;
+      border: 1px solid rgba(234, 179, 8, 0.4);
+    }
+
+    .status-preparing {
+      background: rgba(249, 115, 22, 0.15);
+      color: #fb923c;
+      border: 1px solid rgba(249, 115, 22, 0.4);
+    }
+
+    .status-ready {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .status-completed {
+      background: rgba(156, 163, 175, 0.15);
+      color: #9ca3af;
+      border: 1px solid rgba(156, 163, 175, 0.3);
+    }
+
+    .status-scheduled {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .status-shipped {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .status-canceled {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .status-refunded {
+      background: rgba(239, 68, 68, 0.18);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      font-weight: 700;
+    }
+
+    .status-partially_refunded {
+      background: rgba(245, 158, 11, 0.18);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      font-weight: 700;
+    }
+
+    /* Items summary */
+    .order-items-list {
+      list-style: none;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .order-item-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--white);
+    }
+
+    .item-qty {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent, #ff4500);
+      margin-right: 8px;
+      display: inline-block;
+      min-width: 20px;
+    }
+
+    .item-name {
+      color: var(--white);
+    }
+
+    .item-notes {
+      font-size: 12px;
+      color: var(--gray);
+      margin-left: 28px;
+    }
+
+    /* Card Footer */
+    .order-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 14px;
+      border-top: 1px solid var(--border, #2a2a2a);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .order-total-block {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .order-total-label {
+      font-size: 12px;
+      color: var(--gray);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .order-total-amount {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #f9a825;
+    }
+
+    .order-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      background: var(--surface-light);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--gray);
+    }
+
+    .btn-reorder {
+      background: var(--accent, #ff4500);
+      border-color: var(--accent, #ff4500);
+      color: #fff;
+    }
+
+    .btn-reorder:hover {
+      background: var(--accent-hover, #ff571a);
+      border-color: var(--accent-hover, #ff571a);
+    }
+
+    .btn-track {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.4);
+      color: #4ade80;
+    }
+
+    .btn-track:hover {
+      background: rgba(34, 197, 94, 0.25);
+    }
+
+    /* ─── Empty State ─── */
+    .empty-state {
+      background: var(--surface, #121212);
+      border: 1px dashed var(--border, #2a2a2a);
+      border-radius: 12px;
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .empty-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--white);
+    }
+
+    .empty-desc {
+      color: var(--gray);
+      font-size: 14px;
+      max-width: 380px;
+      margin: 0 auto 20px;
+    }
+
+    .empty-state .btn-primary {
+      width: auto;
+      padding: 10px 24px;
+    }
+
+    /* Spinner */
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--accent, #ff4500);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    .spinner-large {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-container {
+      text-align: center;
+      padding: 40px 20px;
+      display: none;
+    }
+
+    .loading-container.show {
+      display: block;
+    }
+
+    /* ─── Mobile Responsiveness (< 600px) ─── */
+    @media (max-width: 600px) {
+      .page-container {
+        padding: 96px 14px 60px;
+      }
+
+      .card {
+        padding: 24px 16px;
+      }
+
+      .loyalty-banner {
+        padding: 18px 16px;
+      }
+
+      .loyalty-stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        text-align: left;
+      }
+
+      .stat-value {
+        margin-bottom: 0;
+        order: 2;
+        font-size: 20px;
+      }
+
+      .stat-label {
+        order: 1;
+        font-size: 12px;
+      }
+
+      .customer-profile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .tab-navigation {
+        gap: 4px;
+      }
+
+      .tab-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 10px 6px;
+        font-size: 14px;
+      }
+
+      .order-card {
+        padding: 16px 14px;
+      }
+
+      .order-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .order-card-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .order-actions {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+
+      .order-actions .btn-action {
+        flex: 1;
+        justify-content: center;
+        padding: 9px 10px;
+        font-size: 14px;
+      }
+
+      .pin-input {
+        letter-spacing: 8px;
+        font-size: 20px;
+      }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="site-nav">
+    <div class="container">
+      <a href="/" class="nav-logo" aria-label="Bigi Awasaana Home">
+        <img src="/logo.webp" alt="Bigi Awasaana Logo" width="128" height="64" fetchpriority="high">
+      </a>
+      <ul class="nav-links">
+        <li><a href="/menu" data-i18n="nav.menu">Menu</a></li>
+        <li><a href="/menu" class="nav-cta-primary">ORDER NOW</a></li>
+        <li><a href="/locations" data-i18n="nav.location">Location & Hours</a></li>
+        <li><a href="/catering" data-i18n="nav.catering">Catering</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/shop" style="color: var(--accent); font-weight: 600;">Shop</a></li>
+        <li><a href="/order-history.html" data-i18n="nav.orders" class="active">My Orders</a></li>
+        <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><a href="tel:+13239211646" class="nav-cta-outline">(323) 921-1646</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button type="button" class="nav-mobile-signin-btn" id="nav-mobile-signin-btn" aria-label="Sign In or Account">
+          <svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="nav-signin-text">Sign In</span>
+        </button>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div class="nav-mobile-drawer" id="nav-mobile-drawer">
+    <a href="/menu" data-i18n="nav.menu">Menu</a>
+    <a href="/menu" style="color: var(--accent); font-weight: 700;">Order Now</a>
+    <a href="/order-history.html" data-i18n="nav.orders" style="font-weight: 600;">My Orders & Rewards</a>
+    <a href="/locations" data-i18n="nav.location">Location & Hours</a>
+    <a href="/catering" data-i18n="nav.catering">Catering</a>
+    <a href="/blog">Blog</a>
+    <a href="/shop" style="color: var(--accent); font-weight: 700;">Shop</a>
+    <button class="site-lang-toggle" aria-label="Switch language" style="margin: 16px 24px 16px 24px; padding: 8px 16px; font-size: 14px; font-family: 'Outfit', sans-serif; width: fit-content; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; letter-spacing: 1px; font-weight: 500;">EN | فا</button>
+    <a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a>
+  </div>
+
+  <!-- Main Content Area -->
+  <main id="main-content" class="page-container">
+
+    <!-- Global Alert Box -->
+    <div id="status-alert" class="alert">
+      <span id="alert-icon" style="display: flex; align-items: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <span id="alert-message">Notice</span>
+    </div>
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- Verification Section (Shown First)               -->
+    <!-- ─────────────────────────────────────────────── -->
+    <section id="verification-section" class="verify-box">
+      <div class="card">
+        <div class="verify-icon" id="verify-icon" style="display: flex; align-items: center; justify-content: center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+        <h1 class="verify-title" id="verify-title">LOOK UP YOUR ORDERS</h1>
+        <p class="verify-subtitle" id="verify-subtitle">Enter your phone number to view past orders and loyalty points.</p>
+
+        <!-- Loading State during verification -->
+        <div id="verify-loading" class="loading-container">
+          <div class="spinner spinner-large"></div>
+          <p style="color: var(--gray); font-size: 14px;">Checking account details...</p>
+        </div>
+
+        <!-- 1-Tap Google & Apple Login -->
+        <div id="page-social-auth" style="margin-bottom: 20px;">
+          <button type="button" class="auth-social-btn google-btn" id="btn-page-google" style="margin-bottom: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            Continue with Google
+          </button>
+          <button type="button" class="auth-social-btn apple-btn" id="btn-page-apple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.42c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.99.6-2.64 1.35-.58.66-1.08 1.73-0.95 2.76 1 .08 2.04-.51 2.66-1.26z"/></svg>
+            Continue with Apple
+          </button>
+          <div class="auth-divider"><span>OR USE PHONE & PIN</span></div>
+        </div>
+
+        <!-- Step 1: Phone Form -->
+        <form id="form-phone" class="verify-step-form">
+          <div class="form-group">
+            <label class="form-label" for="input-phone">Phone Number</label>
+            <input 
+              type="tel" 
+              id="input-phone" 
+              class="form-input" 
+              placeholder="(555) 000-0000" 
+              autocomplete="tel" 
+              required
+            >
+          </div>
+          <button type="submit" id="btn-phone-submit" class="btn-primary">
+            <span>Continue</span>
+          </button>
+          <div class="verify-helper">
+            <a href="#" id="link-first-time">First time? Enter your phone and set a 4-digit PIN</a>
+          </div>
+        </form>
+
+        <!-- Step 2: PIN Form (Customer exists and has PIN) -->
+        <form id="form-pin" class="verify-step-form" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="input-pin">Enter 4-Digit PIN</label>
+            <input 
+              type="password" 
+              id="input-pin" 
+              class="form-input pin-input" 
+              placeholder="••••" 
+              maxlength="4" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              autocomplete="one-time-code" 
+              required
+            >
+          </div>
+          <button type="submit" id="btn-pin-submit" class="btn-primary">
+            <span>View My Orders</span>
+          </button>
+          <div class="verify-helper" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+            <button type="button" id="btn-back-to-phone" class="btn-link">← Different phone</button>
+            <button type="button" id="btn-switch-to-set-pin" class="btn-link" style="color: var(--gray);">Set PIN instead</button>
+          </div>
+        </form>
+
+        <!-- Step 3: Set PIN Form (Customer exists but no PIN, or first time setup) -->
+        <form id="form-set-pin" class="verify-step-form" style="display: none;">
+          <div class="form-group">
+            <label class="form-label" for="input-new-pin">Create 4-Digit PIN</label>
+            <input 
+              type="password" 
+              id="input-new-pin" 
+              class="form-input pin-input" 
+              placeholder="••••" 
+              maxlength="4" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              required
+            >
+            <small style="color: var(--gray); font-size: 12px; display: block; margin-top: 6px; text-align: left;">
+              Choose 4 numbers you'll remember to easily view your orders and points later.
+            </small>
+          </div>
+          <button type="submit" id="btn-set-pin-submit" class="btn-primary">
+            <span>Save PIN & View Orders</span>
+          </button>
+          <div class="verify-helper" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+            <button type="button" id="btn-back-from-set-pin" class="btn-link">← Different phone</button>
+            <button type="button" id="btn-switch-to-enter-pin" class="btn-link" style="color: var(--gray);">Already have a PIN?</button>
+          </div>
+        </form>
+
+        <!-- Account Not Found State -->
+        <div id="state-not-found" style="display: none; padding-top: 8px;">
+          <p style="color: var(--gray); font-size: 15px; margin-bottom: 20px;">
+            No account found with this phone number. Place your first order to get started!
+          </p>
+          <a href="/menu" class="btn-primary" style="margin-bottom: 12px;">Order Now</a>
+          <div>
+            <button type="button" id="btn-retry-phone" class="btn-link">Try another phone number</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────── -->
+    <!-- Order History View (Shown After Verification)    -->
+    <!-- ─────────────────────────────────────────────── -->
+    <section id="history-section">
+      
+      <!-- Top Action Bar -->
+      <div class="history-header">
+        <div>
+          <h1 class="history-title">MY ORDER HISTORY</h1>
+          <p style="color: var(--gray); font-size: 14px;">View your past orders and rewards progress</p>
+        </div>
+        <div>
+          <button id="btn-switch-account" class="btn-secondary">
+            <span>Switch Account</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Customer Loyalty Info Banner -->
+      <div class="loyalty-banner" id="loyalty-banner">
+        
+        <!-- Profile Info -->
+        <div class="customer-profile">
+          <div class="profile-info">
+            <div class="avatar-circle" id="profile-avatar">B</div>
+            <div>
+              <div class="profile-name" id="profile-name">Customer</div>
+              <div class="profile-phone" id="profile-phone">--</div>
+            </div>
+          </div>
+          <div>
+            <span class="tier-badge tier-bronze" id="profile-tier-badge">
+              <span id="tier-emoji" style="display: inline-flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M8.21 13.89L7 22l5-3 5 3-1.21-8.11"/></svg></span>
+              <span id="tier-text">Bronze Member</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Loyalty Stats Grid -->
+        <div class="loyalty-stats">
+          <div class="stat-item">
+            <div class="stat-value highlight" id="stat-points">0</div>
+            <div class="stat-label">Loyalty Points</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-total-orders">0</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-member-since">--</div>
+            <div class="stat-label">Member Since</div>
+          </div>
+        </div>
+
+        <!-- Points Progress Bar Toward Next Tier -->
+        <div class="progress-section" id="progress-section">
+          <div class="progress-header">
+            <span class="progress-title" id="progress-title">Tier Progress</span>
+            <span class="progress-subtitle" id="progress-subtitle">0 / 100 pts</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Customer Rewards Catalog & Unlocks Section -->
+      <div class="card rewards-catalog-card" id="rewards-catalog-section">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 22px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="rewards-header-icon-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+              </div>
+              <h3 style="font-size: 24px; margin: 0; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 800;">REWARDS & UNLOCKS</h3>
+            </div>
+            <p style="font-size: 13px; color: var(--gray); margin: 6px 0 0 0; line-height: 1.4;">
+              Earn 10 loyalty points for every $1 spent. Unlock authentic charcoal kabobs, refreshing drinks, and vouchers for instant redemption!
+            </p>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="background: #18181b; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 8px 16px; text-align: right;">
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--gray); font-weight: 700; letter-spacing: 0.8px;">YOUR BALANCE</div>
+              <div style="font-size: 22px; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; color: #ffffff; line-height: 1;" id="rewards-header-balance">0 PTS</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flat Architectural Tab Chips -->
+        <div style="display: flex; gap: 8px; margin-bottom: 22px; overflow-x: auto; padding-bottom: 4px;" id="rewards-filter-chips">
+          <button type="button" class="reward-filter-chip active" data-filter="all" id="filter-all-rewards">
+            All Rewards (<span id="count-all-rewards">0</span>)
+          </button>
+          <button type="button" class="reward-filter-chip" data-filter="unlocked" id="filter-unlocked-rewards">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
+            Ready to Redeem (<span id="count-unlocked-rewards">0</span>)
+          </button>
+          <button type="button" class="reward-filter-chip" data-filter="locked" id="filter-locked-rewards">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            In Progress (<span id="count-locked-rewards">0</span>)
+          </button>
+        </div>
+
+        <!-- Rewards Grid -->
+        <div id="rewards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
+          <!-- Rendered dynamically by src/order-history.js -->
+          <div style="grid-column: 1 / -1; text-align: center; color: var(--gray); padding: 24px;">Loading rewards catalog...</div>
+        </div>
+
+      </div>
+
+      <!-- Reward Redemption Confirmation Modal (Flat Simple) -->
+      <div id="redeem-reward-modal" style="display: none; align-items: center; justify-content: center; z-index: 10000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);">
+        <div style="max-width: 440px; width: 92%; background: #141416; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 10px; padding: 26px; box-shadow: none; text-align: center;">
+          <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+            <div id="modal-redeem-icon-container" style="width: 52px; height: 52px; border-radius: 8px; background: #1f1f23; border: 1px solid rgba(255, 255, 255, 0.12); color: #ffffff; display: flex; align-items: center; justify-content: center;">
+              <div id="modal-redeem-icon" style="display: flex; align-items: center; justify-content: center;"></div>
+            </div>
+          </div>
+          <h3 style="font-size: 24px; margin: 0 0 8px 0; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-weight: 800; color: #fff;" id="modal-redeem-title">Redeem Reward</h3>
+          <p style="font-size: 14px; color: var(--gray); margin: 0 0 20px 0; line-height: 1.5;" id="modal-redeem-desc">Are you sure you want to redeem this reward?</p>
+          
+          <div style="background: #18181b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 14px; margin-bottom: 22px; display: flex; justify-content: space-around;">
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--gray); font-weight: 700; letter-spacing: 0.5px;">Cost</div>
+              <div style="font-size: 20px; font-weight: 800; color: #ffffff; font-family: 'Barlow Condensed', sans-serif;" id="modal-redeem-cost">0 PTS</div>
+            </div>
+            <div style="border-left: 1px solid rgba(255, 255, 255, 0.08);"></div>
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--gray); font-weight: 700; letter-spacing: 0.5px;">Remaining Balance</div>
+              <div style="font-size: 20px; font-weight: 800; color: #ffffff; font-family: 'Barlow Condensed', sans-serif;" id="modal-redeem-remaining">0 PTS</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="button" class="reward-action-btn btn-locked" id="btn-cancel-redeem" style="flex: 1; padding: 12px; border-radius: 6px;">Cancel</button>
+            <button type="button" class="reward-action-btn btn-claim" id="btn-confirm-redeem" style="flex: 1.5; padding: 12px; border-radius: 6px;">Confirm & Redeem</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved Payment Methods (Card on File) Section -->
+      <div class="card" id="saved-payment-methods-card" style="margin-bottom: 28px; padding: 22px 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-size: 18px; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> SAVED PAYMENT METHODS</span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #ffffff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">1-Tap</span>
+            </h3>
+            <p style="font-size: 13px; color: var(--gray); margin: 4px 0 0 0;">Manage cards vaulted for fast 1-tap checkout on your food and shop orders.</p>
+          </div>
+        </div>
+
+        <div id="saved-cards-container">
+          <div id="saved-cards-history-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+            <!-- Rendered by src/order-history.js -->
+          </div>
+          <div id="saved-cards-empty" style="display: none; padding: 16px; background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border); border-radius: 8px; text-align: center; color: var(--gray); font-size: 13px;">
+            No saved payment methods yet. Check <strong>"Save card for 1-tap checkout"</strong> when placing your next order!
+          </div>
+        </div>
+      </div>
+
+      <!-- Optional Phone Link Banner (for Google/Apple users without a phone linked) -->
+      <div id="phone-link-banner" style="display: none; background: #18181b; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 8px; background: #222226; color: #ffffff;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+            <div>
+              <div style="font-weight: 700; font-size: 15px; color: #fff;">Connect Your Mobile Phone Number</div>
+              <div style="font-size: 13px; color: var(--gray);">Link past takeout and in-store orders placed with your phone to this account.</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="tel" id="input-link-phone" placeholder="(555) 000-0000" style="padding: 9px 14px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 14px; width: 170px;">
+            <button type="button" id="btn-save-linked-phone" class="btn-primary" style="padding: 9px 16px; font-size: 13px; text-transform: uppercase;">Connect</button>
+          </div>
+        </div>
+        <div id="link-phone-feedback" style="display: none; margin-top: 10px; font-size: 13px;"></div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button class="tab-btn active" id="tab-btn-food" data-tab="food">
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v10a4 4 0 0 1-8 0V2"/><path d="M11 2v4"/><path d="M15 14v8"/><path d="M7 14v8"/></svg> Food Orders</span>
+          <span class="tab-badge" id="badge-food-count">0</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-shop" data-tab="shop">
+          <span style="display: inline-flex; align-items: center; gap: 6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Shop Orders</span>
+          <span class="tab-badge" id="badge-shop-count">0</span>
+        </button>
+      </div>
+
+      <!-- Tab Pane 1: Food Orders -->
+      <div id="tab-pane-food" class="tab-pane">
+        <div class="orders-list" id="food-orders-list"></div>
+        
+        <!-- Empty State for Food Orders -->
+        <div class="empty-state" id="food-orders-empty" style="display: none;">
+          <span class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v10a4 4 0 0 1-8 0V2"/><path d="M11 2v4"/><path d="M15 14v8"/><path d="M7 14v8"/></svg></span>
+          <h2 class="empty-title">NO FOOD ORDERS YET</h2>
+          <p class="empty-desc">Craving authentic Afghan charcoal kabobs, freshly baked bolani, or fragrant qabuli palao?</p>
+          <a href="/menu" class="btn-primary">Explore Menu & Order</a>
+        </div>
+      </div>
+
+      <!-- Tab Pane 2: Shop Orders -->
+      <div id="tab-pane-shop" class="tab-pane" style="display: none;">
+        <div class="orders-list" id="shop-orders-list"></div>
+
+        <!-- Empty State for Shop Orders -->
+        <div class="empty-state" id="shop-orders-empty" style="display: none;">
+          <span class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+          <h2 class="empty-title">NO SHOP ORDERS YET</h2>
+          <p class="empty-desc">Discover our authentic Afghan spices, saffron, and specialty pantry items shipped nationwide.</p>
+          <a href="/shop" class="btn-primary">Visit Spices & Retail Shop</a>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- 1. Brand -->
+        <div class="text-center-mobile">
+          <a href="/"><img loading="lazy" src="/logo.webp" alt="Bigi Awasaana Logo" width="104" height="52" style="height: 52px; width: auto; object-fit: contain; margin: 0 auto; display: block;"></a>
+          <p style="font-size: 13px; color: var(--gray); max-width: 300px; margin: 12px auto 0;">Real food. Real flavor. Bigi Awasaana.</p>
+        </div>
+        <!-- 2. Explore -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Explore</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="/menu" class="footer-link">Menu</a>
+            <a href="/shop" class="footer-link">Shop</a>
+            <a href="/locations" class="footer-link">Location & Hours</a>
+            <a href="/catering" class="footer-link">Catering</a>
+            <a href="/specials" class="footer-link">Specials</a>
+            <a href="/blog" class="footer-link">Blog</a>
+            <a href="/faq" class="footer-link">FAQ</a>
+            <a href="/order-history.html" class="footer-link" style="color: var(--accent);">My Orders</a>
+          </div>
+        </div>
+        <!-- 3. Visit Us -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Visit Us</div>
+          <p style="font-size: 13px; color: var(--gray); margin-bottom: 8px;">18411 Victory Blvd<br>Reseda, CA 91335</p>
+          <p style="font-size: 13px; color: var(--gray);"><span class="footer-hours-display">Mon–Sat 01:00 PM–10:30 PM (Sun Closed)</span></p>
+        </div>
+        <!-- 4. Connect -->
+        <div class="text-center-mobile">
+          <div class="footer-label">Connect</div>
+          <p style="font-size: 13px; margin-bottom: 8px;"><a href="tel:+13239211646" class="footer-link">(323) 921-1646</a></p>
+          <p style="font-size: 13px; margin-bottom: 16px;"><a href="mailto:bigiawasaana@gmail.com" class="footer-link">bigiawasaana@gmail.com</a></p>
+          <div class="social-icons" style="display: flex; gap: 12px; justify-content: flex-start;">
+            <a href="https://www.instagram.com/bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+            <a href="https://www.tiktok.com/@bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="TikTok"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 15.68a6.34 6.34 0 0 0 6.27 6.36 6.34 6.34 0 0 0 6.25-6.36V7.98a8.51 8.51 0 0 0 4.33 1.15V5.55a4.93 4.93 0 0 1-2.26-.86z"/></svg></a>
+            <a href="https://www.facebook.com/bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.312h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg></a>
+            <a href="https://www.youtube.com/@bigiawasaana" target="_blank" rel="noopener" class="social-icon" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.501 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.377.55 9.377.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+        <p style="margin: 0;">&copy; 2026 Bigi Awasaana. All rights reserved.</p>
+        <div style="display: flex; gap: 16px;">
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/order-history.js"></script>
+</body>
+</html>

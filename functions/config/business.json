@@ -1,0 +1,58 @@
+{
+  "name": "Bigi Awasaana",
+  "tagline": "Born From the Silk Road. Grilled in Los Angeles.",
+  "shortDescription": "Authentic, 100% Zabiha Halal Afghan street food and charcoal grill in Reseda, Los Angeles.",
+  "address": {
+    "street": "18411 Victory Blvd",
+    "city": "Reseda",
+    "state": "CA",
+    "zip": "91335",
+    "country": "US",
+    "full": "18411 Victory Blvd, Reseda, CA 91335",
+    "crossStreet": "Corner of Reseda Blvd & Victory Blvd, across from Reseda Park",
+    "geo": {
+      "latitude": 34.1866982,
+      "longitude": -118.5357015
+    }
+  },
+  "contact": {
+    "phone": "(323) 921-1646",
+    "phoneRaw": "+13239211646",
+    "email": "bigiawasaana@gmail.com"
+  },
+  "hours": {
+    "days": "Monday – Saturday",
+    "open": "01:00 PM",
+    "close": "10:30 PM",
+    "open24": "13:00",
+    "close24": "22:30",
+    "closedDays": ["Sunday"],
+    "display": "Monday – Saturday: 01:00 PM – 10:30 PM",
+    "displayWithClosed": "Mon–Sat: 1:00 PM – 10:30 PM (Sun Closed)",
+    "schemaOpeningHours": [
+      "Mo-Sa 13:00-22:30"
+    ]
+  },
+  "urls": {
+    "canonical": "https://www.bigiawasaana.com",
+    "order": "https://www.bigiawasaana.com/menu",
+    "catering": "https://www.bigiawasaana.com/catering",
+    "locations": "https://www.bigiawasaana.com/locations"
+  },
+  "social": {
+    "instagram": "https://www.instagram.com/bigiawasaana",
+    "tiktok": "https://www.tiktok.com/@bigiawasaana",
+    "facebook": "https://www.facebook.com/bigiawasaana"
+  },
+  "delivery": {
+    "uberEats": "https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION",
+    "doorDash": "https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false"
+  },
+  "reviews": {
+    "google": "https://share.google/ZX9dlaVM85GJ93PGY",
+    "googleMaps": "https://maps.app.goo.gl/HRWCNVDR8fsv5jzv8"
+  },
+  "standards": {
+    "halal": "100% hand-slaughtered Zabiha Halal meat (beef, lamb, chicken) — zero machine-cut meat or fillers."
+  }
+}

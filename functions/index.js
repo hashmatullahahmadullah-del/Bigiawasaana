@@ -1,3 +1,5 @@
+const functions = require("firebase-functions/v1");
+
 exports.parseReceipt = require("./parseReceipt").parseReceipt;
 exports.processSquarePayment = require('./payments').processSquarePayment;
 exports.syncSquareOrders = require('./orders').syncSquareOrders;
@@ -20,23 +22,26 @@ exports.syncGoogleHours = require('./syncGoogleHours').syncGoogleHours;
 // exports.syncGoogleHoursCron = require('./syncGoogleHours').syncGoogleHoursCron;
 exports.checkInventoryDeadlinesCron = require('./inventory').checkInventoryDeadlinesCron;
 
-const functions = require("firebase-functions/v1");
-exports.cleanDuplicateDrafts = functions.https.onRequest(async (req, res) => {
-  const admin = require('firebase-admin');
-  const db = admin.firestore();
-  const snap = await db.collection('expenses').orderBy('createdAt', 'desc').get();
-  
-  let seen = new Set();
-  let deleted = 0;
-  for(let d of snap.docs) {
-    let data = d.data();
-    let key = data.total + '_' + (data.vendor || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    if(seen.has(key) && data.status === 'draft') {
-      await d.ref.delete();
-      deleted++;
-    } else {
-      seen.add(key);
-    }
-  }
-  res.send({deleted});
-});
+exports.renderRetailItemPage = require('./ssr').renderRetailItemPage; 
+exports.processRetailPayment = require('./payments').processRetailPayment;
+exports.getShippingRates = require('./payments').getShippingRates;
+exports.purchaseShippingLabel = require('./payments').purchaseShippingLabel;
+exports.renderShopCatalog = require("./ssr").renderShopCatalog;
+exports.submitRetailReview = require('./reviews').submitRetailReview;
+
+exports.lookupCustomer = require('./customers').lookupCustomer;
+exports.getOrderHistory = require('./customers').getOrderHistory;
+exports.setCustomerPin = require('./customers').setCustomerPin;
+exports.toggleFavorite = require('./customers').toggleFavorite;
+exports.removeSavedCard = require('./customers').removeSavedCard;
+exports.getAuthCustomerProfile = require('./customers').getAuthCustomerProfile;
+exports.syncAuthCustomer = require('./customers').syncAuthCustomer;
+exports.redeemLoyaltyReward = require('./customers').redeemLoyaltyReward;
+
+// Nodemailer Order Receipts & Notifications
+exports.onOrderCreatedEmail = require('./emails').onOrderCreatedEmail;
+exports.onOrderStatusUpdatedEmail = require('./emails').onOrderStatusUpdatedEmail;
+exports.onRetailOrderCreatedEmail = require('./emails').onRetailOrderCreatedEmail;
+
+exports.registerApplePayDomain = require('./payments').registerApplePayDomain;
+exports.refundSquarePayment = require('./orders').refundSquarePayment;

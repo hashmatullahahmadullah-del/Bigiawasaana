@@ -1,10 +1,12 @@
 import { compressImage } from './menu.js';
 import { showToast } from './orders.js';
-import { db, storage } from '../firebase.js';
+import { db } from '../firebase.js';
+import { storage } from '../storage.js';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase.js';
+import { iconSparkle } from '../icons.js';
 
 window.quill = null;
 document.addEventListener('DOMContentLoaded', () => {
@@ -80,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const addPostBtn = document.getElementById('add-post-btn');
   const cancelPostBtn = document.getElementById('cancel-post-btn');
-  const blogForm = document.getElementById('blog-form');
   const blogEditorSection = document.getElementById('blog-editor-section');
   const blogList = document.getElementById('blog-list');
   const postCoverImage = document.getElementById('post-cover-image');
@@ -139,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Failed to generate blog: ' + err.message);
     } finally {
       generateBtn.disabled = false;
-      generateBtn.textContent = '✨ Generate with AI';
+      generateBtn.innerHTML = `${iconSparkle(15, 'ui-icon ui-icon-no-margin')} Generate with AI`;
     }
   });
 

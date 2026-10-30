@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin & CRM Dashboard — Bigi Awasaana</title>
   <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <link rel="shortcut icon" href="/favicon.jpg">
+  <link rel="apple-touch-icon" href="/logo.webp">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/admin.css">
   <link rel="stylesheet" href="/src/admin-theme.css">
@@ -19,7 +21,7 @@
   <link rel="manifest" href="/admin-manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="/logo.webp">
+  <!-- Apple Touch Icon defined above -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -32,20 +34,45 @@
   <meta name="thumbnail" content="https://bigiawasaana.com/hero-food-spread.jpg">
 </head>
 
-<div id="global-error" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; background: red; color: white; z-index: 999999; padding: 20px; font-family: monospace; white-space: pre-wrap; font-size: 16px;"></div>
+<div id="global-error" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #dc2626; color: white; z-index: 999999; padding: 14px 20px; font-family: system-ui, -apple-system, sans-serif; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-bottom: 2px solid #b91c1c;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; max-width: 1200px; margin: 0 auto; gap: 16px;">
+    <div style="flex: 1;">
+      <div style="font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+        <span><svg class="ui-icon ui-icon-no-margin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> <span>System Notice</span>
+      </div>
+      <div id="global-error-text" style="font-family: monospace; font-size: 12px; max-height: 120px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; opacity: 0.95;"></div>
+    </div>
+    <button onclick="document.getElementById('global-error').style.display='none'" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;"><svg class="ui-icon ui-icon-no-margin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Dismiss</button>
+  </div>
+</div>
 <script>
+  function isIgnorableError(err) {
+    if (!err) return false;
+    const str = String(err.message || err.reason || err || '').toLowerCase();
+    const name = String(err.name || '').toLowerCase();
+    if (name === 'notsupportederror' || name === 'notallowederror' || name === 'aborterror') return true;
+    if (str.includes('no supported source') || str.includes('the play() request was interrupted') || str.includes('audiocontext') || str.includes('resizeobserver loop limit exceeded')) return true;
+    return false;
+  }
   window.onerror = function(msg, url, line, col, error) {
+    if (isIgnorableError(error || msg)) return;
     const el = document.getElementById('global-error');
-    if (el) {
+    const textEl = document.getElementById('global-error-text');
+    if (el && textEl) {
       el.style.display = 'block';
-      el.textContent += 'Error: ' + msg + '\nLine: ' + line + ':' + col + '\n' + (error && error.stack ? error.stack : '') + '\n\n';
+      textEl.textContent += 'Error: ' + msg + ' (' + line + ':' + col + ')\n';
     }
   };
   window.addEventListener('unhandledrejection', function(event) {
+    if (isIgnorableError(event.reason)) {
+      event.preventDefault();
+      return;
+    }
     const el = document.getElementById('global-error');
-    if (el) {
+    const textEl = document.getElementById('global-error-text');
+    if (el && textEl) {
       el.style.display = 'block';
-      el.textContent += 'Unhandled Promise Rejection: ' + (event.reason && event.reason.stack ? event.reason.stack : event.reason) + '\n\n';
+      textEl.textContent += 'Notice: ' + (event.reason && (event.reason.message || event.reason)) + '\n';
     }
   });
 </script>
@@ -54,7 +81,7 @@
 
   <!-- iOS Install Hint -->
   <div id="ios-install-hint" style="display: none; position: fixed; top: 72px; left: 0; right: 0; z-index: 999; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px; text-align: center; font-size: 13px; color: var(--gray);">
-    📱 iPhone: tap Share → Add to Home Screen
+    <svg class="ui-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> iPhone: tap Share → Add to Home Screen
     <button onclick="document.getElementById('ios-install-hint').style.display='none'" style="margin-left: 12px; background: none; border: none; color: var(--white); cursor: pointer; text-decoration: underline;">Dismiss</button>
   </div>
 
@@ -62,11 +89,18 @@
   <div id="crm-nav-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 999; opacity: 0; transition: opacity 0.3s;"></div>
 
   <!-- Login Section -->
-  <section id="login-section" style="max-width: 400px; margin: 120px auto 60px auto; background: var(--surface); padding: 32px; border: 1px solid var(--border); border-radius: 8px;">
-    <h2 style="font-family: 'Lalezar'; margin-bottom: 24px; text-align: center;">Admin Login</h2>
-    <form id="login-form" style="display: flex; flex-direction: column; gap: 16px;">
-      <input type="email" id="admin-email" placeholder="Email" required style="padding: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-      <input type="password" id="admin-password" placeholder="Password" required style="padding: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+  <section id="login-section" style="max-width: 400px; margin: 90px auto 60px auto; background: var(--surface); padding: 36px 32px; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); text-align: center;">
+    <div style="margin-bottom: 24px;">
+      <img src="/logo.webp" alt="Bigi Awasaana Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 20px rgba(255,69,0,0.25); border: 2px solid rgba(255,255,255,0.18); margin-bottom: 14px;">
+      <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0; color: var(--white);">BIGI AWASAANA</h2>
+      <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; background: rgba(255,69,0,0.12); border: 1px solid rgba(255,69,0,0.3); border-radius: 100px; font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 1.2px; text-transform: uppercase;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+        ADMIN PORTAL
+      </div>
+    </div>
+    <form id="login-form" style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
+      <input type="email" id="admin-email" placeholder="Email" required style="padding: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 6px;">
+      <input type="password" id="admin-password" placeholder="Password" required style="padding: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 6px;">
       <button type="submit" class="btn-primary" style="margin-top: 8px;">Sign In</button>
     </form>
     <div id="login-error" style="color: var(--accent); font-size: 12px; margin-top: 12px; text-align: center;"></div>
@@ -76,104 +110,156 @@
   <section id="dashboard-section" style="display: none; height: 100vh;">
     <div class="crm-layout" style="height: 100%; display: flex; overflow: hidden; width: 100vw;">
       
-      <!-- CRM Nav -->
+      <!-- CRM Nav (Unified Left Sidebar) -->
       <nav class="crm-nav">
-        <div class="crm-nav-links" style="padding-top: 20px;">
+        <!-- Sidebar Brand Header -->
+        <div class="crm-nav-header">
+          <div style="display: flex; align-items: center; gap: 11px;">
+            <img src="/logo.webp" alt="Bigi Awasaana Logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.18);">
+            <div>
+              <div style="font-family: 'Barlow Condensed', -apple-system, sans-serif; font-size: 19px; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; line-height: 1.1;">BIGI AWASAANA</div>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;">Admin Portal</span>
+              </div>
+            </div>
+          </div>
+          <button id="mobile-close-btn" class="mobile-drawer-close-btn hide-on-desktop" aria-label="Close Menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Scrollable Navigation Links -->
+        <div class="crm-nav-links">
           <button class="crm-nav-item active" data-target="dashboard-view">
-            <span class="icon">📊</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
             <span class="label" data-i18n="admin.nav.overview">Overview</span>
           </button>
           <button class="crm-nav-item" data-target="live-orders-view">
-            <span class="icon">🔔</span>
-            <span class="label" data-i18n="admin.nav.orders">Live Orders</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+            <span class="label" data-i18n="admin.nav.liveOrders">Live Orders</span>
             <span id="pending-orders-badge" style="display: none; background: #f44336; color: white; font-size: 11px; font-weight: bold; border-radius: 50%; min-width: 20px; height: 20px; line-height: 20px; text-align: center; margin-left: auto;"></span>
           </button>
           <button class="crm-nav-item" data-target="menu-manage-view">
-            <span class="icon">🍔</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v10a4 4 0 0 1-8 0V2"/><path d="M11 2v4"/><path d="M15 14v8"/><path d="M7 14v8"/></svg></span>
             <span class="label" data-i18n="admin.nav.menu">Menu Manager</span>
           </button>
+          <button class="crm-nav-item" data-target="tv-layout-view">
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></span>
+            <span class="label">TV Layout</span>
+          </button>
+          <button class="crm-nav-item" data-target="retail-manage-view">
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+            <span class="label">Retail / Spices</span>
+          </button>
+          <button class="crm-nav-item" data-target="shipping-manage-view">
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+            <span class="label">Retail Shipping</span>
+          </button>
           <button class="crm-nav-item" data-target="inventory-view">
-            <span class="icon">📦</span>
-            <span class="label">Inventory</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+            <span class="label" data-i18n="admin.nav.inventory">Inventory</span>
           </button>
           <button class="crm-nav-item" data-target="customers-view">
-            <span class="icon">👥</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
             <span class="label" data-i18n="admin.nav.crm">Customers</span>
           </button>
           <button class="crm-nav-item" data-target="orders-view">
-            <span class="icon">📋</span>
-            <span class="label" data-i18n="admin.nav.orders">All Orders</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+            <span class="label" data-i18n="admin.nav.allOrders">All Orders</span>
           </button>
           <button class="crm-nav-item" data-target="reviews-view">
-            <span class="icon">⭐</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
             <span class="label" data-i18n="admin.nav.reviews">Reviews</span>
           </button>
           <button class="crm-nav-item" data-target="loyalty-view">
-            <span class="icon">👑</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg></span>
             <span class="label" data-i18n="admin.nav.loyalty">Loyalty</span>
           </button>
           <button class="crm-nav-item" data-target="catering-view">
-            <span class="icon">🍱</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
             <span class="label" data-i18n="nav.catering">Catering</span>
           </button>
           <button class="crm-nav-item" data-target="marketing-view">
-            <span class="icon">📢</span>
-            <span class="label" data-i18n="admin.nav.marketing">Marketing</span>
-          </button>
-          <button class="crm-nav-item" data-target="deals-view">
-            <span class="icon">🏷️</span>
-            <span class="label" data-i18n="admin.nav.promotions">Deals & Combos</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+            <span class="label" data-i18n="admin.nav.marketing">Marketing & Promotions</span>
           </button>
           <button class="crm-nav-item" data-target="pickup-view">
-            <span class="icon">🚗</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.2 1 12.1 1 13v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
             <span class="label">Pickup Settings</span>
           </button>
           <button class="crm-nav-item" data-target="economics-view">
-            <span class="icon">📈</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
             <span class="label" data-i18n="admin.nav.unitEconomics">Unit Economics</span>
           </button>
           <button class="crm-nav-item" data-target="analytics-view">
-            <span class="icon">📉</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></span>
             <span class="label">Analytics</span>
           </button>
           <button class="crm-nav-item" data-target="expense-view">
-            <span class="icon">🧾</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg></span>
             <span class="label">Expenses</span>
           </button>
           <button class="crm-nav-item" data-target="blog-management">
-            <span class="icon">✍️</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
             <span class="label">Blog</span>
           </button>
           <button class="crm-nav-item" data-target="settings-view">
-            <span class="icon">⚙️</span>
+            <span class="icon"><svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
             <span class="label" data-i18n="admin.nav.settings">Settings</span>
           </button>
-          
-          <!-- Mobile Only Actions -->
-          <div style="margin-top: 24px; padding: 0 16px; display: flex; flex-direction: column; gap: 12px;" class="mobile-only-actions">
-            <button id="mobile-theme-toggle" class="btn-outline" style="width: 100%; justify-content: center; font-size: 12px; padding: 12px;">Toggle Theme</button>
-            <button id="mobile-lang-toggle" class="btn-outline" style="width: 100%; justify-content: center; font-size: 12px; padding: 12px;">EN | فا</button>
-            <button id="mobile-pwa-install-btn" class="btn-outline" style="width: 100%; justify-content: center; font-size: 12px; padding: 12px; display: none;">Install App</button>
-            <button id="mobile-logout-btn" class="btn-outline" style="width: 100%; justify-content: center; font-size: 12px; padding: 12px; display: none; color: var(--accent); border-color: var(--accent);">Logout</button>
+        </div>
+
+        <!-- Sidebar Pinned Footer Actions -->
+        <div class="crm-nav-footer">
+          <div style="display: flex; gap: 8px;">
+            <button id="theme-toggle" class="crm-footer-btn" title="Toggle Dark/Light Mode">
+              <span id="theme-icon"><svg class="ui-icon ui-icon-no-margin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+              <span id="theme-text" style="font-size: 11px; font-weight: 600; text-transform: uppercase;">Dark</span>
+            </button>
+            <button id="lang-toggle" class="crm-footer-btn" title="Switch Language">
+              <span style="font-size: 11px; font-weight: 700;">EN | فا</span>
+            </button>
           </div>
+          <button id="pwa-install-btn" class="crm-install-btn" style="display: none;">
+            <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Install App
+          </button>
+          <button id="logout-btn" class="crm-logout-btn" style="display: none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Sign Out</span>
+          </button>
         </div>
       </nav>
 
       <!-- Main Content Area -->
       <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-admin);">
-        <!-- Modern SaaS Header -->
-        <header style="height: 64px; background: var(--surface-admin); border-bottom: 1px solid var(--border-admin); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0;">
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <button id="mobile-menu-btn" class="btn-outline" style="display: none; padding: 8px;">☰</button>
-            <h2 style="font-size: 16px; font-weight: 600; margin: 0; color: var(--text-main);">Admin Dashboard</h2>
-          </div>
+        <!-- Mobile-Only Modern Header (Hidden on desktop) -->
+        <header class="mobile-only-header">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <button id="theme-toggle" class="btn-outline" style="width: 32px; height: 32px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center;" title="Toggle Theme">
-              <span id="theme-icon">🌙</span>
+            <button id="mobile-menu-btn" class="mobile-hamburger-btn" aria-label="Open Navigation">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
             </button>
-            <button id="lang-toggle" class="btn-outline hide-on-mobile" style="padding: 6px 12px; font-size: 13px;">EN | فا</button>
-            <button id="pwa-install-btn" class="btn-primary hide-on-mobile" style="padding: 6px 12px; font-size: 13px; display: none;">Install App</button>
-            <button id="logout-btn" class="btn-outline" style="padding: 6px 12px; font-size: 13px; display: none; color: var(--danger); border-color: var(--danger);">Logout</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <img src="/logo.webp" alt="Bigi Awasaana Logo" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.18);">
+              <span id="mobile-active-view-title" style="font-family: 'Barlow Condensed', -apple-system, sans-serif; font-size: 18px; font-weight: 700; color: var(--text-main); letter-spacing: 0.5px;">Overview</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="mobile-quick-orders-btn" class="mobile-quick-btn" title="Live Orders">
+              <svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span id="mobile-header-pending-badge" style="display: none; background: #ef4444; color: white; font-size: 10px; font-weight: 800; border-radius: 10px; min-width: 18px; height: 18px; line-height: 18px; text-align: center; padding: 0 4px;">0</span>
+            </button>
           </div>
         </header>
 
@@ -202,18 +288,18 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
-            <button class="btn-outline btn-small" onclick="document.querySelector('[data-target=\'economics-view\']').click(); setTimeout(() => document.getElementById('btn-eco-profit').click(), 100);" style="padding: 10px 16px;">
-              💰 Log Daily Sales
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;">
+            <button class="btn-outline btn-small" onclick="document.querySelector('[data-target=\'economics-view\']').click(); setTimeout(() => document.getElementById('btn-eco-profit').click(), 100);" style="padding: 12px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; font-size: 13px; min-height: 48px;">
+              <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Log Daily Sales
             </button>
-            <button class="btn-outline btn-small" onclick="document.querySelector('[data-target=\'expense-view\']').click();" style="padding: 10px 16px;">
-              🧾 Upload Receipt
+            <button class="btn-outline btn-small" onclick="document.querySelector('[data-target=\'expense-view\']').click();" style="padding: 12px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; font-size: 13px; min-height: 48px;">
+              <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg> Upload Receipt
             </button>
-            <button class="btn-outline btn-small" onclick="document.querySelector('[data-target=\'live-orders-view\']').click();" style="padding: 10px 16px;">
-              🔥 View Live Orders
+            <button class="btn-outline btn-small" onclick="document.querySelector('[data-target=\'live-orders-view\']').click();" style="padding: 12px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; font-size: 13px; min-height: 48px;">
+              <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> View Live Orders
             </button>
-            <button class="btn-outline btn-small" onclick="document.querySelector('[data-target=\'menu-manage-view\']').click();" style="padding: 10px 16px;">
-              🍔 Edit Menu
+            <button class="btn-outline btn-small" onclick="document.querySelector('[data-target=\'menu-manage-view\']').click();" style="padding: 12px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; font-size: 13px; min-height: 48px;">
+              <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v10a4 4 0 0 1-8 0V2"/><path d="M11 2v4"/><path d="M15 14v8"/><path d="M7 14v8"/></svg> Edit Menu
             </button>
           </div>
           
@@ -269,7 +355,15 @@
 
         <!-- Live Orders View (Firebase) -->
         <section id="live-orders-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Live Orders</h1>
+          <div class="crm-header-action" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <h1 class="crm-view-title" style="margin: 0;">Live Orders</h1>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button id="btn-toggle-order-sound" class="btn-outline btn-small" style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 14px; font-size: 13px;">
+                <span id="order-sound-icon"><svg class="ui-icon ui-icon-no-margin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+                <span id="order-sound-label">Floor Chime: On</span>
+              </button>
+            </div>
+          </div>
           <div id="orders-list" style="display: grid; gap: 16px;">
             <!-- Orders dynamically injected here -->
           </div>
@@ -277,10 +371,25 @@
 
         <!-- Menu Management View (Firebase) -->
         <section id="menu-manage-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Menu Management</h1>
-          
-          <div style="background: var(--surface); padding: 24px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 24px;">
-            <h3 style="margin-bottom: 16px; font-family: 'Barlow Condensed'; font-size: 20px;">Add New Menu Item</h3>
+          <div class="crm-header-action" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h1 class="crm-view-title" style="margin: 0;">Menu Management</h1>
+              <p class="crm-view-subtitle" style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;">Add dishes, update pricing, customize variants, add-ons, and categories.</p>
+            </div>
+            <button type="button" class="btn-primary btn-small" id="btn-toggle-add-dish" style="font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+              <span id="toggle-add-dish-icon"><svg class="ui-icon ui-icon-no-margin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+              <span id="toggle-add-dish-text">Add New Dish</span>
+            </button>
+          </div>
+
+          <!-- Collapsible Add New Menu Item Panel -->
+          <div id="add-menu-panel" class="crm-panel menu-collapsible-panel" style="margin-bottom: 24px; display: none; background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 12px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-admin); padding-bottom: 12px;">
+              <h3 style="margin: 0; font-family: 'Barlow Condensed'; font-size: 22px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                <span><svg class="ui-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg></span> Add New Menu Item
+              </h3>
+              <button type="button" class="crm-btn-icon" id="btn-close-add-dish" title="Close" style="width: 32px; height: 32px; min-width: 32px; min-height: 32px; display: inline-flex; align-items: center; justify-content: center;"><svg class="ui-icon ui-icon-no-margin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
             <form id="add-menu-form" style="display: flex; flex-direction: column; gap: 12px;">
               <input type="text" id="menu-name" placeholder="Item Name (e.g. Bolani)" required style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
               <input type="text" id="menu-name_fa" placeholder="Persian Name (Optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; direction: rtl; text-align: right;">
@@ -292,7 +401,7 @@
                 <option value="">No Meal Upgrade (or auto-match)</option>
               </select>
               <div style="display: flex; gap: 8px; flex-direction: column;">
-                <input type="url" id="menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                <input type="text" id="menu-img" placeholder="Image URL or Path (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
                 <span style="color: var(--gray); font-size: 12px; text-align: center;">OR</span>
                 <div style="display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 6px;">
                   <label for="menu-img-upload" style="cursor: pointer; background: var(--surface); padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border); font-size: 13px;">Choose File</label>
@@ -319,20 +428,385 @@
                 <div id="addons-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
               </div>
 
-              <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
-                <input type="checkbox" id="menu-featured"> Mark as Featured Item (displays on Homepage)
+              <label class="form-checkbox-label">
+                <input type="checkbox" id="menu-featured"> <span>Mark as Featured Item (displays on Homepage)</span>
               </label>
-              <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
-                <input type="checkbox" id="menu-hidden"> Hide from Menu Grid (useful for combo meals triggered as add-ons)
+              <label class="form-checkbox-label">
+                <input type="checkbox" id="menu-hidden"> <span>Hide from Menu Grid (useful for combo meals triggered as add-ons)</span>
               </label>
               <button type="submit" class="btn-primary" style="align-self: flex-start; margin-top: 8px;">Add to Menu</button>
             </form>
             <div id="menu-status" style="color: #00c853; font-size: 13px; margin-top: 12px; display: none;">Item added successfully!</div>
           </div>
 
-          <h3 style="margin-bottom: 16px; font-family: 'Barlow Condensed'; font-size: 20px;">Current Menu Items</h3>
+          <!-- Current Menu Items Section with Search & Counter -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <h3 style="margin: 0; font-family: 'Barlow Condensed'; font-size: 20px; text-transform: uppercase; letter-spacing: 0.5px;">Current Menu Items</h3>
+              <span id="admin-menu-total-count" class="crm-badge" style="background: rgba(255,255,255,0.08); color: var(--text-main); font-weight: 700; padding: 3px 8px; border-radius: 12px; font-size: 12px;">0 items</span>
+            </div>
+            <div style="flex: 1; max-width: 260px; min-width: 180px;">
+              <input type="text" id="admin-menu-search" class="crm-input" placeholder="Filter items..." style="padding: 7px 12px; font-size: 13px; height: 34px;">
+            </div>
+          </div>
+
+          <!-- Category Filter Pills -->
+          <div id="admin-menu-category-pills" class="admin-category-pills"></div>
+
           <div id="admin-menu-list" style="display: grid; gap: 12px;">
             <!-- Menu items loaded here -->
+          </div>
+        </section>
+
+        <!-- TV Layout View -->
+        <section id="tv-layout-view" class="crm-view" style="display: none;">
+          <!-- Top Header & Actions -->
+          <div class="tv-dashboard-header">
+            <div class="tv-header-info">
+              <div class="tv-header-title-row">
+                <h1 class="crm-view-title" style="margin: 0; font-size: 22px;">TV Screen Layout</h1>
+                <div id="tv-layout-status-pill" class="tv-status-indicator">
+                  <span class="tv-status-indicator-dot"></span>
+                  <span class="tv-status-indicator-text">Auto-saved</span>
+                </div>
+              </div>
+              <p class="tv-header-desc">Assign and arrange dishes on restaurant displays in real-time.</p>
+            </div>
+            <div class="tv-header-actions">
+              <a href="/tv1" target="_blank" class="tv-btn-preview tv-preview-tv1" title="Open TV 1 in new tab">
+                <span><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>TV 1</span>
+                <span class="tv-btn-arrow-icon">↗</span>
+              </a>
+              <a href="/tv2" target="_blank" class="tv-btn-preview tv-preview-tv2" title="Open TV 2 in new tab">
+                <span><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>TV 2</span>
+                <span class="tv-btn-arrow-icon">↗</span>
+              </a>
+              <button class="btn-primary btn-small tv-btn-save-primary" id="btn-save-tv-layout">
+                <span><svg class="ui-icon ui-icon-no-margin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>
+                <span>Save</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Screen Switcher Tabs (Segmented Control) -->
+          <div class="tv-mobile-tab-bar">
+            <button type="button" class="tv-mobile-tab active" data-tab="tv-col-screen1" id="tv-tab-btn-1">
+              <span class="tv-tab-accent-dot tv-dot-tv1"></span>
+              <span class="tv-tab-text">TV 1</span>
+              <span class="tv-tab-badge" id="tv-tab-badge-1">0</span>
+            </button>
+            <button type="button" class="tv-mobile-tab" data-tab="tv-col-screen2" id="tv-tab-btn-2">
+              <span class="tv-tab-accent-dot tv-dot-tv2"></span>
+              <span class="tv-tab-text">TV 2</span>
+              <span class="tv-tab-badge" id="tv-tab-badge-2">0</span>
+            </button>
+            <button type="button" class="tv-mobile-tab" data-tab="tv-col-unassigned" id="tv-tab-btn-u">
+              <span class="tv-tab-accent-dot tv-dot-unassigned"></span>
+              <span class="tv-tab-text">Hidden</span>
+              <span class="tv-tab-badge" id="tv-tab-badge-u">0</span>
+            </button>
+          </div>
+
+          <!-- Quick Search & Active Screen Bar -->
+          <div class="tv-filter-row">
+            <div class="tv-search-wrapper">
+              <span class="tv-search-lens"><svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+              <input type="text" id="tv-search-input" placeholder="Search dishes by name or category..." class="crm-input tv-search-box">
+              <button type="button" id="tv-search-clear-btn" class="tv-search-clear-btn" style="display: none;"><svg class="ui-icon ui-icon-no-margin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="tv-active-hint" id="tv-active-hint">
+              <span id="tv-active-hint-text">Showing TV Screen 1</span>
+            </div>
+          </div>
+
+          <!-- Kanban Board Container (Tabbed on Mobile, 3-Col on Desktop) -->
+          <div class="tv-columns-container">
+            <!-- TV 1 Column -->
+            <div id="tv-col-screen1" class="tv-layout-col">
+              <div class="tv-col-header tv-col-header-tv1">
+                <div class="tv-col-title-group">
+                  <span class="tv-col-badge-tag tv-tag-tv1">TV 1</span>
+                  <span class="tv-col-name">Screen 1 Items</span>
+                  <span id="tv-screen-1-count" class="tv-col-count">0</span>
+                </div>
+                <a href="/tv1" target="_blank" class="tv-col-external-link" title="Open TV 1 in new tab">
+                  <span>Open TV 1</span>
+                  <span>↗</span>
+                </a>
+              </div>
+              <div id="tv-screen-1" class="tv-drop-zone"></div>
+            </div>
+
+            <!-- TV 2 Column -->
+            <div id="tv-col-screen2" class="tv-layout-col">
+              <div class="tv-col-header tv-col-header-tv2">
+                <div class="tv-col-title-group">
+                  <span class="tv-col-badge-tag tv-tag-tv2">TV 2</span>
+                  <span class="tv-col-name">Screen 2 Items</span>
+                  <span id="tv-screen-2-count" class="tv-col-count">0</span>
+                </div>
+                <a href="/tv2" target="_blank" class="tv-col-external-link" title="Open TV 2 in new tab">
+                  <span>Open TV 2</span>
+                  <span>↗</span>
+                </a>
+              </div>
+              <div id="tv-screen-2" class="tv-drop-zone"></div>
+            </div>
+
+            <!-- Unassigned Column -->
+            <div id="tv-col-unassigned" class="tv-layout-col">
+              <div class="tv-col-header tv-col-header-unassigned">
+                <div class="tv-col-title-group">
+                  <span class="tv-col-badge-tag tv-tag-unassigned">Off TV</span>
+                  <span class="tv-col-name">Hidden Pool</span>
+                  <span id="tv-unassigned-count" class="tv-col-count">0</span>
+                </div>
+                <span class="tv-col-subhint">Tap + TV 1 or + TV 2 to display</span>
+              </div>
+              <div id="tv-unassigned" class="tv-drop-zone"></div>
+            </div>
+          </div>
+
+          <!-- TV Display & Specials Settings Card (Collapsible) -->
+          <div class="crm-panel tv-display-settings-card" style="margin-top: 16px; margin-bottom: 24px; background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 12px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" id="tv-settings-toggle-header">
+              <div style="flex: 1; min-width: 0; margin-right: 12px;">
+                <h2 style="font-size: 16px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                  <span><svg class="ui-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> TV Themes & Specials
+                </h2>
+                <p class="tv-settings-desc" style="color: var(--text-muted); font-size: 12.5px; margin: 3px 0 0 0;">Customize real-time screen themes and automatic daypart lunch/dinner specials.</p>
+              </div>
+              <button type="button" class="btn-outline btn-small" id="btn-toggle-tv-settings" style="font-weight: 700; font-size: 12px; padding: 6px 14px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;">
+                <span id="tv-settings-toggle-icon">▼ Options</span>
+              </button>
+            </div>
+
+            <div id="tv-settings-body" style="margin-top: 20px; display: flex; flex-direction: column; gap: 20px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                
+                <!-- Column 1: Themes & Animation -->
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                  <div>
+                    <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">Display Color Theme</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;" id="tv-theme-picker">
+                      <label style="border: 2px solid var(--border-admin); border-radius: 8px; padding: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: var(--bg-admin);" class="tv-theme-option" data-theme="flame">
+                        <input type="radio" name="tv-theme" value="flame" checked style="accent-color: #ff4500;">
+                        <div>
+                          <div style="font-weight: bold; font-size: 13px; color: var(--text-main);">Flame & Gold</div>
+                          <div style="font-size: 11px; color: var(--text-muted);">Signature Afghan</div>
+                        </div>
+                        <div style="margin-left: auto; display: flex; gap: 4px;">
+                          <span style="width: 14px; height: 14px; border-radius: 50%; background: #ff4500; display: inline-block;"></span>
+                          <span style="width: 14px; height: 14px; border-radius: 50%; background: #ffb703; display: inline-block;"></span>
+                        </div>
+                      </label>
+
+                      <label style="border: 2px solid var(--border-admin); border-radius: 8px; padding: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: var(--bg-admin);" class="tv-theme-option" data-theme="midnight">
+                        <input type="radio" name="tv-theme" value="midnight" style="accent-color: #f59e0b;">
+                        <div>
+                          <div style="font-weight: bold; font-size: 13px; color: var(--text-main);">Midnight Luxury</div>
+                          <div style="font-size: 11px; color: var(--text-muted);">Emerald & Amber</div>
+                        </div>
+                        <div style="margin-left: auto; display: flex; gap: 4px;">
+                          <span style="width: 14px; height: 14px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                          <span style="width: 14px; height: 14px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        </div>
+                      </label>
+
+                      <label style="border: 2px solid var(--border-admin); border-radius: 8px; padding: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: var(--bg-admin);" class="tv-theme-option" data-theme="charcoal">
+                        <input type="radio" name="tv-theme" value="charcoal" style="accent-color: #38bdf8;">
+                        <div>
+                          <div style="font-weight: bold; font-size: 13px; color: var(--text-main);">Charcoal Clean</div>
+                          <div style="font-size: 11px; color: var(--text-muted);">Platinum & Ice</div>
+                        </div>
+                        <div style="margin-left: auto; display: flex; gap: 4px;">
+                          <span style="width: 14px; height: 14px; border-radius: 50%; background: #e2e8f0; display: inline-block;"></span>
+                          <span style="width: 14px; height: 14px; border-radius: 50%; background: #38bdf8; display: inline-block;"></span>
+                        </div>
+                      </label>
+
+                      <label style="border: 2px solid var(--border-admin); border-radius: 8px; padding: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: var(--bg-admin);" class="tv-theme-option" data-theme="neon">
+                        <input type="radio" name="tv-theme" value="neon" style="accent-color: #ff0055;">
+                        <div>
+                          <div style="font-weight: bold; font-size: 13px; color: var(--text-main);">Cyber Neon</div>
+                          <div style="font-size: 11px; color: var(--text-muted);">Vibrant Halal</div>
+                        </div>
+                        <div style="margin-left: auto; display: flex; gap: 4px;">
+                          <span style="width: 14px; height: 14px; border-radius: 50%; background: #ff0055; display: inline-block;"></span>
+                          <span style="width: 14px; height: 14px; border-radius: 50%; background: #ffd000; display: inline-block;"></span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                      <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Transition Animation</label>
+                      <select id="tv-animation-style" class="crm-select">
+                        <option value="slide">Smooth Slide Up</option>
+                        <option value="fade">Crossfade & Soft Scale</option>
+                        <option value="zoom">Dynamic Zoom</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style="display: flex; justify-content: space-between; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">
+                        <span>Cycle Speed</span>
+                        <span id="tv-speed-val" style="color: var(--accent-admin);">12s</span>
+                      </label>
+                      <select id="tv-cycle-speed" class="crm-select">
+                        <option value="8">8 Seconds (Fast)</option>
+                        <option value="10">10 Seconds</option>
+                        <option value="12" selected>12 Seconds (Default)</option>
+                        <option value="15">15 Seconds (Relaxed)</option>
+                        <option value="20">20 Seconds (Slow)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Column 2: Automated Scheduled Specials -->
+                <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold; font-size: 14px; margin: 0; color: var(--text-main);">
+                      <input type="checkbox" id="tv-special-enabled" style="accent-color: var(--accent); width: 18px; height: 18px;">
+                      Enable Scheduled Specials
+                    </label>
+                    <span id="tv-special-live-status" style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,0.08); color: var(--text-muted); font-weight: 600;">Checking...</span>
+                  </div>
+
+                  <div>
+                    <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 4px;">Special Title Banner</label>
+                    <input type="text" id="tv-special-title" class="crm-input" placeholder="e.g. TODAY'S LUNCH SPECIAL" value="TODAY'S SPECIAL">
+                  </div>
+
+                  <div>
+                    <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 4px;">Promo Text / Offer Details</label>
+                    <input type="text" id="tv-special-text" class="crm-input" placeholder="e.g. Any Wrap + Soda for $14.99 • 11:00 AM - 3:00 PM">
+                  </div>
+
+                  <div>
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); cursor: pointer; margin-bottom: 8px;">
+                      <input type="checkbox" id="tv-special-autoschedule" checked style="accent-color: var(--accent);">
+                      Auto-schedule by day of week & hours
+                    </label>
+
+                    <div id="tv-schedule-time-fields" style="display: flex; flex-direction: column; gap: 10px;">
+                      <div id="tv-schedule-days">
+                        <label class="tv-day-pill"><input type="checkbox" value="mon" checked><span>Mon</span></label>
+                        <label class="tv-day-pill"><input type="checkbox" value="tue" checked><span>Tue</span></label>
+                        <label class="tv-day-pill"><input type="checkbox" value="wed" checked><span>Wed</span></label>
+                        <label class="tv-day-pill"><input type="checkbox" value="thu" checked><span>Thu</span></label>
+                        <label class="tv-day-pill"><input type="checkbox" value="fri" checked><span>Fri</span></label>
+                        <label class="tv-day-pill"><input type="checkbox" value="sat"><span>Sat</span></label>
+                        <label class="tv-day-pill"><input type="checkbox" value="sun"><span>Sun</span></label>
+                      </div>
+
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                          <label style="display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Start Hour</label>
+                          <select id="tv-special-start-hour" class="crm-select">
+                            <option value="9">9:00 AM</option>
+                            <option value="10">10:00 AM</option>
+                            <option value="11" selected>11:00 AM</option>
+                            <option value="12">12:00 PM</option>
+                            <option value="13">1:00 PM</option>
+                            <option value="14">2:00 PM</option>
+                            <option value="15">3:00 PM</option>
+                            <option value="16">4:00 PM</option>
+                            <option value="17">5:00 PM</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label style="display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">End Hour</label>
+                          <select id="tv-special-end-hour" class="crm-select">
+                            <option value="13">1:00 PM</option>
+                            <option value="14">2:00 PM</option>
+                            <option value="15" selected>3:00 PM</option>
+                            <option value="16">4:00 PM</option>
+                            <option value="17">5:00 PM</option>
+                            <option value="18">6:00 PM</option>
+                            <option value="19">7:00 PM</option>
+                            <option value="20">8:00 PM</option>
+                            <option value="21">9:00 PM</option>
+                            <option value="22">10:00 PM</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid var(--border-admin);">
+                <button class="btn-primary btn-small" id="btn-save-tv-display" style="font-weight: bold; padding: 8px 18px;">Save TV Display Settings</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Retail / Spices View -->
+        <section id="retail-manage-view" class="crm-view" style="display: none;">
+          <h1 class="crm-view-title">Retail / Spices</h1>
+          <div class="card" style="margin-bottom: 24px;">
+            <div id="toggle-add-retail-btn" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0;">
+              <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> <span id="add-retail-title-text">Add Retail Item</span>
+              </h3>
+              <span id="add-retail-chevron" style="font-size: 14px; color: var(--text-muted); transition: transform 0.2s;">▼</span>
+            </div>
+            <form id="add-retail-form" style="display: none; flex-direction: column; gap: 12px; margin-top: 16px;">
+              <input type="text" id="retail-name" placeholder="Name (e.g. Garam Masala)" class="crm-input" required>
+              <input type="number" step="0.01" id="retail-price" placeholder="Price" class="crm-input" required>
+              <input type="number" step="0.01" id="retail-weight" placeholder="Weight (oz)" class="crm-input">
+              <input type="text" id="retail-sku" placeholder="SKU (optional)" class="crm-input">
+              <textarea id="retail-desc" placeholder="Description" class="crm-input" rows="3" required></textarea>
+              
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <label class="btn-outline" style="cursor: pointer;">
+                  Upload Image
+                  <input type="file" id="retail-img-upload" accept="image/*" style="display: none;">
+                </label>
+                <span id="retail-img-filename" style="color: var(--gray); font-size: 14px;">No file chosen</span>
+              </div>
+              <input type="text" id="retail-img" placeholder="Or enter Image URL" class="crm-input">
+              
+              <button type="submit" class="btn-primary">Add Retail Item</button>
+            </form>
+          </div>
+          <div id="retail-list" style="display: grid; gap: 16px;">
+            <!-- Retail items loaded here -->
+          </div>
+        </section>
+
+        <!-- Retail Shipping Orders View -->
+        <section id="shipping-manage-view" class="crm-view" style="display: none;">
+          <div class="crm-header-action" style="margin-bottom: 16px;">
+            <h1 class="crm-view-title">Retail Shipping Orders</h1>
+          </div>
+          <p style="color: var(--gray); margin-bottom: 24px;">Manage online orders for spices and merchandise, view customer shipping addresses, and purchase shipping labels.</p>
+          
+          <div class="crm-panel">
+            <div class="crm-table-container">
+              <table class="crm-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Order ID</th>
+                    <th>Customer & Address</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="shipping-orders-tbody">
+                  <tr><td colspan="7" style="padding: 16px; text-align: center; color: var(--gray);">Loading shipping orders...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -344,7 +818,7 @@
           </div>
           <p style="color: var(--gray); margin-bottom: 24px;">Manage stock levels, add items manually, or scan receipts to update.</p>
           
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div class="inv-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 24px;">
             <div class="crm-stat-card" style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
               <div style="font-size: 13px; color: var(--gray); text-transform: uppercase;">Total Items Tracked</div>
               <div id="inv-total-items" style="font-size: 28px; font-weight: bold; color: var(--white); margin-top: 8px;">0</div>
@@ -428,10 +902,15 @@
                   <option value="all">All Statuses</option>
                   <option value="pending">Pending</option>
                   <option value="completed">Completed</option>
+                  <option value="refunded">Refunded</option>
+                  <option value="partially_refunded">Partially Refunded</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
-              <button id="export-orders-btn" class="btn-outline btn-small">Export to CSV</button>
+              <div style="display: flex; gap: 8px;">
+                <button id="sync-square-btn" class="btn-outline btn-small" title="Sync orders and refunds from Square POS" style="display: inline-flex; align-items: center; gap: 6px;"><svg class="ui-icon ui-icon-no-margin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Sync Square</button>
+                <button id="export-orders-btn" class="btn-outline btn-small">Export to CSV</button>
+              </div>
             </div>
             <div class="crm-table-container"><table class="crm-table">
                 <thead>
@@ -457,7 +936,7 @@
 <div id="reviews-stats-row" class="crm-stats-grid" style="margin-bottom: 24px;">
   <div class="crm-stat-card" style="padding: 16px;">
     <div class="stat-title">Average Rating</div>
-    <div class="stat-value" id="review-avg-rating" style="color: #FFD700;">0.0 ★</div>
+    <div class="stat-value" id="review-avg-rating" style="color: #FFD700; display: inline-flex; align-items: center; gap: 6px;">0.0 <svg class="ui-icon ui-icon-no-margin" width="18" height="18" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
   </div>
   <div class="crm-stat-card" style="padding: 16px;">
     <div class="stat-title">Total Reviews</div>
@@ -503,26 +982,113 @@
 
         <!-- Loyalty View -->
         <section id="loyalty-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Loyalty Program</h1>
-          <div class="crm-stats-grid mt-m" id="loyalty-tiers-grid">
-            <!-- Populated by JS -->
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 16px;">
+            <div>
+              <h1 class="crm-view-title" style="margin-bottom: 4px !important;">Loyalty & Rewards Program</h1>
+              <p style="color: var(--gray); font-size: 14px; margin: 0;">Manage unlockable customer reward items, points redemption thresholds, and customer tiers.</p>
+            </div>
+            <div>
+              <button type="button" class="btn-primary" id="btn-create-reward" onclick="window.openRewardModal()">
+                🎁 + Add New Reward Item
+              </button>
+            </div>
           </div>
-          <div class="crm-panel mt-m">
-            <h2 class="crm-panel-title">Tier Settings</h2>
-            <div class="crm-tier-settings">
-              <div class="crm-form-group">
-                <label>Bronze Threshold ($)</label>
-                <input type="number" id="tier-bronze" class="crm-input" value="0" disabled>
+
+          <!-- Subnav Tabs -->
+          <div class="crm-subnav" style="display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px;">
+            <button type="button" class="btn-outline active" id="btn-loyalty-rewards-tab" onclick="window.switchLoyaltyTab('rewards')">
+              🎁 Reward Items Catalog (<span id="loyalty-rewards-count-badge">0</span>)
+            </button>
+            <button type="button" class="btn-outline" id="btn-loyalty-tiers-tab" onclick="window.switchLoyaltyTab('tiers')">
+              👑 Customer Tiers & Leaderboard
+            </button>
+            <button type="button" class="btn-outline" id="btn-loyalty-redemptions-tab" onclick="window.switchLoyaltyTab('redemptions')">
+              🎟️ Recent Redemptions
+            </button>
+          </div>
+
+          <!-- Tab 1: Reward Items Catalog -->
+          <div id="loyalty-tab-rewards" class="loyalty-tab">
+            <div id="rewards-stats-row" class="crm-stats-grid" style="margin-bottom: 24px;">
+              <div class="crm-stat-card" style="padding: 16px; border-top: 3px solid #4caf50;">
+                <div class="stat-title">Active Rewards</div>
+                <div class="stat-value" id="rewards-active-count" style="color: #4caf50;">0</div>
               </div>
-              <div class="crm-form-group">
-                <label>Silver Threshold ($)</label>
-                <input type="number" id="tier-silver" class="crm-input" value="100">
+              <div class="crm-stat-card" style="padding: 16px; border-top: 3px solid var(--accent);">
+                <div class="stat-title">Total Reward Items</div>
+                <div class="stat-value" id="rewards-total-count">0</div>
               </div>
-              <div class="crm-form-group">
-                <label>Gold Threshold ($)</label>
-                <input type="number" id="tier-gold" class="crm-input" value="300">
+              <div class="crm-stat-card" style="padding: 16px; border-top: 3px solid #ff9800;">
+                <div class="stat-title">Lowest Unlock</div>
+                <div class="stat-value" id="rewards-min-points" style="color: #ff9800;">50 pts</div>
               </div>
-              <button class="btn-outline btn-small" id="btn-save-tiers">Save Settings</button>
+              <div class="crm-stat-card" style="padding: 16px; border-top: 3px solid #9c27b0;">
+                <div class="stat-title">Total Redemptions</div>
+                <div class="stat-value" id="rewards-redemptions-count" style="color: #9c27b0;">0</div>
+              </div>
+            </div>
+
+            <!-- Reward Items List -->
+            <div class="crm-panel">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <h2 class="crm-panel-title" style="margin: 0;">Reward Items Catalog</h2>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn-primary btn-small" onclick="window.openRewardModal()">+ Add Reward Item</button>
+                </div>
+              </div>
+              
+              <div id="admin-rewards-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+                <!-- Populated dynamically by src/admin/rewards.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Tiers & Leaderboard -->
+          <div id="loyalty-tab-tiers" class="loyalty-tab" style="display: none;">
+            <div class="crm-stats-grid mt-m" id="loyalty-tiers-grid">
+              <!-- Populated by JS -->
+            </div>
+            <div class="crm-panel mt-m">
+              <h2 class="crm-panel-title">Tier Settings</h2>
+              <div class="crm-tier-settings">
+                <div class="crm-form-group">
+                  <label>Bronze Threshold ($)</label>
+                  <input type="number" id="tier-bronze" class="crm-input" value="0" disabled>
+                </div>
+                <div class="crm-form-group">
+                  <label>Silver Threshold ($)</label>
+                  <input type="number" id="tier-silver" class="crm-input" value="100">
+                </div>
+                <div class="crm-form-group">
+                  <label>Gold Threshold ($)</label>
+                  <input type="number" id="tier-gold" class="crm-input" value="300">
+                </div>
+                <button class="btn-outline btn-small" id="btn-save-tiers">Save Settings</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Recent Redemptions -->
+          <div id="loyalty-tab-redemptions" class="loyalty-tab" style="display: none;">
+            <div class="crm-panel">
+              <h2 class="crm-panel-title" style="margin-bottom: 16px;">Customer Redemptions Log</h2>
+              <div class="crm-table-container">
+                <table class="crm-table">
+                  <thead>
+                    <tr>
+                      <th>Voucher Code</th>
+                      <th>Customer</th>
+                      <th>Reward Item</th>
+                      <th>Points Spent</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="loyalty-redemptions-table-body">
+                    <tr><td colspan="6" style="text-align: center; color: var(--gray); padding: 16px;">Loading redemptions...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </section>
@@ -568,278 +1134,307 @@
           </div>
         </section>
 
-        <!-- Marketing View -->
+        <!-- Unified Marketing & Promotions View -->
         <section id="marketing-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Marketing & Promos</h1>
-          
-          <div class="crm-dashboard-grid">
-            <!-- Global Website Pop-Up -->
-            <div class="crm-panel mt-m">
-              <h2 class="crm-panel-title">Website Pop-Up Announcement</h2>
-              <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">Display a global pop-up on the website for important announcements.</p>
-              
-              <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
-                <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
-                  <input type="checkbox" id="popup-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
-                  Enable Website Pop-Up
-                </label>
-
-                <div id="popup-editor" style="display: flex; flex-direction: column; gap: 16px;">
-                  <div>
-                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Pop-Up Title</label>
-                    <input type="text" id="popup-title" placeholder="e.g. Catch us downtown today!" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                  </div>
-                  <div>
-                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Message</label>
-                    <textarea id="popup-message" rows="4" placeholder="Full announcement text..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
-                  </div>
-                  <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 150px;">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Button Text</label>
-                      <input type="text" id="popup-btn-text" placeholder="e.g. Order Now" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                    <div style="flex: 1; min-width: 150px;">
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Button URL</label>
-                      <input type="url" id="popup-btn-url" placeholder="https://..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                  </div>
-                </div>
-                <button id="btn-save-popup" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save Website Pop-Up</button>
-              </div>
-            </div>
-
-            <!-- TV Menu Promo Strip -->
-            <div class="crm-panel mt-m">
-              <h2 class="crm-panel-title">TV Menu Board Promo</h2>
-              <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">Display a scrolling promotional banner at the top of the TV menu display.</p>
-              
-              <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
-                <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
-                  <input type="checkbox" id="tv-promo-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
-                  Enable TV Promo Banner
-                </label>
-
-                <div id="tv-promo-editor" style="display: flex; flex-direction: column; gap: 16px;">
-                  <div>
-                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Scrolling Promo Text</label>
-                    <textarea id="tv-promo-text" rows="4" placeholder="e.g. FOLLOW US ON INSTAGRAM @BIGIAWASAANA • ASK ABOUT CATERING! •" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit; font-size: 16px;"></textarea>
-                    <p style="font-size: 12px; color: var(--gray); margin-top: 8px;">Tip: Add bullet points (•) at the start and end so it loops cleanly.</p>
-                  </div>
-                </div>
-                <button id="btn-save-tv-promo" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save TV Promo</button>
-              </div>
-            </div>
-
-            <!-- Checkout Cart Promo -->
-            <div class="crm-panel mt-m" style="grid-column: 1 / -1;">
-              <h2 class="crm-panel-title">Checkout Cart Promo</h2>
-              <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">Display custom promotional text, links, or delivery buttons at the bottom of the checkout cart.</p>
-              
-              <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
-                <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
-                  <input type="checkbox" id="cart-promo-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
-                  Enable Cart Promo
-                </label>
-
-                <div id="cart-promo-editor" style="display: flex; flex-direction: column; gap: 16px;">
-                  <div>
-                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Custom HTML / Text</label>
-                    <textarea id="cart-promo-html" rows="5" placeholder="e.g. <p>Free delivery on orders over $50!</p>" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: monospace; font-size: 13px;"></textarea>
-                  </div>
-                </div>
-                <button id="btn-save-cart-promo" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save Cart Promo</button>
-              </div>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 16px;">
+            <div>
+              <h1 class="crm-view-title" style="margin-bottom: 4px !important;">Marketing & Promotions</h1>
+              <p style="color: var(--gray); font-size: 14px; margin: 0;">Manage your discount deals, promo codes, website announcements, and marketing banners in one place.</p>
             </div>
           </div>
-        </section>
 
-        <!-- Deals & Combos View -->
-        <section id="deals-view" class="crm-view" style="display: none;">
-          <h1 class="crm-view-title">Deals & Combos Manager</h1>
-
-          <div id="deals-stats-row" class="crm-stats-grid" style="margin-bottom: 24px;">
-            <div class="crm-stat-card" style="padding: 16px;">
-              <div class="stat-title">Active Deals</div>
-              <div class="stat-value" id="deals-active-count" style="color: #4caf50;">0</div>
-            </div>
-            <div class="crm-stat-card" style="padding: 16px;">
-              <div class="stat-title">Discounted Orders (30d)</div>
-              <div class="stat-value" id="deals-discounted-orders">0</div>
-            </div>
-            <div class="crm-stat-card" style="padding: 16px;">
-              <div class="stat-title">Total Discounts Given (30d)</div>
-              <div class="stat-value" id="deals-total-discounts" style="color: #ff9800;">$0.00</div>
-            </div>
-            <div class="crm-stat-card" style="padding: 16px;">
-              <div class="stat-title">Revenue from Discounted Orders</div>
-              <div class="stat-value" id="deals-discounted-revenue" style="color: var(--accent);">$0.00</div>
-            </div>
+          <!-- Subnav Tabs -->
+          <div class="crm-subnav" style="display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px;">
+            <button type="button" class="btn-outline active" id="btn-mkt-deals" onclick="window.switchMarketingTab('deals')">
+              🏷️ Deals & Promo Codes
+            </button>
+            <button type="button" class="btn-outline" id="btn-mkt-banners" onclick="window.switchMarketingTab('banners')">
+              📣 Announcements & Banners
+            </button>
           </div>
-          
-          <div class="crm-dashboard-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start;">
+
+          <!-- Tab 1: Deals & Discounts -->
+          <div id="mkt-tab-deals" class="mkt-tab">
+            <div id="deals-stats-row" class="crm-stats-grid" style="margin-bottom: 24px;">
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Active Deals</div>
+                <div class="stat-value" id="deals-active-count" style="color: #4caf50;">0</div>
+              </div>
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Discounted Orders (30d)</div>
+                <div class="stat-value" id="deals-discounted-orders">0</div>
+              </div>
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Total Discounts Given (30d)</div>
+                <div class="stat-value" id="deals-total-discounts" style="color: #ff9800;">$0.00</div>
+              </div>
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Revenue from Discounted Orders</div>
+                <div class="stat-value" id="deals-discounted-revenue" style="color: var(--accent);">$0.00</div>
+              </div>
+            </div>
             
-            <!-- Left Panel: Create / Edit Deal Form -->
-            <div class="crm-panel">
-              <h2 class="crm-panel-title" id="deal-form-title">Create New Deal</h2>
-              <form id="deal-form" style="display: flex; flex-direction: column; gap: 16px;">
-                <input type="hidden" id="deal-id">
+            <div class="crm-dashboard-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start;">
+              <!-- Left Panel: Create / Edit Deal Form -->
+              <div class="crm-panel">
+                <div id="toggle-deal-form-btn" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0;">
+                  <h2 class="crm-panel-title" id="deal-form-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> <span id="deal-form-title-text">Create New Deal</span>
+                  </h2>
+                  <span id="deal-form-chevron" style="font-size: 14px; color: var(--text-muted); transition: transform 0.2s;">▼</span>
+                </div>
+                <form id="deal-form" class="collapsible-mobile-form" style="flex-direction: column; gap: 16px; margin-top: 16px;">
+                  <input type="hidden" id="deal-id">
+                  
+                  <!-- Section 1: Basic Info -->
+                  <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
+                    <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">1. General Details</h3>
+                    
+                    <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Deal Title *</label>
+                        <input type="text" id="deal-title" placeholder="e.g. Kabob Lovers Deal" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Promo Badge (Optional)</label>
+                        <input type="text" id="deal-badge" placeholder="e.g. Website Only, Limited" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Promo / Coupon Code (Optional)</label>
+                      <input type="text" id="deal-promo-code" placeholder="e.g. SUMMER25, HALALDEAL" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; text-transform: uppercase;">
+                      <small style="color: var(--gray); font-size: 11px; margin-top: 2px; display: block;">If set, customers must enter this promo code during checkout.</small>
+                    </div>
+                    
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Description *</label>
+                      <textarea id="deal-desc" rows="2" placeholder="e.g. Buy any 2 Kabob Plates, get 1 drink free!" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
+                    </div>
+
+                    <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Deal Type *</label>
+                        <select id="deal-type" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; height: 38px;">
+                          <option value="percent_off">Percent Off (% off)</option>
+                          <option value="fixed_off">Fixed Off ($ off)</option>
+                          <option value="bogo">BOGO (Buy X Get Y)</option>
+                          <option value="free_item">Free Item</option>
+                          <option value="bundle_price">Bundle Price (Fixed Package)</option>
+                          <option value="combo">Combo Deal</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Priority (Higher = Evaluated First)</label>
+                        <input type="number" id="deal-priority" value="0" min="0" step="1" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                    </div>
+
+                    <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Start Date & Time (Optional)</label>
+                        <input type="datetime-local" id="deal-start" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">End Date & Time (Optional)</label>
+                        <input type="datetime-local" id="deal-end" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                    </div>
+
+                    <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Usage Limit Per Order (Optional)</label>
+                        <input type="number" id="deal-limit" placeholder="Unlimited" min="1" step="1" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                      <div style="display: flex; flex-direction: column; justify-content: center; gap: 6px; margin-top: 15px;">
+                        <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
+                          <input type="checkbox" id="deal-active" checked style="accent-color: var(--accent);"> Active Promotion
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
+                          <input type="checkbox" id="deal-showonsite" checked style="accent-color: var(--accent);"> Show Promo Card on Website
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
+                          <input type="checkbox" id="deal-stackable" style="accent-color: var(--accent);"> Stackable with other deals
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Section 2: Trigger Conditions -->
+                  <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
+                    <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">2. Trigger Conditions (Who Qualifies)</h3>
+                    
+                    <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center;">
+                      <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 14px; user-select: none; cursor: pointer;">
+                        <input type="checkbox" id="deal-cond-order" style="accent-color: var(--accent);"> Applies to Whole Order
+                      </label>
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Min Quantity / Min Order Spend</label>
+                        <input type="number" id="deal-cond-qty" value="1" min="0" step="0.01" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                    </div>
+
+                    <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Required Menu Items</label>
+                        <div class="multiselect-list" id="deal-cond-items" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+                          <!-- Dynamically populated checkboxes -->
+                        </div>
+                      </div>
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Required Categories</label>
+                        <div class="multiselect-list" id="deal-cond-categories" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+                          <!-- Dynamically populated checkboxes -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Section 3: Reward Details -->
+                  <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
+                    <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">3. Reward Details (What They Get)</h3>
+                    
+                    <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Discount Type</label>
+                        <select id="deal-reward-type" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; height: 38px;">
+                          <option value="percent">Percentage Off (%)</option>
+                          <option value="fixed">Fixed Off Amount ($)</option>
+                          <option value="freeItem">Free Item (100% off)</option>
+                          <option value="fixedBundlePrice">Fixed Bundle Price</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Discount / Bundle Value *</label>
+                        <input type="number" id="deal-reward-val" placeholder="e.g. 10 for 10% or 29.99 for bundle" required step="0.01" min="0" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                    </div>
+
+                    <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Reward/Free Items (BOGO/Free Item)</label>
+                        <div class="multiselect-list" id="deal-reward-items" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
+                          <!-- Dynamically populated checkboxes -->
+                        </div>
+                      </div>
+                      <div>
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Reward Quantity</label>
+                        <input type="number" id="deal-reward-qty" value="1" min="1" step="1" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 8px;">
+                    <button type="submit" id="deal-save-btn" class="btn-primary" style="flex: 1; padding: 12px;">Save Promotion</button>
+                    <button type="button" id="deal-cancel-btn" class="btn-outline" style="flex: 1; padding: 12px; display: none;">Cancel Edit</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Right Panel: Deals List -->
+              <div class="crm-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <h2 class="crm-panel-title" style="margin-bottom: 0;">Active & Scheduled Promotions</h2>
+                  <select id="deal-filter" class="crm-select" style="padding: 6px 12px; font-size: 13px; width: 140px;">
+                    <option value="all">All Deals</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                  </select>
+                </div>
+                <div id="admin-deals-list" style="display: flex; flex-direction: column; gap: 16px; max-height: 800px; overflow-y: auto;">
+                  <p style="color: var(--gray); text-align: center; padding: 40px 0;">Loading promotions...</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Tab 2: Announcements & Banners -->
+          <div id="mkt-tab-banners" class="mkt-tab" style="display: none;">
+            <div class="crm-dashboard-grid">
+              <!-- Global Website Pop-Up -->
+              <div class="crm-panel mt-m">
+                <h2 class="crm-panel-title">Website Pop-Up Announcement</h2>
+                <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">Display a global pop-up on the website for important announcements.</p>
                 
-                <!-- Section 1: Basic Info -->
-                <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
-                  <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">1. General Details</h3>
-                  
-                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Deal Title *</label>
-                      <input type="text" id="deal-title" placeholder="e.g. Kabob Lovers Deal" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Promo Badge (Optional)</label>
-                      <input type="text" id="deal-badge" placeholder="e.g. Website Only, Limited" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Description *</label>
-                    <textarea id="deal-desc" rows="2" placeholder="e.g. Buy any 2 Kabob Plates, get 1 drink free!" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
-                  </div>
+                <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
+                  <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
+                    <input type="checkbox" id="popup-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
+                    Enable Website Pop-Up
+                  </label>
 
-                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div id="popup-editor" style="display: flex; flex-direction: column; gap: 16px;">
                     <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Deal Type *</label>
-                      <select id="deal-type" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; height: 38px;">
-                        <option value="percent_off">Percent Off (% off)</option>
-                        <option value="fixed_off">Fixed Off ($ off)</option>
-                        <option value="bogo">BOGO (Buy X Get Y)</option>
-                        <option value="free_item">Free Item</option>
-                        <option value="bundle_price">Bundle Price (Fixed Package)</option>
-                        <option value="combo">Combo Deal</option>
-                      </select>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Pop-Up Title</label>
+                      <input type="text" id="popup-title" placeholder="e.g. Catch us downtown today!" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
                     </div>
                     <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Priority (Higher = Evaluated First)</label>
-                      <input type="number" id="deal-priority" value="0" min="0" step="1" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Message</label>
+                      <textarea id="popup-message" rows="4" placeholder="Full announcement text..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit;"></textarea>
                     </div>
-                  </div>
-
-                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Start Date & Time (Optional)</label>
-                      <input type="datetime-local" id="deal-start" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">End Date & Time (Optional)</label>
-                      <input type="datetime-local" id="deal-end" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                  </div>
-
-                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Usage Limit Per Order (Optional)</label>
-                      <input type="number" id="deal-limit" placeholder="Unlimited" min="1" step="1" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 6px; margin-top: 15px;">
-                      <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
-                        <input type="checkbox" id="deal-active" checked style="accent-color: var(--accent);"> Active Promotion
-                      </label>
-                      <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
-                        <input type="checkbox" id="deal-showonsite" checked style="accent-color: var(--accent);"> Show Promo Card on Website
-                      </label>
-                      <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 13px; user-select: none; cursor: pointer;">
-                        <input type="checkbox" id="deal-stackable" style="accent-color: var(--accent);"> Stackable with other deals
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Section 2: Trigger Conditions -->
-                <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
-                  <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">2. Trigger Conditions (Who Qualifies)</h3>
-                  
-                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center;">
-                    <label style="display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 14px; user-select: none; cursor: pointer;">
-                      <input type="checkbox" id="deal-cond-order" style="accent-color: var(--accent);"> Applies to Whole Order
-                    </label>
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Min Quantity / Min Order Spend</label>
-                      <input type="number" id="deal-cond-qty" value="1" min="0" step="0.01" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                  </div>
-
-                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Required Menu Items</label>
-                      <div class="multiselect-list" id="deal-cond-items" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
-                        <!-- Dynamically populated checkboxes -->
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                      <div style="flex: 1; min-width: 150px;">
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Button Text</label>
+                        <input type="text" id="popup-btn-text" placeholder="e.g. Order Now" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
                       </div>
-                    </div>
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Required Categories</label>
-                      <div class="multiselect-list" id="deal-cond-categories" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
-                        <!-- Dynamically populated checkboxes -->
+                      <div style="flex: 1; min-width: 150px;">
+                        <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Button URL</label>
+                        <input type="url" id="popup-btn-url" placeholder="https://..." style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
                       </div>
                     </div>
                   </div>
+                  <button id="btn-save-popup" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save Website Pop-Up</button>
                 </div>
-
-                <!-- Section 3: Reward Details -->
-                <div style="background: var(--bg); padding: 16px; border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; gap: 12px;">
-                  <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">3. Reward Details (What They Get)</h3>
-                  
-                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Discount Type</label>
-                      <select id="deal-reward-type" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; height: 38px;">
-                        <option value="percent">Percentage Off (%)</option>
-                        <option value="fixed">Fixed Off Amount ($)</option>
-                        <option value="freeItem">Free Item (100% off)</option>
-                        <option value="fixedBundlePrice">Fixed Bundle Price</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Discount / Bundle Value *</label>
-                      <input type="number" id="deal-reward-val" placeholder="e.g. 10 for 10% or 29.99 for bundle" required step="0.01" min="0" style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                  </div>
-
-                  <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Reward/Free Items (BOGO/Free Item)</label>
-                      <div class="multiselect-list" id="deal-reward-items" style="max-height: 120px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); padding: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px;">
-                        <!-- Dynamically populated checkboxes -->
-                      </div>
-                    </div>
-                    <div>
-                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 4px;">Reward Quantity</label>
-                      <input type="number" id="deal-reward-qty" value="1" min="1" step="1" required style="width: 100%; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 8px;">
-                  <button type="submit" id="deal-save-btn" class="btn-primary" style="flex: 1; padding: 12px;">Save Promotion</button>
-                  <button type="button" id="deal-cancel-btn" class="btn-outline" style="flex: 1; padding: 12px; display: none;">Cancel Edit</button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Right Panel: Deals List -->
-            <div class="crm-panel">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h2 class="crm-panel-title" style="margin-bottom: 0;">Active & Scheduled Promotions</h2>
-                <select id="deal-filter" class="crm-select" style="padding: 6px 12px; font-size: 13px; width: 140px;">
-                  <option value="all">All Deals</option>
-                  <option value="active">Active Only</option>
-                  <option value="inactive">Inactive Only</option>
-                </select>
               </div>
-              <div id="admin-deals-list" style="display: flex; flex-direction: column; gap: 16px; max-height: 800px; overflow-y: auto;">
-                <p style="color: var(--gray); text-align: center; padding: 40px 0;">Loading promotions...</p>
+
+              <!-- TV Menu Promo Strip -->
+              <div class="crm-panel mt-m">
+                <h2 class="crm-panel-title">TV Menu Board Promo</h2>
+                <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">Display a scrolling promotional banner at the top of the TV menu display.</p>
+                
+                <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
+                  <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
+                    <input type="checkbox" id="tv-promo-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
+                    Enable TV Promo Banner
+                  </label>
+
+                  <div id="tv-promo-editor" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Scrolling Promo Text</label>
+                      <textarea id="tv-promo-text" rows="4" placeholder="e.g. FOLLOW US ON INSTAGRAM @BIGIAWASAANA • ASK ABOUT CATERING! •" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: inherit; font-size: 16px;"></textarea>
+                      <p style="font-size: 12px; color: var(--gray); margin-top: 8px;">Tip: Add bullet points (•) at the start and end so it loops cleanly.</p>
+                    </div>
+                  </div>
+                  <button id="btn-save-tv-promo" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save TV Promo</button>
+                </div>
+              </div>
+
+              <!-- Checkout Cart Promo -->
+              <div class="crm-panel mt-m" style="grid-column: 1 / -1;">
+                <h2 class="crm-panel-title">Checkout Cart Promo</h2>
+                <p style="color: var(--gray); font-size: 14px; margin-bottom: 24px;">Display custom promotional text, links, or delivery buttons at the bottom of the checkout cart.</p>
+                
+                <div style="background: var(--bg); padding: 24px; border: 1px solid var(--border); border-radius: 8px;">
+                  <label style="display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed'; font-size: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; cursor: pointer;">
+                    <input type="checkbox" id="cart-promo-active" style="width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer;">
+                    Enable Cart Promo
+                  </label>
+
+                  <div id="cart-promo-editor" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                      <label style="font-family: 'Barlow Condensed'; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; display: block; margin-bottom: 8px;">Custom HTML / Text</label>
+                      <textarea id="cart-promo-html" rows="5" placeholder="e.g. <p>Free delivery on orders over $50!</p>" style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--white); border-radius: 4px; resize: vertical; font-family: monospace; font-size: 13px;"></textarea>
+                    </div>
+                  </div>
+                  <button id="btn-save-cart-promo" class="btn-primary" style="margin-top: 24px; padding: 12px 24px; width: 100%;">Save Cart Promo</button>
+                </div>
               </div>
             </div>
-
           </div>
         </section>
+
+        <!-- Hidden backward-compatibility target for deals-view -->
+        <div id="deals-view" style="display: none;"></div>
 
         <!-- Pickup Settings View -->
         <section id="pickup-view" class="crm-view" style="display: none;">
@@ -890,7 +1485,7 @@
               <h3 style="font-family: 'Barlow Condensed'; font-size: 16px; color: var(--white); margin-top: 16px; display: flex; align-items: center; gap: 12px;">
                 Business Hours
                 <button type="button" id="btn-sync-google-hours" style="font-family: 'Barlow Condensed'; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 4px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;" title="Fetch business hours from your Google Maps listing">
-                  🔄 Sync from Google Maps
+                  <svg class="ui-icon ui-icon-no-margin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Sync from Google Maps
                 </button>
               </h3>
               <p id="google-sync-status" style="font-size: 12px; color: var(--gray); margin: 0; display: none;"></p>
@@ -933,6 +1528,27 @@
               <button type="submit" class="btn-primary" style="margin-top: 16px; align-self: flex-start;">Save Pickup Settings</button>
             </form>
           </div>
+
+          <!-- Upcoming Scheduled Orders Panel -->
+          <div class="crm-panel mt-m">
+            <h2 class="crm-panel-title">Upcoming Scheduled Orders</h2>
+            <div class="crm-table-container">
+              <table class="crm-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr>
+                    <th>Requested Time</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Items</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="upcoming-scheduled-list">
+                  <tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gray);">No upcoming scheduled orders.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </section>
 
         <!-- Unit Economics View -->
@@ -955,74 +1571,105 @@
             </div>
             
             <div id="eco-tab-profit" class="eco-tab" style="display: none;">
-              <div class="crm-grid-1fr-2fr" style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
-                <div style="display: flex; flex-direction: column; gap: 24px;">
-                  <!-- Fixed Costs Setup -->
-                  <div class="crm-panel">
-                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 24px;">Fixed Monthly Costs</h3>
-                    <form id="fixed-costs-form" style="display: flex; flex-direction: column; gap: 16px;">
-                      <div class="crm-form-group">
-                        <label>Home Rent ($)</label>
-                        <input type="number" id="fc-home-rent" class="crm-input" step="0.01" placeholder="0.00">
-                      </div>
-                      <div class="crm-form-group">
-                        <label>Commissary Rent ($)</label>
-                        <input type="number" id="fc-commissary-rent" class="crm-input" step="0.01" placeholder="0.00">
-                      </div>
-                      <div class="crm-form-group">
-                        <label>Insurance ($)</label>
-                        <input type="number" id="fc-insurance" class="crm-input" step="0.01" placeholder="0.00">
-                      </div>
-                      <div class="crm-form-group">
-                        <label>Other Fixed Costs ($)</label>
-                        <input type="number" id="fc-other" class="crm-input" step="0.01" placeholder="0.00">
-                      </div>
-                      <button type="submit" class="btn-primary" style="margin-top: 8px;">Save Fixed Costs</button>
-                      <p id="fc-status" style="margin:0; font-size: 13px; color: var(--accent-admin);"></p>
-                    </form>
-                  </div>
-                  
-                  <!-- Daily Sales Entry -->
-                  <div class="crm-panel">
-                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 24px;">Log Daily Sales</h3>
-                    <form id="daily-sales-form" style="display: flex; flex-direction: column; gap: 16px;">
-                      <div class="crm-form-group">
-                        <label>Date</label>
-                        <input type="date" id="ds-date" class="crm-input" required>
-                      </div>
-                      <div class="crm-form-group">
-                        <label>Gross Sales ($)</label>
-                        <input type="number" id="ds-amount" class="crm-input" step="0.01" required placeholder="0.00">
-                      </div>
-                      <div class="crm-form-group">
-                        <label>Notes (Optional)</label>
-                        <input type="text" id="ds-notes" class="crm-input" placeholder="e.g., Weekend event, slow day...">
-                      </div>
-                      <button type="submit" class="btn-primary" style="margin-top: 8px;">Log Sales</button>
-                      <p id="ds-status" style="margin:0; font-size: 13px; color: var(--accent-admin);"></p>
-                    </form>
-                  </div>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 24px;">
-                  <div class="crm-stats-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+              <div class="eco-profit-grid">
+                <!-- Main Analytics Column: KPIs + Chart + Recent Sales (Rendered first on mobile!) -->
+                <div class="eco-main-column" style="display: flex; flex-direction: column; gap: 24px;">
+                  <!-- True MTD Stats Grid -->
+                  <div class="crm-stats-grid eco-stats-grid">
                     <div class="crm-stat-card">
                       <div class="stat-title">MTD Gross Sales</div>
                       <div class="stat-value" id="ue-mtd-sales" style="color: var(--accent-admin);">$0.00</div>
+                      <div class="stat-subtitle" id="ue-mtd-sales-sub" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Current month to date</div>
+                    </div>
+                    <div class="crm-stat-card">
+                      <div class="stat-title">MTD Expenses</div>
+                      <div class="stat-value" id="ue-mtd-expenses" style="color: #f87171;">$0.00</div>
+                      <div class="stat-subtitle" id="ue-mtd-expenses-sub" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Food + Fixed Overhead</div>
                     </div>
                     <div class="crm-stat-card">
                       <div class="stat-title">MTD Estimated Profit</div>
                       <div class="stat-value" id="ue-mtd-profit">$0.00</div>
+                      <div class="stat-subtitle" id="ue-mtd-profit-sub" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Net operating margin</div>
                     </div>
                   </div>
-                  <div class="crm-panel">
-                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 24px;">Daily Sales & Profit (Current Month)</h3>
-                    <div class="chart-wrapper" style="position: relative; height: 320px; width: 100%;">
-                      <canvas id="profitChart"></canvas>
+
+                  <!-- Performance Chart Panel -->
+                  <div class="crm-panel eco-chart-panel" style="padding: 20px;">
+                    <!-- Header with Title, Mode Toggles, and Timeframe Pills -->
+                    <div class="eco-chart-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px;">
+                      <div>
+                        <h3 style="margin: 0 0 4px 0; color: var(--text-main); font-size: 18px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">Sales & Profit Performance</h3>
+                        <p style="margin: 0; font-size: 12px; color: var(--text-muted);" id="profit-chart-subtitle">Side-by-side comparison of daily sales (green) vs expenses (red).</p>
+                      </div>
+                      
+                      <!-- Controls Toolbar -->
+                      <div class="chart-controls-toolbar" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+                        <!-- Chart View Mode -->
+                        <div class="chart-pill-group">
+                          <button type="button" class="chart-pill-btn active" id="btn-chart-mode-compare" onclick="window.setProfitChartMode('compare')">
+                            <span class="pill-full">Sales vs Expenses</span><span class="pill-short">Sales/Exp</span>
+                          </button>
+                          <button type="button" class="chart-pill-btn" id="btn-chart-mode-profit" onclick="window.setProfitChartMode('profit')">
+                            <span class="pill-full">Net Profit</span><span class="pill-short">Profit</span>
+                          </button>
+                          <button type="button" class="chart-pill-btn" id="btn-chart-mode-all" onclick="window.setProfitChartMode('all')">
+                            <span class="pill-full">All Metrics</span><span class="pill-short">All</span>
+                          </button>
+                        </div>
+
+                        <!-- Timeframe Pills: 7D / 14D / 30D -->
+                        <div class="chart-pill-group">
+                          <button type="button" class="chart-pill-btn" id="btn-chart-range-7" onclick="window.setProfitChartRange(7)">7D</button>
+                          <button type="button" class="chart-pill-btn" id="btn-chart-range-14" onclick="window.setProfitChartRange(14)">14D</button>
+                          <button type="button" class="chart-pill-btn active" id="btn-chart-range-30" onclick="window.setProfitChartRange(30)">30D</button>
+                        </div>
+
+                        <!-- Fixed Overhead Toggle Pill -->
+                        <div class="chart-pill-group">
+                          <button type="button" class="chart-pill-btn active" id="btn-toggle-fixed-costs" onclick="window.toggleFixedCosts()" title="Toggle fixed overhead in expenses and profit">
+                            <span id="label-toggle-fixed-costs">Overhead: ON</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Key Insights Banner (Dynamic summary for selected timeframe) -->
+                    <div id="chart-timeframe-summary" class="eco-period-summary" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; padding: 12px 16px; background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px;">
+                      <div class="eco-period-metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 13px;">
+                        <div>
+                          <span style="color: var(--text-muted); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Period Sales</span>
+                          <strong id="chart-sum-sales" style="color: #10b981; font-size: 16px;">$0.00</strong>
+                        </div>
+                        <div>
+                          <span style="color: var(--text-muted); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Food & Supplies</span>
+                          <strong id="chart-sum-var-exp" style="color: #fb923c; font-size: 16px;">$0.00</strong>
+                        </div>
+                        <div>
+                          <span style="color: var(--text-muted); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Fixed Overhead</span>
+                          <strong id="chart-sum-fixed-exp" style="color: #f43f5e; font-size: 16px;">$0.00</strong>
+                        </div>
+                        <div>
+                          <span style="color: var(--text-muted); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Period Net Profit</span>
+                          <strong id="chart-sum-profit" style="color: #38bdf8; font-size: 16px;">$0.00</strong>
+                        </div>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-admin); padding-top: 8px; font-size: 11px;">
+                        <span id="chart-sum-hint" style="color: var(--text-muted);"></span>
+                        <span id="chart-swipe-hint" style="display: none; color: var(--accent); font-weight: 500;">⇄ Swipe chart horizontally for more days</span>
+                      </div>
+                    </div>
+
+                    <!-- Chart Scrollable Container on Mobile -->
+                    <div class="profit-chart-scroll-wrapper" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                      <div id="profitChartInnerWrapper" style="position: relative; height: 320px; width: 100%; min-width: 100%;">
+                        <canvas id="profitChart"></canvas>
+                      </div>
                     </div>
                   </div>
+
+                  <!-- Recent Daily Sales Table -->
                   <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
-                    <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg);">
+                    <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg);">
                       <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Recent Daily Sales</h3>
                     </div>
                     <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
@@ -1042,6 +1689,74 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Sidebar Setup Column: Fixed Costs & Log Daily Sales -->
+                <div class="eco-sidebar-column" style="display: flex; flex-direction: column; gap: 24px;">
+                  <!-- Daily Sales Entry -->
+                  <div class="crm-panel">
+                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 16px; margin-bottom: 16px;">Log Daily Sales</h3>
+                    <form id="daily-sales-form" style="display: flex; flex-direction: column; gap: 14px;">
+                      <div class="crm-form-group">
+                        <label>Date</label>
+                        <input type="date" id="ds-date" class="crm-input" required>
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Gross Sales ($)</label>
+                        <input type="number" id="ds-amount" class="crm-input" step="0.01" required placeholder="0.00">
+                        <small id="ds-online-hint" style="color: var(--accent); font-size: 11px; margin-top: 4px; display: block;"></small>
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Notes (Optional)</label>
+                        <input type="text" id="ds-notes" class="crm-input" placeholder="e.g., Weekend event, slow day...">
+                      </div>
+                      <button type="submit" class="btn-primary" style="margin-top: 4px;">Log Sales</button>
+                      <p id="ds-status" style="margin:0; font-size: 13px; color: var(--accent-admin);"></p>
+                    </form>
+                  </div>
+
+                  <!-- Fixed Costs Setup & Live Calculation Card -->
+                  <div class="crm-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                      <h3 style="margin: 0; color: var(--text-main); font-size: 16px;">Fixed Monthly Costs</h3>
+                    </div>
+                    
+                    <!-- Live Overhead Calculation Badge -->
+                    <div id="fc-live-summary" style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px;">
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="color: var(--text-muted);">Total Monthly:</span>
+                        <strong id="fc-calc-monthly" style="color: var(--text-main); font-size: 14px;">$0.00 / mo</strong>
+                      </div>
+                      <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Daily Fixed Allocation:</span>
+                        <strong id="fc-calc-daily" style="color: var(--accent-admin); font-size: 14px;">$0.00 / day</strong>
+                      </div>
+                      <div id="fc-calc-note" style="font-size: 11px; color: var(--text-muted); margin-top: 6px; border-top: 1px dashed var(--border-admin); padding-top: 6px;">
+                        Divided by days in active month.
+                      </div>
+                    </div>
+
+                    <form id="fixed-costs-form" style="display: flex; flex-direction: column; gap: 14px;">
+                      <div class="crm-form-group">
+                        <label>Home Rent ($)</label>
+                        <input type="number" id="fc-home-rent" class="crm-input" step="0.01" placeholder="0.00">
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Commissary Rent ($)</label>
+                        <input type="number" id="fc-commissary-rent" class="crm-input" step="0.01" placeholder="0.00">
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Insurance ($)</label>
+                        <input type="number" id="fc-insurance" class="crm-input" step="0.01" placeholder="0.00">
+                      </div>
+                      <div class="crm-form-group">
+                        <label>Other Fixed Costs ($)</label>
+                        <input type="number" id="fc-other" class="crm-input" step="0.01" placeholder="0.00">
+                      </div>
+                      <button type="submit" class="btn-primary" style="margin-top: 4px;">Save Fixed Costs</button>
+                      <p id="fc-status" style="margin:0; font-size: 13px; color: var(--accent-admin);"></p>
+                    </form>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1051,7 +1766,7 @@
                 <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
                   <h3 style="margin: 0; color: var(--text-main); font-size: 16px;">Manage Ingredients & Stock</h3>
                   <div style="display: flex; gap: 12px; align-items: center;">
-                    <input type="text" id="inventory-search" class="crm-input" placeholder="Search inventory..." style="max-width: 250px;">
+                    <input type="text" id="expense-inventory-search" class="crm-input" placeholder="Search inventory..." style="max-width: 250px;">
                     <button class="btn-primary" onclick="openAddInventoryModal()">+ Add Item</button>
                   </div>
                 </div>
@@ -1149,57 +1864,87 @@
 
           <!-- Analytics View -->
           <div id="analytics-view" class="crm-view" style="display: none;">
-            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 32px; gap: 16px;">
-              <h1 class="crm-view-title" style="margin-bottom: 0 !important;">Analytics & Traffic</h1>
-              <div style="display: flex; gap: 12px;">
-                <select id="analytics-date-filter" class="crm-select" style="min-width: 180px;" onchange="if(window.loadAnalytics) window.loadAnalytics()">
-                  <option value="all">All Time</option>
+            <div class="analytics-header">
+              <div>
+                <h1 class="crm-view-title" style="margin-bottom: 4px !important;">Analytics & Traffic</h1>
+                <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Real-time visitor analytics, top content, and traffic channels.</p>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <select id="analytics-date-filter" class="crm-select" style="min-width: 170px;" onchange="if(window.loadAnalytics) window.loadAnalytics()">
                   <option value="1">Today</option>
                   <option value="7" selected>Last 7 Days</option>
                   <option value="30">Last 30 Days</option>
                   <option value="90">Last 90 Days</option>
+                  <option value="all">All Time</option>
                 </select>
+                <button class="btn-outline btn-small" onclick="if(window.loadAnalytics) window.loadAnalytics()" title="Refresh Analytics" style="min-height: 40px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                </button>
               </div>
             </div>
             
-            <div class="crm-stats-grid" style="margin-bottom: 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
-              <div class="crm-stat-card">
-                <div class="stat-title">Total Page Views</div>
-                <div class="stat-value" id="analytics-total-views">0</div>
+            <div class="analytics-stats-grid">
+              <div class="analytics-stat-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                  <span class="stat-title" style="margin-bottom: 0;">Total Page Views</span>
+                  <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(255, 69, 0, 0.12); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </div>
+                </div>
+                <div class="stat-value" id="analytics-total-views" style="font-size: clamp(26px, 4vw, 36px); font-weight: 700; color: var(--text-main); font-family: 'Barlow Condensed', sans-serif;">0</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Total hits across all pages & posts</div>
               </div>
-              <div class="crm-stat-card">
-                <div class="stat-title">Blog Post Views</div>
-                <div class="stat-value" id="analytics-blog-views">0</div>
+
+              <div class="analytics-stat-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                  <span class="stat-title" style="margin-bottom: 0;">Blog Post Views</span>
+                  <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(59, 130, 246, 0.12); color: #60a5fa; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                  </div>
+                </div>
+                <div class="stat-value" id="analytics-blog-views" style="font-size: clamp(26px, 4vw, 36px); font-weight: 700; color: var(--text-main); font-family: 'Barlow Condensed', sans-serif;">0</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Readers on published /blog articles</div>
               </div>
-              <div class="crm-stat-card">
-                <div class="stat-title">Menu Page Views</div>
-                <div class="stat-value" id="analytics-menu-views">0</div>
+
+              <div class="analytics-stat-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                  <span class="stat-title" style="margin-bottom: 0;">Menu Page Views</span>
+                  <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(249, 168, 37, 0.12); color: #f9a825; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                  </div>
+                </div>
+                <div class="stat-value" id="analytics-menu-views" style="font-size: clamp(26px, 4vw, 36px); font-weight: 700; color: var(--text-main); font-family: 'Barlow Condensed', sans-serif;">0</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Ordering intent on menu items</div>
               </div>
             </div>
   
-            <div class="crm-panel" style="margin-bottom: 32px;">
-              <h3 style="margin-top: 0; color: var(--text-main); margin-bottom: 24px; font-size: 18px;">Traffic Overview (Last 30 Days)</h3>
-              <div class="chart-wrapper" style="position: relative; height: 320px; width: 100%;">
+            <div class="analytics-chart-panel">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px;">
+                <h3 id="analytics-chart-title" style="margin: 0; color: var(--text-main); font-size: 17px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px; text-transform: uppercase;">Traffic Overview (Last 7 Days)</h3>
+                <span id="analytics-chart-subtitle" style="font-size: 12px; color: var(--text-muted);">Real-time visitor trends</span>
+              </div>
+              <div class="analytics-chart-wrapper">
                 <canvas id="pageViewsChart"></canvas>
               </div>
             </div>
 
-            <div class="crm-grid-col-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+            <div class="analytics-tables-grid">
               <!-- Top Pages -->
               <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
-                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg);">
-                  <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Top Pages & Posts</h3>
+                <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg); display: flex; justify-content: space-between; align-items: center;">
+                  <h3 style="margin: 0; color: var(--text-main); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Top Pages & Posts</h3>
+                  <span style="font-size: 11px; color: var(--text-muted);">Ranked by views</span>
                 </div>
-                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
-                  <table class="crm-table">
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none; overflow-x: auto;">
+                  <table class="crm-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                       <tr>
-                        <th>URL Path</th>
-                        <th style="text-align: right;">Views</th>
+                        <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase;">Page Path</th>
+                        <th style="padding: 10px 16px; text-align: right; font-size: 11px; text-transform: uppercase;">Views</th>
                       </tr>
                     </thead>
                     <tbody id="analytics-top-pages">
-                      <tr><td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
+                      <tr><td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading analytics data...</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -1207,19 +1952,20 @@
   
               <!-- Top Referrers -->
               <div class="crm-panel" style="padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;">
-                <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg);">
-                  <h3 style="margin: 0; color: var(--text-main); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Top Traffic Sources</h3>
+                <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-admin); background: var(--table-header-bg); display: flex; justify-content: space-between; align-items: center;">
+                  <h3 style="margin: 0; color: var(--text-main); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">Top Traffic Sources</h3>
+                  <span style="font-size: 11px; color: var(--text-muted);">Channels & referrers</span>
                 </div>
-                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none;">
-                  <table class="crm-table">
+                <div class="crm-table-container" style="border: none; border-radius: 0; box-shadow: none; overflow-x: auto;">
+                  <table class="crm-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                       <tr>
-                        <th>Source / Referrer</th>
-                        <th style="text-align: right;">Visits</th>
+                        <th style="padding: 10px 16px; font-size: 11px; text-transform: uppercase;">Source / Referrer</th>
+                        <th style="padding: 10px 16px; text-align: right; font-size: 11px; text-transform: uppercase;">Visits</th>
                       </tr>
                     </thead>
                     <tbody id="analytics-top-sources">
-                      <tr><td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading...</td></tr>
+                      <tr><td colspan="2" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading sources data...</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -1251,9 +1997,9 @@
                   <div style="max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     <div class="crm-modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.3); padding: 32px 48px;">
                       <h2 style="color: #ef4444; margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <span>⚠️</span> Duplicate Receipt Detected
+                        <span><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #ef4444;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Duplicate Receipt Detected
                       </h2>
-                      <button class="crm-btn-icon" onclick="const m = document.getElementById('duplicate-warning-modal'); m.classList.remove('open'); setTimeout(() => m.style.display = 'none', 300);">✕</button>
+                      <button class="crm-btn-icon" onclick="const m = document.getElementById('duplicate-warning-modal'); m.classList.remove('open'); setTimeout(() => m.style.display = 'none', 300);"><svg class="ui-icon ui-icon-no-margin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                     </div>
                     <div class="crm-modal-content">
                     <p style="color: var(--white); font-size: 16px; margin-bottom: 16px;">
@@ -1281,7 +2027,7 @@
                   <div style="max-width: 1200px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     <div class="crm-modal-header" style="padding: 32px 48px;">
                       <h2 style="margin: 0;">Review Receipt Draft</h2>
-                      <button class="crm-btn-icon" onclick="document.getElementById('receipt-cancel-btn').click()">✕</button>
+                      <button class="crm-btn-icon" onclick="document.getElementById('receipt-cancel-btn').click()"><svg class="ui-icon ui-icon-no-margin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                     </div>
                     <div class="crm-modal-content">
                     <div id="review-meta" style="color: var(--gray); font-size: 14px; margin-bottom: 16px;"></div>
@@ -1420,7 +2166,7 @@
           <div class="flex-row-mobile-col" style="justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <h2 style="font-family: 'Barlow Condensed'; font-size: 28px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase;">Blog Management</h2>
             <div class="flex-row-mobile-col" style="gap: 12px;">
-              <button id="generate-ai-blog-btn" class="btn-outline" style="border-color: #a27b5c; color: #a27b5c;">✨ Generate with AI</button>
+              <button id="generate-ai-blog-btn" class="btn-outline" style="border-color: #a27b5c; color: #a27b5c; display: inline-flex; align-items: center; gap: 6px;"><svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg> Generate with AI</button>
               <button id="add-post-btn" class="btn-primary">+ New Post</button>
             </div>
           </div>
@@ -1479,7 +2225,7 @@
                   <div class="crm-form-group">
                     <label class="form-label">Cover Image</label>
                     <div style="border: 2px dashed var(--border-admin); padding: 16px; border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: background 0.2s;" onclick="document.getElementById('post-cover-image').click()" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">
-                      <span style="font-size: 24px;">📸</span>
+                      <svg class="ui-icon ui-icon-no-margin" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                       <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: 500; color: var(--text-main);">Upload Cover</p>
                       <input type="file" id="post-cover-image" accept="image/*" style="display: none;">
                     </div>
@@ -1548,7 +2294,7 @@
   <div class="crm-slide-over" id="customer-slide-over">
     <div class="crm-slide-over-header">
       <h2 id="slide-cust-name">Customer Name</h2>
-      <button class="crm-btn-icon" onclick="closeCustomerSlideOver()">×</button>
+      <button type="button" class="crm-btn-icon" onclick="closeCustomerSlideOver()" aria-label="Close details">×</button>
     </div>
     <div class="crm-slide-over-content" id="slide-cust-content">
       <!-- Populated by JS -->
@@ -1560,7 +2306,7 @@
     <div class="crm-modal-box">
       <div class="crm-modal-header">
         <h2 id="modal-order-title">Order #...</h2>
-        <button class="crm-btn-icon" onclick="closeOrderModal()">×</button>
+        <button type="button" class="crm-btn-icon" onclick="closeOrderModal()" aria-label="Close order details">×</button>
       </div>
       <div class="crm-modal-content" id="modal-order-content">
         <!-- Populated by JS -->
@@ -1573,7 +2319,7 @@
     <div class="crm-modal-box">
       <div class="crm-modal-header">
         <h2 id="modal-catering-title">Inquiry Details</h2>
-        <button class="crm-btn-icon" onclick="closeCateringModal()">×</button>
+        <button type="button" class="crm-btn-icon" onclick="closeCateringModal()" aria-label="Close inquiry details">×</button>
       </div>
       <div class="crm-modal-content" id="modal-catering-content">
         <!-- Populated by JS -->
@@ -1586,7 +2332,7 @@
     <div class="crm-modal-box">
       <div class="crm-modal-header">
         <h2>Edit Menu Item</h2>
-        <button class="crm-btn-icon" onclick="closeEditMenuModal()">×</button>
+        <button type="button" class="crm-btn-icon" onclick="closeEditMenuModal()" aria-label="Close edit menu">×</button>
       </div>
       <div class="crm-modal-content">
         <form id="edit-menu-form" style="display: flex; flex-direction: column; gap: 12px;">
@@ -1601,7 +2347,7 @@
             <option value="">No Meal Upgrade (or auto-match)</option>
           </select>
           <div style="display: flex; gap: 8px; flex-direction: column;">
-            <input type="url" id="edit-menu-img" placeholder="Image URL (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
+            <input type="text" id="edit-menu-img" placeholder="Image URL or Path (optional)" style="padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
             <span style="color: var(--gray); font-size: 12px; text-align: center;">OR</span>
             <div style="display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 6px;">
               <label for="edit-menu-img-upload" style="cursor: pointer; background: var(--surface); padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border); font-size: 13px;">Choose File</label>
@@ -1628,14 +2374,14 @@
             <div id="edit-addons-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
           </div>
 
-          <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
-            <input type="checkbox" id="edit-menu-featured"> Mark as Featured Item (displays on Homepage)
+          <label class="form-checkbox-label">
+            <input type="checkbox" id="edit-menu-featured"> <span>Mark as Featured Item (displays on Homepage)</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 14px; user-select: none;">
-            <input type="checkbox" id="edit-menu-hidden"> Hide from Menu Grid (useful for combo meals triggered as add-ons)
+          <label class="form-checkbox-label">
+            <input type="checkbox" id="edit-menu-hidden"> <span>Hide from Menu Grid (useful for combo meals triggered as add-ons)</span>
           </label>
-          <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 16px;">
-            <button type="submit" class="btn-primary" style="flex: 1;">Save Changes</button>
+          <div class="flex-row-mobile-col crm-modal-actions" style="gap: 12px; margin-top: 16px;">
+            <button type="submit" class="btn-primary" style="flex: 1.5;">Save Changes</button>
             <button type="button" class="btn-outline" style="flex: 1;" onclick="closeEditMenuModal()">Cancel</button>
           </div>
         </form>
@@ -1648,7 +2394,7 @@
     <div class="crm-modal-box" style="max-width: 600px;">
       <div class="crm-modal-header">
         <h2 id="edit-recipe-title">Edit Recipe</h2>
-        <button class="crm-btn-icon" onclick="closeEditRecipeModal()">×</button>
+        <button type="button" class="crm-btn-icon" onclick="closeEditRecipeModal()" aria-label="Close edit recipe">×</button>
       </div>
       <div class="crm-modal-content">
         <div id="recipe-editor-container">
@@ -1665,7 +2411,7 @@
     <div class="crm-modal-box">
       <div class="crm-modal-header">
         <h2 id="edit-event-title">Event Analyzer</h2>
-        <button class="crm-btn-icon" onclick="closeEditEventModal()">×</button>
+        <button type="button" class="crm-btn-icon" onclick="closeEditEventModal()" aria-label="Close event analyzer">×</button>
       </div>
       <div class="crm-modal-content">
         <div id="event-editor-container">
@@ -1712,8 +2458,8 @@
               <input type="number" id="add-inv-price" class="form-input" required step="0.01" min="0" value="0.00">
             </div>
           </div>
-          <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 8px;">
-            <button type="submit" class="btn-primary" style="flex: 1;">Add Item</button>
+          <div class="flex-row-mobile-col crm-modal-actions" style="gap: 12px; margin-top: 8px;">
+            <button type="submit" class="btn-primary" style="flex: 1.5;">Add Item</button>
             <button type="button" class="btn-outline" style="flex: 1;" onclick="document.getElementById('add-inventory-modal').classList.remove('open')">Cancel</button>
           </div>
         </form>
@@ -1738,9 +2484,84 @@
             <input type="password" id="reauth-password-input" class="crm-input" required placeholder="Your password" />
           </div>
           <p id="reauth-error" style="color: #f44336; font-size: 12px; margin: 0;"></p>
-          <div class="flex-row-mobile-col" style="gap: 12px; margin-top: 8px;">
-            <button type="submit" class="btn-primary" style="flex: 1;" id="btn-reauth-submit">Verify</button>
+          <div class="flex-row-mobile-col crm-modal-actions" style="gap: 12px; margin-top: 8px;">
+            <button type="submit" class="btn-primary" style="flex: 1.5;" id="btn-reauth-submit">Verify</button>
             <button type="button" class="btn-outline" style="flex: 1;" onclick="document.getElementById('reauth-modal').classList.remove('open')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reward Create / Edit Modal -->
+  <div class="crm-modal" id="reward-modal" style="display: none;">
+    <div class="crm-modal-box" style="max-width: 540px; width: 95%;">
+      <div class="crm-modal-header">
+        <h2 id="reward-modal-title">Create Reward Item</h2>
+        <button type="button" class="crm-btn-icon" onclick="window.closeRewardModal()" aria-label="Close modal">×</button>
+      </div>
+      <div class="crm-modal-content">
+        <form id="reward-form" style="display: flex; flex-direction: column; gap: 14px;">
+          <input type="hidden" id="reward-id">
+          
+          <div class="crm-form-group">
+            <label style="font-size: 13px; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block;">Reward Title *</label>
+            <input type="text" id="reward-title" class="crm-input" placeholder="e.g. Free Crispy Bolani" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="crm-form-group">
+              <label style="font-size: 13px; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block;">Points Cost *</label>
+              <input type="number" id="reward-points" class="crm-input" placeholder="e.g. 100" min="1" step="1" required>
+            </div>
+            <div class="crm-form-group">
+              <label style="font-size: 13px; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block;">Display Icon / Emoji</label>
+              <input type="text" id="reward-icon" class="crm-input" placeholder="e.g. 🥟" maxlength="4">
+            </div>
+          </div>
+
+          <div class="crm-form-group">
+            <label style="font-size: 13px; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block;">Reward Type *</label>
+            <select id="reward-type" class="crm-select" required>
+              <option value="free_menu_item">Free Menu Item (100% Off)</option>
+              <option value="discount_fixed">Fixed Amount Discount ($ Off)</option>
+              <option value="discount_percent">Percentage Discount (% Off)</option>
+            </select>
+          </div>
+
+          <div class="crm-form-group" id="reward-item-selector-group">
+            <label style="font-size: 13px; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block;">Target Menu Item</label>
+            <select id="reward-menu-item" class="crm-select">
+              <option value="">-- Select Dish From Menu --</option>
+            </select>
+          </div>
+
+          <div class="crm-form-group" id="reward-discount-group" style="display: none;">
+            <label style="font-size: 13px; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block;" id="reward-discount-label">Discount Amount ($)</label>
+            <input type="number" id="reward-discount-amount" class="crm-input" placeholder="5.00" step="0.50" min="0">
+          </div>
+
+          <div class="crm-form-group">
+            <label style="font-size: 13px; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block;">Description / Note</label>
+            <textarea id="reward-desc" class="crm-textarea" rows="2" placeholder="e.g. Fresh pan-seared potato & leek stuffed flatbread."></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center;">
+            <div class="crm-form-group">
+              <label style="font-size: 13px; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block;">Sort Order</label>
+              <input type="number" id="reward-sort" class="crm-input" value="1" min="1">
+            </div>
+            <div style="padding-top: 18px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="reward-active" checked style="width: 18px; height: 18px; accent-color: #4caf50;">
+                <span style="font-weight: 600; font-size: 14px;">Active for Customers</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 14px;">
+            <button type="button" class="btn-outline" onclick="window.closeRewardModal()">Cancel</button>
+            <button type="submit" class="btn-primary" id="btn-save-reward">Save Reward Item</button>
           </div>
         </form>
       </div>
@@ -1775,6 +2596,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
   <script type="module" src="/src/admin.js"></script>
 </body>

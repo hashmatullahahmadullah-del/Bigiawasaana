@@ -1,13 +1,22 @@
 import { loadAnalytics } from './expenses.js';
-import { renderLiveOrders, renderCatering, showToast } from './orders.js';
+import { renderLiveOrders, renderCatering, showToast, playFloorChime } from './orders.js';
 import { loadPickupSettings, renderUpcomingScheduledOrders } from './settings.js';
-import { crmNav, toggleMobileMenu, state, renderDashboard, renderCustomers, renderAllOrders, renderReviews, renderLoyalty } from './shared.js';
+import { fetchRetailOrders } from './shipping.js';
+import { loadTvDisplaySettings } from './menu.js';
+import { toggleMobileMenu, state, renderDashboard, renderCustomers, renderAllOrders, renderReviews, renderLoyalty } from './shared.js';
 import { db } from '../firebase.js';
 import { collection, query, orderBy, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore';
-
-
+import { iconSun, iconMoon } from '../icons.js';
+import { initRewardsListener } from './rewards.js';
 
 export function initCRMData() {
+  // 0. Listen to Rewards & Redemptions Catalog
+  try {
+    initRewardsListener();
+  } catch (err) {
+    console.error('Error initializing rewards listener:', err);
+  }
+
   // 1. Listen to Settings
   window.settingsUnsub = onSnapshot(doc(db, 'settings', 'loyalty'), (docSnap) => {
     if (docSnap.exists()) {
@@ -39,8 +48,8 @@ export function initCRMData() {
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added') {
           try {
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-            audio.play();
+            playFloorChime();
+
             showToast('New Order Received!', 'success');
           } catch (e) {
             console.log('Audio playback failed', e);
@@ -55,14 +64,20 @@ export function initCRMData() {
 
     snapshot.forEach(d => {
       const o = d.data();
-      const oDate = o.createdAt?.toDate() || new Date();
+      const oDate = (o.createdAt && typeof o.createdAt.toDate === 'function') 
+        ? o.createdAt.toDate() 
+        : (o.createdAt ? new Date(o.createdAt) : new Date());
       
-      let parsedTotal = typeof o.total === 'string' ? parseFloat(o.total.replace('$', '')) : o.total;
+      let parsedTotal = typeof o.total === 'string' ? parseFloat(o.total.replace('$', '')) : (typeof o.total === 'number' ? o.total : 0);
+      const refundAmt = typeof o.refundedAmount === 'number' ? o.refundedAmount : (parseFloat(o.refundedAmount) || (o.refundedAmountCents ? o.refundedAmountCents / 100 : 0) || 0);
+      const netTotal = typeof o.netTotal === 'number' ? o.netTotal : Math.max(0, parsedTotal - refundAmt);
       
       const order = {
         id: d.id,
         ...o,
         total: parsedTotal,
+        refundedAmount: refundAmt,
+        netTotal: netTotal,
         date: oDate
       };
       
@@ -87,10 +102,11 @@ export function initCRMData() {
         custMap[phone].name = o.customerName || custMap[phone].name;
       }
 
-      if (o.status === 'completed') {
-        custMap[phone].totalSpent += parsedTotal;
+      if (o.status === 'completed' || o.status === 'partially_refunded') {
+        const spentToAdd = Math.max(0, parsedTotal - refundAmt);
+        custMap[phone].totalSpent += spentToAdd;
         custMap[phone].totalOrders += 1;
-        custMap[phone].loyaltyPoints += Math.floor(parsedTotal); // 1 point per $1 spent
+        custMap[phone].loyaltyPoints += Math.floor(spentToAdd); // 1 point per $1 spent
         if (!custMap[phone].lastVisit || oDate > custMap[phone].lastVisit) {
           custMap[phone].lastVisit = oDate;
         }
@@ -152,7 +168,12 @@ export function initCRMData() {
   loadAnalytics();
   if (typeof window.initEconomicsListeners === 'function') window.initEconomicsListeners();
   if (typeof window.initDealsListener === 'function') window.dealsUnsub = window.initDealsListener();
+  loadPickupSettings();
+  fetchRetailOrders();
   loadCartPromoSettings();
+  loadTvPromoSettings();
+  loadTvDisplaySettings();
+  loadPopupSettings();
 }
 
 export async function loadTvPromoSettings() {
@@ -314,14 +335,97 @@ if (btnSavePopup) {
 
 
 
+// Marketing & Promotions Tab Switching
+window.switchMarketingTab = function(tab) {
+  const dealsTab = document.getElementById('mkt-tab-deals');
+  const bannersTab = document.getElementById('mkt-tab-banners');
+  const btnDeals = document.getElementById('btn-mkt-deals');
+  const btnBanners = document.getElementById('btn-mkt-banners');
+
+  if (tab === 'deals') {
+    if (dealsTab) dealsTab.style.display = 'block';
+    if (bannersTab) bannersTab.style.display = 'none';
+    btnDeals?.classList.add('active');
+    btnBanners?.classList.remove('active');
+  } else if (tab === 'banners') {
+    if (dealsTab) dealsTab.style.display = 'none';
+    if (bannersTab) bannersTab.style.display = 'block';
+    btnBanners?.classList.add('active');
+    btnDeals?.classList.remove('active');
+  }
+};
+
+export function switchAdminView(targetId) {
+  if (!targetId) return;
+
+  // Seamless redirection from legacy deals-view / marketing hash targets
+  if (targetId === 'deals-view' || targetId === 'deals') {
+    targetId = 'marketing-view';
+    if (typeof window.switchMarketingTab === 'function') {
+      window.switchMarketingTab('deals');
+    }
+  } else if (targetId === 'marketing') {
+    targetId = 'marketing-view';
+  }
+
+  const navBtns = document.querySelectorAll('.crm-nav-item');
+  const views = document.querySelectorAll('.crm-view');
+
+  navBtns.forEach(b => b.classList.remove('active'));
+  views.forEach(p => {
+    p.style.display = 'none';
+    p.classList.remove('active');
+  });
+
+  const targetBtn = document.querySelector(`.crm-nav-item[data-target="${targetId}"]`);
+  if (targetBtn) {
+    targetBtn.classList.add('active');
+  }
+
+  const targetView = document.getElementById(targetId);
+  if (targetView) {
+    targetView.style.display = 'block';
+    targetView.classList.add('active');
+  }
+
+  // Update mobile active view title
+  const activeHeaderTitle = document.getElementById('mobile-active-view-title');
+  if (activeHeaderTitle) {
+    let titleText = '';
+    if (targetBtn) {
+      const activeLabel = targetBtn.querySelector('.label');
+      if (activeLabel) titleText = activeLabel.textContent.trim();
+    }
+    if (!titleText && targetView) {
+      const heading = targetView.querySelector('.crm-view-title');
+      if (heading) titleText = heading.textContent.trim();
+    }
+    if (titleText) activeHeaderTitle.textContent = titleText;
+  }
+
+  if (targetId === 'tv-layout-view') {
+    if (typeof window.renderTvLayout === 'function') window.renderTvLayout();
+    if (typeof window.setupTvLayoutListeners === 'function') window.setupTvLayoutListeners();
+  }
+
+  if (targetId === 'analytics-view') {
+    if (typeof window.loadAnalytics === 'function') {
+      window.loadAnalytics();
+    }
+  }
+}
+window.switchAdminView = switchAdminView;
+
+window.addEventListener('resize', () => {
+  if (window.pageViewsChartInst && document.getElementById('analytics-view')?.classList.contains('active')) {
+    window.pageViewsChartInst.resize();
+  }
+});
+
 document.querySelectorAll('.crm-nav-item').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    document.querySelectorAll('.crm-nav-item').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.crm-view').forEach(p => p.style.display = 'none');
-    
+  btn.addEventListener('click', () => {
     const targetId = btn.dataset.target;
-    btn.classList.add('active');
-    document.getElementById(targetId).style.display = 'block';
+    switchAdminView(targetId);
     
     // Close mobile menu if open
     if (window.innerWidth <= 768 && typeof toggleMobileMenu === 'function') {
@@ -333,6 +437,20 @@ document.querySelectorAll('.crm-nav-item').forEach(btn => {
   });
 });
 
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById(hash)) {
+    switchAdminView(hash);
+  }
+});
+
+// Mobile Quick Orders Button listener
+const quickOrdersBtn = document.getElementById('mobile-quick-orders-btn');
+if (quickOrdersBtn) {
+  quickOrdersBtn.addEventListener('click', () => {
+    switchAdminView('live-orders-view');
+  });
+}
 
 // Theme Toggle Logic
 document.addEventListener('DOMContentLoaded', () => {
@@ -340,15 +458,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeIcon = document.getElementById('theme-icon');
   const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
   const currentTheme = localStorage.getItem('adminTheme') || 'dark';
-  if (themeIcon) themeIcon.textContent = currentTheme === 'light' ? '☀️' : '🌙';
+  if (themeIcon) themeIcon.innerHTML = currentTheme === 'light' ? iconSun(16, 'ui-icon ui-icon-no-margin') : iconMoon(16, 'ui-icon ui-icon-no-margin');
+  const themeText = document.getElementById('theme-text');
+  if (themeText) themeText.textContent = currentTheme === 'light' ? 'Light' : 'Dark';
   const toggleTheme = () => {
     const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('adminTheme', newTheme);
-    if (themeIcon) themeIcon.textContent = newTheme === 'light' ? '☀️' : '🌙';
+    if (themeIcon) themeIcon.innerHTML = newTheme === 'light' ? iconSun(16, 'ui-icon ui-icon-no-margin') : iconMoon(16, 'ui-icon ui-icon-no-margin');
+    if (themeText) themeText.textContent = newTheme === 'light' ? 'Light' : 'Dark';
   };
   if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
   if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', toggleTheme);
+
+  // Sync active view from URL hash on initial load
+  if (window.location.hash) {
+    const initialHash = window.location.hash.replace('#', '');
+    if (document.getElementById(initialHash)) {
+      switchAdminView(initialHash);
+    }
+  }
 });
 
 // Auto-inject data-labels for mobile responsive tables
@@ -357,6 +486,11 @@ function injectTableLabels() {
     const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
     if (headers.length === 0) return;
     table.querySelectorAll('tbody tr').forEach(tr => {
+      if (tr.children.length === 1 || tr.querySelector('td[colspan]')) {
+        const singleTd = tr.querySelector('td');
+        if (singleTd) singleTd.classList.add('table-empty-cell');
+        return;
+      }
       Array.from(tr.querySelectorAll('td')).forEach((td, i) => {
         if (!td.hasAttribute('data-label') && headers[i]) {
           td.setAttribute('data-label', headers[i]);

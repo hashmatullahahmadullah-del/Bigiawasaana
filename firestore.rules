@@ -20,6 +20,17 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    // Retail Items Collection: Public read, Authenticated Admin write
+    match /retail_items/{item} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Retail Orders Collection: Authenticated Admin manage
+    match /retail_orders/{order} {
+      allow read, update, delete: if isAdmin();
+    }
+    
     // Orders Collection
     match /orders/{order} {
       // Orders are created securely via the Cloud Function. Client creation is forbidden.
@@ -41,7 +52,7 @@ service cloud.firestore {
 
     // Settings Collection
     match /settings/{doc} {
-      allow read: if doc == 'pickupConfig' || doc == 'popup' || isAdmin();
+      allow read: if doc in ['pickupConfig', 'popup', 'cart_promo', 'tv_promo', 'tv_display', 'kds', 'loyalty'] || isAdmin();
       allow write: if isAdmin();
     }
     
@@ -53,7 +64,16 @@ service cloud.firestore {
     
     // Catering Inquiries Collection
     match /catering_inquiries/{inquiry} {
-      allow create: if true; // Anyone can submit an inquiry
+      // Basic validation for catering inquiries
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'phone', 'details', 'createdAt'])
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() < 100
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() > 0
+                    && request.resource.data.email.size() < 100
+                    && request.resource.data.details is string
+                    && request.resource.data.details.size() < 2000;
       allow read, update, delete: if isAdmin(); // Only admins can view and manage
     }
     
@@ -61,6 +81,19 @@ service cloud.firestore {
     match /deals/{deal} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    // Loyalty Rewards Collection
+    match /rewards/{reward} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reward Redemptions Collection
+    match /redemptions/{redemption} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
     }
 
     // Service Areas Collection (Local SEO)
@@ -71,15 +104,18 @@ service cloud.firestore {
 
     // Blog Posts Collection
     match /posts/{post} {
-      allow read: if true; // Or we can restrict to published only, but UI filters it anyway
-      allow write: if isAdmin(); // Only admins can create/edit posts
+      allow read: if true;
+      allow write: if isAdmin();
     }
     
     // Analytics Page Views Collection
-    match /page_views/{view} {
-      // Anyone can log a page view
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
+    match /page_views/{docId} {
+      allow read: if isAdmin();
+      // Basic validation: must have path, timestamp, and userAgent
+      allow create: if request.resource.data.keys().hasAll(['path', 'timestamp', 'userAgent']) 
+                    && request.resource.data.path is string
+                    && request.resource.data.path.size() < 2048;
+      allow update, delete: if isAdmin();
     }
     
     // Expenses
@@ -106,12 +142,30 @@ service cloud.firestore {
     
     // Reviews
     match /reviews/{id} {
-      // Anyone can read reviews
       allow read: if true;
-      // Anyone can submit a review
-      allow create: if true;
-      // Only admins can edit or delete them
+      // Basic validation: name, rating (1-5), and text limit
+      allow create: if request.resource.data.keys().hasAll(['name', 'rating', 'text'])
+                    && request.resource.data.rating is number
+                    && request.resource.data.rating >= 1 
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() < 100
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() < 1000;
       allow update, delete: if isAdmin(); 
+    }
+    
+    // Retail Reviews
+    match /retail_reviews/{id} {
+      allow read: if true;
+      allow create: if false; // Only via Cloud Function
+      allow update, delete: if isAdmin();
+    }
+    
+    // Customers Collection (Managed via Cloud Functions; Admin view/manage)
+    match /customers/{customer} {
+      allow read, write: if isAdmin();
     }
     
     // Default: Deny everything else

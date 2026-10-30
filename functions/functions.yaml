@@ -1,0 +1,505 @@
+endpoints:
+  parseReceipt:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: 256
+    timeoutSeconds: 120
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    secretEnvironmentVariables:
+      - key: GEMINI_API_KEY
+    callableTrigger: {}
+    entryPoint: parseReceipt
+  processSquarePayment:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: processSquarePayment
+  syncSquareOrders:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: syncSquareOrders
+  syncSquareOrdersCron:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    scheduleTrigger:
+      schedule: every 1 minutes
+      retryConfig:
+        retryCount: null
+        maxDoublings: null
+        maxRetryDuration: null
+        maxBackoffDuration: null
+        minBackoffDuration: null
+      timeZone: null
+    labels: {}
+    entryPoint: syncSquareOrdersCron
+  handleSquareWebhook:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: handleSquareWebhook
+  updateSquareOrderStatus:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: updateSquareOrderStatus
+  updateLiveStats:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    eventTrigger:
+      eventType: providers/cloud.firestore/eventTypes/document.write
+      eventFilters:
+        resource: projects/bigi-awasaana-7b3ce/databases/(default)/documents/orders/{orderId}
+      retry: false
+    labels: {}
+    entryPoint: updateLiveStats
+  releaseScheduledOrders:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    scheduleTrigger:
+      schedule: every 1 minutes
+      retryConfig:
+        retryCount: null
+        maxDoublings: null
+        maxRetryDuration: null
+        maxBackoffDuration: null
+        minBackoffDuration: null
+      timeZone: America/Los_Angeles
+    labels: {}
+    entryPoint: releaseScheduledOrders
+  verifyKdsPin:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: verifyKdsPin
+  renderBlogPage:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: renderBlogPage
+  renderItemPage:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: renderItemPage
+  renderAreaPage:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: renderAreaPage
+  renderSitemap:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: renderSitemap
+  onNewCateringInquiry:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    eventTrigger:
+      eventType: providers/cloud.firestore/eventTypes/document.create
+      eventFilters:
+        resource: projects/bigi-awasaana-7b3ce/databases/(default)/documents/catering_inquiries/{inquiryId}
+      retry: false
+    labels: {}
+    entryPoint: onNewCateringInquiry
+  generateSeoBlog:
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: 5
+    ingressSettings: null
+    concurrency: null
+    serviceAccountEmail: null
+    vpc: null
+    platform: gcfv2
+    labels: {}
+    callableTrigger: {}
+    entryPoint: generateSeoBlog
+  renderBlogIndex:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: renderBlogIndex
+  serveMenuImage:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: serveMenuImage
+  syncGoogleHours:
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    concurrency: null
+    serviceAccountEmail: null
+    vpc: null
+    platform: gcfv2
+    region:
+      - us-central1
+    labels: {}
+    callableTrigger: {}
+    entryPoint: syncGoogleHours
+  checkInventoryDeadlinesCron:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    scheduleTrigger:
+      schedule: every day 08:00
+      retryConfig:
+        retryCount: null
+        maxDoublings: null
+        maxRetryDuration: null
+        maxBackoffDuration: null
+        minBackoffDuration: null
+      timeZone: null
+    labels: {}
+    entryPoint: checkInventoryDeadlinesCron
+  renderRetailItemPage:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: renderRetailItemPage
+  processRetailPayment:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: processRetailPayment
+  getShippingRates:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: getShippingRates
+  purchaseShippingLabel:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: purchaseShippingLabel
+  renderShopCatalog:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    httpsTrigger: {}
+    entryPoint: renderShopCatalog
+  submitRetailReview:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: submitRetailReview
+  lookupCustomer:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: lookupCustomer
+  getOrderHistory:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: getOrderHistory
+  setCustomerPin:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: setCustomerPin
+  toggleFavorite:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: toggleFavorite
+  removeSavedCard:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: removeSavedCard
+  getAuthCustomerProfile:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: getAuthCustomerProfile
+  syncAuthCustomer:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: syncAuthCustomer
+  redeemLoyaltyReward:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: redeemLoyaltyReward
+  onOrderCreatedEmail:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    eventTrigger:
+      eventType: providers/cloud.firestore/eventTypes/document.create
+      eventFilters:
+        resource: projects/bigi-awasaana-7b3ce/databases/(default)/documents/orders/{orderId}
+      retry: false
+    labels: {}
+    entryPoint: onOrderCreatedEmail
+  onOrderStatusUpdatedEmail:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    eventTrigger:
+      eventType: providers/cloud.firestore/eventTypes/document.update
+      eventFilters:
+        resource: projects/bigi-awasaana-7b3ce/databases/(default)/documents/orders/{orderId}
+      retry: false
+    labels: {}
+    entryPoint: onOrderStatusUpdatedEmail
+  onRetailOrderCreatedEmail:
+    platform: gcfv1
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    eventTrigger:
+      eventType: providers/cloud.firestore/eventTypes/document.create
+      eventFilters:
+        resource: projects/bigi-awasaana-7b3ce/databases/(default)/documents/retail_orders/{orderId}
+      retry: false
+    labels: {}
+    entryPoint: onRetailOrderCreatedEmail
+  registerApplePayDomain:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: registerApplePayDomain
+  refundSquarePayment:
+    platform: gcfv1
+    labels: {}
+    availableMemoryMb: null
+    timeoutSeconds: null
+    minInstances: null
+    maxInstances: null
+    ingressSettings: null
+    serviceAccountEmail: null
+    vpc: null
+    callableTrigger: {}
+    entryPoint: refundSquarePayment
+specVersion: v1alpha1
+requiredAPIs:
+  - api: cloudscheduler.googleapis.com
+    reason: Needed for scheduled functions.
+extensions: {}
+params:
+  - type: secret
+    name: GEMINI_API_KEY

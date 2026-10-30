@@ -1,6 +1,7 @@
 import { showToast } from './orders.js';
-import { errorEl, state } from './shared.js';
-import { app, auth, db } from '../firebase.js';
+import { state } from './shared.js';
+import { app, db } from '../firebase.js';
+import { auth } from '../auth.js';
 import { updatePassword, verifyBeforeUpdateEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -136,10 +137,10 @@ export function loadPickupSettings() {
       document.getElementById('pickup-slot-interval').value = config.slotIntervalMinutes || 15;
       document.getElementById('pickup-prep-buffer').value = config.prepBufferBeforeCloseMinutes || 30;
       if (config.businessHours) {
-        document.getElementById('pickup-open-time').value = config.businessHours.open || '12:00';
+        document.getElementById('pickup-open-time').value = config.businessHours.open || '13:00';
         document.getElementById('pickup-close-time').value = config.businessHours.close || '22:30';
       }
-      const openDays = config.openDays || [0, 1, 2, 3, 4, 5, 6];
+      const openDays = config.openDays || [1, 2, 3, 4, 5, 6];
       document.querySelectorAll('.pickup-day-cb').forEach(cb => {
         cb.checked = openDays.includes(parseInt(cb.value, 10));
       });
@@ -194,7 +195,7 @@ const initPickupForm = () => {
   if (syncBtn) {
     syncBtn.addEventListener('click', async () => {
       syncBtn.disabled = true;
-      syncBtn.textContent = '⏳ Syncing...';
+      syncBtn.textContent = 'Syncing...';
       if (syncStatus) {
         syncStatus.style.display = 'block';
         syncStatus.style.color = 'var(--gray)';
@@ -212,19 +213,19 @@ const initPickupForm = () => {
         if (syncStatus) {
           if (result.data.temporarilyClosed) {
             syncStatus.style.color = '#f87171'; // red
-            syncStatus.textContent = '⚠️ Your Google Maps listing is marked as "Temporarily Closed". This status is now shown on the website.';
+            syncStatus.textContent = 'Notice: Your Google Maps listing is marked as "Temporarily Closed". This status is now shown on the website.';
             showToast('Google Maps shows: Temporarily Closed — website updated.', true);
           } else if (result.data.permanentlyClosed) {
             syncStatus.style.color = '#f87171'; // red
-            syncStatus.textContent = '⚠️ Your Google Maps listing is marked as "Permanently Closed". Update your Google Business Profile.';
+            syncStatus.textContent = 'Notice: Your Google Maps listing is marked as "Permanently Closed". Update your Google Business Profile.';
             showToast('Google Maps shows: Permanently Closed', true);
           } else {
             syncStatus.style.color = '#4ade80'; // green
             const descriptions = result.data.weekdayDescriptions || [];
             if (descriptions.length > 0) {
-              syncStatus.textContent = '✅ Synced! ' + descriptions.join(' · ');
+              syncStatus.textContent = 'Synced! ' + descriptions.join(' · ');
             } else {
-              syncStatus.textContent = `✅ Synced! Open: ${result.data.businessHours.open}, Close: ${result.data.businessHours.close}`;
+              syncStatus.textContent = `Synced! Open: ${result.data.businessHours.open}, Close: ${result.data.businessHours.close}`;
             }
             showToast('Business hours synced from Google Maps!');
           }
@@ -233,12 +234,12 @@ const initPickupForm = () => {
         console.error('Google Maps sync error:', err);
         if (syncStatus) {
           syncStatus.style.color = '#f87171'; // red
-          syncStatus.textContent = '❌ Sync failed: ' + (err.message || 'Unknown error');
+          syncStatus.textContent = 'Sync failed: ' + (err.message || 'Unknown error');
         }
         showToast('Failed to sync from Google Maps: ' + err.message, true);
       } finally {
         syncBtn.disabled = false;
-        syncBtn.textContent = '🔄 Sync from Google Maps';
+        syncBtn.textContent = 'Sync from Google Maps';
       }
     });
   }
@@ -279,7 +280,7 @@ export function renderUpcomingScheduledOrders() {
       ? o.pickup.requestedTime.toDate().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
       : 'N/A';
     
-    const qty = o.items ? o.items.reduce((sum, item) => sum + item.qty, 0) : 0;
+    const qty = o.items ? o.items.reduce((sum, item) => sum + (item.qty || item.quantity || 1), 0) : 0;
     
     return `
       <tr style="border-bottom: 1px solid var(--border);">

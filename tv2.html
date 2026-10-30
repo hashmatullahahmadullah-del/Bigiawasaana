@@ -1,159 +1,793 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV2 Menu — Bigi Awasaana</title>
-  <style>
-    body, html {
-      margin: 0; padding: 0; width: 100%; height: 100%;
-      background: #000; overflow: hidden;
-      font-family: sans-serif;
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bigi Awasaana Digital Menu Board - Screen 02</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            'inter': ['Inter', 'sans-serif'],
+            'oswald': ['Oswald', 'sans-serif'],
+            'barlow': ['Barlow', 'sans-serif'],
+            'barlow-cond': ['"Barlow Condensed"', 'sans-serif'],
+          },
+          colors: {
+            'surface-dark': 'var(--tv-surface, #0a0a0a)',
+            'surface-card': 'var(--tv-card, #111111)',
+            'surface-lowest': 'var(--tv-lowest, #1a1a1a)',
+            'primary-flame': 'var(--tv-primary, #ff4500)',
+            'amber-gold': 'var(--tv-accent, #ffb703)',
+            'border-dark': 'var(--tv-border, #2a2a2a)'
+          }
+        }
+      }
     }
-    #menu-img {
-      position: absolute; top: 0; left: 0;
+  </script>
+
+  <style>
+    :root {
+      --tv-primary: #ff4500;
+      --tv-accent: #ffb703;
+      --tv-surface: #0a0a0a;
+      --tv-card: #111111;
+      --tv-lowest: #1a1a1a;
+      --tv-border: #2a2a2a;
+    }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+    body {
       width: 100vw;
       height: 100vh;
-      object-fit: contain;
-      display: block;
-      z-index: 10;
-      background: #000;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      aspect-ratio: 16/9;
     }
-    #start-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #060606; z-index: 9999; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; cursor: pointer; color: white;
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-    h1 { color: #ff4500; font-family: 'Arial Narrow', sans-serif; text-transform: uppercase; font-size: 4vw; }
-    p { font-size: 1.5vw; opacity: 0.8; }
-    /* Unoccluded tiny video to bypass aggressive browser optimizations */
-    #youtube-player-container {
-      position: absolute; top: 0; left: 0; width: 10px; height: 10px;
-      opacity: 0.05; pointer-events: none; z-index: 999; overflow: hidden;
-    }
-    #youtube-player {
-      width: 100vw; height: 100vh;
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
   </style>
 </head>
-<body>
+<body class="bg-black text-white h-screen w-screen overflow-hidden flex flex-col font-sans relative">
 
-  <div id="start-overlay">
-    <h1>Tap Here To Start Display (TV2)</h1>
-    <p>This activates fullscreen, starts music, and enables WakeLock to prevent sleep.</p>
+  <!-- Visual Background Layers -->
+  
+  
+  <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] z-0 pointer-events-none"></div>
+
+  <!-- Start Overlay -->
+  <div id="tv-start-overlay" class="absolute inset-0 z-50 bg-black flex items-center justify-center cursor-pointer">
+    <div class="bg-primary-flame text-white px-8 py-4 rounded-xl font-oswald text-3xl font-bold uppercase tracking-wider animate-pulse">
+      Tap to Start TV 2
+    </div>
   </div>
 
-  <div id="youtube-player-container">
-    <div id="youtube-player"></div>
+  <!-- Review Modal -->
+  <div id="review-modal" class="absolute inset-0 z-40 bg-black/85 backdrop-blur-md flex items-center justify-center" style="display: none;">
+    <div class="bg-surface-card border-2 border-primary-flame/80 p-10 rounded-3xl flex flex-col items-center text-center shadow-[0_0_60px_rgba(255,69,0,0.3)] max-w-2xl w-full mx-4">
+      <h2 class="font-oswald text-[4.5rem] font-black text-primary-flame leading-none mb-3 tracking-wide uppercase">ORDER READY!</h2>
+      <p class="font-barlow text-2xl text-gray-300 mb-8">Enjoying your meal? Help others find us!</p>
+      <div class="bg-white p-4 rounded-xl mb-6 shadow-xl">
+        <img id="review-modal-qr" src="" alt="Review QR Code" class="w-[280px] h-[280px] object-contain">
+      </div>
+      <p id="review-modal-platform" class="font-oswald text-3xl font-bold text-amber-gold tracking-wider uppercase"></p>
+    </div>
   </div>
-  <img id="menu-img" src="/tv2-menu.jpg" alt="TV2 Menu">
 
-  <!-- Include NoSleep.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
-  <!-- YouTube IFrame API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
+  <div class="flex flex-col h-full w-full p-4 gap-4 relative z-10">
+    <!-- HEADER -->
+    <header class="w-full flex-shrink-0 flex items-center justify-between bg-surface-card rounded-xl px-6 py-4 border border-border-dark shadow-xl">
+      <div class="flex items-center gap-6">
+        <img src="/logo.png" alt="Bigi Awasaana" class="h-16 w-16 object-contain drop-shadow-md">
+        <div class="flex flex-col">
+          <div class="flex items-center gap-3">
+            <h1 class="font-oswald text-4xl font-bold text-white tracking-wide uppercase leading-none">BIGI AWASAANA</h1>
+            <span class="bg-primary-flame text-white text-xs font-bold px-2 py-0.5 rounded font-oswald uppercase tracking-wider">HALAL</span>
+          </div>
+          <h2 class="font-inter font-medium text-amber-gold text-lg tracking-widest uppercase mt-1">AUTHENTIC AFGHAN CUISINE</h2>
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-between gap-8 bg-surface-lowest rounded-lg px-6 py-3 border border-border-dark/50 flex-1 ml-8">
+        <div class="flex items-center gap-4 w-full">
+          <span class="material-symbols-outlined text-amber-gold text-4xl animate-[pulse_2s_ease-in-out_infinite]">campaign</span>
+          <div class="relative h-10 overflow-hidden w-full">
+            <span id="promo-text" class="absolute inset-0 font-oswald text-3xl font-bold text-amber-gold uppercase tracking-wider flex items-center transition-opacity duration-500 drop-shadow-sm whitespace-nowrap">MAKE ANY WRAP OR BOWL A COMBO: SEASONED FRIES + CAN SODA!</span>
+          </div>
+        </div>
+        <div class="h-10 w-px bg-border-dark/50 shrink-0"></div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-flame text-2xl">restaurant_menu</span>
+          <span class="font-oswald text-xl text-primary-flame font-bold uppercase tracking-wider">SCREEN 2 / 2</span>
+        </div>
+      </div>
+    </header>
 
-  <script>
-    let player;
-    // Replace this with your desired YouTube video ID
-    const YOUTUBE_VIDEO_ID = 'jfKfPfyJRdk'; // Default: Lofi Girl stream
-    
-    // We use localStorage to remember if the TV was started within the last 12 hours.
-    // This allows us to reload the page to reset aggressive TV sleep timers without needing another tap.
-    const LAST_STARTED_KEY = 'tv_last_started';
-    const now = Date.now();
-    const lastStarted = localStorage.getItem(LAST_STARTED_KEY);
-    const shouldAutoResume = lastStarted && (now - parseInt(lastStarted) < 12 * 60 * 60 * 1000);
+    <!-- SCHEDULED SPECIAL BANNER -->
+    <div id="tv-scheduled-special-banner" class="w-full flex-shrink-0 flex items-center justify-between bg-gradient-to-r from-primary-flame via-amber-gold to-primary-flame px-6 py-2 rounded-xl border border-amber-gold/50 shadow-[0_0_25px_rgba(255,69,0,0.35)] transition-all duration-500 overflow-hidden" style="display: none;">
+      <div class="flex items-center gap-4">
+        <span class="material-symbols-outlined text-black text-3xl animate-[bounce_1s_infinite]">stars</span>
+        <span id="tv-special-banner-title" class="font-oswald text-2xl font-black text-black tracking-wider uppercase drop-shadow-sm">TODAY'S SPECIAL</span>
+      </div>
+      <div id="tv-special-banner-text" class="font-barlow text-xl font-bold text-black tracking-wide truncate ml-4 drop-shadow-sm"></div>
+    </div>
 
-    if (shouldAutoResume) {
-      document.getElementById('start-overlay').style.display = 'none';
+    <!-- MAIN CONTENT AREA -->
+    <main class="w-full flex-1 flex flex-row gap-6 overflow-hidden min-h-0">
+      <!-- 2x2 Menu Grid Left Side -->
+      <div id="menu-container" class="relative h-full flex-1 min-w-0">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Prominent Eye-Level Review Hero Sidebar -->
+      <aside id="tv-review-hero-panel" class="w-[360px] flex-shrink-0 bg-gradient-to-b from-surface-card via-surface-card to-black rounded-2xl border-2 border-primary-flame/80 p-6 flex flex-col items-center justify-between shadow-[0_0_40px_rgba(255,69,0,0.25)] relative overflow-hidden text-center">
+        <div class="absolute -top-12 -right-12 w-40 h-40 bg-primary-flame/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-amber-gold/20 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <!-- Header -->
+        <div class="flex flex-col items-center gap-2 relative z-10 w-full">
+          <div class="inline-flex items-center gap-1.5 bg-amber-gold/15 border border-amber-gold/60 text-amber-gold font-oswald text-sm font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
+            <svg class="inline-block" width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <span id="hero-review-platform-badge">GOOGLE MAPS REVIEW</span> <svg class="inline-block" width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h2 class="font-oswald text-4xl font-black text-white uppercase tracking-tight leading-none mt-2 drop-shadow-md">
+            LOVE OUR FOOD?
+          </h2>
+          <div class="flex items-center gap-1.5 text-amber-gold text-2xl my-1 drop-shadow-sm">
+            <svg class="inline-block" width="22" height="22" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg class="inline-block" width="22" height="22" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg class="inline-block" width="22" height="22" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg class="inline-block" width="22" height="22" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg class="inline-block" width="22" height="22" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p id="hero-review-desc" class="font-barlow text-lg text-neutral-300 font-semibold leading-snug px-2">
+            Help our Afghan kitchen grow! Scan with your phone camera to leave a quick 5-star review.
+          </p>
+        </div>
+
+        <!-- Giant Crisp QR Code -->
+        <div class="relative z-10 my-auto flex flex-col items-center">
+          <div class="bg-white p-4 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] border-4 border-amber-gold/80 transform hover:scale-105 transition-transform duration-300">
+            <img id="hero-review-qr" src="/google-review-qr.png" alt="Google Review QR" class="w-[200px] h-[200px] object-contain block">
+          </div>
+          <div class="flex items-center gap-2 mt-3 bg-black/60 border border-primary-flame/50 px-3 py-1.5 rounded-full shadow-sm">
+            <span class="material-symbols-outlined text-primary-flame text-xl animate-bounce">photo_camera</span>
+            <span class="font-oswald text-sm font-bold text-white uppercase tracking-wider">POINT CAMERA TO SCAN</span>
+          </div>
+        </div>
+
+        <!-- Bottom Benefit / Server Callout -->
+        <div class="w-full bg-gradient-to-r from-primary-flame/20 via-amber-gold/20 to-primary-flame/20 border border-amber-gold/40 rounded-xl p-3 relative z-10 shadow-sm">
+          <div class="font-oswald text-lg font-bold text-amber-gold uppercase tracking-wider leading-none">
+            SHOW SERVER AFTER REVIEW!
+          </div>
+          <div class="text-xs text-white/90 font-inter mt-1">
+            Thank you for supporting Bigi Awasaana local family dining!
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full flex flex-shrink-0 items-center justify-between gap-4">
+      <div class="w-full bg-surface-card rounded-xl px-6 py-3 border border-border-dark flex items-center justify-between shadow-xl h-20 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-primary-flame/10 to-transparent pointer-events-none"></div>
+        <div class="flex items-center gap-4 relative z-10">
+          <div class="w-12 h-12 rounded-lg bg-primary-flame flex items-center justify-center text-white shadow-[0_0_15px_rgba(255,69,0,0.4)]">
+            <span class="material-symbols-outlined text-3xl">campaign</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-oswald text-xl font-bold text-white uppercase drop-shadow-sm">FOLLOW US FOR DEALS!</span>
+            <span class="font-oswald text-base text-amber-gold tracking-wide">@BIGIAWASAANA ON INSTAGRAM & TIKTOK</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 text-base font-oswald uppercase text-neutral-400 relative z-10">
+          <span class="text-neutral-300"><strong class="text-amber-gold">COMBO UPGRADE:</strong> SEASONED FRIES + CAN SODA WITH ANY MEAL</span>
+          <span class="text-neutral-600">•</span>
+          <span class="text-neutral-300"><strong class="text-primary-flame">100% ZABIHA HALAL:</strong> ALL MEATS ARE CERTIFIED HALAL</span>
+          <span class="text-neutral-600">•</span>
+          <span class="text-neutral-300">CUSTOMIZE EXTRAS & SAUCES AT COUNTER</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <video id="tv-nosleep" playsinline muted loop style="opacity:0; position:absolute; width:1px; height:1px; pointer-events:none;" src="data:video/webm;base64,GkXfo0AgQoaBAUL3gQFC8oEEQvOBCEKCQAR3ZWJtQoeBAkKFgQIYU4BnQAABZQUAAAAAAAAEAAABXgAAAs4T1kOIQnKGE8YBA4rIgEAAXwAAAwAAAwAAAAAYQoeBAkKFgQIYU4BnQAABZQUAAAAAAAAEAAABXgAAAs4="></video>
+
+  <script type="module">
+    import { db } from '/src/firebase.js';
+    import { collection, doc, onSnapshot } from 'firebase/firestore';
+
+    // ─────────────────────────────────────────────────────────────
+    // ANTI-SLEEP ENGINE
+    // ─────────────────────────────────────────────────────────────
+    let noSleep = null;
+    try {
+      if (typeof NoSleep !== 'undefined') {
+        noSleep = new NoSleep();
+      }
+    } catch (e) {
+      console.log('NoSleep init error:', e);
     }
 
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('youtube-player', {
-        videoId: YOUTUBE_VIDEO_ID,
-        playerVars: {
-          'autoplay': shouldAutoResume ? 1 : 0,
-          'controls': 0,
-          'loop': 1,
-          'playlist': YOUTUBE_VIDEO_ID // Required to loop a single video
-        },
-        events: {
-          'onReady': onPlayerReady
+    let wakeLock = null;
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeLock.addEventListener('release', () => {
+            wakeLock = null;
+          });
+        }
+      } catch (err) {
+        console.log('Wake Lock error:', err);
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+        playAntiSleepVideo();
+      }
+    });
+
+    setInterval(() => {
+      if (document.visibilityState === 'visible' && !wakeLock) {
+        requestWakeLock();
+      }
+    }, 30000);
+
+    function playAntiSleepVideo() {
+      const video = document.getElementById('tv-nosleep');
+      if (video) {
+        video.muted = true;
+        video.play().catch(() => {});
+      }
+      if (noSleep) {
+        try { noSleep.enable(); } catch (e) {}
+      }
+    }
+
+    async function activateTv() {
+      localStorage.setItem('tv2_started', 'true');
+      const overlay = document.getElementById('tv-start-overlay');
+      if (overlay) overlay.style.display = 'none';
+
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+
+      if (noSleep) {
+        try { noSleep.enable(); } catch (e) {}
+      }
+
+      await requestWakeLock();
+      playAntiSleepVideo();
+    }
+
+    document.getElementById('tv-start-overlay').addEventListener('click', activateTv);
+
+    if (localStorage.getItem('tv2_started') === 'true') {
+      const overlay = document.getElementById('tv-start-overlay');
+      if (overlay) overlay.style.display = 'none';
+      requestWakeLock();
+      playAntiSleepVideo();
+    }
+
+    // Soft refresh every 15 minutes: re-request wake lock and re-render
+    // WITHOUT reloading the page, so fullscreen is preserved.
+    setInterval(() => {
+      requestWakeLock();
+      playAntiSleepVideo();
+      // Force re-render current page to keep display fresh
+      if (tv2Items.length > 0) {
+        renderPage(currentPage);
+      }
+    }, 15 * 60 * 1000);
+
+    // ─────────────────────────────────────────────────────────────
+    // TV DISPLAY THEMES, ANIMATIONS & SCHEDULED SPECIALS
+    // ─────────────────────────────────────────────────────────────
+    let tvDisplaySettings = {
+      theme: 'flame',
+      animation: 'slide',
+      cycleSpeed: 12,
+      scheduledSpecial: null
+    };
+
+    const THEMES = {
+      flame: {
+        primary: '#ff4500',
+        accent: '#ffb703',
+        card: '#111111',
+        lowest: '#1a1a1a',
+        border: '#2a2a2a',
+        bg: '#000000'
+      },
+      midnight: {
+        primary: '#f59e0b',
+        accent: '#10b981',
+        card: '#0f172a',
+        lowest: '#1e293b',
+        border: '#1e293b',
+        bg: '#070b14'
+      },
+      charcoal: {
+        primary: '#ff4500',
+        accent: '#38bdf8',
+        card: '#18181b',
+        lowest: '#27272a',
+        border: '#27272a',
+        bg: '#09090b'
+      },
+      neon: {
+        primary: '#ff0055',
+        accent: '#ffd000',
+        card: '#160527',
+        lowest: '#280a45',
+        border: '#3b1263',
+        bg: '#090014'
+      }
+    };
+
+    function applyTvTheme(themeName) {
+      const t = THEMES[themeName] || THEMES.flame;
+      const root = document.documentElement;
+      root.style.setProperty('--tv-primary', t.primary);
+      root.style.setProperty('--tv-accent', t.accent);
+      root.style.setProperty('--tv-card', t.card);
+      root.style.setProperty('--tv-lowest', t.lowest);
+      root.style.setProperty('--tv-border', t.border);
+      document.body.style.backgroundColor = t.bg;
+    }
+
+    function checkScheduledSpecial() {
+      const banner = document.getElementById('tv-scheduled-special-banner');
+      const bannerTitle = document.getElementById('tv-special-banner-title');
+      const bannerText = document.getElementById('tv-special-banner-text');
+      if (!banner) return;
+
+      const sp = tvDisplaySettings.scheduledSpecial;
+      if (!sp || !sp.enabled) {
+        banner.style.display = 'none';
+        return;
+      }
+
+      let active = true;
+      if (sp.autoSchedule) {
+        const now = new Date();
+        const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        const curDay = dayNames[now.getDay()];
+        const curHour = now.getHours();
+
+        const isDayMatch = !sp.days || sp.days.length === 0 || sp.days.includes(curDay);
+        const isHourMatch = curHour >= (parseInt(sp.startHour, 10) || 0) && curHour < (parseInt(sp.endHour, 10) || 24);
+        active = isDayMatch && isHourMatch;
+      }
+
+      if (active) {
+        if (bannerTitle) bannerTitle.textContent = sp.title || "TODAY'S SPECIAL";
+        if (bannerText) bannerText.textContent = sp.text || '';
+        banner.style.display = 'flex';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    // Periodic check every 30 seconds for daypart transitions
+    setInterval(checkScheduledSpecial, 30000);
+
+    onSnapshot(doc(db, 'settings', 'tv_display'), (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      tvDisplaySettings = {
+        theme: data.theme || 'flame',
+        animation: data.animation || 'slide',
+        cycleSpeed: parseInt(data.cycleSpeed, 10) || 12,
+        scheduledSpecial: data.scheduledSpecial || null
+      };
+      applyTvTheme(tvDisplaySettings.theme);
+      checkScheduledSpecial();
+      startCycle();
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // MENU DATA
+    // ─────────────────────────────────────────────────────────────
+    let tv2Items = [];
+    let currentPage = 0;
+    const ITEMS_PER_PAGE = 4;
+    let cycleInterval;
+
+    function formatPrice(price) {
+      if (typeof price !== 'number') price = parseFloat(price) || 0;
+      return price < 8 ? price.toFixed(2) : '$' + price.toFixed(2);
+    }
+
+    onSnapshot(collection(db, 'menu'), (snapshot) => {
+      let allItemsRaw = [];
+      snapshot.forEach(d => {
+        allItemsRaw.push({ id: d.id, ...d.data() });
+      });
+
+      let allVisible = [];
+      allItemsRaw.forEach(data => {
+        if (!data.hidden) {
+          let upgradePrice = 0;
+
+          // 1. mealLinkId lookup (search ALL items including hidden)
+          if (data.mealLinkId) {
+            const meal = allItemsRaw.find(m => m.id === data.mealLinkId);
+            if (meal) upgradePrice = Math.max(0, parseFloat(meal.price) - parseFloat(data.price));
+          } else {
+            // 2. Fuzzy name matching (search ALL items including hidden)
+            const itemNameClean = (data.name || '').toLowerCase()
+              .replace(/bigi'?s?\s*/gi, '')
+              .replace(/\s*(plate|wrap|platter|with fries)\s*/gi, '')
+              .trim();
+
+            const fallbackMeal = allItemsRaw.find(m => {
+              if (!m.name) return false;
+              const mealNameClean = m.name.toLowerCase()
+                .replace(/bigi'?s?\s*/gi, '')
+                .replace(/\s*meal\s*/gi, '')
+                .trim();
+              
+              if (itemNameClean === 'afghan burger' && mealNameClean.includes('silk road wrap')) return true;
+
+              return m.name.toLowerCase().includes('meal') && (
+                     mealNameClean === itemNameClean || 
+                     mealNameClean.includes(itemNameClean) || 
+                     itemNameClean.includes(mealNameClean));
+            });
+
+            if (fallbackMeal) {
+              upgradePrice = Math.max(0, parseFloat(fallbackMeal.price) - parseFloat(data.price));
+            }
+          }
+
+          // 3. Fallback to field
+          if (!upgradePrice && data.mealUpgradePrice) {
+            upgradePrice = parseFloat(data.mealUpgradePrice);
+          }
+
+          allVisible.push({
+            id: data.id,
+            name: data.name || 'Untitled',
+            price: parseFloat(data.price) || 0,
+            img: data.img || data.image || data.imageUrl || '',
+            desc: data.desc || data.description || '',
+            addOns: data.addOns || [],
+            variants: data.variants || [],
+            mealUpgradePrice: upgradePrice || 0,
+            featured: data.featured || false,
+            tvScreen: data.tvScreen,
+            tvOrder: data.tvOrder || 0
+          });
+        }
+      });
+
+      const hasAnyAssignments = allItemsRaw.some(i => i.tvScreen);
+
+      if (hasAnyAssignments) {
+        tv2Items = allVisible.filter(i => i.tvScreen === 'TV2').sort((a, b) => a.tvOrder - b.tvOrder);
+      } else {
+        // Fallback explicit order if nothing is assigned yet
+        const tv2Names = ['qabuli palau', 'tikka kabab', 'kobideh', 'smash burger', 'firni', 'doogh', 'chai', 'soft drink', 'bottled water'];
+        tv2Items = [];
+        tv2Names.forEach(query => {
+          const found = allVisible.find(i => i.name.toLowerCase().includes(query));
+          if (found) tv2Items.push(found);
+        });
+      }
+
+      startCycle();
+    });
+
+    let lastRenderedHash = '';
+
+    function getEntryTransform() {
+      if (tvDisplaySettings.animation === 'zoom') return 'scale(0.9)';
+      if (tvDisplaySettings.animation === 'fade') return 'scale(0.95)';
+      return 'translateY(32px)';
+    }
+
+    function getExitTransform() {
+      if (tvDisplaySettings.animation === 'zoom') return 'scale(0.92)';
+      if (tvDisplaySettings.animation === 'fade') return 'scale(0.98)';
+      return 'translateY(-20px)';
+    }
+
+    function getActiveTransform() {
+      if (tvDisplaySettings.animation === 'zoom' || tvDisplaySettings.animation === 'fade') return 'scale(1)';
+      return 'translateY(0)';
+    }
+
+    function renderCardHtml(item, i) {
+      let desc = item.desc || '';
+      const nameLower = item.name.toLowerCase();
+
+      let badgeHtml = '';
+      if (nameLower.includes('smash burger') || nameLower.includes('qabuli')) {
+        badgeHtml = `<div class="absolute top-3 left-3 z-10 bg-primary-flame text-white font-oswald text-base font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xl">BESTSELLER</div>`;
+      } else if (item.featured) {
+        badgeHtml = `<div class="absolute top-3 left-3 z-10 bg-amber-gold text-black font-oswald text-base font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xl">CHEF'S PICK</div>`;
+      }
+
+      const displayVariants = (item.variants || []).filter(v => (item.variants.length > 1) || (parseFloat(v.price || 0) - parseFloat(item.price || 0) > 0));
+
+      let featureSlotHtml = '';
+      if (item.mealUpgradePrice) {
+        featureSlotHtml = `
+          <div class="flex flex-col gap-1 bg-amber-gold text-black rounded-xl p-2.5 my-auto shadow-[0_6px_20px_rgba(0,0,0,0.3)] border border-white/20">
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-2xl text-black">fastfood</span>
+                <span class="font-oswald text-lg font-black uppercase tracking-wider text-black">MAKE IT A COMBO</span>
+              </div>
+              <span class="bg-black text-amber-gold font-oswald text-xl font-black px-2 py-0.5 rounded-lg shadow-sm">+$${item.mealUpgradePrice.toFixed(2)}</span>
+            </div>
+            <span class="font-oswald text-[11px] font-bold uppercase tracking-wider text-neutral-900 border-t border-black/15 pt-0.5">INCLUDES SEASONED FRIES + CAN SODA</span>
+          </div>
+        `;
+      } else if (displayVariants.length > 0) {
+        featureSlotHtml = `
+          <div class="flex flex-col gap-1.5 my-auto">
+            <span class="font-oswald text-xs font-bold text-amber-gold uppercase tracking-wider flex items-center gap-1.5">
+              <svg class="inline-block" width="13" height="13" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1.5"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg> CHOICE OF OPTION:
+            </span>
+            <div class="flex flex-wrap gap-1.5">
+              ${displayVariants.slice(0, 3).map(v => {
+                let vName = v.name;
+                const baseWords = item.name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+                baseWords.forEach(w => {
+                  vName = vName.replace(new RegExp('\\b' + w + '\\b', 'gi'), '').trim();
+                });
+                vName = vName || v.name;
+                const diff = parseFloat(v.price || 0) - parseFloat(item.price || 0);
+                const diffHtml = diff > 0 ? ` <span class="text-amber-gold ml-1">+$${diff.toFixed(2)}</span>` : '';
+                return `<span class="text-xs font-bold font-oswald px-2.5 py-1 rounded-lg border border-border-dark/80 bg-surface-lowest text-white shadow-sm uppercase tracking-wider">${vName} ${diffHtml}</span>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        featureSlotHtml = `
+          <div class="my-auto py-1">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-lowest/80 border border-border-dark/60 text-neutral-300">
+              <span class="material-symbols-outlined text-amber-gold text-base">restaurant</span>
+              <span class="font-oswald text-xs font-bold uppercase tracking-wider">AUTHENTIC AFGHAN RECIPE • MADE FRESH</span>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+      <article class="flex bg-surface-card/90 backdrop-blur-sm rounded-2xl border border-border-dark/80 shadow-[0_10px_30px_rgba(0,0,0,0.5)] h-full overflow-hidden transform transition-all duration-700" style="opacity: 0; transform: ${getEntryTransform()}; transition-delay: ${i * 100}ms" data-tv-card>
+        
+        <!-- Square Image Left Side -->
+        <div class="h-full aspect-square flex-shrink-0 bg-black relative group overflow-hidden border-r border-border-dark/60">
+          ${badgeHtml}
+          ${item.img 
+            ? `<img src="${item.img}" loading="eager" decoding="sync" fetchpriority="high" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" alt="${item.name}">`
+            : `<div class="absolute inset-0 flex items-center justify-center bg-surface-card"><span class="material-symbols-outlined text-6xl text-neutral-600">restaurant</span></div>`
+          }
+          <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+        </div>
+
+        <!-- Content Right Side -->
+        <div class="flex flex-col flex-1 p-5 min-w-0 justify-between">
+          <div>
+            <h3 class="font-barlow text-3xl font-black text-white uppercase tracking-tight line-clamp-2 leading-none mb-1.5 drop-shadow-md">${item.name}</h3>
+            <p class="text-[14px] text-neutral-300 line-clamp-3 leading-snug font-inter drop-shadow-sm">${desc}</p>
+          </div>
+          
+          ${featureSlotHtml}
+
+          <!-- Grounded Bottom Price Bar -->
+          <div class="flex items-center justify-between mt-auto pt-2.5 border-t border-border-dark/60 w-full">
+            <div class="flex items-center gap-2 text-neutral-400">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
+              <span class="font-oswald text-xs font-bold uppercase tracking-wider text-neutral-300">100% ZABIHA HALAL</span>
+            </div>
+            <div class="font-oswald font-black text-primary-flame text-[3.25rem] tracking-tight leading-none drop-shadow-lg">${formatPrice(item.price)}</div>
+          </div>
+        </div>
+
+      </article>`;
+    }
+
+    function buildAllPages() {
+      const container = document.getElementById('menu-container');
+      const newHash = JSON.stringify(tv2Items) + '|' + tvDisplaySettings.animation;
+      if (newHash === lastRenderedHash && container.children.length > 0) {
+        return;
+      }
+      lastRenderedHash = newHash;
+
+      // Pre-decode all images into browser memory immediately
+      tv2Items.forEach(item => {
+        if (item.img) {
+          const pre = new Image();
+          pre.decoding = 'async';
+          pre.src = item.img;
+          if (pre.decode) pre.decode().catch(() => {});
+        }
+      });
+
+      const totalPages = Math.max(1, Math.ceil(tv2Items.length / ITEMS_PER_PAGE));
+      if (currentPage >= totalPages) currentPage = 0;
+
+      let pagesHtml = '';
+      for (let p = 0; p < totalPages; p++) {
+        const pageItems = tv2Items.slice(p * ITEMS_PER_PAGE, (p + 1) * ITEMS_PER_PAGE);
+        const isCurrent = p === currentPage;
+        pagesHtml += `
+          <div data-tv-page="${p}" class="grid grid-cols-2 grid-rows-2 gap-6 h-full w-full absolute inset-0" style="z-index: ${isCurrent ? 10 : 0}; pointer-events: ${isCurrent ? 'auto' : 'none'};">
+            ${pageItems.map((item, i) => renderCardHtml(item, i)).join('')}
+          </div>
+        `;
+      }
+      container.innerHTML = pagesHtml;
+
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          showPage(currentPage);
+        }, 50);
+      });
+    }
+
+    function showPage(pageIdx) {
+      const allPages = document.querySelectorAll('#menu-container > [data-tv-page]');
+      allPages.forEach(pageEl => {
+        const p = parseInt(pageEl.getAttribute('data-tv-page'), 10);
+        const cards = pageEl.querySelectorAll('[data-tv-card]');
+        if (p === pageIdx) {
+          pageEl.style.zIndex = '10';
+          pageEl.style.pointerEvents = 'auto';
+          cards.forEach((card, i) => {
+            card.style.transitionDelay = `${i * 100}ms`;
+            card.style.opacity = '1';
+            card.style.transform = getActiveTransform();
+          });
+        } else {
+          pageEl.style.zIndex = '0';
+          pageEl.style.pointerEvents = 'none';
+          cards.forEach(card => {
+            card.style.transitionDelay = '0ms';
+            card.style.opacity = '0';
+            card.style.transform = getEntryTransform();
+          });
         }
       });
     }
 
-    function onPlayerReady(event) {
-      if (shouldAutoResume) {
-        event.target.playVideo();
-        event.target.unMute();
-        event.target.setVolume(100);
-        activateWakeLock();
+    function startCycle() {
+      clearInterval(cycleInterval);
+      buildAllPages();
+      
+      const cycleDuration = (tvDisplaySettings.cycleSpeed || 12) * 1000;
+      if (tv2Items.length > ITEMS_PER_PAGE) {
+        cycleInterval = setInterval(() => {
+          const activePageEl = document.querySelector(`#menu-container > [data-tv-page="${currentPage}"]`);
+          if (activePageEl) {
+            const cards = activePageEl.querySelectorAll('[data-tv-card]');
+            cards.forEach(card => {
+              card.style.transitionDelay = '0ms';
+              card.style.opacity = '0';
+              card.style.transform = getExitTransform();
+            });
+          }
+          
+          setTimeout(() => {
+            const totalPages = Math.ceil(tv2Items.length / ITEMS_PER_PAGE);
+            currentPage = (currentPage + 1) % totalPages;
+            showPage(currentPage);
+          }, 750);
+        }, cycleDuration);
       }
     }
 
-    document.getElementById('start-overlay').addEventListener('click', async () => {
-      document.getElementById('start-overlay').style.display = 'none';
-      localStorage.setItem(LAST_STARTED_KEY, Date.now().toString());
+    // ─────────────────────────────────────────────────────────────
+    // LIVE KITCHEN STATUS & REVIEW MODAL
+    // ─────────────────────────────────────────────────────────────
+    let reviewModalShown = false;
+    let reviewQrAlternate = false;
+
+    function showReviewModal() {
+      if (reviewModalShown) return;
+      reviewModalShown = true;
       
-      // Request fullscreen
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(e => console.log(e));
+      const modal = document.getElementById('review-modal');
+      const qrImg = document.getElementById('review-modal-qr');
+      const platformText = document.getElementById('review-modal-platform');
+      
+      if (reviewQrAlternate) {
+        qrImg.src = '/yelp-review-qr.png';
+        platformText.textContent = 'SCAN TO REVIEW ON YELP';
+      } else {
+        qrImg.src = '/google-review-qr.png';
+        platformText.textContent = 'SCAN TO REVIEW ON GOOGLE MAPS';
       }
+      reviewQrAlternate = !reviewQrAlternate;
+      
+      modal.style.display = 'flex';
+      
+      setTimeout(() => {
+        modal.style.display = 'none';
+        reviewModalShown = false;
+      }, 10000);
+    }
 
-      activateWakeLock();
+        const defaultPromos = [
+      "MAKE ANY WRAP OR BOWL A COMBO: SEASONED FRIES + CAN SODA!",
+      "ORDER ONLINE AT BIGIAWASAANA.COM • SKIP THE LINE",
+      "COMBO UPGRADE: CRISPY SEASONED FRIES + ICE-COLD DRINK!",
+      "LOVE OUR FOOD? SCAN THE QR TO LEAVE A REVIEW!",
+      "100% ZABIHA HALAL CERTIFIED AFGHAN CUISINE"
+    ];
+    let promos = [...defaultPromos];
+    let currentPromoIdx = 0;
 
-      // Play YouTube video
-      if (player && typeof player.playVideo === 'function') {
-        player.playVideo();
-        player.unMute();
-        player.setVolume(100);
+    // Real-time listener for TV promo banner from Admin Settings
+    onSnapshot(doc(db, 'settings', 'tv_promo'), (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      if (data.active && data.text && data.text.trim()) {
+        promos = [data.text.trim(), ...defaultPromos];
+        const promoEl = document.getElementById('promo-text');
+        if (promoEl) promoEl.textContent = data.text.trim();
+      } else {
+        promos = [...defaultPromos];
       }
     });
 
-    async function activateWakeLock() {
-      const noSleep = new NoSleep();
-      noSleep.enable();
-
-      if ('wakeLock' in navigator) {
-        try {
-          let wakeLock = await navigator.wakeLock.request('screen');
-          document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
-              wakeLock = await navigator.wakeLock.request('screen');
-            }
-          });
-        } catch (err) {
-          console.log('Wake Lock error:', err);
-        }
-      }
-    }
-
-    // Force video playback if it pauses, and force DOM repaints
     setInterval(() => {
-      if (player && typeof player.getPlayerState === 'function') {
-        const state = player.getPlayerState();
-        if (state !== 1 && state !== 3 && document.getElementById('start-overlay').style.display === 'none') {
-          player.playVideo();
+      const promoEl = document.getElementById('promo-text');
+      if (promoEl && promos.length > 0) {
+        promoEl.style.opacity = '0';
+        setTimeout(() => {
+          currentPromoIdx = (currentPromoIdx + 1) % promos.length;
+          promoEl.textContent = promos[currentPromoIdx];
+          promoEl.style.opacity = '1';
+        }, 500);
+      }
+    }, 12000);
+
+    onSnapshot(doc(db, 'liveStats', 'current'), (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      
+      if (data.lastOrderReadyAt) {
+        const readyTime = data.lastOrderReadyAt.toDate ? data.lastOrderReadyAt.toDate() : new Date(data.lastOrderReadyAt);
+        const now = new Date();
+        const diff = (now - readyTime) / 1000;
+        if (diff < 15 && diff >= 0) {
+          showReviewModal();
         }
       }
-      const dummy = document.createElement('div');
-      dummy.style.position = 'absolute';
-      dummy.style.opacity = '0.01';
-      dummy.innerText = Date.now();
-      document.body.appendChild(dummy);
-      setTimeout(() => dummy.remove(), 50);
-    }, 10000);
-
-    // Reload the page every 10 minutes. This is the ultimate weapon against TV sleep timers.
-    // Because we save the state in localStorage, it will bypass the "Tap to Start" screen
-    // and immediately resume playing.
-    setTimeout(() => {
-      if (document.getElementById('start-overlay').style.display === 'none') {
-        window.location.reload();
-      }
-    }, 10 * 60 * 1000);
+    });
   </script>
 </body>
 </html>

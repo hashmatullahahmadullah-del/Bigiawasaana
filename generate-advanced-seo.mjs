@@ -1,77 +1,121 @@
 import fs from 'fs';
 import path from 'path';
 
-// Local data for all 20 cities to ensure unique, localized content
+// The 10 closest service areas kept per technical audit
 const areas = {
-  // --- TIER 1 (Highly Custom) ---
   'reseda': {
     name: 'Reseda',
     tier: 1,
-    distance: '0 minutes (Local Headquarters)',
+    distance: '0 minutes (Local Flagship)',
     landmark: 'Reseda Park',
+    blog: '/blog/zabiha-halal-food-reseda-san-fernando-valley',
+    blogTitle: 'Zabiha Halal in Reseda: The SFV Destination',
     customHero: 'Your neighborhood destination in Reseda for premium Halal Kabobs and Afghan Street Food.',
     customStory: 'As proud members of the Reseda community, our flagship kitchen at 18411 Victory Blvd is the heart of Bigi Awasaana. We don\'t just serve the valley; we are a local Reseda establishment dedicated to bringing 100% Zabiha Halal, authentic Afghan cuisine right to your table. Whether you are walking in for a fresh Bolani or ordering delivery down the street, you get the absolute freshest, coal-fired kabobs in town.'
-  },
-  'encino': {
-    name: 'Encino',
-    tier: 1,
-    distance: '10-15 minutes',
-    landmark: 'Ventura Boulevard',
-    customHero: 'Elevate your Encino dining experience with the finest Halal Afghan cuisine in the valley.',
-    customStory: 'Whether you are returning from a day at the Sepulveda Basin or looking for a premium dinner near Ventura Blvd, Bigi Awasaana provides a culinary escape to the Silk Road. We know Encino residents appreciate high-quality, authentic food, which is why our 100% Zabiha Halal kabobs are always cooked fresh over open coals.'
-  },
-  'sherman-oaks': {
-    name: 'Sherman Oaks',
-    tier: 1,
-    distance: '15-20 minutes',
-    landmark: 'the Sherman Oaks Galleria',
-    customHero: 'Authentic coal-fired kabobs and fresh Afghan bakery items, delivered to Sherman Oaks.',
-    customStory: 'Sherman Oaks is a hub of incredible food, and we are proud to offer a completely unique, highly authentic Afghan dining experience just down the road in Reseda. Skip the usual delivery options and treat your family to our famous Chapli Kabobs, fresh baked Bolani, and saffron rice.'
-  },
-  'woodland-hills': {
-    name: 'Woodland Hills',
-    tier: 1,
-    distance: '15 minutes',
-    landmark: 'Warner Center',
-    customHero: 'Experience the bold, traditional flavors of Afghanistan in Woodland Hills.',
-    customStory: 'From the bustling offices of Warner Center to family homes across Woodland Hills, Bigi Awasaana is the top choice for authentic, Zabiha Halal Afghan food. Our chefs bring three generations of culinary expertise to every dish, ensuring your delivery or catering order is nothing short of spectacular.'
   },
   'tarzana': {
     name: 'Tarzana',
     tier: 1,
-    distance: '5-10 minutes',
-    landmark: 'Tarzana Safari Walk',
+    distance: '5 minutes',
+    landmark: 'Ventura Boulevard',
+    blog: '/blog/halal-smash-burger-reseda-tarzana',
+    blogTitle: 'Halal Smash Burger in Reseda & Tarzana',
     customHero: 'Your local Tarzana destination for premium Halal Kabobs and Afghan Street Food.',
-    customStory: 'Located right next door to Tarzana, our Reseda kitchen is perfectly positioned to serve you lightning-fast delivery. We are the premier Afghan bakery and kabob house for Tarzana residents who demand fresh, authentic, and 100% Halal meals for their families.'
+    customStory: 'Located right next door to Tarzana, our Reseda kitchen at Victory & Reseda Blvd is perfectly positioned to serve you lightning-fast delivery. We are the premier Afghan charcoal grill and smash burger trailer for Tarzana residents who demand fresh, authentic, and 100% hand-slaughtered Halal meals for their families.'
   },
-  'calabasas': {
-    name: 'Calabasas',
+  'winnetka': {
+    name: 'Winnetka',
+    tier: 2,
+    distance: '5-8 minutes',
+    landmark: 'Winnetka Recreation Center',
+    blog: '/blog/best-late-night-halal-food-san-fernando-valley',
+    blogTitle: 'Late Night Halal Food in Reseda & SFV'
+  },
+  'lake-balboa': {
+    name: 'Lake Balboa',
+    tier: 2,
+    distance: '5-8 minutes',
+    landmark: 'Lake Balboa Park & Sepulveda Basin',
+    blog: '/blog/complete-guide-to-afghan-food-los-angeles',
+    blogTitle: 'The Complete Guide to Authentic Afghan Food in Los Angeles'
+  },
+  'northridge': {
+    name: 'Northridge',
+    tier: 2,
+    distance: '8-12 minutes',
+    landmark: 'CSUN & Northridge Fashion Center',
+    blog: '/blog/complete-guide-to-afghan-food-los-angeles',
+    blogTitle: 'The Complete Guide to Authentic Afghan Food in Los Angeles'
+  },
+  'canoga-park': {
+    name: 'Canoga Park',
+    tier: 2,
+    distance: '10-12 minutes',
+    landmark: 'Topanga Mall & Sherman Way',
+    blog: '/blog/what-is-bolani-afghan-street-food',
+    blogTitle: 'What Is Bolani? Afghan Flatbread Guide'
+  },
+  'west-hills': {
+    name: 'West Hills',
+    tier: 2,
+    distance: '12-15 minutes',
+    landmark: 'Fallbrook Center',
+    blog: '/blog/art-of-afghan-charcoal-kabobs-reseda',
+    blogTitle: 'The Art of Afghan Charcoal Kabobs in Reseda'
+  },
+  'van-nuys': {
+    name: 'Van Nuys',
+    tier: 2,
+    distance: '10-14 minutes',
+    landmark: 'Van Nuys Civic Center',
+    blog: '/blog/authentic-qabuli-palao-los-angeles',
+    blogTitle: 'Authentic Qabuli Palao in Los Angeles'
+  },
+  'encino': {
+    name: 'Encino',
     tier: 1,
-    distance: '20-25 minutes',
-    landmark: 'The Commons',
-    customHero: 'Premium Zabiha Halal Afghan Catering and Delivery for Calabasas.',
-    customStory: 'When residents of Calabasas want exceptional, high-quality catering or a remarkable family dinner, they choose Bigi Awasaana. Our commitment to premium ingredients, from our saffron-infused Qabuli Palou to our coal-fired Filet Mignon kabobs, makes us the perfect fit for the elevated tastes of Calabasas.'
+    distance: '8-12 minutes',
+    landmark: 'Encino Commons on Ventura Blvd',
+    blog: '/blog/best-halal-catering-los-angeles-weddings-events',
+    blogTitle: 'Halal Catering in Los Angeles & SFV',
+    customHero: 'Elevate your Encino dining experience with the finest Halal Afghan cuisine in the valley.',
+    customStory: 'Whether you are returning from a day at the Sepulveda Basin or looking for a premium dinner near Ventura Blvd, Bigi Awasaana provides a culinary escape to the Silk Road. We know Encino residents appreciate high-quality, authentic food, which is why our 100% Zabiha Halal kabobs are always cooked fresh over open coals.'
   },
-  
-  // --- TIER 2 (Programmatically Varied) ---
-  'canoga-park': { name: 'Canoga Park', tier: 2, distance: '10 minutes', landmark: 'Topanga Mall' },
-  'chatsworth': { name: 'Chatsworth', tier: 2, distance: '15 minutes', landmark: 'Stoney Point Park' },
-  'granada-hills': { name: 'Granada Hills', tier: 2, distance: '15-20 minutes', landmark: 'Zelzah Park' },
-  'lake-balboa': { name: 'Lake Balboa', tier: 2, distance: '5-10 minutes', landmark: 'Lake Balboa Park' },
-  'mission-hills': { name: 'Mission Hills', tier: 2, distance: '20 minutes', landmark: 'the San Fernando Mission' },
-  'north-hills': { name: 'North Hills', tier: 2, distance: '15 minutes', landmark: 'the local community' },
-  'north-hollywood': { name: 'North Hollywood', tier: 2, distance: '20-25 minutes', landmark: 'the NoHo Arts District' },
-  'northridge': { name: 'Northridge', tier: 2, distance: '10-15 minutes', landmark: 'CSUN' },
-  'porter-ranch': { name: 'Porter Ranch', tier: 2, distance: '15-20 minutes', landmark: 'the Porter Ranch Town Center' },
-  'studio-city': { name: 'Studio City', tier: 2, distance: '25 minutes', landmark: 'CBS Studio Center' },
-  'sun-valley': { name: 'Sun Valley', tier: 2, distance: '25 minutes', landmark: 'the Sun Valley area' },
-  'sylmar': { name: 'Sylmar', tier: 2, distance: '25-30 minutes', landmark: 'the local foothills' },
-  'van-nuys': { name: 'Van Nuys', tier: 2, distance: '15 minutes', landmark: 'the Van Nuys Civic Center' },
-  'west-hills': { name: 'West Hills', tier: 2, distance: '15-20 minutes', landmark: 'Fallbrook Center' },
-  'winnetka': { name: 'Winnetka', tier: 2, distance: '5-10 minutes', landmark: 'Winnetka Recreation Center' }
+  'woodland-hills': {
+    name: 'Woodland Hills',
+    tier: 1,
+    distance: '10-14 minutes',
+    landmark: 'Warner Center',
+    blog: '/blog/chapli-kabab-vs-shami-kabab-guide',
+    blogTitle: 'Chapli Kabab vs. Shami Kabab Guide',
+    customHero: 'Experience the bold, traditional flavors of Afghanistan in Woodland Hills.',
+    customStory: 'From the bustling offices of Warner Center to family homes across Woodland Hills, Bigi Awasaana is the top choice for authentic, Zabiha Halal Afghan food. Our chefs bring three generations of culinary expertise to every dish, ensuring your delivery or catering order is nothing short of spectacular.'
+  }
 };
 
-// Spintax / Phrase Variations to avoid duplicate content on Tier 2 pages
+// 11 dropped areas that are 301 redirected
+const droppedAreas = [
+  'calabasas', 'chatsworth', 'granada-hills', 'mission-hills', 'north-hills',
+  'north-hollywood', 'porter-ranch', 'sherman-oaks', 'studio-city', 'sun-valley', 'sylmar'
+];
+
+// Clean up any old static files for dropped areas so redirects work cleanly
+for (const dropped of droppedAreas) {
+  const dirs = [
+    path.join(process.cwd(), 'areas', `${dropped}.html`),
+    path.join(process.cwd(), 'public', 'areas', `${dropped}.html`),
+    path.join(process.cwd(), 'dist', 'areas', `${dropped}.html`)
+  ];
+  for (const d of dirs) {
+    if (fs.existsSync(d)) {
+      try {
+        fs.unlinkSync(d);
+        console.log(`Cleaned up dropped area file: ${d}`);
+      } catch (e) {}
+    }
+  }
+}
+
 const phrases = {
   intros: [
     "Are you searching for authentic, mouth-watering Halal food near {CITY}? ",
@@ -96,12 +140,11 @@ const phrases = {
 };
 
 function getRandom(arr, cityId) {
-  // Use the city name length as a pseudo-seed so it's consistent but varied across cities
   const index = (cityId.length + cityId.charCodeAt(0)) % arr.length;
   return arr[index];
 }
 
-const templatePath = path.join(process.cwd(), 'functions', 'area-template.html');
+const templatePath = path.join(process.cwd(), 'area-template.html');
 const outDir = path.join(process.cwd(), 'dist', 'areas');
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 let template = fs.readFileSync(templatePath, 'utf8');
@@ -122,7 +165,6 @@ for (const [id, data] of Object.entries(areas)) {
                    
   let burgerText = `Looking for the best Halal Smash Burger in ${data.name}? Our famous Bigi's Smash Burger is made with 100% Zabiha Halal beef, smashed thin on a screaming-hot griddle for perfect crispy, lacey edges. Stacked with melted cheese, fresh veggies, and our house sauce, it's the ultimate Halal burger experience near ${data.landmark}.`;
 
-  // Generate a robust, 500+ word HTML structure
   const content = `
     <style>
       .area-hero {
@@ -223,23 +265,22 @@ for (const [id, data] of Object.entries(areas)) {
         overflow: hidden;
         transition: all 0.3s ease;
       }
-      details.faq-item:hover {
-        border-color: rgba(255, 69, 0, 0.3);
-      }
       details.faq-item[open] {
         background: rgba(255, 255, 255, 0.04);
-        border-color: var(--accent);
+        border-color: rgba(255, 69, 0, 0.2);
       }
       summary.faq-summary {
         padding: 24px;
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--white);
         cursor: pointer;
-        list-style: none;
+        font-family: 'Barlow Condensed';
+        font-size: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--white);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        user-select: none;
       }
       summary.faq-summary::-webkit-details-marker {
         display: none;
@@ -252,17 +293,17 @@ for (const [id, data] of Object.entries(areas)) {
       }
       details.faq-item[open] summary.faq-summary::after {
         content: '−';
-        transform: rotate(180deg);
       }
       .faq-content {
         padding: 0 24px 24px 24px;
         color: var(--gray);
+        font-size: 16px;
         line-height: 1.7;
       }
       
       .cta-section {
         padding: clamp(60px, 10vw, 96px) 0;
-        background: radial-gradient(circle at center, rgba(255, 69, 0, 0.1) 0%, var(--bg) 70%);
+        background: var(--bg);
         text-align: center;
         border-top: 1px solid rgba(255,255,255,0.05);
       }
@@ -285,33 +326,50 @@ for (const [id, data] of Object.entries(areas)) {
         <h1 class="font-lalezar reveal-animate delay-1" style="font-size: clamp(40px, 6vw, 64px); margin-bottom: 24px; line-height: 1.1; text-shadow: 0 10px 30px rgba(0,0,0,0.5);">${heroText}</h1>
         
         <div class="reveal-animate delay-3" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 48px;">
-          <a href="/menu.html" class="btn-primary" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px; box-shadow: 0 10px 20px rgba(255,69,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 25px rgba(255,69,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 20px rgba(255,69,0,0.2)';">Order Online Now</a>
+          <a href="/menu" class="btn-primary" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px; box-shadow: 0 10px 20px rgba(255,69,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;">Order Online Now</a>
           <a href="https://maps.app.goo.gl/HRWCNVDR8fsv5jzv8" target="_blank" rel="noopener" class="btn-outline" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px;">Get Directions</a>
         </div>
       </div>
     </section>
     
-    <!-- 2. Story Section -->
+    <!-- 2. Deals & Special Combos Section -->
+    <section class="deals-section py-xl" id="deals-section" style="padding: clamp(48px, 8vw, 72px) 0; background: #0e0e10; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);">
+      <div class="container">
+        <div class="text-center-mobile reveal-animate" style="text-align: center; margin-bottom: 36px;">
+          <div style="font-family: 'Barlow Condensed'; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 700;">EXCLUSIVE ONLINE SPECIALS</div>
+          <h2 style="font-family: 'Barlow Condensed'; font-size: clamp(32px, 5vw, 44px); text-transform: uppercase; color: var(--white); margin: 0 0 10px 0;">Special Offers &amp; Combos for ${data.name}</h2>
+          <p style="color: var(--gray); font-size: 16px; max-width: 580px; margin: 0 auto;">Claim our exclusive chef combos online. 100% Zabiha Halal charcoal-grilled kabobs with complimentary drinks and sides.</p>
+        </div>
+        <div id="deals-grid" class="deals-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto;"></div>
+      </div>
+    </section>
+
+    <!-- 3. Story Section -->
     <section class="story-section">
       <div class="container">
         <div class="story-grid">
           <div class="reveal-animate delay-1">
             <h2 style="font-family: 'Barlow Condensed'; font-size: 40px; text-transform: uppercase; color: var(--white); margin-bottom: 24px;">Authentic Flavors, Delivered to ${data.name}</h2>
-            <p style="font-size: 20px; color: var(--gray); line-height: 1.8; margin-bottom: 24px;">
+            <p style="font-size: 18px; color: var(--gray); line-height: 1.8; margin-bottom: 24px;">
               ${storyText}
             </p>
-            <p style="font-size: 18px; color: var(--white); border-left: 4px solid var(--accent); padding-left: 16px;">
-              "The best Afghan food in the valley, right here."
-            </p>
+            
+            <!-- Local Guide Link -->
+            <div style="background: rgba(255, 106, 0, 0.08); border: 1px solid var(--accent); border-radius: 8px; padding: 20px; margin-top: 24px;">
+              <div style="font-family: 'Barlow Condensed'; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); font-weight: 700; margin-bottom: 6px;">LOCAL DINING GUIDE</div>
+              <h3 style="color: var(--white); font-family: 'Barlow Condensed'; font-size: 20px; margin: 0 0 8px 0;"><a href="${data.blog}" style="color: var(--white); text-decoration: none;">${data.blogTitle}</a></h3>
+              <p style="color: var(--gray); font-size: 14px; line-height: 1.5; margin: 0 0 12px 0;">Read our complete guide to charcoal grilling techniques, 100% Zabiha Halal standards, and authentic dishes in the San Fernando Valley.</p>
+              <a href="${data.blog}" style="color: var(--accent); font-weight: 600; text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Read Full Guide &rarr;</a>
+            </div>
           </div>
           <div class="story-img-container reveal-animate delay-2">
-            <img src="/halal-afghan-restaurant-reseda.webp" alt="Bigi Awasaana Food Truck and Grill" loading="lazy">
+            <img src="/halal-afghan-restaurant-reseda.webp" alt="Authentic 100% Zabiha Halal Afghan Street Food &amp; Charcoal Grills in ${data.name}" loading="lazy">
           </div>
         </div>
       </div>
     </section>
     
-    <!-- 3. Menu Highlights Section -->
+    <!-- 4. Menu Highlights Section -->
     <section class="highlights-section">
       <div class="container">
         <div class="text-center-mobile reveal-animate" style="margin-bottom: 64px;">
@@ -322,29 +380,29 @@ for (const [id, data] of Object.entries(areas)) {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;">
           <!-- Bakery Section -->
           <div class="glass-card reveal-animate delay-1">
-            <div class="glass-card-icon">🫓</div>
+            <div class="glass-card-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon ui-icon-no-margin"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v10a4 4 0 0 1-8 0V2"/><path d="M11 2v4"/><path d="M15 14v8"/><path d="M7 14v8"/></svg></div>
             <h2>Fresh Afghan Bakery</h2>
             <p style="margin: 0; line-height: 1.7; color: var(--gray); flex: 1;">${bakeryText}</p>
           </div>
           
           <!-- Halal Smash Burger Section -->
           <div class="glass-card reveal-animate delay-2">
-            <div class="glass-card-icon">🍔</div>
+            <div class="glass-card-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon ui-icon-no-margin"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
             <h2>The Smash Burger</h2>
             <p style="margin: 0; line-height: 1.7; color: var(--gray); flex: 1;">${burgerText}</p>
           </div>
           
           <!-- Delivery & Catering Section -->
           <div class="glass-card reveal-animate delay-3">
-            <div class="glass-card-icon">🚙</div>
-            <h2>Delivery & Catering</h2>
+            <div class="glass-card-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon ui-icon-no-margin"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+            <h2>Delivery &amp; Catering</h2>
             <p style="margin: 0; line-height: 1.7; color: var(--gray); flex: 1;">We know you don't want to wait when you're hungry. We offer fast delivery to ${data.name} (typically ${data.distance} drive from our kitchen). Planning an event near ${data.landmark}? We provide premium Halal catering trays for corporate events, weddings, and family gatherings.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 4. Local FAQ Section -->
+    <!-- 5. Local FAQ Section -->
     <section class="faq-section">
       <div class="container" style="max-width: 800px;">
         <h2 class="reveal-animate" style="color: var(--white); font-family: 'Barlow Condensed'; font-size: 40px; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Frequently Asked Questions in ${data.name}</h2>
@@ -353,21 +411,21 @@ for (const [id, data] of Object.entries(areas)) {
           <details class="faq-item">
             <summary class="faq-summary">Is your meat 100% Halal?</summary>
             <div class="faq-content">
-              Yes, all of our meat, including our beef, chicken, and lamb, is strictly 100% Zabiha Halal. We are proud to be a trusted Halal source for the ${data.name} community.
+              Yes, all of our meat, including our beef, chicken, and lamb, is strictly 100% hand-slaughtered Zabiha Halal. We are proud to be a trusted Halal source for the ${data.name} community.
             </div>
           </details>
           
           <details class="faq-item">
             <summary class="faq-summary">Do you deliver to ${data.name}?</summary>
             <div class="faq-content">
-              Yes! We deliver our fresh kabobs and bakery items directly to ${data.name}. You can order directly through our website or via UberEats and DoorDash.
+              Yes! We deliver our fresh kabobs and bakery items directly to ${data.name}. You can order directly through our website or via Uber Eats and DoorDash.
             </div>
           </details>
           
           <details class="faq-item">
             <summary class="faq-summary">What is your most popular dish?</summary>
             <div class="faq-content">
-              Our Chapli Kabob Wrap, Saffron Qabuli Palou, and our fresh-baked Bolani are massive hits across the valley.
+              Our Chapli Kabob, Saffron Qabuli Palau, and fresh-baked Bolani are massive hits across ${data.name} and the San Fernando Valley.
             </div>
           </details>
           
@@ -381,12 +439,12 @@ for (const [id, data] of Object.entries(areas)) {
       </div>
     </section>
     
-    <!-- 5. CTA Section -->
+    <!-- 6. CTA Section -->
     <section class="cta-section">
       <div class="container text-center-mobile reveal-animate">
         <h2 style="font-family: 'Barlow Condensed'; font-size: 48px; text-transform: uppercase; color: var(--white); margin-bottom: 16px;">Hungry yet?</h2>
         <p style="color: var(--gray); font-size: 20px; max-width: 600px; margin: 0 auto 40px auto;">Experience the best Halal food in the valley today. Pick up in Reseda or get it delivered to ${data.name}.</p>
-        <a href="/menu.html" class="btn-primary" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px; box-shadow: 0 10px 20px rgba(255,69,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 25px rgba(255,69,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 20px rgba(255,69,0,0.2)';">View Full Menu</a>
+        <a href="/menu" class="btn-primary" style="text-decoration: none; padding: 18px 48px; font-size: 18px; border-radius: 100px; box-shadow: 0 10px 20px rgba(255,69,0,0.2);">View Full Menu</a>
       </div>
     </section>
   `;
@@ -398,14 +456,14 @@ for (const [id, data] of Object.entries(areas)) {
         "@context": "https://schema.org",
         "@type": ["Restaurant", "FoodEstablishment"],
         "name": "Bigi Awasaana",
-        "description": "Authentic Afghan street food. Coal-fired kabobs, bolani, and saffron rice platters. 100% Zabiha Halal.",
-        "url": "https://bigiawasaana.com",
-        "image": "https://bigiawasaana.com/halal-afghan-restaurant-reseda.webp",
-        "logo": "https://bigiawasaana.com/logo.webp",
+        "description": "Authentic Afghan street food and charcoal grill. Coal-fired kabobs, bolani, and saffron rice platters. 100% Zabiha Halal.",
+        "url": "https://www.bigiawasaana.com",
+        "image": "https://www.bigiawasaana.com/halal-afghan-restaurant-reseda.webp",
+        "logo": "https://www.bigiawasaana.com/logo.webp",
         "telephone": "+13239211646",
         "servesCuisine": ["Afghan", "Middle Eastern", "Halal"],
         "priceRange": "$$",
-        "hasMenu": "https://bigiawasaana.com/menu.html",
+        "hasMenu": "https://www.bigiawasaana.com/menu",
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "18411 Victory Blvd",
@@ -425,10 +483,16 @@ for (const [id, data] of Object.entries(areas)) {
         },
         "openingHoursSpecification": {
           "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
-          "opens": "12:00",
+          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+          "opens": "13:00",
           "closes": "22:30"
         },
+        "foundingDate": "2012",
+        "founder": {
+          "@type": "Person",
+          "name": "Ahmadullah Hashmatullah"
+        },
+        "knowsAbout": ["Zabiha Halal", "Afghan Cuisine", "Coal-Fired Kabobs", "Silk Road Spices"],
         "aggregateRating": {
           "@type": "AggregateRating",
           "ratingValue": "4.9",
@@ -444,7 +508,7 @@ for (const [id, data] of Object.entries(areas)) {
             "name": "Is your meat 100% Halal in ${data.name}?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes, all of our meat is strictly 100% Zabiha Halal. We are a trusted Halal source for the ${data.name} community."
+              "text": "Yes, all of our meat is strictly 100% hand-slaughtered Zabiha Halal. We are a trusted Halal source for the ${data.name} community."
             }
           },
           {
@@ -452,7 +516,7 @@ for (const [id, data] of Object.entries(areas)) {
             "name": "Do you deliver to ${data.name}?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes! We deliver our fresh kabobs and bakery items directly to ${data.name}."
+              "text": "Yes! We deliver our fresh kabobs and bakery items directly to ${data.name} via our website, Uber Eats, and DoorDash."
             }
           },
           {
@@ -469,30 +533,35 @@ for (const [id, data] of Object.entries(areas)) {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://bigiawasaana.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Locations", "item": "https://bigiawasaana.com/locations.html" },
-          { "@type": "ListItem", "position": 3, "name": "Halal Food in ${data.name}", "item": "https://bigiawasaana.com/areas/${id}" }
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.bigiawasaana.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Locations", "item": "https://www.bigiawasaana.com/locations" },
+          { "@type": "ListItem", "position": 3, "name": "Halal Food in ${data.name}", "item": "https://www.bigiawasaana.com/areas/${id}" }
         ]
       }
     ]
     </script>
   `;
 
-  // Generate unique meta keywords per city
-  const keywords = `halal smash burger ${data.name}, halal food ${data.name}, afghan food ${data.name}, kabobs ${data.name}, halal delivery ${data.name}, afghan bakery ${data.name}, zabiha halal ${data.name}, halal catering ${data.name}, bolani ${data.name}, qabuli palou ${data.name}, bigi awasaana`;
-
   let html = template
     .replace(/{{TITLE}}/g, title)
     .replace(/{{META_DESC}}/g, description)
-    .replace(/{{META_KEYWORDS}}/g, keywords)
+    .replace(/{{META_KEYWORDS}}/g, '')
     .replace(/{{AREA_ID}}/g, id)
     .replace(/{{AREA_CONTENT}}/g, content)
     .replace(/{{META_ROBOTS}}/g, '')
     .replace(/{{SCHEMA_DATA}}/g, schema);
 
   fs.writeFileSync(path.join(outDir, `${id}.html`), html);
-  console.log(`✅ Generated advanced SEO page: ${data.name} (Tier ${data.tier})`);
+  const srcAreasDir = path.join(process.cwd(), 'areas');
+  if (fs.existsSync(srcAreasDir)) {
+    fs.writeFileSync(path.join(srcAreasDir, `${id}.html`), html);
+  }
+  const pubAreasDir = path.join(process.cwd(), 'public', 'areas');
+  if (fs.existsSync(pubAreasDir)) {
+    fs.writeFileSync(path.join(pubAreasDir, `${id}.html`), html);
+  }
   count++;
+  console.log(`✅ Generated advanced SEO page: ${data.name} (Tier ${data.tier})`);
 }
 
-console.log(`\n🎉 Successfully generated ${count} advanced long-form SEO pages!`);
+console.log(`Done! Generated exactly ${count} active area pages.`);
