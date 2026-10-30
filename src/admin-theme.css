@@ -2549,8 +2549,65 @@ h1, h2, h3, h4 {
     padding-bottom: 8px !important;
     margin-bottom: 16px !important;
     -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .crm-subnav::-webkit-scrollbar {
+    display: none !important;
   }
   .crm-subnav button {
     flex-shrink: 0 !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+  #catering-view {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  #catering-view .crm-stats-grid,
+  #catering-stats-row,
+  #cat-quotes-stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+  #catering-view .crm-stat-card {
+    padding: 12px 10px !important;
+  }
+  #catering-view .crm-stat-card .stat-title {
+    font-size: 11px !important;
+  }
+  #catering-view .crm-stat-card .stat-value {
+    font-size: 18px !important;
+  }
+  #btn-open-quote-editor {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px 14px !important;
+  }
+  #pkg-search, #quote-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  #pkg-status-filter, #quote-status-filter {
+    width: 100% !important;
+  }
+  #cat-bookings-list {
+    grid-template-columns: 1fr !important;
+  }
+  #catalog-dishes-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  #catalog-templates-admin-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 }

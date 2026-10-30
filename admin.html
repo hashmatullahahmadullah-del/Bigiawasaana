@@ -1290,13 +1290,14 @@
                   <div style="display: flex; gap: 8px; align-items: center;">
                     <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Status:</label>
                     <select id="pkg-status-filter" class="crm-select" onchange="window.filterPackageRequests()" style="min-width: 130px;">
-                    <option value="all">All Statuses</option>
-                    <option value="new">New</option>
-                    <option value="reviewing">Reviewing</option>
-                    <option value="changes_needed">Changes Needed</option>
-                    <option value="quoted">Quoted</option>
-                    <option value="closed">Closed</option>
-                  </select>
+                      <option value="all">All Statuses</option>
+                      <option value="new">New</option>
+                      <option value="reviewing">Reviewing</option>
+                      <option value="changes_needed">Changes Needed</option>
+                      <option value="quoted">Quoted</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -1314,7 +1315,7 @@
                     </tr>
                   </thead>
                   <tbody id="catering-packages-table-body">
-                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading package requests...</td></tr>
+                    <tr><td colspan="7" class="table-empty-cell" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading package requests...</td></tr>
                   </tbody>
                 </table>
               </div>

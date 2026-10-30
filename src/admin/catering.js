@@ -1119,7 +1119,7 @@ export function renderPackageRequests() {
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">No catering package requests found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="table-empty-cell" style="text-align: center; color: var(--text-muted); padding: 32px;">No catering package requests found.</td></tr>';
     return;
   }
 
@@ -1136,33 +1136,33 @@ export function renderPackageRequests() {
 
     return `
       <tr>
-        <td style="font-family: monospace; font-weight: 700; color: var(--accent-admin);">
+        <td data-label="Request #" style="font-family: monospace; font-weight: 700; color: var(--accent-admin);">
           ${escapeHtml(req.requestNumber || req.id)}
         </td>
-        <td>
+        <td data-label="Client">
           <div style="font-weight: 600; color: var(--text-main);">${escapeHtml(req.customerContact?.name || 'Unknown')}</div>
           <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(req.customerContact?.phone || '')} &bull; ${escapeHtml(req.customerContact?.email || '')}</div>
         </td>
-        <td>
+        <td data-label="Event Date & Guests">
           <div style="color: var(--text-main);">${escapeHtml(req.eventDetails?.date || 'N/A')}</div>
           <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(String(req.eventDetails?.guests || 0))} guests (${escapeHtml(req.eventDetails?.type || 'Event')})</div>
         </td>
-        <td>
+        <td data-label="Fulfillment">
           <span style="font-size: 12px; text-transform: uppercase; font-weight: 700; color: ${req.eventDetails?.fulfillment === 'delivery' ? '#ff9800' : '#4caf50'};">
             ${escapeHtml(req.eventDetails?.fulfillment || 'pickup')}
           </span>
         </td>
-        <td style="font-weight: 700; color: var(--text-main);">
+        <td data-label="Estimated Total" style="font-weight: 700; color: var(--text-main);">
           $${estTotal.toFixed(2)}
           <div style="font-size: 11px; font-weight: normal; color: var(--text-muted);">${itemsCount} trays</div>
         </td>
-        <td>
+        <td data-label="Status">
           <span style="display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: ${statusBg}; color: ${statusColor};">
             ${escapeHtml(req.status || 'new')}
           </span>
         </td>
-        <td>
-          <div style="display: flex; gap: 6px;">
+        <td data-label="Actions" style="text-align: right;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
             <button type="button" class="btn-outline btn-sm" onclick="window.openPackageRequestById('${req.id}')" style="padding: 6px 10px; font-size: 12px;">
               Review
             </button>
