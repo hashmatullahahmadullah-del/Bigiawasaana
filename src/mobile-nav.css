@@ -10,7 +10,7 @@
   width: calc(100% - 32px);
   max-width: 1200px;
   z-index: 1000;
-  background: rgba(17, 17, 17, 0.85);
+  background: rgba(11, 11, 11, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -50,11 +50,46 @@
   border-color: var(--accent, #ff4500);
 }
 
+
+/* ─── Lang Toggle in Floating Navbar ─── */
+.site-nav .site-lang-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  padding: 5px 12px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  font-family: 'Outfit', sans-serif !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 9999px !important;
+  color: var(--white, #fff) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+.site-nav .site-lang-toggle:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #fff !important;
+  transform: translateY(-1px) !important;
+}
+
+@media (max-width: 1220px) {
+  .site-nav .nav-cta-outline {
+    display: none !important;
+  }
+}
+
 /* ─── Desktop Links ─── */
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: clamp(8px, 1.15vw, 16px); flex-wrap: nowrap;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 600;
   font-size: 13px;
@@ -419,7 +454,7 @@ body.nav-drawer-open {
 }
 
 /* ─── Mobile Media Queries ─── */
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   .site-nav {
     top: 12px;
     width: calc(100% - 24px);
@@ -466,7 +501,7 @@ body.nav-drawer-open {
 }
 
 /* ─── General Mobile Layout Fixes ─── */
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   .page-header {
     padding-top: 100px !important;
     padding-bottom: 40px !important;
