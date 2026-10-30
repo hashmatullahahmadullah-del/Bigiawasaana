@@ -283,7 +283,7 @@
     ]
   }
   </script>
-  <link rel="preload" as="image" href="/images/hero/hero-800.webp" imagesrcset="/images/hero/hero-400.webp 400w, /images/hero/hero-800.webp 800w, /images/hero/hero-1200.webp 1200w, /images/hero/hero-1600.webp 1600w" imagesizes="100vw" fetchpriority="high">
+  <link rel="preload" as="image" href="/halal-tikka-kabob-los-angeles.webp">
   
   
   <link rel="dns-prefetch" href="https://bigi-awasaana-7b3ce.firebaseapp.com">
@@ -325,6 +325,12 @@
         <li><a href="/blog">Blog</a></li>
         <li><a href="/shop" style="color: var(--accent); font-weight: 600;">Shop</a></li>
         <li><a href="/order-history.html" data-i18n="nav.orders">My Orders</a></li>
+        <li id="nav-account-li">
+          <button type="button" class="nav-account-pill" id="nav-account-btn" aria-label="Sign In or Account">
+            <svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="nav-signin-text">Sign In</span>
+          </button>
+        </li>
         <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
         <li><a href="tel:+13239211646" class="nav-cta-outline">(323) 921-1646</a></li>
       </ul>
@@ -342,6 +348,10 @@
 
   <!-- Mobile Drawer -->
   <div class="nav-mobile-drawer" id="nav-mobile-drawer">
+    <button type="button" class="mobile-nav-account-btn" id="mobile-nav-account-btn" aria-label="Sign In or Account">
+      <span style="display: flex; align-items: center; color: var(--accent);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <span class="nav-signin-text">Sign In / Rewards</span>
+    </button>
     <a href="/menu" data-i18n="nav.menu">Menu</a>
     <a href="/menu" style="color: var(--accent); font-weight: 700;">Order Now</a>
     <a href="/order-history.html" data-i18n="nav.orders" style="font-weight: 600;">My Orders & Rewards</a>
@@ -357,11 +367,6 @@
   <main id="main-content">
   <!-- Hero -->
   <header class="hero">
-    <picture class="hero-picture">
-      <source type="image/avif" srcset="/images/hero/hero-400.avif 400w, /images/hero/hero-800.avif 800w, /images/hero/hero-1200.avif 1200w, /images/hero/hero-1600.avif 1600w" sizes="100vw">
-      <source type="image/webp" srcset="/images/hero/hero-400.webp 400w, /images/hero/hero-800.webp 800w, /images/hero/hero-1200.webp 1200w, /images/hero/hero-1600.webp 1600w" sizes="100vw">
-      <img class="hero-bg-img" src="/images/hero/hero-1200.webp" alt="Authentic Halal Afghan Food Truck and Charcoal Grill in Reseda" width="1600" height="900" fetchpriority="high" decoding="async">
-    </picture>
     <div class="hero-content text-center-mobile">
       <div id="welcome-container" class="reveal" style="min-height: 2em; margin-bottom: 8px; display: flex; align-items: center;">
         <div id="welcome-text" style="font-family: 'Outfit', sans-serif; font-size: clamp(14px, 2.5vw, 22px); line-height: 1.4; color: var(--accent-light); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;">Welcome to Bigi Awasaana</div>

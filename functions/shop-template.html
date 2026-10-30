@@ -65,20 +65,20 @@
   <script src="https://web.squarecdn.com/v1/square.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/assets/shop-Bf2VpN03.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;600;700&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/assets/shop-DjqYT87T.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-BQdWdB5M.js">
   <link rel="modulepreload" crossorigin href="/assets/preload-helper-BlojH8Eq.js">
   <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-CQdaUd_C.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-firebase-app-BbJWkEE5.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-firebase-firestore-D7RqVGmE.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-firebase-functions-BAH0nlY8.js">
-  <link rel="modulepreload" crossorigin href="/assets/firebase-DcbiDMTt.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-firebase-app-CLUP0TAn.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-firebase-firestore-BeIqtspe.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-firebase-functions-CrAxQStC.js">
+  <link rel="modulepreload" crossorigin href="/assets/firebase-_xB8y1Om.js">
   <link rel="modulepreload" crossorigin href="/assets/vendor-icons-Dd7EHmUJ.js">
-  <link rel="modulepreload" crossorigin href="/assets/analytics-D8B4XyPD.js">
-  <link rel="modulepreload" crossorigin href="/assets/nav-CYWF_kF5.js">
-  <link rel="stylesheet" crossorigin href="/assets/mobile-nav-DGGLcHT_.css">
-  <link rel="stylesheet" crossorigin href="/assets/style-DvH3_y7g.css">
+  <link rel="modulepreload" crossorigin href="/assets/analytics-DT4TZfpw.js">
+  <link rel="modulepreload" crossorigin href="/assets/nav-DtBaGTNG.js">
+  <link rel="stylesheet" crossorigin href="/assets/mobile-nav-BRHCcxfi.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-C8OZcWqD.css">
 </head>
 <body>
 
@@ -96,6 +96,12 @@
         <li><a href="/blog">Blog</a></li>
         <li><a href="/shop" class="active" style="color: var(--accent); font-weight: 600;">Shop</a></li>
         <li><a href="/order-history.html" data-i18n="nav.orders">My Orders</a></li>
+        <li id="nav-account-li">
+          <button type="button" class="nav-account-pill" id="nav-account-btn" aria-label="Sign In or Account">
+            <svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="nav-signin-text">Sign In</span>
+          </button>
+        </li>
         <li><button class="site-lang-toggle btn-outline" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
         <li><a href="tel:+13239211646" class="nav-cta-outline">(323) 921-1646</a></li>
       </ul>
@@ -113,6 +119,10 @@
 
   <!-- Mobile Drawer -->
       <div class="nav-mobile-drawer" id="nav-mobile-drawer">
+    <button type="button" class="mobile-nav-account-btn" id="mobile-nav-account-btn" aria-label="Sign In or Account">
+      <span style="display: flex; align-items: center; color: var(--accent);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <span class="nav-signin-text">Sign In / Rewards</span>
+    </button>
     <a href="/menu" data-i18n="nav.menu">Menu</a>
     <a href="/menu" style="color: var(--accent); font-weight: 700;">Order Now</a>
     <a href="/order-history.html" data-i18n="nav.orders" style="font-weight: 600;">My Orders & Rewards</a>
