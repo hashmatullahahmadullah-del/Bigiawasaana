@@ -2472,3 +2472,85 @@ h1, h2, h3, h4 {
 }
 
 
+
+
+/* ==========================================================================
+   Admin Catering & Modal Micro-interactions & Mobile Responsiveness
+   ========================================================================== */
+
+/* Button Tap Animations & Active Micro-interactions */
+.crm-btn, .btn-primary, .btn-outline, .crm-btn-primary, .crm-btn-outline, .crm-subnav button, .action-copy-link, .action-edit-quote {
+  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1), background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.crm-btn:active, .btn-primary:active, .btn-outline:active, .crm-btn-primary:active, .crm-btn-outline:active, .crm-subnav button:active {
+  transform: scale(0.96) translateY(1px) !important;
+}
+
+/* Spinner Animation for Admin Buttons */
+.crm-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  border-top-color: currentColor;
+  animation: crm-spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes crm-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Copy Link Success State Animation */
+.copy-link-success {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  transform: scale(1.04);
+  transition: all 0.2s ease !important;
+}
+
+/* Responsive Modal Styling for Google Pixel, iPhone, and Small Tablets */
+@media (max-width: 640px) {
+  #quote-editor-modal .crm-modal-box,
+  #package-request-modal .crm-modal-box,
+  #dish-picker-modal .crm-modal-box {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    max-height: 94vh !important;
+    max-height: 94dvh !important;
+    margin: 0 auto !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+  }
+  #quote-editor-modal .crm-modal-content,
+  #package-request-modal .crm-modal-body,
+  #dish-picker-modal .crm-modal-content {
+    padding: 14px 12px !important;
+    overflow-x: hidden !important;
+  }
+  .quote-client-info-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  #quote-editor-modal .form-row-2,
+  #quote-editor-modal [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  #quote-editor-modal [style*="grid-template-columns: 1.2fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .crm-subnav {
+    padding-bottom: 8px !important;
+    margin-bottom: 16px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .crm-subnav button {
+    flex-shrink: 0 !important;
+  }
+}

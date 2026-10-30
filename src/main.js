@@ -2294,7 +2294,7 @@ function updateCartUI() {
         <div class="cart-item-actions">
           <div class="cart-item-controls" role="group" aria-label="Item quantity">
             <button type="button" class="cart-qty-btn cart-qty-minus" onclick="changeCartQty(${index}, -1)" aria-label="${itemQty === 1 ? 'Remove from bag' : 'Decrease quantity'}" title="${itemQty === 1 ? 'Remove' : 'Decrease'}">
-              ${itemQty === 1 ? iconTrash(14) : iconMinus(14)}
+              ${iconMinus(14)}
             </button>
             <span class="cart-qty-val" aria-label="Quantity">${itemQty}</span>
             <button type="button" class="cart-qty-btn cart-qty-plus" onclick="changeCartQty(${index}, 1)" aria-label="Increase quantity" title="Increase">

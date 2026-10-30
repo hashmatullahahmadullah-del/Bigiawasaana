@@ -288,15 +288,14 @@ function applyHoursConfig(pickupConfig) {
     const ampm = h >= 12 ? 'PM' : 'AM';
     let displayH = h % 12;
     displayH = displayH ? displayH : 12;
-    return `${displayH}${m > 0 ? ':' + String(m).padStart(2, '0') : ''}${ampm}`;
+    return `${String(displayH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')} ${ampm}`;
   }
   
-  const openTime = formatTime(pickupConfig.businessHours.open);
-  const closeTime = formatTime(pickupConfig.businessHours.close);
+  const openTime = formatTime(pickupConfig.businessHours.open) || '01:00 PM';
+  const closeTime = formatTime(pickupConfig.businessHours.close) || '10:30 PM';
   
-  const fullText = `${openDaysStr} ${openTime}–${closeTime}`;
   document.querySelectorAll('.footer-hours-display').forEach(el => {
-    el.textContent = fullText;
+    el.innerHTML = `Monday &ndash; Saturday: ${openTime} &ndash; ${closeTime}<br><strong style="color: #ef4444;">Sunday: Closed</strong>`;
   });
   
   const timeOnlyText = `${openTime} – ${closeTime}`;
@@ -305,7 +304,7 @@ function applyHoursConfig(pickupConfig) {
   });
   
   document.querySelectorAll('.hero-days-display').forEach(el => {
-    el.textContent = openDaysStr === 'Every Day' ? 'Every Day' : openDaysStr;
+    el.textContent = 'Mon–Sat (Sun Closed)';
   });
 }
 

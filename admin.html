@@ -1041,7 +1041,7 @@
                 </div>
               </div>
               
-              <div id="admin-rewards-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+              <div id="admin-rewards-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px;">
                 <!-- Populated dynamically by src/admin/rewards.js -->
               </div>
             </div>
@@ -1205,9 +1205,9 @@
 
             <div class="crm-panel" style="padding: 16px 20px; margin-bottom: 16px;">
               <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; gap: 12px; flex: 1; min-width: 280px;">
-                  <input type="text" id="quote-search-input" class="crm-input" placeholder="Search by Quote #, Client, Phone, or Email..." oninput="window.renderCateringQuotes()" style="flex: 1; max-width: 380px;">
-                  <select id="quote-status-filter" class="crm-input" onchange="window.renderCateringQuotes()" style="max-width: 180px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; flex: 1; width: 100%;">
+                  <input type="text" id="quote-search-input" class="crm-input" placeholder="Search by Quote #, Client, Phone, or Email..." oninput="window.renderCateringQuotes()" style="flex: 1; min-width: 180px;">
+                  <select id="quote-status-filter" class="crm-input" onchange="window.renderCateringQuotes()" style="min-width: 140px;">
                     <option value="">All Statuses</option>
                     <option value="draft">Draft</option>
                     <option value="sent">Sent to Client</option>
@@ -1285,12 +1285,11 @@
 
             <div class="crm-panel mt-m">
               <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
-                <div style="display: flex; gap: 10px; flex: 1; max-width: 500px;">
-                  <input type="text" id="pkg-search" class="crm-input" placeholder="Search by client name, email, phone, or request #..." oninput="window.filterPackageRequests()" style="flex: 1;">
-                </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                  <label style="font-size: 13px; color: var(--text-muted);">Status:</label>
-                  <select id="pkg-status-filter" class="crm-select" onchange="window.filterPackageRequests()" style="width: 150px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; flex: 1; width: 100%;">
+                  <input type="text" id="pkg-search" class="crm-input" placeholder="Search by client name, email, phone, or request #..." oninput="window.filterPackageRequests()" style="flex: 1; min-width: 180px;">
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Status:</label>
+                    <select id="pkg-status-filter" class="crm-select" onchange="window.filterPackageRequests()" style="min-width: 130px;">
                     <option value="all">All Statuses</option>
                     <option value="new">New</option>
                     <option value="reviewing">Reviewing</option>
@@ -1342,7 +1341,7 @@
               <h3 style="font-size: 18px; color: var(--text-main); margin: 0 0 4px;">Preset Package Templates</h3>
               <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 16px;">Preset banquets for weddings, family feasts, and corporate luncheons.</p>
 
-              <div id="catalog-templates-admin-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+              <div id="catalog-templates-admin-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px;">
                 <!-- Rendered via JS -->
               </div>
             </div>
@@ -2816,7 +2815,7 @@
   <script type="module" src="/src/admin.js"></script>
 
   <!-- Quote Editor Modal -->
-  <div class="crm-modal" id="quote-editor-modal" style="display: none;">
+  <div class="crm-modal" id="quote-editor-modal">
     <div class="crm-modal-box" style="max-width: 1040px; width: 95vw; max-height: 92vh; display: flex; flex-direction: column;">
       <div class="crm-modal-header" style="padding: 16px 24px; border-bottom: 1px solid var(--border-admin); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -2830,7 +2829,7 @@
       </div>
 
       <div class="crm-modal-content" style="padding: 20px 24px; overflow-y: auto; flex: 1;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px;">
           <!-- Left Column: Client & Event Information -->
           <div>
             <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--accent-admin, #e11d48); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
@@ -3035,7 +3034,7 @@
   </div>
 
   <!-- Live Menu Dish Picker Modal -->
-  <div class="crm-modal" id="dish-picker-modal" style="display: none;">
+  <div class="crm-modal" id="dish-picker-modal">
     <div class="crm-modal-box" style="max-width: 640px; width: 90vw; max-height: 85vh; display: flex; flex-direction: column;">
       <div class="crm-modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-admin); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
         <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-main);">Select Live Menu Dishes</h3>
@@ -3055,8 +3054,8 @@
 
   <!-- Package Request Inspection & Convert Modal -->
   <div class="crm-modal" id="package-request-modal">
-    <div class="crm-modal-content" style="max-width: 780px;">
-      <div class="crm-modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="crm-modal-box" style="max-width: 780px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="crm-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-admin); flex-shrink: 0;">
         <div>
           <span style="font-size: 11px; font-weight: 700; color: var(--accent-admin); text-transform: uppercase;" id="prm-req-num">BA-PKG-XXXX</span>
           <h2 style="margin: 2px 0 0 0; font-size: 20px; color: var(--text-main);">Catering Package Request Details</h2>

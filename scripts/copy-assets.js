@@ -25,6 +25,36 @@ const filesToCopy = [
   { src: 'src/lib/deals-evaluator.js', dest: 'functions/deals-evaluator.js' }
 ];
 
+function safeWrite(dest, content) {
+  let attempts = 0;
+  while (attempts < 5) {
+    try {
+      fs.writeFileSync(dest, content);
+      return;
+    } catch (err) {
+      attempts++;
+      if (attempts >= 5) throw err;
+      const waitTill = new Date(new Date().getTime() + 200);
+      while (waitTill > new Date()) {}
+    }
+  }
+}
+
+function safeCopy(src, dest) {
+  let attempts = 0;
+  while (attempts < 5) {
+    try {
+      fs.copyFileSync(src, dest);
+      return;
+    } catch (err) {
+      attempts++;
+      if (attempts >= 5) throw err;
+      const waitTill = new Date(new Date().getTime() + 200);
+      while (waitTill > new Date()) {}
+    }
+  }
+}
+
 filesToCopy.forEach(({ src, dest }) => {
   const destDir = path.dirname(dest);
   if (!fs.existsSync(destDir)) {
@@ -66,7 +96,7 @@ filesToCopy.forEach(({ src, dest }) => {
   }
 });
 
-fs.copyFileSync('dist/shop.html', 'functions/shop-template.html');
+safeCopy('dist/shop.html', 'functions/shop-template.html');
 console.log('Copied shop-template.html');
 
 // Copy public/m-img to dist/m-img

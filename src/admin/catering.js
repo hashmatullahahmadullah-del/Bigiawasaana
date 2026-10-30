@@ -1,5 +1,6 @@
 import { DEFAULT_CATERING_CATALOG, DEFAULT_PACKAGE_TEMPLATES } from '../lib/catering-catalog-data.js';
 import { state } from './shared.js';
+window.state = state;
 import { db, app } from '../firebase.js';
 import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -354,7 +355,7 @@ export function renderCateringQuotes() {
     `;
 
     tr.querySelector('.action-edit-quote').addEventListener('click', () => window.openEditQuoteModal(quote));
-    tr.querySelector('.action-copy-link').addEventListener('click', () => window.copyQuotePortalLink(quote));
+    tr.querySelector('.action-copy-link').addEventListener('click', (e) => window.copyQuotePortalLink(quote, e.currentTarget));
     tr.querySelector('.action-preview-quote').addEventListener('click', () => window.previewQuotePortal(quote));
     tr.querySelector('.action-dup-quote').addEventListener('click', () => window.duplicateQuote(quote));
 
@@ -453,10 +454,10 @@ export function renderConfirmedBookings() {
         </div>
 
         <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-admin); padding-top: 14px;">
-          <button type="button" class="btn-outline btn-sm" onclick="window.openEditQuoteModal(state.quotes.find(q => q.id === '${b.id}'))" style="flex: 1; padding: 8px;">
+          <button type="button" class="btn-outline btn-sm" onclick="window.openEditQuoteModalById('${b.id}')" style="flex: 1; padding: 8px;">
             View Quote
           </button>
-          <button type="button" class="btn-outline btn-sm" onclick="window.copyQuotePortalLink(state.quotes.find(q => q.id === '${b.id}'))" style="flex: 1; padding: 8px;">
+          <button type="button" class="btn-outline btn-sm" onclick="window.copyQuotePortalLinkById('${b.id}', this)" style="flex: 1; padding: 8px;">
             Client Link
           </button>
         </div>
@@ -570,6 +571,11 @@ window.openEditQuoteModal = (quote) => {
   openCreateQuoteModal(quote);
 };
 
+window.openEditQuoteModalById = (id) => {
+  const quote = (state.quotes || []).find(q => q.id === id);
+  if (quote) openCreateQuoteModal(quote);
+};
+
 window.closeQuoteEditorModal = () => {
   const modal = document.getElementById('quote-editor-modal');
   if (modal) {
@@ -625,43 +631,52 @@ export function renderQuoteEditorItems() {
     return;
   }
 
-  let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+  let html = '<div style="display: flex; flex-direction: column; gap: 12px; width: 100%; box-sizing: border-box;">';
 
   currentQuoteItems.forEach((item, index) => {
     html += `
-      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px; padding: 14px; display: grid; grid-template-columns: 60px 1fr 100px 100px 90px 40px; gap: 12px; align-items: center;">
-        <div>
-          ${item.imageUrl 
-            ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-admin);">`
-            : `<div style="width: 56px; height: 56px; background: var(--surface-admin); border-radius: 6px; border: 1px solid var(--border-admin); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Pic</div>`}
-        </div>
+      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
+        <!-- Row 1: Image, Title, Portion & Remove -->
+        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+          <div style="flex-shrink: 0;">
+            ${item.imageUrl 
+              ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-admin);">`
+              : `<div style="width: 48px; height: 48px; background: var(--surface-admin); border-radius: 6px; border: 1px solid var(--border-admin); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Pic</div>`}
+          </div>
 
-        <div>
-          <input type="text" class="crm-input" value="${escapeHtml(item.name)}" oninput="window.updateQuoteItemField(${index}, 'name', this.value)" placeholder="Dish Name" style="font-weight: 600; padding: 6px 10px; font-size: 13px; margin-bottom: 4px;">
-          <input type="text" class="crm-input" value="${escapeHtml(item.portionSize || '')}" oninput="window.updateQuoteItemField(${index}, 'portionSize', this.value)" placeholder="Portion (e.g. Serves 25-30)" style="font-size: 12px; padding: 4px 8px; color: var(--text-muted);">
-        </div>
+          <div style="flex: 1; min-width: 0;">
+            <input type="text" class="crm-input" value="${escapeHtml(item.name)}" oninput="window.updateQuoteItemField(${index}, 'name', this.value)" placeholder="Dish Name" style="font-weight: 600; padding: 6px 10px; font-size: 13px; margin-bottom: 4px; width: 100%; box-sizing: border-box;">
+            <input type="text" class="crm-input" value="${escapeHtml(item.portionSize || '')}" oninput="window.updateQuoteItemField(${index}, 'portionSize', this.value)" placeholder="Portion (e.g. Serves 25-30)" style="font-size: 12px; padding: 4px 8px; color: var(--text-muted); width: 100%; box-sizing: border-box;">
+          </div>
 
-        <div>
-          <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase;">Qty</label>
-          <input type="number" min="1" class="crm-input" value="${item.quantity || 1}" oninput="window.updateQuoteItemField(${index}, 'quantity', parseInt(this.value) || 1)" style="padding: 6px 8px; font-size: 13px; text-align: center;">
-        </div>
-
-        <div>
-          <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase;">Unit Price</label>
-          <input type="number" step="0.01" min="0" class="crm-input" value="${item.unitPrice || 0}" oninput="window.updateQuoteItemField(${index}, 'unitPrice', parseFloat(this.value) || 0)" style="padding: 6px 8px; font-size: 13px;">
-        </div>
-
-        <div>
-          <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase;">Total</label>
-          <div style="font-weight: 700; font-size: 14px; color: var(--text-main); padding-top: 6px;">
-            $${((item.quantity || 1) * (item.unitPrice || 0)).toFixed(2)}
+          <div style="flex-shrink: 0;">
+            <button type="button" class="btn-outline" onclick="window.removeQuoteItem(${index})" title="Remove item" style="padding: 6px; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--danger); border-color: rgba(239,68,68,0.3); cursor: pointer;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
           </div>
         </div>
 
-        <div>
-          <button type="button" class="btn-outline" onclick="window.removeQuoteItem(${index})" title="Remove item" style="padding: 6px; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--danger); border-color: rgba(239,68,68,0.3);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+        <!-- Row 2: Qty, Unit Price, Line Total -->
+        <div style="display: flex; gap: 10px; align-items: flex-end; padding-top: 8px; border-top: 1px dashed var(--border-admin); width: 100%; box-sizing: border-box;">
+          <div style="flex: 1; min-width: 65px;">
+            <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Qty</label>
+            <input type="number" min="1" class="crm-input" value="${item.quantity || 1}" oninput="window.updateQuoteItemField(${index}, 'quantity', parseInt(this.value) || 1)" style="padding: 6px 8px; font-size: 13px; text-align: center; width: 100%; box-sizing: border-box;">
+          </div>
+
+          <div style="flex: 1.2; min-width: 85px;">
+            <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Unit Price</label>
+            <div style="position: relative; width: 100%;">
+              <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-muted); pointer-events: none;">$</span>
+              <input type="number" step="0.01" min="0" class="crm-input" value="${item.unitPrice || 0}" oninput="window.updateQuoteItemField(${index}, 'unitPrice', parseFloat(this.value) || 0)" style="padding: 6px 8px 6px 20px; font-size: 13px; width: 100%; box-sizing: border-box;">
+            </div>
+          </div>
+
+          <div style="flex: 1.2; text-align: right;">
+            <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Line Total</label>
+            <div style="font-weight: 700; font-size: 15px; color: var(--text-main); padding-top: 4px;">
+              ${((item.quantity || 1) * (item.unitPrice || 0)).toFixed(2)}
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -879,6 +894,15 @@ window.saveQuoteDraft = async () => {
     updatedAt: serverTimestamp()
   };
 
+  // Find save buttons for animation
+  const saveBtn = document.getElementById('qe-btn-save-draft') || document.querySelector('#quote-editor-modal button[onclick*="saveQuoteDraft"]');
+  let origSaveHtml = '';
+  if (saveBtn) {
+    origSaveHtml = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="crm-spinner"></span> Saving...';
+  }
+
   try {
     if (currentEditingQuoteId) {
       await updateDoc(doc(db, 'catering_quotes', currentEditingQuoteId), quoteDocData);
@@ -897,26 +921,65 @@ window.saveQuoteDraft = async () => {
       showToast('New catering quote created.');
     }
 
-    window.closeQuoteEditorModal();
+    if (saveBtn) {
+      saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Saved!';
+    }
+    setTimeout(() => {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = origSaveHtml;
+      }
+      window.closeQuoteEditorModal();
+    }, 400);
   } catch (err) {
     console.error('Error saving quote:', err);
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = origSaveHtml;
+    }
     showToast('Failed to save catering quote.', true);
   }
 };
 
 /**
- * Copy Private Portal Link
+ * Copy Private Portal Link with visual animation feedback
  */
-window.copyQuotePortalLink = (quote) => {
+window.copyQuotePortalLink = (quote, triggerBtn = null) => {
   if (!quote) return;
   const token = quote.security?.directAccessToken || '';
   const url = `https://www.bigiawasaana.com/quote.html?q=${encodeURIComponent(quote.quoteNumber)}&token=${encodeURIComponent(token)}`;
 
-  navigator.clipboard.writeText(url).then(() => {
-    showToast(`Copied private client link for #${quote.quoteNumber}!`);
-  }).catch(() => {
+  const btn = triggerBtn || (typeof event !== 'undefined' && event?.currentTarget ? event.currentTarget : null);
+
+  const applyAnimation = () => {
+    if (btn) {
+      const origText = btn.innerHTML;
+      btn.classList.add('copy-link-success');
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copy-link-success');
+        btn.innerHTML = origText;
+      }, 2000);
+    }
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      applyAnimation();
+      showToast(`Copied private client link for #${quote.quoteNumber}!`);
+    }).catch(() => {
+      applyAnimation();
+      prompt('Private Client Quote Link:', url);
+    });
+  } else {
+    applyAnimation();
     prompt('Private Client Quote Link:', url);
-  });
+  }
+};
+
+window.copyQuotePortalLinkById = (id, btn = null) => {
+  const quote = (state.quotes || []).find(q => q.id === id);
+  if (quote) window.copyQuotePortalLink(quote, btn);
 };
 
 /**
@@ -965,10 +1028,12 @@ window.sendQuoteEmailToClient = async () => {
     return;
   }
 
-  const btn = document.getElementById('qe-btn-send-email');
+  const btn = document.getElementById('qe-btn-send-email') || document.querySelector('#quote-editor-modal button[onclick*="sendQuoteEmailToClient"]');
+  let origBtnHtml = '';
   if (btn) {
+    origBtnHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.textContent = 'Sending...';
+    btn.innerHTML = '<span class="crm-spinner"></span> Sending Proposal...';
   }
 
   try {
@@ -976,16 +1041,24 @@ window.sendQuoteEmailToClient = async () => {
     const sendFn = httpsCallable(functions, 'sendCateringQuoteEmail');
     await sendFn({ quoteId: currentEditingQuoteId });
 
+    if (btn) {
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg> Sent!';
+    }
     showToast('Official catering proposal sent to client!');
-    window.closeQuoteEditorModal();
+    setTimeout(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origBtnHtml;
+      }
+      window.closeQuoteEditorModal();
+    }, 500);
   } catch (err) {
     console.error('Error sending quote email:', err);
-    showToast(`Failed to send email: ${err.message}`, true);
-  } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Send to Client';
+      btn.innerHTML = origBtnHtml;
     }
+    showToast('Failed to send proposal email.', true);
   }
 };
 
@@ -1090,10 +1163,10 @@ export function renderPackageRequests() {
         </td>
         <td>
           <div style="display: flex; gap: 6px;">
-            <button type="button" class="btn-outline btn-sm" onclick="window.openPackageRequestModal(state.packageRequests.find(r => r.id === '${req.id}'))" style="padding: 6px 10px; font-size: 12px;">
+            <button type="button" class="btn-outline btn-sm" onclick="window.openPackageRequestById('${req.id}')" style="padding: 6px 10px; font-size: 12px;">
               Review
             </button>
-            <button type="button" class="btn-primary btn-sm" onclick="window.convertPackageRequestToQuote(state.packageRequests.find(r => r.id === '${req.id}'))" style="padding: 6px 12px; font-size: 12px; font-weight: 700;">
+            <button type="button" class="btn-primary btn-sm" onclick="window.convertPackageRequestById('${req.id}')" style="padding: 6px 12px; font-size: 12px; font-weight: 700;">
               Convert
             </button>
           </div>
@@ -1103,6 +1176,16 @@ export function renderPackageRequests() {
   }).join('');
 }
 window.renderPackageRequests = renderPackageRequests;
+
+window.openPackageRequestById = (id) => {
+  const req = (state.packageRequests || []).find(r => r.id === id);
+  if (req) openPackageRequestModal(req);
+};
+window.convertPackageRequestById = (id) => {
+  const req = (state.packageRequests || []).find(r => r.id === id);
+  if (req) convertPackageRequestToQuote(req);
+};
+
 window.filterPackageRequests = renderPackageRequests;
 
 export function openPackageRequestModal(pkg) {
