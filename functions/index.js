@@ -45,3 +45,6 @@ exports.onRetailOrderCreatedEmail = require('./emails').onRetailOrderCreatedEmai
 
 exports.registerApplePayDomain = require('./payments').registerApplePayDomain;
 exports.refundSquarePayment = require('./orders').refundSquarePayment;
+
+exports.getOrderTracking = require('./orders').getOrderTracking;
+exports.getReorderItems = require('./orders').getReorderItems;

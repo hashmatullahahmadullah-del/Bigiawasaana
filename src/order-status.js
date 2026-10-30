@@ -1,5 +1,5 @@
-import { app, db } from './firebase.js';
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { app } from './firebase.js';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getMessaging, getToken } from 'firebase/messaging';
 import { iconFileText, iconPhone, iconRefresh, iconStar, iconUtensils } from './icons.js';
 
@@ -18,67 +18,93 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const orderRef = doc(db, 'orders', orderId);
+  const functions = getFunctions(app);
+  const getOrderTracking = httpsCallable(functions, 'getOrderTracking');
+
+  let pollTimer = null;
+  let isFetching = false;
   let previousStatus = null;
+  let isTabVisible = !document.hidden;
 
-  onSnapshot(orderRef, (docSnap) => {
-    if (!docSnap.exists()) {
-      showError("We couldn't find an order with this link.");
-      return;
-    }
+  async function fetchStatus() {
+    if (isFetching) return;
+    isFetching = true;
 
-    const order = docSnap.data();
-
-
-    // Trigger local HTML5 notification if status changes to ready
-    if (previousStatus && previousStatus !== 'ready' && order.status === 'ready') {
-      if (Notification.permission === 'granted') {
-        new Notification('Order Ready for Pickup!', {
-          body: 'Your Bigi Awasaana order is ready. Come and get it!',
-          icon: '/android-chrome-192x192.png'
-        });
-      }
-    }
-    previousStatus = order.status;
-
-    // Security check: verify token
-    if (order.accessToken !== token) {
-      showError("Unauthorized. Invalid access token.");
-      return;
-    }
-
-    renderOrder(orderId, order);
-    
-    // Request push notification permissions
-    if (order.status !== 'completed') {
-      setupPushNotifications(orderId, order.fcmToken);
-    }
-    
-  }, (err) => {
-    console.error("Firebase read error:", err);
-    showError("Failed to connect to real-time updates. Please refresh the page.");
-  });
-
-  async function setupPushNotifications(orderId, existingToken) {
     try {
-      const messaging = getMessaging(app);
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        // You would normally pass a VAPID key to getToken: getToken(messaging, { vapidKey: '...' })
-        // If omitted, Firebase uses the default project sender ID.
-        const currentToken = await getToken(messaging);
-        if (currentToken && currentToken !== existingToken) {
-          const orderRef = doc(db, 'orders', orderId);
-  let previousStatus = null;
-          await updateDoc(orderRef, { fcmToken: currentToken });
+      const res = await getOrderTracking({ orderId, token });
+      const order = res.data;
 
+      if (!order || !order.success) {
+        showError("We couldn't find an order with this link.");
+        stopPolling();
+        return;
+      }
+
+      // Trigger local HTML5 notification if status changes to ready
+      if (previousStatus && previousStatus !== 'ready' && order.status === 'ready') {
+        if (Notification.permission === 'granted') {
+          new Notification('Order Ready for Pickup!', {
+            body: 'Your Bigi Awasaana order is ready. Come and get it!',
+            icon: '/android-chrome-192x192.png'
+          });
         }
       }
-    } catch (err) {
+      previousStatus = order.status;
 
-      // Silent fail
+      renderOrder(orderId, order, token);
+
+      // Schedule next polling interval based on status
+      scheduleNextPoll(order.status);
+    } catch (err) {
+      console.error("Order tracking error:", err);
+      if (err.code === 'permission-denied' || err.message?.includes('permission-denied')) {
+        showError("Invalid or expired order tracking link.");
+        stopPolling();
+      } else {
+        // Transient network error: retry in 10s
+        scheduleNextPoll('retry');
+      }
+    } finally {
+      isFetching = false;
     }
   }
+
+  function scheduleNextPoll(status) {
+    stopPolling();
+    // Stop polling if final state reached
+    if (status === 'completed' || status === 'cancelled' || status === 'refunded') {
+      return;
+    }
+
+    let delayMs = 6000; // Default: 6 seconds while cooking
+    if (!isTabVisible) {
+      delayMs = 30000; // Slow down to 30s when tab is hidden to save battery & quota
+    } else if (status === 'ready' || status === 'partially_refunded') {
+      delayMs = 15000; // 15 seconds when order is ready for pickup
+    } else if (status === 'retry') {
+      delayMs = 10000;
+    }
+
+    pollTimer = setTimeout(fetchStatus, delayMs);
+  }
+
+  function stopPolling() {
+    if (pollTimer) {
+      clearTimeout(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  // Resume or speed up polling when customer returns to the tab
+  document.addEventListener('visibilitychange', () => {
+    isTabVisible = !document.hidden;
+    if (isTabVisible && previousStatus && !['completed', 'cancelled', 'refunded'].includes(previousStatus)) {
+      fetchStatus();
+    }
+  });
+
+  // Clean up timers on unload
+  window.addEventListener('beforeunload', stopPolling);
 
   function showError(msg) {
     loadingState.style.display = 'none';
@@ -87,16 +113,16 @@ document.addEventListener('DOMContentLoaded', () => {
     errorMsg.textContent = msg;
   }
 
-  function renderOrder(id, order) {
+  function renderOrder(id, order, tokenStr) {
     loadingState.style.display = 'none';
     mainContent.style.display = 'flex';
 
-    // Populate data
-    document.getElementById('order-customer').textContent = order.customerName || 'Guest';
-    document.getElementById('order-id').textContent = '#' + id.slice(-4).toUpperCase();
+    // Populate data (Privacy-safe: customerFirstName only)
+    document.getElementById('order-customer').textContent = order.customerFirstName || 'Guest';
+    document.getElementById('order-id').textContent = '#' + (order.orderNumber || id.slice(-4).toUpperCase());
     
     const gross = typeof order.total === 'number' ? order.total : (parseFloat(order.total) || 0);
-    const refund = Number(order.refundedAmount || (order.refundedAmountCents ? order.refundedAmountCents / 100 : 0) || 0);
+    const refund = Number(order.refundedAmount || 0);
     const net = Math.max(0, gross - refund);
     if (refund > 0) {
       document.getElementById('order-total').innerHTML = `$${net.toFixed(2)} <span style="font-size: 13px; color: #ef4444; text-decoration: line-through; margin-left: 6px;">$${gross.toFixed(2)}</span>`;
@@ -111,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       li.className = 'item-row';
       li.innerHTML = `
         <div>
-          <span class="item-qty">${item.quantity || item.qty || 1}×</span>
+          <span class="item-qty">${item.quantity || 1}×</span>
           <span style="color: var(--white);">${item.name}</span>
         </div>
       `;
@@ -150,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelCard = document.getElementById('cancellation-alert-card');
     const partialCard = document.getElementById('partial-refund-alert-card');
     const progressContainer = document.getElementById('progress-container');
-    const cardInfo = order.cardBrand ? `${order.cardBrand} ending in •••• ${order.cardLast4}` : 'your original payment method';
+    const cardInfo = order.cardBrand ? `${order.cardBrand} ending in •••• ${order.cardLast4 || '••••'}` : 'your original payment method';
 
     if (order.status === 'cancelled' || order.status === 'refunded') {
       if (progressContainer) progressContainer.style.display = 'none';
@@ -173,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Add convenient buttons for the customer
       const postActions = document.getElementById('post-order-actions');
       if (postActions) {
         postActions.innerHTML = `
@@ -219,12 +244,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Step classes
     [1, 2, 3].forEach(stepNum => {
       const stepEl = document.getElementById(`step-${stepNum}`);
-      stepEl.classList.remove('active', 'completed-step');
-      
-      if (stepNum < state.step) {
-        stepEl.classList.add('completed-step');
-      } else if (stepNum === state.step) {
-        stepEl.classList.add('active');
+      if (stepEl) {
+        stepEl.classList.remove('active', 'completed-step');
+        if (stepNum < state.step) {
+          stepEl.classList.add('completed-step');
+        } else if (stepNum === state.step) {
+          stepEl.classList.add('active');
+        }
       }
     });
 
@@ -234,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (order.status === 'pending' || order.status === 'preparing') {
       if (order.estimatedReadyAt) {
-        // Handle Firestore timestamp or standard date
         const readyTime = order.estimatedReadyAt.toDate ? order.estimatedReadyAt.toDate() : new Date(order.estimatedReadyAt);
         const now = new Date();
         const diffMins = Math.ceil((readyTime - now) / 60000);
@@ -256,13 +281,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Post-order engagement & Reorder actions
     const actionsContainer = document.getElementById('post-order-actions');
     if (actionsContainer) {
-      const phoneParam = order.customerPhone ? `?phone=${encodeURIComponent(order.customerPhone)}` : '';
+      const safeReorderUrl = `/menu?reorder=${encodeURIComponent(id)}&token=${encodeURIComponent(tokenStr)}`;
       let actionsHtml = `
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <a href="/menu?reorder=${encodeURIComponent(id)}" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none; padding: 12px 16px; font-size: 15px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--primary); color: var(--dark);">
+          <a href="${safeReorderUrl}" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none; padding: 12px 16px; font-size: 15px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--primary); color: var(--dark);">
             ${iconRefresh(16)} Reorder This Meal
           </a>
-          <a href="/order-history.html${phoneParam}" class="btn-outline" style="flex: 1; text-align: center; text-decoration: none; padding: 12px 16px; font-size: 15px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); color: var(--white); background: var(--surface);">
+          <a href="/order-history.html" class="btn-outline" style="flex: 1; text-align: center; text-decoration: none; padding: 12px 16px; font-size: 15px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); color: var(--white); background: var(--surface);">
             ${iconFileText(16)} My Past Orders
           </a>
         </div>
@@ -285,4 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
       actionsContainer.innerHTML = actionsHtml;
     }
   }
+
+  // Initial fetch
+  fetchStatus();
 });

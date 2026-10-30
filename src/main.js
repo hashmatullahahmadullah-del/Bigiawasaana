@@ -28,42 +28,217 @@ async function callFirebaseFunction(name, data) {
   return callable(data);
 }
 
-// Menu data loaded from Firestore (with fallback default plates)
+// Menu data loaded from Firestore (with fallback canonical items)
 const DEFAULT_MENU_ITEMS = [
   {
-    id: 'chicken-tikka-kabob-plate',
-    name: 'Chicken Breast Tikka Kabob Plate',
-    desc: 'Charcoal-grilled halal chicken breast marinated in saffron, garlic, and Afghan spices.',
-    price: 20.99,
-    category: 'afghan plates',
-    img: '/halal-tikka-kabob-los-angeles.webp',
-    featured: true
+    "id": "2YsE0bWoYyJyrMvHQZ5v",
+    "name": "Bigi's Kobideh Kabob Skewer",
+    "desc": "A charcoal-grilled ground beef kabob skewer served over rice or bread with fresh salad.",
+    "price": 19.99,
+    "category": "charcoal kabobs",
+    "img": "/m-img/1787957249457_BigiAwasaana_KobidehKabob.webp",
+    "slug": "bigi-s-kobideh-kabob-skewer",
+    "featured": true
   },
   {
-    id: 'kobideh-kabob-plate',
-    name: "Bigi's Kobideh Kabob Skewer",
-    desc: 'Charcoal-grilled halal ground beef kobideh skewer served with saffron basmati rice and fresh salad.',
-    price: 19.99,
-    category: 'afghan plates',
-    img: '/m-img/1787957249457_BigiAwasaana_KobidehKabob.webp',
-    featured: true
+    "id": "HasuTY0MWin3nn5IkZcb",
+    "name": "Bigi's Chicken Tikka Kabob Plate",
+    "desc": "Chunks of marinated chicken breast bathed overnight in yogurt, ginger, garlic, and proprietary Afghan spices, charcoal-grilled to caramelized perfection.",
+    "price": 17.99,
+    "category": "charcoal kabobs",
+    "img": "/m-img/1787957385203_BigiAwasaana_ChickenTikka.webp",
+    "slug": "bigi-s-chicken-tikka-kabob-plate",
+    "featured": true
   },
   {
-    id: 'beef-tenderloin-tikka-plate',
-    name: 'Beef Tenderloin Tikka Kabob Plate',
-    desc: 'Tender cubes of halal beef tenderloin grilled over natural hardwood lump charcoal.',
-    price: 23.99,
-    category: 'afghan plates',
-    img: '/halal-tikka-kabob-los-angeles.webp',
-    featured: true
+    "id": "yfIiD4H87iuPMpR9zdoN",
+    "name": "Bigi's Tikka Kabab Plate",
+    "desc": "Tender chunks of marinated Zabiha Halal beef or chicken tikka charcoal-grilled over live hardwood embers.",
+    "price": 19.99,
+    "category": "charcoal kabobs",
+    "img": "/m-img/1787957385203_BigiAwasaana_ChickenTikka.webp",
+    "slug": "bigi-s-tikka-kabab-plate",
+    "featured": false
   },
   {
-    id: 'umtvEZ6d98Rb4K0conY1',
-    name: 'Soft Drink (Can)',
-    desc: 'Chilled canned soda of your choice.',
-    price: 2.45,
-    category: 'drinks',
-    variants: [{ name: 'Coca Cola' }, { name: 'Diet Coke' }, { name: 'Sprite' }, { name: 'Fanta' }]
+    "id": "XvAjowz3KjiWQopaHAvb",
+    "name": "Bigi's Chapli Kabob",
+    "desc": "A wide, flat Pashtun patty of seasoned ground beef with tomatoes, onions, coriander, and green chili, seared for crispy edges and a juicy center.",
+    "price": 17.99,
+    "category": "charcoal kabobs",
+    "img": "/m-img/1787957451239_BigiAwasaana_ChapliKabob.webp",
+    "slug": "bigi-s-chapli-kabob",
+    "featured": true
+  },
+  {
+    "id": "PgKqdCkeN8gwklvL4rlR",
+    "name": "Bigi's Cheese Kabob Stick",
+    "desc": "Charcoal-grilled kabob skewer wrapped in a sizzling layer of melted cheese.",
+    "price": 10.99,
+    "category": "charcoal kabobs",
+    "img": "/m-img/1787957512847_BigiAwasaana_CheeseKabob.webp",
+    "slug": "bigi-s-cheese-kabob-stick",
+    "featured": false
+  },
+  {
+    "id": "cv7CVaf8ZPl3RX31F8Vb",
+    "name": "Bigi's Qabuli Palau Lamb Shank",
+    "desc": "Tender lamb shank slow-braised under spiced sella basmati rice, crowned with caramelized carrots and sweet raisins.",
+    "price": 19.99,
+    "category": "traditional afghan plates",
+    "img": "/m-img/1787957589234_BigiAwasaana_QabuliPalau.webp",
+    "slug": "bigi-s-qabuli-palau-lamb-shank",
+    "featured": true
+  },
+  {
+    "id": "sB2T62F4PX8EreJq9Q4a",
+    "name": "Bigi's Beef Gyro Rice Bowl",
+    "desc": "Grilled beef gyro carved over fragrant basmati rice with crisp side salad and house sauces.",
+    "price": 14.99,
+    "category": "traditional afghan plates",
+    "img": "/m-img/1787957648129_BigiAwasaana_BeefGyroBowl.webp",
+    "slug": "bigi-s-beef-gyro-rice-bowl",
+    "featured": false
+  },
+  {
+    "id": "2lCvDYF1DilvP1caQjoL",
+    "name": "Bigi's Chicken Gyro Rice Bowl",
+    "desc": "Grilled chicken gyro carved over fragrant basmati rice, finished with a side salad and house dipping sauces.",
+    "price": 12.99,
+    "category": "traditional afghan plates",
+    "img": "/m-img/1787957712398_BigiAwasaana_ChickenGyroBowl.webp",
+    "slug": "bigi-s-chicken-gyro-rice-bowl",
+    "featured": false
+  },
+  {
+    "id": "63S1WsuVjtkMfaLnYzIq",
+    "name": "Bigi's Smash Burger",
+    "desc": "A 100% Zabiha Halal beef patty smashed thin on a 450° griddle for crispy lacey edges, melted cheese, and Bigi's house sauce.",
+    "price": 13,
+    "category": "burgers & sandwiches",
+    "img": "/m-img/1787957784562_BigiAwasaana_SmashBurger.webp",
+    "slug": "bigi-s-smash-burger",
+    "featured": false
+  },
+  {
+    "id": "NZJHy1ZIBfgYH47oC2Wz",
+    "name": "Bigi's Silk Road Wrap AKA Afghan Burger",
+    "desc": "A loaded lavash wrap stuffed with charcoal-grilled kabobs, crispy french fries, fresh veggies, and house sauces.",
+    "price": 9.99,
+    "category": "burgers & sandwiches",
+    "img": "/m-img/1787957851239_BigiAwasaana_AfghanBurger.webp",
+    "slug": "bigi-s-silk-road-wrap-aka-afghan-burger",
+    "featured": true
+  },
+  {
+    "id": "JbIeZPCUejQkuz5QAYnz",
+    "name": "Bigi's Beef Shawarma Wrap",
+    "desc": "Marinated beef thigh, slow-stacked and carved, wrapped in warm flatbread with garlic toum, pickled veggies, and fresh herbs.",
+    "price": 14.99,
+    "category": "wraps & rolls",
+    "img": "/m-img/1787957921845_BigiAwasaana_BeefShawarma.webp",
+    "slug": "bigi-s-beef-shawarma-wrap",
+    "featured": false
+  },
+  {
+    "id": "gaN3Y2lOV6eHPYhC3Anb",
+    "name": "Bigi's Chicken Shawarma Wrap",
+    "desc": "Marinated chicken thigh slow-stacked and carved, wrapped in warm flatbread with garlic toum, pickled vegetables, and herbs.",
+    "price": 11.99,
+    "category": "wraps & rolls",
+    "img": "/m-img/1787957989123_BigiAwasaana_ChickenShawarma.webp",
+    "slug": "bigi-s-chicken-shawarma-wrap",
+    "featured": false
+  },
+  {
+    "id": "BNoJY3IGYgUxeLkdrMna",
+    "name": "Bigi's Bolani",
+    "desc": "Crisp pan-seared Afghan flatbread stuffed with spiced potatoes, scallions, and herbs, served with cool garlic cilantro chutney.",
+    "price": 7.99,
+    "category": "street bites & sides",
+    "img": "/m-img/1787958054321_BigiAwasaana_Bolani.webp",
+    "slug": "bigi-s-bolani",
+    "featured": true
+  },
+  {
+    "id": "FEMCaQpZlF1Tm0Q63TBz",
+    "name": "Bigi's Chicken Samosa",
+    "desc": "A golden shatteringly crispy pastry filled with seasoned minced chicken, onions, cilantro, and warm Afghan spices.",
+    "price": 2.99,
+    "category": "street bites & sides",
+    "img": "/m-img/1787958123456_BigiAwasaana_ChickenSamosa.webp",
+    "slug": "bigi-s-chicken-samosa",
+    "featured": false
+  },
+  {
+    "id": "VbCgaDPsaZODs7u68uOK",
+    "name": "Bigi's Veg Samosa",
+    "desc": "Crispy fried pastry pocket stuffed with spiced potatoes and sweet green peas, served with tangy chutney.",
+    "price": 1.99,
+    "category": "street bites & sides",
+    "img": "/m-img/1787958189745_BigiAwasaana_VegSamosa.webp",
+    "slug": "bigi-s-veg-samosa",
+    "featured": false
+  },
+  {
+    "id": "DOPmbJJnWGQdJXE38jTO",
+    "name": "Bigi's Chicken Soup",
+    "desc": "A deeply flavored Afghan chicken broth with tender pulled chicken, aromatic vegetables, and house spices.",
+    "price": 6.99,
+    "category": "street bites & sides",
+    "img": "/m-img/1787958254123_BigiAwasaana_ChickenSoup.webp",
+    "slug": "bigi-s-chicken-soup",
+    "featured": false
+  },
+  {
+    "id": "O2EisQzW3PeTikdmr96N",
+    "name": "Bigi's Firni",
+    "desc": "Silky chilled Afghan milk pudding set with ground rice, perfumed with rosewater, green cardamom, and crushed pistachios.",
+    "price": 3.99,
+    "category": "desserts & beverages",
+    "img": "/m-img/1787958319876_BigiAwasaana_Firni.webp",
+    "slug": "bigi-s-firni",
+    "featured": false
+  },
+  {
+    "id": "kXWoq1hkNx4azjZcuuf0",
+    "name": "Bigi's Doogh",
+    "desc": "A chilled lightly sparkling Afghan yogurt drink seasoned with dried wild mint, cucumber, and sea salt.",
+    "price": 4.99,
+    "category": "desserts & beverages",
+    "img": "/m-img/1787958384210_BigiAwasaana_Doogh.webp",
+    "slug": "bigi-s-doogh",
+    "featured": false
+  },
+  {
+    "id": "dK5c0LLrWSIspnaykCGo",
+    "name": "Milk Tea - Chai",
+    "desc": "Freshly brewed loose-leaf black tea slow-simmered with whole milk and green cardamom.",
+    "price": 2.49,
+    "category": "desserts & beverages",
+    "img": "/m-img/1787958448901_BigiAwasaana_Chai.webp",
+    "slug": "milk-tea-chai",
+    "featured": false
+  },
+  {
+    "id": "umtvEZ6d98Rb4K0conY1",
+    "name": "Soft Drinks",
+    "desc": "A chilled selection of canned and bottled sodas including Coke, Diet Coke, Sprite, and Fanta.",
+    "price": 2.45,
+    "category": "desserts & beverages",
+    "img": "/m-img/1787958512345_BigiAwasaana_SoftDrinks.webp",
+    "slug": "soft-drinks",
+    "featured": false
+  },
+  {
+    "id": "9LXen2r7xbZMFFk9MVxG",
+    "name": "Bottled Water",
+    "desc": "Pure, chilled bottled spring water.",
+    "price": 0.99,
+    "category": "desserts & beverages",
+    "img": "/images/water.webp",
+    "slug": "bottled-water",
+    "featured": false
   }
 ];
 
@@ -486,10 +661,8 @@ function updateTimeSlots() {
 // ─────────────────────────────────────────────────────────────────
 async function loadMenuFromFirestore() {
   const grid = document.getElementById('menu-grid');
-  if (!grid) {
-    if (document.getElementById('featured-menu-grid')) {
-      renderFeaturedMenu();
-    }
+  const featuredGrid = document.getElementById('featured-menu-grid');
+  if (!grid && !featuredGrid) {
     return;
   }
   await fetchMenuData();
@@ -549,11 +722,13 @@ async function fetchMenuData() {
       }
 
       menuItems = snapshot.docs.map(doc => {
-        window.menuItems = menuItems;
         const data = doc.data();
+        const itemName = data.name || 'Untitled';
+        const itemSlug = data.slug || itemName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         return {
           id: doc.id,
-          name: data.name || 'Untitled',
+          name: itemName,
+          slug: itemSlug,
           desc: data.desc || data.description || '',
           price: typeof data.price === 'number' ? data.price : parseFloat(data.price) || 0,
           category: (data.category || 'platters').toLowerCase(),
@@ -566,6 +741,7 @@ async function fetchMenuData() {
           addOns: Array.isArray(data.addOns) ? data.addOns : []
         };
       });
+      window.menuItems = menuItems;
 
       // Build category pills dynamically from Firestore data
       buildCategoryPills();
@@ -752,17 +928,42 @@ async function handleReorderParam() {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const reorderId = urlParams.get('reorder');
+    const token = urlParams.get('token');
     if (!reorderId) return;
 
-    const snap = await getDoc(doc(db, 'orders', reorderId));
-    if (!snap.exists()) {
-      showToast('Could not find past order to reorder.');
-      return;
+    let orderItems = [];
+
+    // 1. Check if authenticated user staged items in sessionStorage from /order-history
+    const sessionStaged = sessionStorage.getItem('bigi_reorder_cart');
+    if (sessionStaged) {
+      try {
+        orderItems = JSON.parse(sessionStaged);
+        sessionStorage.removeItem('bigi_reorder_cart');
+      } catch (e) {}
     }
 
-    const orderData = snap.data();
-    const orderItems = orderData.items || [];
-    if (orderItems.length === 0) return;
+    // 2. If not staged in session, require token verification to prevent accessing previous purchases by guessing order ID
+    if ((!orderItems || orderItems.length === 0) && reorderId) {
+      if (!token) {
+        showToast('To reorder, please use the link from your confirmation receipt or log into your account.');
+        const cleanUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, cleanUrl);
+        return;
+      }
+
+      try {
+        const res = await callFirebaseFunction('getReorderItems', { orderId: reorderId, token });
+        if (res.data && Array.isArray(res.data.items)) {
+          orderItems = res.data.items;
+        }
+      } catch (callErr) {
+        console.error('getReorderItems error:', callErr);
+        showToast('Could not load past order to reorder.');
+        return;
+      }
+    }
+
+    if (!orderItems || orderItems.length === 0) return;
 
     let addedCount = 0;
     orderItems.forEach(oi => {
