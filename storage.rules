@@ -3,15 +3,31 @@ service firebase.storage {
   match /b/{bucket}/o {
     
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'bigiawasaana@gmail.com';
+      return request.auth != null && (
+        request.auth.token.email.matches('(?i)^bigiawasaana@gmail\\.com$') ||
+        request.auth.token.email.matches('(?i)^admin@bigiawasaana\\.com$')
+      );
     }
 
+    // Receipts & financial records: STRICT ADMIN ONLY (never public)
     match /receipts/{allPaths=**} {
       allow read, write: if isAdmin();
     }
-    match /{allPaths=**} {
+
+    // Public marketing and web assets
+    match /img/{allPaths=**} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    match /menu-images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // All other files: Admin only
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
     }
   }
 }

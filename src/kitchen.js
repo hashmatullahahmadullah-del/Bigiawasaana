@@ -149,6 +149,7 @@ function initPinScreen() {
 
       if (result.data.success) {
         sessionStorage.setItem('kds_authenticated', 'true');
+        if (auth.currentUser) { try { await auth.currentUser.getIdToken(true); } catch (_) {} }
         document.getElementById('kds-pin-screen').style.display = 'none';
         document.getElementById('kds-app').style.display = 'block';
         initKDS();

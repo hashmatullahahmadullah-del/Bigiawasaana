@@ -154,7 +154,7 @@ export function loadAnalytics() {
     // Render Top Referrers
     renderTopSourcesTable(referrerCounts);
   }, (err) => {
-    console.error('Error fetching analytics page views:', err);
+    console.warn('Analytics page views listener notice:', err);
   });
 }
 
@@ -1651,7 +1651,7 @@ window.renderTopSourcesTable = renderTopSourcesTable;
           savedExpensesContainer.innerHTML = `<div style="padding: 16px; color: #ff4d4d; white-space: pre-wrap; font-family: monospace; grid-column: 1 / -1;"><b>CRASH!</b> ${e.message}\n${e.stack}</div>`;
         }
       }, (err) => {
-        console.error("Expenses sync error:", err);
+        console.warn("Expenses sync notice:", err);
         savedExpensesContainer.innerHTML = '<div style="padding: 16px; text-align: center; color: #f44336; grid-column: 1 / -1;">Error loading expenses. Check console.</div>';
       });
 

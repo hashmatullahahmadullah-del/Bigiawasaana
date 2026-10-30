@@ -283,13 +283,8 @@ exports.lookupCustomer = functions.https.onCall(async (data, context) => {
       loyaltyPoints: custData.loyaltyPoints || 0,
       tier: custData.tier || 'bronze',
       favorites: Array.isArray(custData.favorites) ? custData.favorites : [],
-      savedCards: Array.isArray(custData.savedCards) ? custData.savedCards.map(c => ({
-        id: c.id,
-        brand: c.brand || 'CARD',
-        last4: c.last4 || '••••',
-        expMonth: c.expMonth ? Number(c.expMonth) : null,
-        expYear: c.expYear ? Number(c.expYear) : null,
-      })) : [],
+      hasSavedCards: Array.isArray(custData.savedCards) && custData.savedCards.length > 0,
+      savedCards: [], // Card metadata strictly protected: requires PIN via getOrderHistory
       lastOrderDate: toIsoString(custData.lastOrderDate),
     },
   };

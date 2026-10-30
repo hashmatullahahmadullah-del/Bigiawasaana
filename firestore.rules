@@ -39,9 +39,9 @@ service cloud.firestore {
       // Orders are created securely via the Cloud Function. Client creation is forbidden.
       allow create: if false;
       
-      // Anyone can read a SINGLE order (for tracking page)
-      // But listing ALL orders requires admin or kds
-      allow get: if true;
+      // Customer order tracking is handled exclusively via the getOrderTracking Cloud Function (with access token validation).
+      // Only admins, KDS, or authenticated customers owning the order can read directly via client SDK.
+      allow get: if isAdminOrKds() || (request.auth != null && resource.data.customerId == request.auth.uid);
       allow list: if isAdminOrKds();
       
       // Only admins or KDS can update or delete
@@ -92,11 +92,10 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Reward Redemptions Collection
+    // Reward Redemptions Collection (Created via Cloud Functions; Managed by Admin)
     match /redemptions/{redemption} {
-      allow read: if isAdmin();
-      allow create: if request.auth != null;
-      allow update, delete: if isAdmin();
+      allow read, update, delete: if isAdmin();
+      allow create: if isAdmin();
     }
 
     // Service Areas Collection (Local SEO)

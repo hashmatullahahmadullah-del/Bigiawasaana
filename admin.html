@@ -50,8 +50,10 @@
     if (!err) return false;
     const str = String(err.message || err.reason || err || '').toLowerCase();
     const name = String(err.name || '').toLowerCase();
+    const code = String(err.code || '').toLowerCase();
     if (name === 'notsupportederror' || name === 'notallowederror' || name === 'aborterror') return true;
-    if (str.includes('no supported source') || str.includes('the play() request was interrupted') || str.includes('audiocontext') || str.includes('resizeobserver loop limit exceeded') || str.includes('missing or insufficient permissions')) return true;
+    if (code === 'permission-denied') return true;
+    if (str.includes('no supported source') || str.includes('the play() request was interrupted') || str.includes('audiocontext') || str.includes('resizeobserver loop limit exceeded') || str.includes('missing or insufficient permissions') || str.includes('permission-denied')) return true;
     return false;
   }
   window.onerror = function(msg, url, line, col, error) {
@@ -99,8 +101,8 @@
       </div>
     </div>
     <form id="login-form" style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
-      <input type="email" id="admin-email" placeholder="Email" required style="padding: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 6px;">
-      <input type="password" id="admin-password" placeholder="Password" required style="padding: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 6px;">
+      <input type="email" id="admin-email" name="username" autocomplete="username" placeholder="Email" required style="padding: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 6px;">
+      <input type="password" id="admin-password" name="password" autocomplete="current-password" placeholder="Password" required style="padding: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 6px;">
       <button type="submit" class="btn-primary" style="margin-top: 8px;">Sign In</button>
     </form>
     <div id="login-error" style="color: var(--accent); font-size: 12px; margin-top: 12px; text-align: center;"></div>

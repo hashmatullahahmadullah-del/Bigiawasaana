@@ -181,18 +181,52 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Login
+// Login with progressive rate limiting
+let failedAdminAttempts = 0;
+let lockoutTimer = null;
+
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const email = document.getElementById('admin-email').value;
-  const password = document.getElementById('admin-password').value;
+  if (lockoutTimer) return;
+
+  const email = (document.getElementById('admin-email').value || '').trim();
+  const password = document.getElementById('admin-password').value || '';
+  const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+  if (failedAdminAttempts >= 5) {
+    let remainingSeconds = 60;
+    if (submitBtn) submitBtn.disabled = true;
+    errorEl.textContent = `Too many failed attempts. Please wait ${remainingSeconds}s.`;
+    lockoutTimer = setInterval(() => {
+      remainingSeconds--;
+      if (remainingSeconds <= 0) {
+        clearInterval(lockoutTimer);
+        lockoutTimer = null;
+        failedAdminAttempts = 0;
+        if (submitBtn) submitBtn.disabled = false;
+        errorEl.textContent = '';
+      } else {
+        errorEl.textContent = `Too many failed attempts. Please wait ${remainingSeconds}s.`;
+      }
+    }, 1000);
+    return;
+  }
   
   try {
     errorEl.textContent = 'Logging in...';
+    if (submitBtn) submitBtn.disabled = true;
     await signInWithEmailAndPassword(auth, email, password);
     errorEl.textContent = '';
+    failedAdminAttempts = 0;
   } catch (error) {
-    errorEl.textContent = 'Invalid credentials. Please try again.';
+    failedAdminAttempts++;
+    if (failedAdminAttempts >= 5) {
+      errorEl.textContent = 'Too many failed attempts. Locked for 60 seconds.';
+    } else {
+      errorEl.textContent = 'Invalid credentials. Please try again.';
+    }
+  } finally {
+    if (!lockoutTimer && submitBtn) submitBtn.disabled = false;
   }
 });
 

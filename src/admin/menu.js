@@ -202,21 +202,25 @@ export async function populateMealLinks() {
   const editSelect = document.getElementById('edit-menu-meal-link');
   if (!addSelect && !editSelect) return;
   
-  const q = query(collection(db, "menu"));
-  const snapshot = await getDocs(q);
-  const meals = [];
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    meals.push({ id: doc.id, name: data.name, cat: data.category });
-  });
-  
-  meals.sort((a, b) => a.name.localeCompare(b.name));
-  
-  const optionsHtml = '<option value="">No Meal Upgrade (or auto-match)</option>' + 
-    meals.map(m => `<option value="${m.id}">${m.name} (${m.cat})</option>`).join('');
+  try {
+    const q = query(collection(db, "menu"));
+    const snapshot = await getDocs(q);
+    const meals = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      meals.push({ id: doc.id, name: data.name, cat: data.category });
+    });
     
-  if (addSelect) addSelect.innerHTML = optionsHtml;
-  if (editSelect) editSelect.innerHTML = optionsHtml;
+    meals.sort((a, b) => a.name.localeCompare(b.name));
+    
+    const optionsHtml = '<option value="">No Meal Upgrade (or auto-match)</option>' + 
+      meals.map(m => `<option value="${m.id}">${m.name} (${m.cat})</option>`).join('');
+      
+    if (addSelect) addSelect.innerHTML = optionsHtml;
+    if (editSelect) editSelect.innerHTML = optionsHtml;
+  } catch (err) {
+    console.warn("populateMealLinks notice:", err);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
