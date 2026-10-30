@@ -441,7 +441,11 @@ function bindModalAndDrawerEvents() {
           return;
         } catch (err) {
           console.error('Phone lookup error:', err);
-          showAuthError(err.message || 'Error checking phone. Try again.');
+          const rawMsg = err.message || '';
+          const friendlyMsg = (rawMsg.toLowerCase() === 'internal' || err.code === 'functions/internal')
+            ? 'Unable to connect to service. Please check your connection and try again.'
+            : (rawMsg || 'Error checking phone. Try again.');
+          showAuthError(friendlyMsg);
           phoneBtn.innerHTML = 'CONTINUE →';
           phoneBtn.disabled = false;
           return;
@@ -486,6 +490,8 @@ function bindModalAndDrawerEvents() {
         const errMsg = err.message || '';
         if (errMsg.includes('permission-denied') || errMsg.toLowerCase().includes('invalid phone or pin')) {
           showAuthError('Incorrect PIN. Please double-check your 4-digit PIN.');
+        } else if (errMsg.toLowerCase() === 'internal' || err.code === 'functions/internal') {
+          showAuthError('Unable to connect to service. Please check your connection and try again.');
         } else {
           showAuthError(errMsg || 'Error signing in. Please try again.');
         }

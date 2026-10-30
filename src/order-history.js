@@ -471,6 +471,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Handle not found error codes gracefully
       if (err.code === 'functions/not-found' || (err.message && err.message.toLowerCase().includes('not found'))) {
         showStep('not-found');
+      } else if (err.code === 'functions/internal' || (err.message && err.message.toLowerCase() === 'internal')) {
+        showAlert('error', 'Unable to reach the server. Please check your connection and try again.');
       } else {
         showAlert('error', err.message || 'Unable to check phone number. Please try again.');
       }
@@ -590,6 +592,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showAlert('error', 'Incorrect PIN. Please try again.');
         inputPin.value = '';
         inputPin.focus();
+      } else if (err.code === 'functions/internal' || msg.toLowerCase() === 'internal') {
+        showAlert('error', 'Unable to reach the server. Please check your connection and try again.');
       } else {
         showAlert('error', msg || 'Failed to load order history. Please try again.');
       }
