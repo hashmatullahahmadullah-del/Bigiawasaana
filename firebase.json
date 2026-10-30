@@ -178,6 +178,10 @@
         "destination": "/catering.html"
       },
       {
+        "source": "/quote",
+        "destination": "/quote.html"
+      },
+      {
         "source": "/order-status",
         "destination": "/order-status.html"
       },

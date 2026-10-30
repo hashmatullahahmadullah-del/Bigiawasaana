@@ -45,6 +45,7 @@ export default defineConfig({
         specials: resolve(__dirname, 'specials.html'),
         locations: resolve(__dirname, 'locations.html'),
         catering: resolve(__dirname, 'catering.html'),
+        quote: resolve(__dirname, 'quote.html'),
         kitchen: resolve(__dirname, 'kitchen.html'),
         orderStatus: resolve(__dirname, 'order-status.html'),
         orderHistory: resolve(__dirname, 'order-history.html'),

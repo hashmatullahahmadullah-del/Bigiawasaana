@@ -116,6 +116,7 @@ export let state = {
   orders: [],
   reviews: [],
   catering: [],
+  quotes: [],
   tiers: { silver: 100, gold: 300 },
   ingredients: [],
   events: [],
@@ -170,6 +171,7 @@ onAuthStateChanged(auth, (user) => {
     if (window.reviewsUnsub) window.reviewsUnsub();
     if (window.settingsUnsub) window.settingsUnsub();
     if (window.cateringUnsub) window.cateringUnsub();
+    if (window.cateringQuotesUnsub) window.cateringQuotesUnsub();
     if (window.dealsUnsub) window.dealsUnsub();
     if (window.ingredientsUnsub) window.ingredientsUnsub();
     if (window.eventsUnsub) window.eventsUnsub();

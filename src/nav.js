@@ -38,6 +38,20 @@ export function initNav(activePage = '') {
     // Non-fatal
   }
 
+  // Floating nav scroll state listener
+  const siteNav = document.querySelector('.site-nav');
+  if (siteNav) {
+    const handleNavScroll = () => {
+      if (window.scrollY > 15) {
+        siteNav.classList.add('scrolled');
+      } else {
+        siteNav.classList.remove('scrolled');
+      }
+    };
+    window.addEventListener('scroll', handleNavScroll, { passive: true });
+    handleNavScroll();
+  }
+
   const hamburger = document.getElementById('nav-hamburger');
   const drawer = document.getElementById('nav-mobile-drawer');
   

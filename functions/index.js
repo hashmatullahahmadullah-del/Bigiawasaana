@@ -48,3 +48,9 @@ exports.refundSquarePayment = require('./orders').refundSquarePayment;
 
 exports.getOrderTracking = require('./orders').getOrderTracking;
 exports.getReorderItems = require('./orders').getReorderItems;
+
+// Catering Quote & Payment System
+exports.lookupCustomerQuote = require('./catering-quotes').lookupCustomerQuote;
+exports.acceptCateringQuote = require('./catering-quotes').acceptCateringQuote;
+exports.payCateringDeposit = require('./catering-quotes').payCateringDeposit;
+exports.sendCateringQuoteEmail = require('./catering-quotes').sendCateringQuoteEmail;

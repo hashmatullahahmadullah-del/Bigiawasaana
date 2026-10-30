@@ -10,20 +10,21 @@
   width: calc(100% - 32px);
   max-width: 1200px;
   z-index: 1000;
-  background: rgba(11, 11, 11, 0.98);
+  background: #0B0B0B !important;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 100px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s ease, box-shadow 0.3s ease;
   will-change: transform;
   overflow: hidden;
 }
 
 .site-nav.scrolled {
-  background: #0B0B0B !important;
-  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.7) !important;
+  background: #080808 !important;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
 }
 
 .site-nav .container {
@@ -73,6 +74,7 @@
   border-radius: 9999px !important;
   color: var(--white, #fff) !important;
   cursor: pointer !important;
+  outline: none !important;
   transition: all 0.2s ease !important;
   box-sizing: border-box !important;
   flex-shrink: 0 !important;
@@ -83,6 +85,10 @@
   border-color: rgba(255, 255, 255, 0.35) !important;
   color: #fff !important;
   transform: translateY(-1px) !important;
+}
+.site-nav .site-lang-toggle:focus-visible {
+  border-color: var(--accent, #ff4500) !important;
+  box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.3) !important;
 }
 
 @media (max-width: 1220px) {
@@ -95,7 +101,8 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: clamp(8px, 1.15vw, 16px); flex-wrap: nowrap;
+  gap: clamp(8px, 1.15vw, 16px);
+  flex-wrap: nowrap;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 600;
   font-size: 13px;
@@ -104,6 +111,13 @@
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.nav-links li {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
 }
 
 .nav-links a {

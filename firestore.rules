@@ -80,6 +80,11 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin(); // Only admins can view and manage
     }
     
+    // Catering Quotes Collection (Admin Managed; Public client direct access denied)
+    match /catering_quotes/{quote} {
+      allow read, write: if isAdmin();
+    }
+    
     // Deals Collection
     match /deals/{deal} {
       allow read: if true;

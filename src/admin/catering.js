@@ -1,0 +1,963 @@
+import { state } from './shared.js';
+import { db, app } from '../firebase.js';
+import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { showToast } from './orders.js';
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function generateQuoteNumber() {
+  const now = new Date();
+  const year = String(now.getFullYear()).slice(-2);
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const randomHex = Math.random().toString(16).substring(2, 6).toUpperCase();
+  return `BA-Q-${year}${month}-${randomHex}`;
+}
+
+function generateSecureToken() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let token = '';
+  for (let i = 0; i < 48; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
+// Global state for current quote editor
+let currentEditingQuoteId = null;
+let currentQuoteItems = [];
+
+/**
+ * ─────────────────────────────────────────────────────────────────
+ * Tab Switching (Inquiries | Quotes | Confirmed Bookings)
+ * ─────────────────────────────────────────────────────────────────
+ */
+export function switchCateringTab(tabName) {
+  const tabs = ['inquiries', 'quotes', 'bookings'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`btn-cat-${t}`);
+    const pane = document.getElementById(`cat-tab-${t}`);
+    if (btn) btn.classList.toggle('active', t === tabName);
+    if (pane) pane.style.display = t === tabName ? 'block' : 'none';
+  });
+
+  if (tabName === 'inquiries') renderCateringInquiries();
+  if (tabName === 'quotes') renderCateringQuotes();
+  if (tabName === 'bookings') renderConfirmedBookings();
+}
+window.switchCateringTab = switchCateringTab;
+
+/**
+ * ─────────────────────────────────────────────────────────────────
+ * 1. Catering Inquiries Tab
+ * ─────────────────────────────────────────────────────────────────
+ */
+export function renderCateringInquiries() {
+  const tbody = document.getElementById('catering-table-body');
+  if (!tbody) return;
+
+  const inquiries = state.catering || [];
+
+  // Update KPI counters
+  const totalEl = document.getElementById('catering-total');
+  if (totalEl) totalEl.textContent = inquiries.length;
+  const newEl = document.getElementById('catering-new');
+  if (newEl) newEl.textContent = inquiries.filter(c => c.status === 'new').length;
+  const contactedEl = document.getElementById('catering-contacted');
+  if (contactedEl) contactedEl.textContent = inquiries.filter(c => c.status === 'contacted').length;
+  const resolvedEl = document.getElementById('catering-resolved');
+  if (resolvedEl) resolvedEl.textContent = inquiries.filter(c => c.status === 'resolved').length;
+
+  // Update tab badge
+  const badgeInq = document.getElementById('badge-cat-inquiries');
+  if (badgeInq) badgeInq.textContent = inquiries.filter(c => c.status === 'new').length;
+
+  tbody.innerHTML = '';
+
+  if (inquiries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No catering inquiries found.</td></tr>';
+    return;
+  }
+
+  inquiries.forEach(inquiry => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+
+    const statusBg = inquiry.status === 'new' 
+      ? 'background: rgba(255,152,0,0.15); color: #ff9800; border: 1px solid rgba(255,152,0,0.3);'
+      : inquiry.status === 'contacted'
+      ? 'background: rgba(33,150,243,0.15); color: #2196f3; border: 1px solid rgba(33,150,243,0.3);'
+      : 'background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.3);';
+
+    tr.innerHTML = `
+      <td data-label="Date">${inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString() : 'N/A'}</td>
+      <td data-label="Customer">
+        <strong>${escapeHtml(inquiry.name)}</strong>
+        <br><small style="color: var(--text-muted);">${escapeHtml(inquiry.phone || inquiry.email || '')}</small>
+      </td>
+      <td data-label="Event Date">${escapeHtml(inquiry.date || 'N/A')}</td>
+      <td data-label="Guests">${escapeHtml(String(inquiry.guests || 'N/A'))}</td>
+      <td data-label="Status">
+        <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+          ${escapeHtml(inquiry.status)}
+        </span>
+      </td>
+      <td data-label="Actions" style="text-align: right; white-space: nowrap;">
+        <button type="button" class="btn-outline btn-sm action-quote-btn" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 6px;">
+          Create Quote
+        </button>
+        <button type="button" class="btn-outline btn-sm action-view-btn" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm, 6px);">
+          Details
+        </button>
+      </td>
+    `;
+
+    tr.querySelector('.action-quote-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.createQuoteFromInquiry(inquiry);
+    });
+
+    tr.querySelector('.action-view-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.showCateringDetails(inquiry);
+    });
+
+    tr.addEventListener('click', () => {
+      window.showCateringDetails(inquiry);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+window.renderCatering = renderCateringInquiries;
+
+/**
+ * Inquiry Details Modal
+ */
+window.showCateringDetails = (inquiry) => {
+  const modal = document.getElementById('catering-modal');
+  const title = document.getElementById('modal-catering-title');
+  const content = document.getElementById('modal-catering-content');
+
+  if (!modal || !title || !content) return;
+
+  title.textContent = `Inquiry: ${inquiry.name}`;
+  content.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px;">
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Event Date</div>
+        <div style="font-size: 15px; font-weight: 500; margin-top: 2px;">${escapeHtml(inquiry.date || 'N/A')}</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Guest Count</div>
+        <div style="font-size: 15px; font-weight: 500; margin-top: 2px;">${escapeHtml(String(inquiry.guests || 'N/A'))}</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Phone Number</div>
+        <div style="font-size: 15px; font-weight: 500; margin-top: 2px;">
+          <a href="tel:${escapeHtml(inquiry.phone || '')}" style="color: var(--accent-admin); text-decoration: none;">${escapeHtml(inquiry.phone || 'N/A')}</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Email Address</div>
+        <div style="font-size: 15px; font-weight: 500; margin-top: 2px;">
+          <a href="mailto:${escapeHtml(inquiry.email || '')}" style="color: var(--accent-admin); text-decoration: none; word-break: break-all;">${escapeHtml(inquiry.email || 'N/A')}</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Event Details & Requests</div>
+      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); padding: 14px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: var(--text-main);">
+        ${escapeHtml(inquiry.details || 'No additional details provided.')}
+      </div>
+    </div>
+
+    <div style="background: rgba(225, 29, 72, 0.06); border: 1px solid rgba(225, 29, 72, 0.2); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <strong style="color: var(--text-main); font-size: 14px; display: block;">Convert to Official Quote</strong>
+        <span style="font-size: 12px; color: var(--text-muted);">Transfer this client's event details into the custom catering quote builder.</span>
+      </div>
+      <button type="button" class="btn-primary" id="btn-inquiry-to-quote" style="padding: 10px 18px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer;">
+        Create Quote Now
+      </button>
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="btn-outline" onclick="window.updateCateringStatus('${inquiry.id}', 'contacted')" style="flex: 1; min-width: 130px; padding: 10px;">Mark Contacted</button>
+      <button class="btn-outline" onclick="window.updateCateringStatus('${inquiry.id}', 'resolved')" style="flex: 1; min-width: 130px; padding: 10px;">Mark Resolved</button>
+      <button class="btn-outline" onclick="window.closeCateringModal()" style="flex: 1; min-width: 100px; padding: 10px;">Close</button>
+    </div>
+  `;
+
+  document.getElementById('btn-inquiry-to-quote').onclick = () => {
+    window.closeCateringModal();
+    window.createQuoteFromInquiry(inquiry);
+  };
+
+  modal.classList.add('open');
+};
+
+window.closeCateringModal = () => {
+  const modal = document.getElementById('catering-modal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = '';
+  }
+};
+
+window.updateCateringStatus = async (id, status) => {
+  try {
+    await updateDoc(doc(db, 'catering_inquiries', id), { 
+      status,
+      updatedAt: serverTimestamp()
+    });
+    showToast('Inquiry status updated.');
+    window.closeCateringModal();
+  } catch (error) {
+    console.error('Error updating catering status:', error);
+    showToast('Failed to update status.', true);
+  }
+};
+
+/**
+ * ─────────────────────────────────────────────────────────────────
+ * 2. Catering Quotes Tab
+ * ─────────────────────────────────────────────────────────────────
+ */
+export function renderCateringQuotes() {
+  const tbody = document.getElementById('quotes-table-body');
+  if (!tbody) return;
+
+  const quotes = state.quotes || [];
+
+  // Filter quotes based on search and status
+  const searchTerm = (document.getElementById('quotes-search')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('quotes-status-filter')?.value || 'all';
+
+  const filtered = quotes.filter(q => {
+    const matchesStatus = statusFilter === 'all' || q.status === statusFilter;
+    const matchesSearch = !searchTerm || 
+      (q.quoteNumber && q.quoteNumber.toLowerCase().includes(searchTerm)) ||
+      (q.customer?.name && q.customer.name.toLowerCase().includes(searchTerm)) ||
+      (q.customer?.phone && q.customer.phone.includes(searchTerm)) ||
+      (q.customer?.email && q.customer.email.toLowerCase().includes(searchTerm)) ||
+      (q.event?.title && q.event.title.toLowerCase().includes(searchTerm));
+    return matchesStatus && matchesSearch;
+  });
+
+  // Calculate KPI stats
+  const totalQuotesCount = quotes.length;
+  const sentQuotesCount = quotes.filter(q => ['sent', 'viewed', 'accepted'].includes(q.status)).length;
+  const confirmedQuotesCount = quotes.filter(q => ['deposit_paid', 'confirmed', 'completed'].includes(q.status)).length;
+  const pipelineValue = quotes
+    .filter(q => q.status !== 'canceled')
+    .reduce((sum, q) => sum + (Number(q.pricing?.total) || 0), 0);
+
+  const totalEl = document.getElementById('quotes-total-count');
+  if (totalEl) totalEl.textContent = totalQuotesCount;
+  const sentEl = document.getElementById('quotes-sent-count');
+  if (sentEl) sentEl.textContent = sentQuotesCount;
+  const confirmedEl = document.getElementById('quotes-confirmed-count');
+  if (confirmedEl) confirmedEl.textContent = confirmedQuotesCount;
+  const valueEl = document.getElementById('quotes-pipeline-value');
+  if (valueEl) valueEl.textContent = `$${pipelineValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const badgeQuotes = document.getElementById('badge-cat-quotes');
+  if (badgeQuotes) badgeQuotes.textContent = quotes.filter(q => q.status === 'draft' || q.status === 'sent').length;
+
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 32px;">No catering quotes found matching criteria.</td></tr>';
+    return;
+  }
+
+  filtered.forEach(quote => {
+    const tr = document.createElement('tr');
+    
+    // Status Badge Styling
+    let statusBg = 'background: rgba(161, 161, 170, 0.15); color: #a1a1aa; border: 1px solid rgba(161, 161, 170, 0.3);';
+    let statusLabel = quote.status || 'draft';
+
+    if (quote.status === 'sent') {
+      statusBg = 'background: rgba(33, 150, 243, 0.15); color: #2196f3; border: 1px solid rgba(33, 150, 243, 0.3);';
+    } else if (quote.status === 'viewed') {
+      statusBg = 'background: rgba(156, 39, 176, 0.15); color: #9c27b0; border: 1px solid rgba(156, 39, 176, 0.3);';
+    } else if (quote.status === 'accepted') {
+      statusBg = 'background: rgba(255, 152, 0, 0.15); color: #ff9800; border: 1px solid rgba(255, 152, 0, 0.3);';
+      statusLabel = 'Accepted';
+    } else if (quote.status === 'deposit_paid' || quote.status === 'confirmed') {
+      statusBg = 'background: rgba(76, 175, 80, 0.15); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3);';
+      statusLabel = quote.status === 'deposit_paid' ? 'Deposit Paid' : 'Confirmed';
+    } else if (quote.status === 'completed') {
+      statusBg = 'background: rgba(0, 150, 136, 0.15); color: #009688; border: 1px solid rgba(0, 150, 136, 0.3);';
+    } else if (quote.status === 'canceled') {
+      statusBg = 'background: rgba(244, 67, 54, 0.15); color: #f44336; border: 1px solid rgba(244, 67, 54, 0.3);';
+    }
+
+    const total = Number(quote.pricing?.total) || 0;
+    const deposit = Number(quote.pricing?.depositAmount) || (total * 0.3);
+
+    tr.innerHTML = `
+      <td data-label="Quote #">
+        <strong style="color: var(--accent-admin); font-family: monospace; font-size: 13px;">${escapeHtml(quote.quoteNumber)}</strong>
+        <br><small style="color: var(--text-muted);">${quote.createdAtDate ? quote.createdAtDate.toLocaleDateString() : 'N/A'}</small>
+      </td>
+      <td data-label="Customer">
+        <strong>${escapeHtml(quote.customer?.name || 'Unknown')}</strong>
+        ${quote.customer?.company ? `<br><small style="color: var(--text-muted);">${escapeHtml(quote.customer.company)}</small>` : ''}
+        <br><small style="color: var(--text-muted);">${escapeHtml(quote.customer?.phone || quote.customer?.email || '')}</small>
+      </td>
+      <td data-label="Event Date">
+        <strong>${escapeHtml(quote.event?.date || 'N/A')}</strong>
+        ${quote.event?.serviceType ? `<br><small style="color: var(--text-muted); text-transform: capitalize;">${escapeHtml(quote.event.serviceType.replace('_', ' '))}</small>` : ''}
+      </td>
+      <td data-label="Guests">${escapeHtml(String(quote.event?.guests || 0))}</td>
+      <td data-label="Total">
+        <strong>$${total.toFixed(2)}</strong>
+      </td>
+      <td data-label="Deposit">
+        <span style="color: #4caf50; font-weight: 600;">$${deposit.toFixed(2)}</span>
+        <br><small style="color: var(--text-muted); font-size: 11px;">(${quote.pricing?.depositPercentage || 30}%)</small>
+      </td>
+      <td data-label="Status">
+        <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+          ${escapeHtml(statusLabel)}
+        </span>
+      </td>
+      <td data-label="Actions" style="text-align: right; white-space: nowrap;">
+        <button type="button" class="btn-outline btn-sm action-edit-quote" title="Edit Quote" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 4px;">
+          Edit
+        </button>
+        <button type="button" class="btn-outline btn-sm action-copy-link" title="Copy Private Portal Link" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 4px;">
+          Copy Link
+        </button>
+        <button type="button" class="btn-outline btn-sm action-preview-quote" title="Preview Customer View" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 4px;">
+          Preview
+        </button>
+        <button type="button" class="btn-outline btn-sm action-dup-quote" title="Duplicate Quote" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 4px;">
+          Duplicate
+        </button>
+      </td>
+    `;
+
+    tr.querySelector('.action-edit-quote').addEventListener('click', () => window.openEditQuoteModal(quote));
+    tr.querySelector('.action-copy-link').addEventListener('click', () => window.copyQuotePortalLink(quote));
+    tr.querySelector('.action-preview-quote').addEventListener('click', () => window.previewQuotePortal(quote));
+    tr.querySelector('.action-dup-quote').addEventListener('click', () => window.duplicateQuote(quote));
+
+    tbody.appendChild(tr);
+  });
+}
+window.renderCateringQuotes = renderCateringQuotes;
+
+/**
+ * ─────────────────────────────────────────────────────────────────
+ * 3. Confirmed Bookings Tab
+ * ─────────────────────────────────────────────────────────────────
+ */
+export function renderConfirmedBookings() {
+  const container = document.getElementById('cat-bookings-list');
+  if (!container) return;
+
+  const quotes = state.quotes || [];
+  const bookings = quotes.filter(q => ['deposit_paid', 'confirmed', 'completed'].includes(q.status));
+
+  const badgeBookings = document.getElementById('badge-cat-bookings');
+  if (badgeBookings) badgeBookings.textContent = bookings.length;
+
+  if (bookings.length === 0) {
+    container.innerHTML = `
+      <div class="crm-panel" style="text-align: center; padding: 48px 24px; color: var(--text-muted);">
+        <p style="margin: 0; font-size: 15px;">No confirmed catering bookings yet.</p>
+        <p style="margin: 8px 0 0 0; font-size: 13px;">When customers accept a quote and pay their deposit through Square, their booked events will appear here.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Sort by event date
+  bookings.sort((a, b) => {
+    const dateA = a.event?.date || '';
+    const dateB = b.event?.date || '';
+    return dateA.localeCompare(dateB);
+  });
+
+  let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;">';
+
+  bookings.forEach(b => {
+    const total = Number(b.pricing?.total) || 0;
+    const paidDeposit = (b.payments || [])
+      .filter(p => p.status === 'COMPLETED')
+      .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const balance = Math.max(0, total - paidDeposit);
+
+    // Calculate days remaining
+    let daysDiffText = '';
+    if (b.event?.date) {
+      const eventTime = new Date(b.event.date + 'T12:00:00').getTime();
+      const nowTime = new Date().getTime();
+      const diffDays = Math.ceil((eventTime - nowTime) / (1000 * 60 * 60 * 24));
+      if (diffDays === 0) daysDiffText = 'Today!';
+      else if (diffDays === 1) daysDiffText = 'Tomorrow';
+      else if (diffDays > 1) daysDiffText = `In ${diffDays} days`;
+      else daysDiffText = 'Past Event';
+    }
+
+    html += `
+      <div class="crm-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-left: 4px solid #4caf50;">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div>
+              <span style="font-size: 11px; font-weight: 700; color: #4caf50; text-transform: uppercase; letter-spacing: 0.5px;">Confirmed Event</span>
+              <h3 style="margin: 4px 0 0 0; font-size: 18px; color: var(--text-main);">${escapeHtml(b.event?.title || 'Catering Event')}</h3>
+            </div>
+            ${daysDiffText ? `<span style="background: rgba(76, 175, 80, 0.1); color: #4caf50; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px;">${daysDiffText}</span>` : ''}
+          </div>
+
+          <div style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px;">
+            <div><strong>Client:</strong> <span style="color: var(--text-main);">${escapeHtml(b.customer?.name || 'Unknown')}</span></div>
+            <div><strong>Phone:</strong> <a href="tel:${escapeHtml(b.customer?.phone || '')}" style="color: var(--accent-admin); text-decoration: none;">${escapeHtml(b.customer?.phone || 'N/A')}</a></div>
+            <div><strong>Date & Time:</strong> ${escapeHtml(b.event?.date || 'N/A')} (${escapeHtml(b.event?.startTime || '')} - ${escapeHtml(b.event?.endTime || '')})</div>
+            <div><strong>Guests:</strong> ${escapeHtml(String(b.event?.guests || 0))} guests</div>
+            <div><strong>Service:</strong> <span style="text-transform: capitalize;">${escapeHtml((b.event?.serviceType || 'buffet').replace('_', ' '))}</span></div>
+            <div><strong>Location:</strong> ${escapeHtml(b.event?.location?.address || '18411 Victory Blvd, Reseda, CA 91335')}</div>
+          </div>
+
+          <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: var(--text-muted);">Total Value:</span>
+              <strong>$${total.toFixed(2)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: #4caf50;">Deposit Received:</span>
+              <strong style="color: #4caf50;">$${paidDeposit.toFixed(2)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-admin); padding-top: 4px; margin-top: 4px;">
+              <span style="color: var(--text-muted);">Remaining Balance:</span>
+              <strong style="color: ${balance > 0 ? '#ff9800' : '#4caf50'};">$${balance.toFixed(2)}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-admin); padding-top: 14px;">
+          <button type="button" class="btn-outline btn-sm" onclick="window.openEditQuoteModal(state.quotes.find(q => q.id === '${b.id}'))" style="flex: 1; padding: 8px;">
+            View Quote
+          </button>
+          <button type="button" class="btn-outline btn-sm" onclick="window.copyQuotePortalLink(state.quotes.find(q => q.id === '${b.id}'))" style="flex: 1; padding: 8px;">
+            Client Link
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+window.renderConfirmedBookings = renderConfirmedBookings;
+
+/**
+ * ─────────────────────────────────────────────────────────────────
+ * 4. Quote Editor & Builder
+ * ─────────────────────────────────────────────────────────────────
+ */
+export function openCreateQuoteModal(initialData = null) {
+  currentEditingQuoteId = initialData?.id || null;
+  currentQuoteItems = initialData?.items ? JSON.parse(JSON.stringify(initialData.items)) : [];
+
+  const modal = document.getElementById('quote-editor-modal');
+  if (!modal) return;
+
+  // Title & quote number
+  const quoteNumberInput = document.getElementById('qe-quote-number');
+  if (quoteNumberInput) {
+    quoteNumberInput.value = initialData?.quoteNumber || generateQuoteNumber();
+  }
+
+  const modalTitle = document.getElementById('qe-modal-title');
+  if (modalTitle) {
+    modalTitle.textContent = currentEditingQuoteId ? `Edit Quote: ${initialData.quoteNumber}` : 'Create New Catering Quote';
+  }
+
+  // Pre-fill Customer fields
+  document.getElementById('qe-cust-name').value = initialData?.customer?.name || '';
+  document.getElementById('qe-cust-phone').value = initialData?.customer?.phone || '';
+  document.getElementById('qe-cust-email').value = initialData?.customer?.email || '';
+  document.getElementById('qe-cust-company').value = initialData?.customer?.company || '';
+  document.getElementById('qe-linked-inquiry-id').value = initialData?.inquiryId || '';
+
+  // Pre-fill Event fields
+  document.getElementById('qe-event-title').value = initialData?.event?.title || 'Catering Event';
+  document.getElementById('qe-event-date').value = initialData?.event?.date || '';
+  document.getElementById('qe-event-start').value = initialData?.event?.startTime || '17:00';
+  document.getElementById('qe-event-end').value = initialData?.event?.endTime || '21:00';
+  document.getElementById('qe-event-guests').value = initialData?.event?.guests || 50;
+  document.getElementById('qe-event-service').value = initialData?.event?.serviceType || 'buffet_dropoff';
+  document.getElementById('qe-event-address').value = initialData?.event?.location?.address || '';
+  document.getElementById('qe-event-notes').value = initialData?.event?.location?.notes || '';
+
+  // Pre-fill Pricing fields
+  document.getElementById('qe-delivery-fee').value = initialData?.pricing?.deliveryFee !== undefined ? initialData.pricing.deliveryFee : 50;
+  document.getElementById('qe-setup-fee').value = initialData?.pricing?.setupFee !== undefined ? initialData.pricing.setupFee : 0;
+  document.getElementById('qe-tax-rate').value = initialData?.pricing?.taxRate !== undefined ? (initialData.pricing.taxRate * 100) : 9.5;
+  document.getElementById('qe-discount').value = initialData?.pricing?.discount || 0;
+  document.getElementById('qe-deposit-pct').value = initialData?.pricing?.depositPercentage || 30;
+
+  // Pre-fill Terms
+  document.getElementById('qe-notes').value = initialData?.terms?.customNotes || 'Includes Afghan flatbread, green cilantro chutney, and garlic yogurt sauce.';
+
+  // If no items yet, add default popular trays
+  if (currentQuoteItems.length === 0) {
+    currentQuoteItems = [
+      {
+        id: 'chapli-kabob-tray',
+        name: "Bigi's Chapli Kabob Tray",
+        description: 'Crispy seasoned ground beef patties, charred tomatoes, serrano peppers.',
+        imageUrl: '/m-img/1791950307107_1000004875.webp',
+        portionSize: 'Large Party Tray (Serves 25-30)',
+        quantity: 2,
+        unitPrice: 145.00,
+        totalPrice: 290.00
+      },
+      {
+        id: 'qabuli-palau-tray',
+        name: "Bigi's Qabuli Palau Rice Tray",
+        description: 'Traditional spiced brown sella basmati rice with sweet carrots and black raisins.',
+        imageUrl: '/m-img/1788130324869_BigiAwasaana_QabuliPalau.webp',
+        portionSize: 'Large Party Tray (Serves 25-30)',
+        quantity: 2,
+        unitPrice: 110.00,
+        totalPrice: 220.00
+      }
+    ];
+  }
+
+  renderQuoteEditorItems();
+  recalculateQuoteTotals();
+
+  modal.classList.add('open');
+}
+window.openCreateQuoteModal = openCreateQuoteModal;
+
+window.openEditQuoteModal = (quote) => {
+  openCreateQuoteModal(quote);
+};
+
+window.closeQuoteEditorModal = () => {
+  const modal = document.getElementById('quote-editor-modal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = '';
+  }
+};
+
+/**
+ * Hand-off: Create Quote Directly from Inquiry
+ */
+window.createQuoteFromInquiry = (inquiry) => {
+  const initialData = {
+    inquiryId: inquiry.id,
+    quoteNumber: generateQuoteNumber(),
+    customer: {
+      name: inquiry.name || '',
+      phone: inquiry.phone || '',
+      email: inquiry.email || '',
+      company: ''
+    },
+    event: {
+      title: `${inquiry.name}'s Catering Event`,
+      date: inquiry.date || '',
+      guests: parseInt(inquiry.guests) || 50,
+      serviceType: 'buffet_dropoff',
+      location: {
+        address: '',
+        notes: inquiry.details || ''
+      }
+    },
+    terms: {
+      customNotes: inquiry.details ? `Client Request: ${inquiry.details}` : ''
+    }
+  };
+
+  openCreateQuoteModal(initialData);
+};
+
+/**
+ * Render Items inside Quote Editor
+ */
+export function renderQuoteEditorItems() {
+  const container = document.getElementById('qe-items-container');
+  if (!container) return;
+
+  if (currentQuoteItems.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 24px; color: var(--text-muted); border: 1px dashed var(--border-admin); border-radius: 8px;">
+        No items in this quote yet. Click "Add from Menu" or "Add Custom Item" below.
+      </div>
+    `;
+    return;
+  }
+
+  let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+
+  currentQuoteItems.forEach((item, index) => {
+    html += `
+      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px; padding: 14px; display: grid; grid-template-columns: 60px 1fr 100px 100px 90px 40px; gap: 12px; align-items: center;">
+        <div>
+          ${item.imageUrl 
+            ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-admin);">`
+            : `<div style="width: 56px; height: 56px; background: var(--surface-admin); border-radius: 6px; border: 1px solid var(--border-admin); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Pic</div>`}
+        </div>
+
+        <div>
+          <input type="text" class="crm-input" value="${escapeHtml(item.name)}" oninput="window.updateQuoteItemField(${index}, 'name', this.value)" placeholder="Dish Name" style="font-weight: 600; padding: 6px 10px; font-size: 13px; margin-bottom: 4px;">
+          <input type="text" class="crm-input" value="${escapeHtml(item.portionSize || '')}" oninput="window.updateQuoteItemField(${index}, 'portionSize', this.value)" placeholder="Portion (e.g. Serves 25-30)" style="font-size: 12px; padding: 4px 8px; color: var(--text-muted);">
+        </div>
+
+        <div>
+          <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase;">Qty</label>
+          <input type="number" min="1" class="crm-input" value="${item.quantity || 1}" oninput="window.updateQuoteItemField(${index}, 'quantity', parseInt(this.value) || 1)" style="padding: 6px 8px; font-size: 13px; text-align: center;">
+        </div>
+
+        <div>
+          <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase;">Unit Price</label>
+          <input type="number" step="0.01" min="0" class="crm-input" value="${item.unitPrice || 0}" oninput="window.updateQuoteItemField(${index}, 'unitPrice', parseFloat(this.value) || 0)" style="padding: 6px 8px; font-size: 13px;">
+        </div>
+
+        <div>
+          <label style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase;">Total</label>
+          <div style="font-weight: 700; font-size: 14px; color: var(--text-main); padding-top: 6px;">
+            $${((item.quantity || 1) * (item.unitPrice || 0)).toFixed(2)}
+          </div>
+        </div>
+
+        <div>
+          <button type="button" class="btn-outline" onclick="window.removeQuoteItem(${index})" title="Remove item" style="padding: 6px; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--danger); border-color: rgba(239,68,68,0.3);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+window.updateQuoteItemField = (index, field, value) => {
+  if (currentQuoteItems[index]) {
+    currentQuoteItems[index][field] = value;
+    if (field === 'quantity' || field === 'unitPrice') {
+      currentQuoteItems[index].totalPrice = (currentQuoteItems[index].quantity || 1) * (currentQuoteItems[index].unitPrice || 0);
+    }
+    recalculateQuoteTotals();
+  }
+};
+
+window.removeQuoteItem = (index) => {
+  currentQuoteItems.splice(index, 1);
+  renderQuoteEditorItems();
+  recalculateQuoteTotals();
+};
+
+window.addCustomQuoteItem = () => {
+  currentQuoteItems.push({
+    id: `custom-${Date.now()}`,
+    name: 'Custom Catering Dish',
+    description: '',
+    imageUrl: '',
+    portionSize: 'Party Tray (Serves 20)',
+    quantity: 1,
+    unitPrice: 100.00,
+    totalPrice: 100.00
+  });
+  renderQuoteEditorItems();
+  recalculateQuoteTotals();
+};
+
+/**
+ * Dish Picker Modal (Choose from Live Menu)
+ */
+window.openDishPickerModal = () => {
+  const modal = document.getElementById('dish-picker-modal');
+  const container = document.getElementById('dish-picker-list');
+  if (!modal || !container) return;
+
+  const menu = state.menu || [];
+  
+  if (menu.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 24px;">No menu items loaded.</p>';
+    modal.classList.add('open');
+    return;
+  }
+
+  let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; max-height: 60vh; overflow-y: auto; padding-right: 6px;">';
+
+  menu.forEach(dish => {
+    const dishPrice = typeof dish.price === 'number' ? dish.price : parseFloat(dish.price) || 0;
+    // Suggest platter price: if single portion is $16, party platter (serves ~15) is around $120
+    const trayPrice = Math.round(dishPrice * 8);
+
+    html += `
+      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: center;">
+        <img src="${dish.img || dish.image || '/logo.webp'}" alt="${escapeHtml(dish.name)}" style="width: 52px; height: 52px; object-fit: cover; border-radius: 6px; flex-shrink: 0;">
+        <div style="flex: 1; min-width: 0;">
+          <strong style="font-size: 13px; color: var(--text-main); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(dish.name)}</strong>
+          <span style="font-size: 11px; color: var(--text-muted); display: block;">${escapeHtml(dish.category || 'Menu')}</span>
+          <span style="font-size: 12px; color: var(--accent-admin); font-weight: 700;">Suggested Tray: $${trayPrice}</span>
+        </div>
+        <button type="button" class="btn-primary" onclick="window.selectDishForQuote('${dish.id}', '${escapeHtml(dish.name)}', '${dish.img || dish.image || ''}', ${trayPrice})" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; flex-shrink: 0; cursor: pointer;">
+          Add
+        </button>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+  modal.classList.add('open');
+};
+
+window.closeDishPickerModal = () => {
+  const modal = document.getElementById('dish-picker-modal');
+  if (modal) modal.classList.remove('open');
+};
+
+window.selectDishForQuote = (id, name, img, price) => {
+  currentQuoteItems.push({
+    id,
+    name: `${name} Party Tray`,
+    description: `Freshly grilled authentic Afghan specialty for catering events. 100% Zabiha Halal.`,
+    imageUrl: img,
+    portionSize: 'Party Tray (Serves 20-25)',
+    quantity: 1,
+    unitPrice: price,
+    totalPrice: price
+  });
+
+  renderQuoteEditorItems();
+  recalculateQuoteTotals();
+  window.closeDishPickerModal();
+  showToast(`Added ${name} tray to quote.`);
+};
+
+/**
+ * Live Financial & Deposit Calculation
+ */
+export function recalculateQuoteTotals() {
+  const subtotal = currentQuoteItems.reduce((sum, item) => sum + ((item.quantity || 1) * (item.unitPrice || 0)), 0);
+  const deliveryFee = parseFloat(document.getElementById('qe-delivery-fee')?.value) || 0;
+  const setupFee = parseFloat(document.getElementById('qe-setup-fee')?.value) || 0;
+  const taxRate = (parseFloat(document.getElementById('qe-tax-rate')?.value) || 9.5) / 100;
+  const discount = parseFloat(document.getElementById('qe-discount')?.value) || 0;
+  const depositPct = parseFloat(document.getElementById('qe-deposit-pct')?.value) || 30;
+
+  const taxableAmount = Math.max(0, subtotal - discount);
+  const taxAmount = Math.round(taxableAmount * taxRate * 100) / 100;
+  const grandTotal = Math.max(0, taxableAmount + deliveryFee + setupFee + taxAmount);
+  
+  const depositAmount = Math.round(grandTotal * (depositPct / 100) * 100) / 100;
+  const remainingBalance = Math.max(0, grandTotal - depositAmount);
+
+  // Update Summary UI
+  const subtotalEl = document.getElementById('qe-calc-subtotal');
+  if (subtotalEl) subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+
+  const taxEl = document.getElementById('qe-calc-tax');
+  if (taxEl) taxEl.textContent = `$${taxAmount.toFixed(2)}`;
+
+  const totalEl = document.getElementById('qe-calc-total');
+  if (totalEl) totalEl.textContent = `$${grandTotal.toFixed(2)}`;
+
+  const depositEl = document.getElementById('qe-calc-deposit');
+  if (depositEl) depositEl.textContent = `$${depositAmount.toFixed(2)}`;
+
+  const balanceEl = document.getElementById('qe-calc-balance');
+  if (balanceEl) balanceEl.textContent = `$${remainingBalance.toFixed(2)}`;
+
+  return {
+    subtotal,
+    deliveryFee,
+    setupFee,
+    taxRate,
+    taxAmount,
+    discount,
+    total: grandTotal,
+    depositPercentage: depositPct,
+    depositAmount,
+    remainingBalance
+  };
+}
+window.recalculateQuoteTotals = recalculateQuoteTotals;
+
+/**
+ * Save Quote Draft / Update Firestore
+ */
+window.saveQuoteDraft = async () => {
+  const quoteNumber = document.getElementById('qe-quote-number').value.trim() || generateQuoteNumber();
+  const customerName = document.getElementById('qe-cust-name').value.trim();
+  const customerPhone = document.getElementById('qe-cust-phone').value.trim();
+  const customerEmail = document.getElementById('qe-cust-email').value.trim();
+  const customerCompany = document.getElementById('qe-cust-company').value.trim();
+  const linkedInquiryId = document.getElementById('qe-linked-inquiry-id').value.trim();
+
+  if (!customerName || !customerPhone) {
+    alert('Please provide at least a customer name and phone number.');
+    return;
+  }
+
+  const totals = recalculateQuoteTotals();
+
+  const quoteDocData = {
+    quoteNumber,
+    inquiryId: linkedInquiryId || null,
+    customer: {
+      name: customerName,
+      phone: customerPhone,
+      email: customerEmail,
+      company: customerCompany
+    },
+    event: {
+      title: document.getElementById('qe-event-title').value.trim() || 'Catering Event',
+      date: document.getElementById('qe-event-date').value || '',
+      startTime: document.getElementById('qe-event-start').value || '17:00',
+      endTime: document.getElementById('qe-event-end').value || '21:00',
+      guests: parseInt(document.getElementById('qe-event-guests').value) || 50,
+      serviceType: document.getElementById('qe-event-service').value || 'buffet_dropoff',
+      location: {
+        address: document.getElementById('qe-event-address').value.trim() || '',
+        notes: document.getElementById('qe-event-notes').value.trim() || ''
+      }
+    },
+    items: currentQuoteItems,
+    pricing: {
+      ...totals,
+      depositStatus: 'pending'
+    },
+    terms: {
+      meatStandard: '100% Hand-Slaughtered Zabiha Halal',
+      cancellationPolicy: 'Deposits are refundable up to 7 days prior to event.',
+      customNotes: document.getElementById('qe-notes').value.trim() || ''
+    },
+    updatedAt: serverTimestamp()
+  };
+
+  try {
+    if (currentEditingQuoteId) {
+      await updateDoc(doc(db, 'catering_quotes', currentEditingQuoteId), quoteDocData);
+      showToast('Catering quote updated successfully.');
+    } else {
+      quoteDocData.status = 'draft';
+      quoteDocData.createdAt = serverTimestamp();
+      quoteDocData.payments = [];
+      quoteDocData.security = {
+        directAccessToken: generateSecureToken(),
+        phoneLast4: customerPhone.replace(/\D/g, '').slice(-4)
+      };
+
+      const docRef = await addDoc(collection(db, 'catering_quotes'), quoteDocData);
+      currentEditingQuoteId = docRef.id;
+      showToast('New catering quote created.');
+    }
+
+    window.closeQuoteEditorModal();
+  } catch (err) {
+    console.error('Error saving quote:', err);
+    showToast('Failed to save catering quote.', true);
+  }
+};
+
+/**
+ * Copy Private Portal Link
+ */
+window.copyQuotePortalLink = (quote) => {
+  if (!quote) return;
+  const token = quote.security?.directAccessToken || '';
+  const url = `https://www.bigiawasaana.com/quote.html?q=${encodeURIComponent(quote.quoteNumber)}&token=${encodeURIComponent(token)}`;
+
+  navigator.clipboard.writeText(url).then(() => {
+    showToast(`Copied private client link for #${quote.quoteNumber}!`);
+  }).catch(() => {
+    prompt('Private Client Quote Link:', url);
+  });
+};
+
+/**
+ * Preview Quote Portal in New Tab
+ */
+window.previewQuotePortal = (quote) => {
+  if (!quote) return;
+  const token = quote.security?.directAccessToken || '';
+  const url = `/quote.html?q=${encodeURIComponent(quote.quoteNumber)}&token=${encodeURIComponent(token)}`;
+  window.open(url, '_blank');
+};
+
+/**
+ * Duplicate Quote
+ */
+window.duplicateQuote = async (quote) => {
+  if (!confirm(`Duplicate Quote #${quote.quoteNumber}?`)) return;
+
+  const newQuote = JSON.parse(JSON.stringify(quote));
+  delete newQuote.id;
+  newQuote.quoteNumber = generateQuoteNumber();
+  newQuote.status = 'draft';
+  newQuote.createdAt = serverTimestamp();
+  newQuote.updatedAt = serverTimestamp();
+  newQuote.payments = [];
+  newQuote.security = {
+    directAccessToken: generateSecureToken(),
+    phoneLast4: (newQuote.customer?.phone || '').replace(/\D/g, '').slice(-4)
+  };
+
+  try {
+    await addDoc(collection(db, 'catering_quotes'), newQuote);
+    showToast(`Duplicated as new quote #${newQuote.quoteNumber}!`);
+  } catch (err) {
+    console.error('Error duplicating quote:', err);
+    showToast('Failed to duplicate quote.', true);
+  }
+};
+
+/**
+ * Send Quote via Email (Calls Cloud Function)
+ */
+window.sendQuoteEmailToClient = async () => {
+  if (!currentEditingQuoteId) {
+    alert('Please save the quote draft before sending.');
+    return;
+  }
+
+  const btn = document.getElementById('qe-btn-send-email');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+  }
+
+  try {
+    const functions = getFunctions(app);
+    const sendFn = httpsCallable(functions, 'sendCateringQuoteEmail');
+    await sendFn({ quoteId: currentEditingQuoteId });
+
+    showToast('Official catering proposal sent to client!');
+    window.closeQuoteEditorModal();
+  } catch (err) {
+    console.error('Error sending quote email:', err);
+    showToast(`Failed to send email: ${err.message}`, true);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Send to Client';
+    }
+  }
+};

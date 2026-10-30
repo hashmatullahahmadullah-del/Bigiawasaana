@@ -1,3 +1,4 @@
+import './catering.js';
 import { loadAnalytics } from './expenses.js';
 import { renderLiveOrders, renderCatering, showToast, playFloorChime } from './orders.js';
 import { loadPickupSettings, renderUpcomingScheduledOrders } from './settings.js';
@@ -138,9 +139,27 @@ export function initCRMData() {
     snapshot.forEach(d => {
       state.catering.push({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate() || new Date() });
     });
+    if (typeof window.renderCateringInquiries === 'function') window.renderCateringInquiries();
     renderCatering();
   }, (err) => {
     console.warn('Catering inquiries listener notice:', err);
+  });
+
+  // 4b. Listen to Catering Quotes
+  const quotesQuery = query(collection(db, 'catering_quotes'), orderBy('createdAt', 'desc'));
+  window.cateringQuotesUnsub = onSnapshot(quotesQuery, (snapshot) => {
+    state.quotes = [];
+    snapshot.forEach(d => {
+      state.quotes.push({
+        id: d.id,
+        ...d.data(),
+        createdAtDate: d.data().createdAt?.toDate ? d.data().createdAt.toDate() : new Date()
+      });
+    });
+    if (typeof window.renderCateringQuotes === 'function') window.renderCateringQuotes();
+    if (typeof window.renderConfirmedBookings === 'function') window.renderConfirmedBookings();
+  }, (err) => {
+    console.warn('Catering quotes listener notice:', err);
   });
   window.unitSettingsUnsub = onSnapshot(doc(db, 'unitEconomics_settings', 'config'), (docSnap) => {
     if (docSnap.exists()) {
@@ -548,6 +567,12 @@ export function switchAdminView(targetId) {
     if (typeof window.loadAnalytics === 'function') {
       window.loadAnalytics();
     }
+  }
+
+  if (targetId === 'catering-view') {
+    if (typeof window.renderCateringInquiries === 'function') window.renderCateringInquiries();
+    if (typeof window.renderCateringQuotes === 'function') window.renderCateringQuotes();
+    if (typeof window.renderConfirmedBookings === 'function') window.renderConfirmedBookings();
   }
 }
 window.switchAdminView = switchAdminView;
