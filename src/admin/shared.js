@@ -149,6 +149,17 @@ onAuthStateChanged(auth, (user) => {
     
     initCRMData();
     loadMenuAdmin();
+
+    // Preserve and switch to target view requested via deep link (?view=... or #...)
+    if (typeof window.resolveInitialView === 'function') {
+      window.resolveInitialView();
+    } else {
+      setTimeout(() => {
+        if (typeof window.resolveInitialView === 'function') {
+          window.resolveInitialView();
+        }
+      }, 50);
+    }
   } else {
     loginSection.style.display = 'block';
     dashboardSection.style.display = 'none';

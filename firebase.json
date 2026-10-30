@@ -198,11 +198,35 @@
         "destination": "/admin.html"
       },
       {
+        "source": "/admin/**",
+        "destination": "/admin.html"
+      },
+      {
         "source": "**",
         "destination": "/404.html"
       }
     ],
     "redirects": [
+      {
+        "source": "/admin/orders.html",
+        "destination": "/admin?view=live-orders#live-orders-view",
+        "type": 302
+      },
+      {
+        "source": "/admin/orders",
+        "destination": "/admin?view=live-orders#live-orders-view",
+        "type": 302
+      },
+      {
+        "source": "/admin/order-manager",
+        "destination": "/admin?view=live-orders#live-orders-view",
+        "type": 302
+      },
+      {
+        "source": "/admin/live-orders",
+        "destination": "/admin?view=live-orders#live-orders-view",
+        "type": 302
+      },
       {
         "source": "/blog/halal-smash-burger-reseda",
         "destination": "/blog/halal-smash-burger-reseda-tarzana",

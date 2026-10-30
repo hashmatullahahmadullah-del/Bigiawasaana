@@ -124,9 +124,9 @@ exports.generateCateringEmail = (data) => {
   <div class="wrapper">
     <div class="container">
       <div class="header">
-        <a href="https://bigiawasaana.com" target="_blank">
+        <a href="https://www.bigiawasaana.com" target="_blank">
           <!-- Always use absolute URLs in emails -->
-          <img src="https://bigiawasaana.com/logo.webp" alt="Bigi Awasaana">
+          <img src="https://www.bigiawasaana.com/logo.webp" alt="Bigi Awasaana">
         </a>
       </div>
       
@@ -181,7 +181,7 @@ exports.generateCateringEmail = (data) => {
       </div>
       
       <div class="footer">
-        <p>This automated email was sent from the <a href="https://bigiawasaana.com/catering.html">Bigi Awasaana Catering Form</a>.</p>
+        <p>This automated email was sent from the <a href="https://www.bigiawasaana.com/catering.html">Bigi Awasaana Catering Form</a>.</p>
       </div>
     </div>
   </div>
@@ -238,7 +238,7 @@ exports.generateOrderReceiptEmail = (order) => {
     }
   }
 
-  const statusUrl = `https://bigiawasaana.com/order-status.html?orderId=${orderId}&token=${order.accessToken || ''}`;
+  const statusUrl = `https://www.bigiawasaana.com/order-status.html?orderId=${orderId}&token=${order.accessToken || ''}`;
   const cardInfo = order.cardLast4 ? `${order.cardBrand || 'Card'} ending in ${order.cardLast4}` : 'Credit / Debit Card';
 
   const itemsHtml = items.map(item => {
@@ -296,8 +296,8 @@ exports.generateOrderReceiptEmail = (order) => {
   <div class="wrapper">
     <div class="container">
       <div class="header">
-        <a href="https://bigiawasaana.com" target="_blank">
-          <img src="https://bigiawasaana.com/logo.webp" alt="Bigi Awasaana">
+        <a href="https://www.bigiawasaana.com" target="_blank">
+          <img src="https://www.bigiawasaana.com/logo.webp" alt="Bigi Awasaana">
         </a>
       </div>
 
@@ -426,8 +426,8 @@ exports.generateOrderCancelledRefundedEmail = (order) => {
   <div class="wrapper">
     <div class="container">
       <div class="header">
-        <a href="https://bigiawasaana.com" target="_blank">
-          <img src="https://bigiawasaana.com/logo.webp" alt="Bigi Awasaana">
+        <a href="https://www.bigiawasaana.com" target="_blank">
+          <img src="https://www.bigiawasaana.com/logo.webp" alt="Bigi Awasaana">
         </a>
       </div>
 
@@ -536,7 +536,7 @@ exports.generateRestaurantOrderAlertEmail = (order) => {
     </ul>
     <p><strong>Total:</strong> ${total}</p>
     <div style="margin-top: 24px;">
-      <a href="https://bigiawasaana.com/admin/orders.html" style="background: #ff4500; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Open Order Manager →</a>
+      <a href="https://www.bigiawasaana.com/admin?view=live-orders#live-orders-view" style="background: #ff4500; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Open Order Manager →</a>
     </div>
   </div>
 </body>

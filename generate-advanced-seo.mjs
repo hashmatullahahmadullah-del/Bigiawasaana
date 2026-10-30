@@ -1,3 +1,17 @@
+function safeWriteFileSync(filePath, content) {
+  let attempts = 5;
+  while (attempts > 0) {
+    try {
+      fs.writeFileSync(filePath, content);
+      return;
+    } catch (err) {
+      attempts--;
+      if (attempts === 0) throw err;
+      const end = Date.now() + 150;
+      while (Date.now() < end) {}
+    }
+  }
+}
 import fs from 'fs';
 import path from 'path';
 
@@ -551,14 +565,14 @@ for (const [id, data] of Object.entries(areas)) {
     .replace(/{{META_ROBOTS}}/g, '')
     .replace(/{{SCHEMA_DATA}}/g, schema);
 
-  fs.writeFileSync(path.join(outDir, `${id}.html`), html);
+  safeWriteFileSync(path.join(outDir, `${id}.html`), html);
   const srcAreasDir = path.join(process.cwd(), 'areas');
   if (fs.existsSync(srcAreasDir)) {
-    fs.writeFileSync(path.join(srcAreasDir, `${id}.html`), html);
+    safeWriteFileSync(path.join(srcAreasDir, `${id}.html`), html);
   }
   const pubAreasDir = path.join(process.cwd(), 'public', 'areas');
   if (fs.existsSync(pubAreasDir)) {
-    fs.writeFileSync(path.join(pubAreasDir, `${id}.html`), html);
+    safeWriteFileSync(path.join(pubAreasDir, `${id}.html`), html);
   }
   count++;
   console.log(`✅ Generated advanced SEO page: ${data.name} (Tier ${data.tier})`);
