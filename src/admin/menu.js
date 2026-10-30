@@ -1116,6 +1116,8 @@ export function loadTvDisplaySettings() {
 
       updateTvSpecialLiveBadge(sp);
     }
+  }, (err) => {
+    console.warn('tv_display listener notice:', err);
   });
 }
 

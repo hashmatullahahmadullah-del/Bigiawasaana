@@ -288,6 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         blogList.appendChild(card);
       });
+    }, (err) => {
+      console.warn('posts listener notice:', err);
     });
   }
 

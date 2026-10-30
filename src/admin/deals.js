@@ -70,6 +70,8 @@ window.initDealsListener = () => {
     });
     
     renderDealsList();
+  }, (err) => {
+    console.warn('deals listener notice:', err);
   });
 
   if (filterSelect) {

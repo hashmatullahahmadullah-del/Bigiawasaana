@@ -116,29 +116,34 @@ export let profitDataCache = {
   expenses: []
 };
 
+let salesProfitUnsub = null;
+let expProfitUnsub = null;
+
 export async function loadProfitData() {
-  // Load Fixed Costs
-  const fcSnap = await getDoc(doc(db, 'settings', 'fixed_costs'));
-  if (fcSnap.exists()) {
-    profitDataCache.fixedCosts = fcSnap.data();
-    if (document.getElementById('fc-home-rent')) document.getElementById('fc-home-rent').value = profitDataCache.fixedCosts.rent || 0;
-    if (document.getElementById('fc-commissary-rent')) document.getElementById('fc-commissary-rent').value = profitDataCache.fixedCosts.commissaryRent || 0;
-    if (document.getElementById('fc-insurance')) document.getElementById('fc-insurance').value = profitDataCache.fixedCosts.insurance || 0;
-    if (document.getElementById('fc-other')) document.getElementById('fc-other').value = profitDataCache.fixedCosts.other || 0;
+  try {
+    // Load Fixed Costs
+    const fcSnap = await getDoc(doc(db, 'settings', 'fixed_costs'));
+    if (fcSnap.exists()) {
+      profitDataCache.fixedCosts = fcSnap.data();
+      if (document.getElementById('fc-home-rent')) document.getElementById('fc-home-rent').value = profitDataCache.fixedCosts.rent || 0;
+      if (document.getElementById('fc-commissary-rent')) document.getElementById('fc-commissary-rent').value = profitDataCache.fixedCosts.commissaryRent || 0;
+      if (document.getElementById('fc-insurance')) document.getElementById('fc-insurance').value = profitDataCache.fixedCosts.insurance || 0;
+      if (document.getElementById('fc-other')) document.getElementById('fc-other').value = profitDataCache.fixedCosts.other || 0;
+    }
+  } catch (err) {
+    console.warn('Fixed costs fetch notice:', err);
   }
   updateFixedCostsSummaryUI();
 
   // Set default date for sales entry
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('ds-date').value = today;
+  const dsDate = document.getElementById('ds-date');
+  if (dsDate) dsDate.value = today;
 
   // Listen for Sales Logs
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const startTimestamp = thirtyDaysAgo.getTime();
-
+  if (salesProfitUnsub) salesProfitUnsub();
   const salesQ = query(collection(db, 'sales_logs'), orderBy('date', 'desc'));
-  onSnapshot(salesQ, (snapshot) => {
+  salesProfitUnsub = onSnapshot(salesQ, (snapshot) => {
     profitDataCache.sales = [];
     snapshot.forEach(docSnap => {
       profitDataCache.sales.push({ id: docSnap.id, ...docSnap.data() });
@@ -147,11 +152,14 @@ export async function loadProfitData() {
     profitDataCache.sales.sort((a, b) => a.date.localeCompare(b.date));
     updateProfitDashboard();
     renderRecentDailySales();
+  }, (err) => {
+    console.warn('Sales logs listener notice:', err);
   });
 
   // Fetch expenses (from receipts)
+  if (expProfitUnsub) expProfitUnsub();
   const expQ = query(collection(db, 'expenses'), where('status', '==', 'confirmed'));
-  onSnapshot(expQ, (snapshot) => {
+  expProfitUnsub = onSnapshot(expQ, (snapshot) => {
     profitDataCache.expenses = [];
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
@@ -164,6 +172,8 @@ export async function loadProfitData() {
       profitDataCache.expenses.push({ id: docSnap.id, date: dateStr, amount: total });
     });
     updateProfitDashboard();
+  }, (err) => {
+    console.warn('Expenses profit listener notice:', err);
   });
 }
 

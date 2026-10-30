@@ -51,7 +51,7 @@
     const str = String(err.message || err.reason || err || '').toLowerCase();
     const name = String(err.name || '').toLowerCase();
     if (name === 'notsupportederror' || name === 'notallowederror' || name === 'aborterror') return true;
-    if (str.includes('no supported source') || str.includes('the play() request was interrupted') || str.includes('audiocontext') || str.includes('resizeobserver loop limit exceeded')) return true;
+    if (str.includes('no supported source') || str.includes('the play() request was interrupted') || str.includes('audiocontext') || str.includes('resizeobserver loop limit exceeded') || str.includes('missing or insufficient permissions')) return true;
     return false;
   }
   window.onerror = function(msg, url, line, col, error) {

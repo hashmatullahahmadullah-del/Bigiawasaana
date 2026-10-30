@@ -145,6 +145,8 @@ export function loadPickupSettings() {
         cb.checked = openDays.includes(parseInt(cb.value, 10));
       });
     }
+  }, (err) => {
+    console.warn('pickupConfig listener notice:', err);
   });
 }
 

@@ -26,6 +26,8 @@ export function initCRMData() {
     }
     renderLoyalty();
     renderCustomers();
+  }, (err) => {
+    console.warn('Loyalty settings listener notice:', err);
   });
 
   // 2. Listen to Reviews
@@ -36,6 +38,8 @@ export function initCRMData() {
       state.reviews.push({ id: d.id, ...d.data(), date: d.data().date?.toDate() || new Date() });
     });
     renderReviews();
+  }, (err) => {
+    console.warn('Reviews listener notice:', err);
   });
 
   // 3. Listen to Orders (builds state.orders and state.customers)
@@ -123,6 +127,8 @@ export function initCRMData() {
     renderUpcomingScheduledOrders();
     renderLoyalty();
     if (typeof window.renderEconomics === 'function') window.renderEconomics();
+  }, (err) => {
+    console.warn('Orders listener notice:', err);
   });
 
   // 4. Listen to Catering Inquiries
@@ -133,12 +139,16 @@ export function initCRMData() {
       state.catering.push({ id: d.id, ...d.data(), createdAt: d.data().createdAt?.toDate() || new Date() });
     });
     renderCatering();
+  }, (err) => {
+    console.warn('Catering inquiries listener notice:', err);
   });
   window.unitSettingsUnsub = onSnapshot(doc(db, 'unitEconomics_settings', 'config'), (docSnap) => {
     if (docSnap.exists()) {
       state.unitSettings = { ...state.unitSettings, ...docSnap.data() };
     }
     if (typeof window.renderEconomics === 'function') window.renderEconomics();
+  }, (err) => {
+    console.warn('Unit economics settings notice:', err);
   });
 
   // 9. Listen to Unit Economics Platforms
@@ -147,6 +157,8 @@ export function initCRMData() {
       state.unitPlatforms = { ...state.unitPlatforms, ...docSnap.data() };
     }
     if (typeof window.renderEconomics === 'function') window.renderEconomics();
+  }, (err) => {
+    console.warn('Unit economics platforms notice:', err);
   });
 
   // 10. Listen to Unit Economics Ingredients
@@ -155,6 +167,8 @@ export function initCRMData() {
     state.ingredients = [];
     snapshot.forEach(d => state.ingredients.push({ id: d.id, ...d.data() }));
     if (typeof window.renderEconomics === 'function') window.renderEconomics();
+  }, (err) => {
+    console.warn('Ingredients notice:', err);
   });
 
   // 11. Listen to Unit Economics Events
@@ -163,6 +177,8 @@ export function initCRMData() {
     state.events = [];
     snapshot.forEach(d => state.events.push({ id: d.id, ...d.data(), date: d.data().date?.toDate() || new Date() }));
     if (typeof window.renderEconomics === 'function') window.renderEconomics();
+  }, (err) => {
+    console.warn('Events notice:', err);
   });
 
   loadAnalytics();
@@ -184,6 +200,8 @@ export async function loadTvPromoSettings() {
       document.getElementById('tv-promo-text').value = data.text || '';
       toggleTvPromoEditor(data.active);
     }
+  }, (err) => {
+    console.warn('tv_promo notice:', err);
   });
 }
 
@@ -233,6 +251,8 @@ export async function loadCartPromoSettings() {
       document.getElementById('cart-promo-html').value = data.html || '';
       toggleCartPromoEditor(data.active);
     }
+  }, (err) => {
+    console.warn('cart_promo notice:', err);
   });
 }
 
@@ -287,6 +307,8 @@ export async function loadPopupSettings() {
       document.getElementById('popup-btn-url').value = data.buttonUrl || '';
       togglePopupEditor(data.active);
     }
+  }, (err) => {
+    console.warn('popup notice:', err);
   });
 }
 

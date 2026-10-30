@@ -3,7 +3,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == 'bigiawasaana@gmail.com';
+      return request.auth != null && (
+        request.auth.token.email.matches('(?i)^bigiawasaana@gmail\\.com$') ||
+        request.auth.token.email.matches('(?i)^admin@bigiawasaana\\.com$')
+      );
     }
 
     function isKds() {
@@ -52,7 +55,7 @@ service cloud.firestore {
 
     // Settings Collection
     match /settings/{doc} {
-      allow read: if doc in ['pickupConfig', 'popup', 'cart_promo', 'tv_promo', 'tv_display', 'kds', 'loyalty'] || isAdmin();
+      allow read: if doc in ['pickupConfig', 'popup', 'cart_promo', 'tv_promo', 'tv_display', 'kds', 'loyalty', 'fixed_costs'] || isAdmin();
       allow write: if isAdmin();
     }
     
@@ -134,6 +137,12 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
     match /unitEconomics_platforms/{id} {
+      allow read, write: if isAdmin();
+    }
+    match /unitEconomics_settings/{id} {
+      allow read, write: if isAdmin();
+    }
+    match /receipt_mappings/{id} {
       allow read, write: if isAdmin();
     }
     match /sales_logs/{id} {

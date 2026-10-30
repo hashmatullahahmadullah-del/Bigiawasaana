@@ -42,6 +42,8 @@ if (addForm) {
   onSnapshot(q, (snapshot) => {
     retailItems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     renderRetailItems();
+  }, (err) => {
+    console.warn('retail_items notice:', err);
   });
 
   addForm.addEventListener('submit', async (e) => {
