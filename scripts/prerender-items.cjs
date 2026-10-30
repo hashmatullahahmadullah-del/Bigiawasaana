@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { ITEMS } = require('./menu-items-data.cjs');
 
-const templatePath = path.join(process.cwd(), 'item-template.html');
+const distTmpl = path.join(process.cwd(), 'dist', 'item-template.html');
+const templatePath = fs.existsSync(distTmpl) ? distTmpl : path.join(process.cwd(), 'item-template.html');
 const template = fs.readFileSync(templatePath, 'utf8');
 
 const outDir = path.join(process.cwd(), 'dist', 'item');

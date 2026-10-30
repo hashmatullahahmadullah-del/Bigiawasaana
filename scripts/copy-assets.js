@@ -90,7 +90,11 @@ if (latestMobileNavCss) {
 }
 if (fs.existsSync('dist/nav.bundle.js')) {
   if (!fs.existsSync('dist/assets')) fs.mkdirSync('dist/assets', { recursive: true });
+  if (!fs.existsSync('dist/src')) fs.mkdirSync('dist/src', { recursive: true });
   fs.copyFileSync('dist/nav.bundle.js', 'dist/assets/blogTemplate-Dmm92rt3.js');
   fs.copyFileSync('dist/nav.bundle.js', 'dist/assets/nav-DJU4XDt9.js');
-  console.log('Aliased nav.bundle.js to legacy blogTemplate and nav asset hashes');
+  fs.copyFileSync('dist/nav.bundle.js', 'dist/src/main.js');
+  fs.copyFileSync('dist/nav.bundle.js', 'dist/src/nav.js');
+  fs.copyFileSync('dist/nav.bundle.js', 'dist/src/nav-entry.js');
+  console.log('Aliased nav.bundle.js to legacy blogTemplate, nav asset hashes, and dist/src/main.js');
 }

@@ -46,7 +46,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Chunks of marinated chicken breast bathed overnight in yogurt, ginger, garlic, and proprietary Afghan spices, charcoal-grilled to caramelized perfection.",
     "price": 17.99,
     "category": "charcoal kabobs",
-    "img": "/m-img/1787957385203_BigiAwasaana_ChickenTikka.webp",
+    "img": "/m-img/1790463609278_BigiAwasaana_ChickenTikaKabob.webp",
     "slug": "bigi-s-chicken-tikka-kabob-plate",
     "featured": true
   },
@@ -56,7 +56,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Tender chunks of marinated Zabiha Halal beef or chicken tikka charcoal-grilled over live hardwood embers.",
     "price": 19.99,
     "category": "charcoal kabobs",
-    "img": "/m-img/1787957385203_BigiAwasaana_ChickenTikka.webp",
+    "img": "/m-img/1789064755515_BigiAwasaana_BeefTikaKabob.webp",
     "slug": "bigi-s-tikka-kabab-plate",
     "featured": false
   },
@@ -66,7 +66,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "A wide, flat Pashtun patty of seasoned ground beef with tomatoes, onions, coriander, and green chili, seared for crispy edges and a juicy center.",
     "price": 17.99,
     "category": "charcoal kabobs",
-    "img": "/m-img/1787957451239_BigiAwasaana_ChapliKabob.webp",
+    "img": "/m-img/1791950307107_1000004875.webp",
     "slug": "bigi-s-chapli-kabob",
     "featured": true
   },
@@ -76,7 +76,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Charcoal-grilled kabob skewer wrapped in a sizzling layer of melted cheese.",
     "price": 10.99,
     "category": "charcoal kabobs",
-    "img": "/m-img/1787957512847_BigiAwasaana_CheeseKabob.webp",
+    "img": "/m-img/1791950199331_1000004877.webp",
     "slug": "bigi-s-cheese-kabob-stick",
     "featured": false
   },
@@ -86,7 +86,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Tender lamb shank slow-braised under spiced sella basmati rice, crowned with caramelized carrots and sweet raisins.",
     "price": 19.99,
     "category": "traditional afghan plates",
-    "img": "/m-img/1787957589234_BigiAwasaana_QabuliPalau.webp",
+    "img": "/m-img/1788493414501_BigiAwasaana_QabuliPalau.webp",
     "slug": "bigi-s-qabuli-palau-lamb-shank",
     "featured": true
   },
@@ -96,7 +96,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Grilled beef gyro carved over fragrant basmati rice with crisp side salad and house sauces.",
     "price": 14.99,
     "category": "traditional afghan plates",
-    "img": "/m-img/1787957648129_BigiAwasaana_BeefGyroBowl.webp",
+    "img": "/m-img/1790468044644_BigiAwasaana_BeefGyroPlate.webp",
     "slug": "bigi-s-beef-gyro-rice-bowl",
     "featured": false
   },
@@ -106,7 +106,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Grilled chicken gyro carved over fragrant basmati rice, finished with a side salad and house dipping sauces.",
     "price": 12.99,
     "category": "traditional afghan plates",
-    "img": "/m-img/1787957712398_BigiAwasaana_ChickenGyroBowl.webp",
+    "img": "/m-img/1790390079047_BigiAwasaana_ChickenGyroPlate.webp",
     "slug": "bigi-s-chicken-gyro-rice-bowl",
     "featured": false
   },
@@ -116,7 +116,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "A 100% Zabiha Halal beef patty smashed thin on a 450° griddle for crispy lacey edges, melted cheese, and Bigi's house sauce.",
     "price": 13,
     "category": "burgers & sandwiches",
-    "img": "/m-img/1787957784562_BigiAwasaana_SmashBurger.webp",
+    "img": "/m-img/1786154168119_1000063335.webp",
     "slug": "bigi-s-smash-burger",
     "featured": false
   },
@@ -126,7 +126,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "A loaded lavash wrap stuffed with charcoal-grilled kabobs, crispy french fries, fresh veggies, and house sauces.",
     "price": 9.99,
     "category": "burgers & sandwiches",
-    "img": "/m-img/1787957851239_BigiAwasaana_AfghanBurger.webp",
+    "img": "/m-img/1790390925304_BigiAwasaana_AfganiBargar.webp",
     "slug": "bigi-s-silk-road-wrap-aka-afghan-burger",
     "featured": true
   },
@@ -136,7 +136,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Marinated beef thigh, slow-stacked and carved, wrapped in warm flatbread with garlic toum, pickled veggies, and fresh herbs.",
     "price": 14.99,
     "category": "wraps & rolls",
-    "img": "/m-img/1787957921845_BigiAwasaana_BeefShawarma.webp",
+    "img": "/m-img/1788494404914_ChatGPT-Image-Sep-3--2026--08_48_25-PM.webp",
     "slug": "bigi-s-beef-shawarma-wrap",
     "featured": false
   },
@@ -146,7 +146,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Marinated chicken thigh slow-stacked and carved, wrapped in warm flatbread with garlic toum, pickled vegetables, and herbs.",
     "price": 11.99,
     "category": "wraps & rolls",
-    "img": "/m-img/1787957989123_BigiAwasaana_ChickenShawarma.webp",
+    "img": "/m-img/1788494143573_BigiAwasaana_BigisShawarmaWrap.webp",
     "slug": "bigi-s-chicken-shawarma-wrap",
     "featured": false
   },
@@ -156,7 +156,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Crisp pan-seared Afghan flatbread stuffed with spiced potatoes, scallions, and herbs, served with cool garlic cilantro chutney.",
     "price": 7.99,
     "category": "street bites & sides",
-    "img": "/m-img/1787958054321_BigiAwasaana_Bolani.webp",
+    "img": "/m-img/1788493142188_BigiAwasaana_BolaniPotato.webp",
     "slug": "bigi-s-bolani",
     "featured": true
   },
@@ -166,7 +166,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "A golden shatteringly crispy pastry filled with seasoned minced chicken, onions, cilantro, and warm Afghan spices.",
     "price": 2.99,
     "category": "street bites & sides",
-    "img": "/m-img/1787958123456_BigiAwasaana_ChickenSamosa.webp",
+    "img": "/m-img/1788130453606_BigiAwasaana_BigChickenSamosa.webp",
     "slug": "bigi-s-chicken-samosa",
     "featured": false
   },
@@ -176,7 +176,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Crispy fried pastry pocket stuffed with spiced potatoes and sweet green peas, served with tangy chutney.",
     "price": 1.99,
     "category": "street bites & sides",
-    "img": "/m-img/1787958189745_BigiAwasaana_VegSamosa.webp",
+    "img": "/m-img/1786152891068_1000063326.webp",
     "slug": "bigi-s-veg-samosa",
     "featured": false
   },
@@ -186,7 +186,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "A deeply flavored Afghan chicken broth with tender pulled chicken, aromatic vegetables, and house spices.",
     "price": 6.99,
     "category": "street bites & sides",
-    "img": "/m-img/1787958254123_BigiAwasaana_ChickenSoup.webp",
+    "img": "/m-img/1788493169048_BigiAwasaana_ChickenSoup.webp",
     "slug": "bigi-s-chicken-soup",
     "featured": false
   },
@@ -196,7 +196,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Silky chilled Afghan milk pudding set with ground rice, perfumed with rosewater, green cardamom, and crushed pistachios.",
     "price": 3.99,
     "category": "desserts & beverages",
-    "img": "/m-img/1787958319876_BigiAwasaana_Firni.webp",
+    "img": "/m-img/1788130417913_BigiAwasaana_Firmi.webp",
     "slug": "bigi-s-firni",
     "featured": false
   },
@@ -206,7 +206,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "A chilled lightly sparkling Afghan yogurt drink seasoned with dried wild mint, cucumber, and sea salt.",
     "price": 4.99,
     "category": "desserts & beverages",
-    "img": "/m-img/1787958384210_BigiAwasaana_Doogh.webp",
+    "img": "/m-img/1790103676733_BigiAwasaana_YougurtDrinkDogh.webp",
     "slug": "bigi-s-doogh",
     "featured": false
   },
@@ -216,7 +216,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Freshly brewed loose-leaf black tea slow-simmered with whole milk and green cardamom.",
     "price": 2.49,
     "category": "desserts & beverages",
-    "img": "/m-img/1787958448901_BigiAwasaana_Chai.webp",
+    "img": "/m-img/1790103595926_BigiAwasaana_KadhakChai_2880x2304.webp",
     "slug": "milk-tea-chai",
     "featured": false
   },
@@ -226,7 +226,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "A chilled selection of canned and bottled sodas including Coke, Diet Coke, Sprite, and Fanta.",
     "price": 2.45,
     "category": "desserts & beverages",
-    "img": "/m-img/1787958512345_BigiAwasaana_SoftDrinks.webp",
+    "img": "/m-img/1788130024385_101757-middle.webp",
     "slug": "soft-drinks",
     "featured": false
   },
@@ -236,7 +236,7 @@ const DEFAULT_MENU_ITEMS = [
     "desc": "Pure, chilled bottled spring water.",
     "price": 0.99,
     "category": "desserts & beverages",
-    "img": "/images/water.webp",
+    "img": "/m-img/bottled-water.webp",
     "slug": "bottled-water",
     "featured": false
   }

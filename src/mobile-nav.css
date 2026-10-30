@@ -10,14 +10,20 @@
   width: calc(100% - 32px);
   max-width: 1200px;
   z-index: 1000;
-  background: rgba(11, 11, 11, 0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(11, 11, 11, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 100px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s ease;
   will-change: transform;
+  overflow: hidden;
+}
+
+.site-nav.scrolled {
+  background: #0B0B0B !important;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.7) !important;
 }
 
 .site-nav .container {
@@ -454,7 +460,7 @@ body.nav-drawer-open {
 }
 
 /* ─── Mobile Media Queries ─── */
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
   .site-nav {
     top: 12px;
     width: calc(100% - 24px);
@@ -501,7 +507,7 @@ body.nav-drawer-open {
 }
 
 /* ─── General Mobile Layout Fixes ─── */
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
   .page-header {
     padding-top: 100px !important;
     padding-bottom: 40px !important;

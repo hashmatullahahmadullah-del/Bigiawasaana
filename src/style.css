@@ -765,12 +765,29 @@ body {
     height: 600px;
   }
 }
+@media (max-width: 767px) {
+  .item-modal {
+    max-height: 88vh !important;
+    height: 88vh !important;
+    margin: 10px auto !important;
+    width: calc(100% - 20px) !important;
+    border-radius: 12px !important;
+  }
+}
 .item-modal-left {
   flex: 1;
   background-size: cover;
   background-position: center;
   background-color: var(--bg);
   min-height: 250px;
+}
+@media (max-width: 767px) {
+  .item-modal-left {
+    min-height: 140px !important;
+    height: 140px !important;
+    flex: none !important;
+    flex-shrink: 0 !important;
+  }
 }
 .item-modal-right {
   flex: 1.2;
@@ -780,10 +797,26 @@ body {
   position: relative;
   max-height: 100%;
 }
+@media (max-width: 767px) {
+  .item-modal-right {
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+}
 .item-modal-scrollable {
   padding: 32px;
   overflow-y: auto;
   flex: 1;
+}
+@media (max-width: 767px) {
+  .item-modal-scrollable {
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 16px 20px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
 }
 .item-modal-footer {
   padding: 24px 32px;
@@ -794,6 +827,12 @@ body {
   justify-content: space-between;
   box-shadow: 0 -10px 20px rgba(0,0,0,0.2);
   z-index: 5;
+}
+@media (max-width: 767px) {
+  .item-modal-footer {
+    flex-shrink: 0 !important;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  }
 }
 
 /* Kiosk Cards (Variants & Addons) */
