@@ -69,6 +69,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="stylesheet" href="/src/mobile-nav.css">
+  <link rel="stylesheet" href="/src/catering-builder.css">
   <meta name="thumbnail" content="https://bigiawasaana.com/hero-food-spread.jpg">
 </head>
 <body>
@@ -135,6 +136,31 @@
   </header>
 
   <main>
+
+    <!-- Hero CTA: Build Your Own Catering Package -->
+    <section class="container" style="padding: 24px 20px 0;">
+      <div class="catering-builder-hero-cta">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); display: inline-block; margin-bottom: 8px;">
+          INTERACTIVE CATERING CALCULATOR
+        </span>
+        <h2 class="font-lalezar" style="font-size: clamp(28px, 5vw, 44px); color: #fff; line-height: 1.1; margin: 0 0 12px;">
+          BUILD YOUR OWN CATERING PACKAGE
+        </h2>
+        <p style="color: var(--gray); font-size: 15px; max-width: 640px; margin: 0 auto 24px; line-height: 1.6;">
+          Create your perfect Afghan catering menu. Select your favorite dishes, customize quantities, and receive an estimated price for your event.
+        </p>
+        <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+          <button type="button" class="btn-primary" onclick="window.openPackageBuilder()" style="padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Build Your Own Package</span>
+          </button>
+          <a href="#catering-form" class="btn-outline" style="padding: 14px 24px; font-size: 14px; font-weight: 600; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <span>Discuss Custom Event With Team &darr;</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- SEO Section: Services -->
     <section style="padding: 60px 20px; background: var(--bg);">
       <div class="container" style="text-align: center; max-width: 800px;">
@@ -210,7 +236,7 @@
               <div id="cat-quote-display" style="display: none; padding: 16px; background: rgba(255, 153, 0, 0.1); border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; text-align: center; margin-top: 16px;">
                 <div style="font-family: 'Barlow Condensed'; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Estimated Quote</div>
                 <div id="cat-quote-amount" style="font-size: 28px; font-weight: 700; margin: 4px 0;">$0</div>
-                <div style="font-size: 12px; color: var(--gray);">Based on ~$18/guest (Customizable based on menu)</div>
+                <div style="font-size: 12px; color: var(--gray);">Approximate base rate (~$18/guest). For itemized dishes and custom party trays, use our <a href="javascript:void(0)" onclick="window.openPackageBuilder(document.getElementById('cat-guests').value)" style="color: var(--accent); text-decoration: underline; font-weight: bold;">Custom Package Builder</a>.</div>
               </div>
 
               <button type="submit" id="cat-submit-btn" class="btn-primary" style="margin-top: 16px;">Submit Inquiry</button>
@@ -240,7 +266,336 @@
       </div>
     </section>
 
-    </main>
+    
+  <!-- Full-Screen Interactive Custom Catering Package Builder Modal -->
+  <div class="builder-modal-overlay" id="catering-package-builder-modal">
+    <div class="builder-modal-container">
+      
+      <!-- Builder Top Header -->
+      <div class="builder-header">
+        <div>
+          <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #FF4500;">
+            BIGI AWASAANA CATERING
+          </div>
+          <h2 style="font-size: 20px; font-weight: 700; margin: 2px 0 0; color: #fff;">
+            Custom Catering Package Builder
+          </h2>
+        </div>
+        <button type="button" onclick="window.closePackageBuilder()" aria-label="Close builder" style="background: none; border: none; color: #aaa; cursor: pointer; padding: 8px; display: inline-flex; align-items: center; justify-content: center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Stepper Nav Bar -->
+      <nav class="builder-steps-nav" aria-label="Package Builder Steps">
+        <button type="button" class="builder-step-tab active" id="builder-tab-1" onclick="window.goToStep(1)">
+          <span class="step-num">1</span>
+          <span>Event Details</span>
+        </button>
+        <button type="button" class="builder-step-tab" id="builder-tab-2" onclick="window.goToStep(2)">
+          <span class="step-num">2</span>
+          <span>Package Type</span>
+        </button>
+        <button type="button" class="builder-step-tab" id="builder-tab-3" onclick="window.goToStep(3)">
+          <span class="step-num">3</span>
+          <span>Food Selection</span>
+        </button>
+        <button type="button" class="builder-step-tab" id="builder-tab-4" onclick="window.goToStep(4)">
+          <span class="step-num">4</span>
+          <span>Services</span>
+        </button>
+        <button type="button" class="builder-step-tab" id="builder-tab-5" onclick="window.goToStep(5)">
+          <span class="step-num">5</span>
+          <span>Review &amp; Submit</span>
+        </button>
+      </nav>
+
+      <!-- Main Body Container -->
+      <div class="builder-content-body" id="builder-form-body">
+        
+        <!-- STEP 1: EVENT DETAILS -->
+        <div id="builder-pane-step-1">
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 1: Event Information &amp; Guest Count</h3>
+            <p style="font-size: 13px; color: #999; margin: 0;">Tell us about your event so we can recommend accurate portions and availability.</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 20px;">
+            <div>
+              <label class="builder-label">Event Type *</label>
+              <select id="builder-event-type" class="builder-select" onchange="builderState.eventDetails.type = this.value">
+                <option value="Family Gathering">Family Gathering</option>
+                <option value="Birthday Party">Birthday Party</option>
+                <option value="Corporate Event">Corporate Event / Office Lunch</option>
+                <option value="Wedding / Engagement">Wedding / Engagement</option>
+                <option value="Graduation Celebration">Graduation Celebration</option>
+                <option value="Film Set Catering">Film Set Catering</option>
+                <option value="Other Celebration">Other Celebration</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="builder-label">Event Date *</label>
+              <input type="date" id="builder-event-date" class="builder-input" required onchange="builderState.eventDetails.date = this.value">
+            </div>
+
+            <div>
+              <label class="builder-label">Preferred Serving Time *</label>
+              <input type="time" id="builder-event-time" class="builder-input" value="17:00" onchange="builderState.eventDetails.time = this.value">
+            </div>
+          </div>
+
+          <!-- Guest Count Selection -->
+          <div style="margin-bottom: 24px; background: #141414; border: 1px solid #242424; padding: 18px; border-radius: 8px;">
+            <label class="builder-label" style="color: #fff; font-size: 12px; margin-bottom: 10px;">Select Number of Guests *</label>
+            <div class="guest-pills-row">
+              <button type="button" class="guest-pill" data-guests="10" onclick="window.selectGuestPill(10)">10 Guests</button>
+              <button type="button" class="guest-pill" data-guests="20" onclick="window.selectGuestPill(20)">20 Guests</button>
+              <button type="button" class="guest-pill active" data-guests="50" onclick="window.selectGuestPill(50)">50 Guests</button>
+              <button type="button" class="guest-pill" data-guests="100" onclick="window.selectGuestPill(100)">100 Guests</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; max-width: 320px;">
+              <span style="font-size: 13px; color: #888;">Or custom guest count:</span>
+              <input type="number" id="builder-guests-custom" min="5" max="500" value="50" class="builder-input" style="width: 110px;" oninput="window.handleGuestCustomChange(this.value)">
+            </div>
+          </div>
+
+          <!-- Fulfillment: Pickup vs Delivery -->
+          <div style="margin-bottom: 20px;">
+            <label class="builder-label">Fulfillment Method *</label>
+            <select id="builder-fulfillment" class="builder-select" onchange="window.handleFulfillmentChange(this.value)">
+              <option value="delivery">Delivery to Venue / Home (+$50 flat Valley delivery)</option>
+              <option value="pickup">Pickup from Trailer (18411 Victory Blvd, Reseda — Free)</option>
+            </select>
+          </div>
+
+          <div id="builder-address-container" style="margin-bottom: 20px;">
+            <label class="builder-label">Delivery Address *</label>
+            <input type="text" id="builder-delivery-address" class="builder-input" placeholder="Street address, City, ZIP Code" oninput="builderState.eventDetails.deliveryAddress = this.value">
+          </div>
+
+          <div>
+            <label class="builder-label">Special Event Instructions / Setup Notes</label>
+            <textarea id="builder-special-instructions" class="builder-textarea" rows="3" placeholder="Tell us about table setup, gate codes, or special timing..." oninput="builderState.eventDetails.specialInstructions = this.value"></textarea>
+          </div>
+        </div>
+
+        <!-- STEP 2: PACKAGE TYPE (SCRATCH VS TEMPLATE) -->
+        <div id="builder-pane-step-2" style="display: none;">
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 2: Choose Your Starting Point</h3>
+            <p style="font-size: 13px; color: #999; margin: 0;">Start from an administrator-crafted Afghan banquet or build every tray completely from scratch.</p>
+          </div>
+
+          <div class="start-path-grid">
+            <div class="start-path-card" id="start-path-template" onclick="window.selectPackageType('template')">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF4500" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0;">Start With a Curated Package</h4>
+              </div>
+              <p style="font-size: 13px; color: #aaa; margin: 0; line-height: 1.4;">
+                Select from our most popular party packages curated for weddings, family gatherings, and corporate events. Fully customizable in Step 3!
+              </p>
+            </div>
+
+            <div class="start-path-card active" id="start-path-scratch" onclick="window.selectPackageType('custom_scratch')">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF4500" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0;">Build Completely From Scratch</h4>
+              </div>
+              <p style="font-size: 13px; color: #aaa; margin: 0; line-height: 1.4;">
+                Handpick every single party tray, kabob skewer platter, appetizer, and dessert independently with exact portion control.
+              </p>
+            </div>
+          </div>
+
+          <!-- Template Cards Carousel/Grid -->
+          <div id="builder-templates-wrapper">
+            <h4 style="font-size: 15px; font-weight: 700; color: #fff; margin: 20px 0 12px;">Curated Package Options:</h4>
+            <div class="templates-grid" id="builder-templates-grid"></div>
+          </div>
+        </div>
+
+        <!-- STEP 3: INTERACTIVE FOOD SELECTION -->
+        <div id="builder-pane-step-3" style="display: none;">
+          <div style="margin-bottom: 16px;">
+            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 3: Select Authentic Afghan Party Trays</h3>
+            <p style="font-size: 13px; color: #999; margin: 0;">Add and customize tray quantities. 100% hand-slaughtered Zabiha Halal meats cooked fresh over natural charcoal.</p>
+          </div>
+
+          <!-- Portion Assistant Bar -->
+          <div class="portion-assistant-bar" id="builder-portion-assistant"></div>
+
+          <!-- Category Filter Tabs -->
+          <div class="category-filter-tabs">
+            <button type="button" class="cat-filter-btn active" data-cat="all" onclick="window.filterFoodCategory('all')">All Dishes</button>
+            <button type="button" class="cat-filter-btn" data-cat="rice_traditional" onclick="window.filterFoodCategory('rice_traditional')">Rice &amp; Traditional</button>
+            <button type="button" class="cat-filter-btn" data-cat="kabobs_mains" onclick="window.filterFoodCategory('kabobs_mains')">Kabobs &amp; Mains</button>
+            <button type="button" class="cat-filter-btn" data-cat="appetizers_sides" onclick="window.filterFoodCategory('appetizers_sides')">Appetizers &amp; Sides</button>
+            <button type="button" class="cat-filter-btn" data-cat="desserts" onclick="window.filterFoodCategory('desserts')">Desserts</button>
+            <button type="button" class="cat-filter-btn" data-cat="beverages_extras" onclick="window.filterFoodCategory('beverages_extras')">Beverages &amp; Chutneys</button>
+          </div>
+
+          <!-- Dishes Grid -->
+          <div class="catalog-cards-grid" id="builder-catalog-grid"></div>
+        </div>
+
+        <!-- STEP 4: OPTIONAL SERVICES -->
+        <div id="builder-pane-step-4" style="display: none;">
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 4: Optional Catering Equipment &amp; Services</h3>
+            <p style="font-size: 13px; color: #999; margin: 0;">Add commercial chafing dishes, eco-friendly luxury bamboo dinnerware, or on-site staff.</p>
+          </div>
+
+          <div id="builder-services-list"></div>
+        </div>
+
+        <!-- STEP 5: REVIEW & SUBMIT -->
+        <div id="builder-pane-step-5" style="display: none;">
+          <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 6px;">Step 5: Review Package &amp; Submit Request</h3>
+            <p style="font-size: 13px; color: #999; margin: 0;">Review your selected event details and menu items, then enter your contact details to submit for review.</p>
+          </div>
+
+          <div id="builder-review-event"></div>
+          
+          <h4 style="font-size: 15px; font-weight: 700; color: #fff; margin: 20px 0 10px;">Selected Menu Trays:</h4>
+          <div id="builder-review-dishes"></div>
+
+          <!-- Customer Contact Form -->
+          <form id="builder-contact-form" onsubmit="window.submitCateringPackage(event)" style="background: #141414; border: 1px solid #242424; border-radius: 8px; padding: 20px; margin-top: 24px;">
+            <h4 style="font-size: 16px; font-weight: 700; color: #FF4500; margin: 0 0 16px;">Contact Information</h4>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
+              <div>
+                <label class="builder-label">Full Name *</label>
+                <input type="text" id="builder-client-name" class="builder-input" required placeholder="e.g. Farhad Karimi">
+              </div>
+
+              <div>
+                <label class="builder-label">Email Address *</label>
+                <input type="email" id="builder-client-email" class="builder-input" required placeholder="e.g. farhad@example.com">
+              </div>
+
+              <div>
+                <label class="builder-label">Phone Number *</label>
+                <input type="tel" id="builder-client-phone" class="builder-input" required placeholder="e.g. (818) 555-0199">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+              <div>
+                <label class="builder-label">Preferred Contact Method</label>
+                <select id="builder-client-contact-method" class="builder-select">
+                  <option value="phone">Phone Call</option>
+                  <option value="text">SMS Text Message</option>
+                  <option value="email">Email</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="builder-label">Additional Dietary or Allergen Notes</label>
+                <input type="text" id="builder-client-notes" class="builder-input" placeholder="e.g. 2 guests with nut allergies, extra spicy chutney">
+              </div>
+            </div>
+
+            <!-- Price Breakdown Summary Box -->
+            <div style="background: #171717; border: 1px solid #282828; border-radius: 8px; padding: 18px; margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+                <span style="color: #999;">Food Subtotal:</span>
+                <strong id="calc-food-subtotal" style="color: #fff;">$0.00</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+                <span style="color: #999;">Optional Services:</span>
+                <strong id="calc-services-total" style="color: #fff;">$0.00</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+                <span style="color: #999;">Delivery Fee:</span>
+                <strong id="calc-delivery-fee" style="color: #fff;">$50.00</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                <span style="color: #999;">Estimated Tax (10.25%):</span>
+                <strong id="calc-tax-amount" style="color: #fff;">$0.00</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 18px; border-top: 1px solid #333; padding-top: 10px; margin-top: 8px;">
+                <span style="font-weight: 700; color: #fff;">Estimated Total:</span>
+                <strong id="calc-estimated-total" style="color: #FF4500;">$0.00</strong>
+              </div>
+            </div>
+
+            <div style="background: rgba(255, 69, 0, 0.08); border: 1px solid rgba(255, 69, 0, 0.25); border-radius: 6px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #ff9800; text-align: center; line-height: 1.5;">
+              Estimated price only. Final pricing and event date availability are subject to BIGI AWASAANA approval. No payment is charged at this step.
+            </div>
+
+            <button type="submit" id="builder-submit-btn" class="btn-primary" style="width: 100%; padding: 15px; font-size: 16px; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span>Submit My Catering Package</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- SUCCESS CONFIRMATION OVERLAY -->
+      <div id="builder-success-view" style="display: none; padding: 48px 24px; text-align: center;">
+        <div style="width: 56px; height: 56px; background: rgba(76, 175, 80, 0.15); border: 1px solid #4caf50; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h3 style="font-size: 24px; font-weight: 700; color: #4caf50; margin: 0 0 8px;">Catering Package Request Received!</h3>
+        <p style="font-size: 15px; color: #ddd; max-width: 540px; margin: 0 auto 16px;">
+          Thank you, <strong id="success-client-name" style="color: #fff;">Client</strong>! Your custom Afghan catering package has been submitted to the Bigi Awasaana team.
+        </p>
+
+        <div style="display: inline-block; background: #161616; border: 1px solid #333; border-radius: 8px; padding: 12px 24px; margin-bottom: 24px;">
+          <div style="font-size: 11px; text-transform: uppercase; color: #888; letter-spacing: 1px;">Request Reference Number</div>
+          <div id="success-ref-number" style="font-family: monospace; font-size: 18px; font-weight: 700; color: #FF4500; margin-top: 4px;">BA-PKG-XXXX-XXXX</div>
+        </div>
+
+        <p style="font-size: 13px; color: #aaa; max-width: 500px; margin: 0 auto 28px; line-height: 1.5;">
+          A copy has been emailed to <strong id="success-client-email" style="color: #fff;">your email</strong>. Our team will review your menu selections and date availability, then generate your official quote with a private proposal link.
+        </p>
+
+        <button type="button" class="btn-primary" onclick="window.closePackageBuilder()" style="padding: 12px 28px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+          Done
+        </button>
+      </div>
+
+      <!-- Footer Navigation Controls -->
+      <div class="builder-footer-actions">
+        <button type="button" class="btn-outline btn-sm" id="builder-prev-btn" onclick="window.prevStep()" style="padding: 10px 18px; font-weight: 600;">
+          &larr; Back
+        </button>
+
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="font-size: 14px; color: #888; display: none;" id="builder-desktop-total-preview" class="desktop-only">
+            Estimated Total: <strong id="builder-footer-total" style="color: #FF4500; font-size: 16px;">$0.00</strong>
+          </div>
+          <button type="button" class="btn-primary" id="builder-next-btn" onclick="window.nextStep()" style="padding: 10px 24px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+            Continue &rarr;
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Sticky Bottom Estimate Bar -->
+      <div class="builder-mobile-sticky-bar">
+        <div>
+          <div style="font-size: 11px; color: #888; text-transform: uppercase;">Estimated Total</div>
+          <div style="font-size: 18px; font-weight: 700; color: #FF4500;" id="builder-mobile-total-display">$0.00</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-outline btn-sm" onclick="window.prevStep()" style="padding: 8px 12px; font-size: 12px; font-weight: 600;">
+            &larr;
+          </button>
+          <button type="button" class="btn-primary btn-sm" id="builder-mobile-next-btn" onclick="window.nextStep()" style="padding: 8px 16px; font-size: 13px; font-weight: 700;">
+            Next &rarr;
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  </main>
 
   <!-- Footer -->
   <footer class="footer">

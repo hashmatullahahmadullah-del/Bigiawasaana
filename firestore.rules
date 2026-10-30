@@ -84,6 +84,30 @@ service cloud.firestore {
     match /catering_quotes/{quote} {
       allow read, write: if isAdmin();
     }
+
+    // Catering Catalog Collection (Public read, Authenticated Admin write)
+    match /catering_catalog/{item} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Catering Package Templates Collection (Public read, Authenticated Admin write)
+    match /catering_package_templates/{template} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Catering Package Requests Collection (Client submit with validation, Admin manage)
+    match /catering_package_requests/{requestDoc} {
+      allow create: if request.resource.data.keys().hasAll(['customerContact', 'eventDetails', 'selectedItems', 'estimatedPriceBreakdown', 'submittedAt'])
+                    && request.resource.data.customerContact.name is string
+                    && request.resource.data.customerContact.name.size() > 0
+                    && request.resource.data.customerContact.email is string
+                    && request.resource.data.customerContact.email.size() > 0
+                    && request.resource.data.customerContact.phone is string
+                    && request.resource.data.customerContact.phone.size() > 0;
+      allow read, update, delete: if isAdmin();
+    }
     
     // Deals Collection
     match /deals/{deal} {

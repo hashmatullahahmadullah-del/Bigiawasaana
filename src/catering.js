@@ -2,10 +2,18 @@ import { db } from './firebase.js';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { initNav } from './nav.js';
 import { iconCheckCircle, iconAlertTriangle } from './icons.js';
+import './catering-builder.js';
+import { openPackageBuilder } from './catering-builder.js';
 
 // Init mobile nav
 initNav();
 
+// Check URL Path, Hash or Query to auto-open Package Builder
+if (window.location.pathname.includes('/catering/build') || window.location.hash === '#builder' || window.location.hash === '#build' || window.location.search.includes('build=true')) {
+  setTimeout(() => {
+    openPackageBuilder();
+  }, 150);
+}
 
 // Auto-Quote Calculator
 const guestInput = document.getElementById('cat-guests');
@@ -78,8 +86,8 @@ if (cateringForm) {
       catStatus.style.gap = '8px';
       catStatus.style.background = 'rgba(255,69,0,0.1)';
       catStatus.style.borderColor = 'var(--accent)';
-      catStatus.style.color = 'var(--accent)';
-      catStatus.innerHTML = `${iconAlertTriangle(18)} Something went wrong. Please call us at (323) 421-1646.`;
+      catStatus.color = 'var(--accent)';
+      catStatus.innerHTML = `${iconAlertTriangle(18)} Something went wrong. Please call us at (323) 921-1646.`;
     } finally {
       catSubmitBtn.disabled = false;
       catSubmitBtn.textContent = 'Submit Inquiry';

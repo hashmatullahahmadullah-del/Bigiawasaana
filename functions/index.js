@@ -54,3 +54,8 @@ exports.lookupCustomerQuote = require('./catering-quotes').lookupCustomerQuote;
 exports.acceptCateringQuote = require('./catering-quotes').acceptCateringQuote;
 exports.payCateringDeposit = require('./catering-quotes').payCateringDeposit;
 exports.sendCateringQuoteEmail = require('./catering-quotes').sendCateringQuoteEmail;
+
+// Catering Package Builder System
+exports.submitCateringPackageRequest = require('./catering-packages').submitCateringPackageRequest;
+exports.convertPackageRequestToQuote = require('./catering-packages').convertPackageRequestToQuote;
+

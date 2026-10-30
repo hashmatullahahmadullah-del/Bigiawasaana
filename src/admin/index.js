@@ -161,6 +161,28 @@ export function initCRMData() {
   }, (err) => {
     console.warn('Catering quotes listener notice:', err);
   });
+
+  // 4c. Listen to Catering Package Requests
+  const packageRequestsQuery = query(collection(db, 'catering_package_requests'), orderBy('submittedAt', 'desc'));
+  window.cateringPackageRequestsUnsub = onSnapshot(packageRequestsQuery, (snapshot) => {
+    state.packageRequests = [];
+    snapshot.forEach(d => {
+      state.packageRequests.push({
+        id: d.id,
+        ...d.data(),
+        submittedAtDate: d.data().submittedAt?.toDate ? d.data().submittedAt.toDate() : new Date()
+      });
+    });
+    if (typeof window.renderPackageRequests === 'function') window.renderPackageRequests();
+    const badge = document.getElementById('badge-package-requests');
+    if (badge) {
+      const newCount = state.packageRequests.filter(p => p.status === 'new').length;
+      badge.textContent = newCount;
+      badge.style.display = newCount > 0 ? 'inline-block' : 'none';
+    }
+  }, (err) => {
+    console.warn('Catering package requests listener notice:', err);
+  });
   window.unitSettingsUnsub = onSnapshot(doc(db, 'unitEconomics_settings', 'config'), (docSnap) => {
     if (docSnap.exists()) {
       state.unitSettings = { ...state.unitSettings, ...docSnap.data() };

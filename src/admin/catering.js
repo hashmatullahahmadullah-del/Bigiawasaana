@@ -1,3 +1,4 @@
+import { DEFAULT_CATERING_CATALOG, DEFAULT_PACKAGE_TEMPLATES } from '../lib/catering-catalog-data.js';
 import { state } from './shared.js';
 import { db, app } from '../firebase.js';
 import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
@@ -41,7 +42,7 @@ let currentQuoteItems = [];
  * ─────────────────────────────────────────────────────────────────
  */
 export function switchCateringTab(tabName) {
-  const tabs = ['inquiries', 'quotes', 'bookings'];
+  const tabs = ['inquiries', 'packages', 'quotes', 'bookings', 'catalog'];
   tabs.forEach(t => {
     const btn = document.getElementById(`btn-cat-${t}`);
     const pane = document.getElementById(`cat-tab-${t}`);
@@ -50,8 +51,10 @@ export function switchCateringTab(tabName) {
   });
 
   if (tabName === 'inquiries') renderCateringInquiries();
+  if (tabName === 'packages') renderPackageRequests();
   if (tabName === 'quotes') renderCateringQuotes();
   if (tabName === 'bookings') renderConfirmedBookings();
+  if (tabName === 'catalog') renderCateringCatalog();
 }
 window.switchCateringTab = switchCateringTab;
 
@@ -961,3 +964,334 @@ window.sendQuoteEmailToClient = async () => {
     }
   }
 };
+
+
+/**
+ * ═══════════════════════════════════════════════════════════════════
+ * 1B. Package Requests Controller & Quote Conversion
+ * ═══════════════════════════════════════════════════════════════════
+ */
+let currentInspectingPackage = null;
+
+export function renderPackageRequests() {
+  const tbody = document.getElementById('catering-packages-table-body');
+  if (!tbody) return;
+
+  const requests = state.packageRequests || [];
+
+  // Update KPI counters
+  const totalCountEl = document.getElementById('pkg-total-count');
+  const newCountEl = document.getElementById('pkg-new-count');
+  const quotedCountEl = document.getElementById('pkg-quoted-count');
+  const pipelineValEl = document.getElementById('pkg-pipeline-val');
+
+  const newCount = requests.filter(r => r.status === 'new').length;
+  const quotedCount = requests.filter(r => r.status === 'quoted').length;
+  const pipelineVal = requests
+    .filter(r => r.status !== 'closed')
+    .reduce((sum, r) => sum + (Number(r.estimatedPriceBreakdown?.estimatedTotal) || 0), 0);
+
+  if (totalCountEl) totalCountEl.textContent = requests.length;
+  if (newCountEl) newCountEl.textContent = newCount;
+  if (quotedCountEl) quotedCountEl.textContent = quotedCount;
+  if (pipelineValEl) pipelineValEl.textContent = '$' + pipelineVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // Update Subnav badge
+  const badge = document.getElementById('badge-package-requests');
+  if (badge) {
+    badge.textContent = newCount;
+    badge.style.display = newCount > 0 ? 'inline-block' : 'none';
+  }
+
+  // Filter criteria
+  const searchInput = document.getElementById('pkg-search');
+  const statusFilter = document.getElementById('pkg-status-filter');
+  const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const selectedStatus = statusFilter ? statusFilter.value : 'all';
+
+  const filtered = requests.filter(r => {
+    if (selectedStatus !== 'all' && r.status !== selectedStatus) return false;
+    if (searchTerm) {
+      const name = (r.customerContact?.name || '').toLowerCase();
+      const email = (r.customerContact?.email || '').toLowerCase();
+      const phone = (r.customerContact?.phone || '').toLowerCase();
+      const num = (r.requestNumber || '').toLowerCase();
+      return name.includes(searchTerm) || email.includes(searchTerm) || phone.includes(searchTerm) || num.includes(searchTerm);
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">No catering package requests found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(req => {
+    const itemsCount = (req.selectedItems || []).reduce((s, it) => s + (it.quantity || 1), 0);
+    const estTotal = Number(req.estimatedPriceBreakdown?.estimatedTotal) || 0;
+    
+    // Status color
+    let statusBg = 'rgba(161,161,170,0.15)';
+    let statusColor = '#a1a1aa';
+    if (req.status === 'new') { statusBg = 'rgba(245,158,11,0.15)'; statusColor = '#f59e0b'; }
+    else if (req.status === 'reviewing') { statusBg = 'rgba(59,130,246,0.15)'; statusColor = '#60a5fa'; }
+    else if (req.status === 'quoted') { statusBg = 'rgba(16,185,129,0.15)'; statusColor = '#34d399'; }
+
+    return `
+      <tr>
+        <td style="font-family: monospace; font-weight: 700; color: var(--accent-admin);">
+          ${escapeHtml(req.requestNumber || req.id)}
+        </td>
+        <td>
+          <div style="font-weight: 600; color: var(--text-main);">${escapeHtml(req.customerContact?.name || 'Unknown')}</div>
+          <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(req.customerContact?.phone || '')} &bull; ${escapeHtml(req.customerContact?.email || '')}</div>
+        </td>
+        <td>
+          <div style="color: var(--text-main);">${escapeHtml(req.eventDetails?.date || 'N/A')}</div>
+          <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(String(req.eventDetails?.guests || 0))} guests (${escapeHtml(req.eventDetails?.type || 'Event')})</div>
+        </td>
+        <td>
+          <span style="font-size: 12px; text-transform: uppercase; font-weight: 700; color: ${req.eventDetails?.fulfillment === 'delivery' ? '#ff9800' : '#4caf50'};">
+            ${escapeHtml(req.eventDetails?.fulfillment || 'pickup')}
+          </span>
+        </td>
+        <td style="font-weight: 700; color: var(--text-main);">
+          $${estTotal.toFixed(2)}
+          <div style="font-size: 11px; font-weight: normal; color: var(--text-muted);">${itemsCount} trays</div>
+        </td>
+        <td>
+          <span style="display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: ${statusBg}; color: ${statusColor};">
+            ${escapeHtml(req.status || 'new')}
+          </span>
+        </td>
+        <td>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="btn-outline btn-sm" onclick="window.openPackageRequestModal(state.packageRequests.find(r => r.id === '${req.id}'))" style="padding: 6px 10px; font-size: 12px;">
+              Review
+            </button>
+            <button type="button" class="btn-primary btn-sm" onclick="window.convertPackageRequestToQuote(state.packageRequests.find(r => r.id === '${req.id}'))" style="padding: 6px 12px; font-size: 12px; font-weight: 700;">
+              Convert
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+window.renderPackageRequests = renderPackageRequests;
+window.filterPackageRequests = renderPackageRequests;
+
+export function openPackageRequestModal(pkg) {
+  if (!pkg) return;
+  currentInspectingPackage = pkg;
+
+  const modal = document.getElementById('package-request-modal');
+  if (!modal) return;
+
+  document.getElementById('prm-req-num').textContent = pkg.requestNumber || pkg.id;
+  document.getElementById('prm-status-select').value = pkg.status || 'new';
+
+  document.getElementById('prm-cust-name').textContent = pkg.customerContact?.name || 'Unknown';
+  const emailEl = document.getElementById('prm-cust-email');
+  emailEl.textContent = pkg.customerContact?.email || 'N/A';
+  emailEl.href = `mailto:${pkg.customerContact?.email || ''}`;
+
+  const phoneEl = document.getElementById('prm-cust-phone');
+  phoneEl.textContent = pkg.customerContact?.phone || 'N/A';
+  phoneEl.href = `tel:${pkg.customerContact?.phone || ''}`;
+
+  document.getElementById('prm-cust-contact-pref').textContent = pkg.customerContact?.preferredContact || 'phone';
+
+  document.getElementById('prm-event-type').textContent = pkg.eventDetails?.type || 'Celebration';
+  document.getElementById('prm-event-date-time').textContent = `${pkg.eventDetails?.date || 'N/A'} at ${pkg.eventDetails?.time || '17:00'}`;
+  document.getElementById('prm-event-guests').textContent = `${pkg.eventDetails?.guests || 0} Guests`;
+  document.getElementById('prm-event-fulfillment').textContent = (pkg.eventDetails?.fulfillment || 'pickup').toUpperCase();
+
+  const addressRow = document.getElementById('prm-event-address-row');
+  const addressEl = document.getElementById('prm-event-address');
+  if (pkg.eventDetails?.fulfillment === 'delivery' && pkg.eventDetails?.deliveryAddress) {
+    addressRow.style.display = 'block';
+    addressEl.textContent = pkg.eventDetails.deliveryAddress;
+  } else {
+    addressRow.style.display = 'none';
+  }
+
+  document.getElementById('prm-special-notes').textContent = pkg.eventDetails?.specialInstructions || 'None provided.';
+
+  // Render items
+  const itemsTbody = document.getElementById('prm-items-tbody');
+  itemsTbody.innerHTML = (pkg.selectedItems || []).map(it => `
+    <tr>
+      <td>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          ${it.imageUrl ? `<img src="${it.imageUrl}" alt="${escapeHtml(it.name)}" style="width: 36px; height: 36px; border-radius: 4px; object-fit: cover;">` : ''}
+          <strong style="color: var(--text-main);">${escapeHtml(it.name)}</strong>
+        </div>
+      </td>
+      <td style="color: var(--text-muted); font-size: 12px;">${escapeHtml(it.portionSize || 'Party Tray')}</td>
+      <td style="font-weight: 700;">${it.quantity}</td>
+      <td>$${(Number(it.unitPrice) || 0).toFixed(2)}</td>
+      <td style="font-weight: 700; color: var(--text-main);">$${(Number(it.totalPrice) || (it.unitPrice * it.quantity) || 0).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  // Render services
+  const srvSection = document.getElementById('prm-services-section');
+  const srvList = document.getElementById('prm-services-list');
+  if (pkg.selectedServices && pkg.selectedServices.length > 0) {
+    srvSection.style.display = 'block';
+    srvList.innerHTML = pkg.selectedServices.map(s => `
+      <div>&bull; <strong>${escapeHtml(s.name)}</strong> ${s.price ? `($${Number(s.price).toFixed(2)})` : ''}</div>
+    `).join('');
+  } else {
+    srvSection.style.display = 'none';
+  }
+
+  // Price breakdown
+  const b = pkg.estimatedPriceBreakdown || {};
+  document.getElementById('prm-food-subtotal').textContent = `$${(Number(b.foodSubtotal) || 0).toFixed(2)}`;
+  document.getElementById('prm-services-total').textContent = `$${(Number(b.servicesTotal) || 0).toFixed(2)}`;
+  document.getElementById('prm-delivery-fee').textContent = `$${(Number(b.deliveryFee) || 0).toFixed(2)}`;
+  document.getElementById('prm-tax-amount').textContent = `$${(Number(b.taxAmount) || 0).toFixed(2)}`;
+  document.getElementById('prm-estimated-total').textContent = `$${(Number(b.estimatedTotal) || 0).toFixed(2)}`;
+
+  modal.classList.add('open');
+}
+window.openPackageRequestModal = openPackageRequestModal;
+
+export function closePackageRequestModal() {
+  const modal = document.getElementById('package-request-modal');
+  if (modal) modal.classList.remove('open');
+  currentInspectingPackage = null;
+}
+window.closePackageRequestModal = closePackageRequestModal;
+
+export async function updatePackageRequestStatus(newStatus) {
+  if (!currentInspectingPackage) return;
+  try {
+    await updateDoc(doc(db, 'catering_package_requests', currentInspectingPackage.id), {
+      status: newStatus,
+      updatedAt: serverTimestamp()
+    });
+    currentInspectingPackage.status = newStatus;
+    showToast(`Status updated to ${newStatus}`, 'success');
+  } catch (err) {
+    console.error('Failed to update status:', err);
+    showToast('Failed to update status.', 'error');
+  }
+}
+window.updatePackageRequestStatus = updatePackageRequestStatus;
+
+export function convertCurrentPackageToQuote() {
+  if (currentInspectingPackage) {
+    convertPackageRequestToQuote(currentInspectingPackage);
+  }
+}
+window.convertCurrentPackageToQuote = convertCurrentPackageToQuote;
+
+export function convertPackageRequestToQuote(pkg) {
+  if (!pkg) return;
+
+  const quoteData = {
+    customer: {
+      name: pkg.customerContact?.name || '',
+      phone: pkg.customerContact?.phone || '',
+      email: pkg.customerContact?.email || '',
+      company: ''
+    },
+    event: {
+      title: `${pkg.eventDetails?.type || 'Catering'} Banquet`,
+      date: pkg.eventDetails?.date || '',
+      startTime: pkg.eventDetails?.time || '17:00',
+      endTime: '21:00',
+      guests: pkg.eventDetails?.guests || 50,
+      serviceType: pkg.eventDetails?.fulfillment === 'delivery' ? 'buffet_dropoff' : 'pickup',
+      location: {
+        address: pkg.eventDetails?.deliveryAddress || '18411 Victory Blvd, Reseda, CA 91335',
+        notes: pkg.eventDetails?.specialInstructions || ''
+      }
+    },
+    items: (pkg.selectedItems || []).map(it => ({
+      id: it.id,
+      name: it.name,
+      description: it.portionSize || '',
+      imageUrl: it.imageUrl || '',
+      portionSize: it.portionSize || '',
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      totalPrice: it.totalPrice || (it.unitPrice * it.quantity)
+    })),
+    pricing: {
+      deliveryFee: pkg.estimatedPriceBreakdown?.deliveryFee !== undefined ? pkg.estimatedPriceBreakdown.deliveryFee : 50,
+      setupFee: 0,
+      taxRate: 0.1025,
+      discount: 0,
+      depositPercentage: 30
+    },
+    terms: {
+      customNotes: `Converted from Package Request ${pkg.requestNumber || ''}. Includes authentic Afghan flatbread and house chutneys.`
+    },
+    packageRequestId: pkg.id
+  };
+
+  closePackageRequestModal();
+  openCreateQuoteModal(quoteData);
+
+  // Link quote to package request
+  if (pkg.id) {
+    updateDoc(doc(db, 'catering_package_requests', pkg.id), {
+      status: 'reviewing',
+      updatedAt: serverTimestamp()
+    }).catch(() => {});
+  }
+
+  showToast(`Package ${pkg.requestNumber || ''} transferred to Quote Editor.`, 'success');
+}
+window.convertPackageRequestToQuote = convertPackageRequestToQuote;
+
+/**
+ * ═══════════════════════════════════════════════════════════════════
+ * 1C. Catering Catalog & Preset Templates Admin View
+ * ═══════════════════════════════════════════════════════════════════
+ */
+export function renderCateringCatalog() {
+  const dishesGrid = document.getElementById('catalog-dishes-grid');
+  const templatesGrid = document.getElementById('catalog-templates-admin-grid');
+
+  if (dishesGrid) {
+    dishesGrid.innerHTML = DEFAULT_CATERING_CATALOG.map(dish => `
+      <div style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+        <img src="${dish.imageUrl}" alt="${escapeHtml(dish.nameEn)}" style="width: 100%; height: 130px; object-fit: cover; background: #000;">
+        <div style="padding: 14px; flex: 1; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0;">${escapeHtml(dish.nameEn)}</h4>
+            <span style="font-weight: 700; color: var(--accent-admin);">$${dish.unitPrice.toFixed(2)}</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">${escapeHtml(dish.portionSize)}</div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; flex: 1;">${escapeHtml(dish.descriptionEn)}</p>
+          <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-admin); padding-top: 8px;">
+            <span style="font-size: 11px; color: #4caf50; font-weight: 600;">Yield: ~${dish.servingYield} guests</span>
+            <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Published</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if (templatesGrid) {
+    templatesGrid.innerHTML = DEFAULT_PACKAGE_TEMPLATES.map(tpl => `
+      <div style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+        <img src="${tpl.imageUrl}" alt="${escapeHtml(tpl.titleEn)}" style="width: 100%; height: 130px; object-fit: cover; background: #000;">
+        <div style="padding: 14px; flex: 1; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+            <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0;">${escapeHtml(tpl.titleEn)}</h4>
+            <span style="font-size: 11px; background: rgba(225,29,72,0.1); color: var(--accent-admin); padding: 2px 8px; border-radius: 99px; font-weight: 700;">~${tpl.recommendedGuests} Guests</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4; flex: 1;">${escapeHtml(tpl.descriptionEn)}</p>
+          <div style="font-size: 12px; color: var(--text-main); font-weight: 600;">Included Trays: ${tpl.defaultItems.length} dish types</div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+window.renderCateringCatalog = renderCateringCatalog;
