@@ -538,7 +538,7 @@ exports.sendCateringQuoteEmail = functions.https.onCall(async (data, context) =>
 
         <div style="text-align: center; margin-top: 24px;">
           <a href="${quoteLink}" style="display: inline-block; padding: 14px 32px; background: #FF4500; color: #FFFFFF; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; letter-spacing: 0.5px;">
-            Review Proposal &amp; Pay Deposit &rarr;
+            Review proposal &amp; pay deposit
           </a>
         </div>
       </div>

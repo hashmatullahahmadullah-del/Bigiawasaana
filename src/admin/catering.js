@@ -4,6 +4,7 @@ window.state = state;
 import { db, app } from '../firebase.js';
 import { collection, doc, addDoc, updateDoc, setDoc, deleteDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+const functions = getFunctions(app);
 import { showToast } from './orders.js';
 
 function escapeHtml(str) {
@@ -1606,8 +1607,7 @@ window.saveCatalogDish = async function(e) {
 
   const saveBtn = document.getElementById('cdm-btn-save');
   if (saveBtn) {
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="crm-spinner"></span> Saving...';
+    window.setButtonLoading(saveBtn, true, 'Saving Dish...');
   }
 
   const dishId = idInput?.value || (nameEn.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36));
@@ -1650,8 +1650,7 @@ window.saveCatalogDish = async function(e) {
     alert('Failed to save catering dish: ' + err.message);
   } finally {
     if (saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Save Catering Dish';
+      window.setButtonLoading(saveBtn, false);
     }
   }
 };
@@ -1965,6 +1964,88 @@ window.renderCateringWaivers = renderCateringWaivers;
 /**
  * Quick Phone Waiver Modal Management
  */
+export function handleWaiverFulfillmentChange(val) {
+  const addrWrap = document.getElementById('qwm-address-wrap');
+  const feeWrap = document.getElementById('qwm-fee-wrap');
+  const feeInput = document.getElementById('qwm-delivery-fee');
+  const feeDisplay = document.getElementById('qwm-delivery-fee-display');
+
+  if (val === 'delivery') {
+    if (addrWrap) addrWrap.style.display = 'block';
+    if (feeWrap) feeWrap.style.display = 'block';
+    if (feeInput && (!feeInput.value || parseFloat(feeInput.value) === 0)) {
+      feeInput.value = '50.00';
+    }
+    if (feeDisplay) {
+      feeDisplay.value = feeInput?.value || '50.00';
+    }
+  } else {
+    if (addrWrap) addrWrap.style.display = 'none';
+    if (feeWrap) feeWrap.style.display = 'none';
+    if (feeInput) feeInput.value = '0.00';
+    if (feeDisplay) feeDisplay.value = '0.00';
+  }
+  recalcWaiverPricing();
+}
+window.handleWaiverFulfillmentChange = handleWaiverFulfillmentChange;
+
+export function syncDeliveryFee(val) {
+  const feeInput = document.getElementById('qwm-delivery-fee');
+  if (feeInput) feeInput.value = val;
+  recalcWaiverPricing();
+}
+window.syncDeliveryFee = syncDeliveryFee;
+
+export function recalcWaiverPricing() {
+  const foodSubtotal = parseFloat(document.getElementById('qwm-food-subtotal')?.value) || 0;
+  const fulfillment = document.getElementById('qwm-fulfillment')?.value;
+  const deliveryFee = fulfillment === 'delivery' ? (parseFloat(document.getElementById('qwm-delivery-fee')?.value) || 0) : 0;
+  
+  const grandTotal = Math.max(0, foodSubtotal + deliveryFee);
+  const deposit = Math.round(grandTotal * 0.3 * 100) / 100;
+
+  const totalInput = document.getElementById('qwm-total');
+  if (totalInput) {
+    totalInput.value = grandTotal > 0 ? grandTotal.toFixed(2) : '';
+  }
+
+  const depInput = document.getElementById('qwm-deposit');
+  if (depInput) depInput.value = deposit.toFixed(2);
+
+  const depDisplay = document.getElementById('qwm-deposit-display');
+  if (depDisplay) depDisplay.textContent = `$${deposit.toFixed(2)}`;
+
+  const feeDisplay = document.getElementById('qwm-delivery-fee-display');
+  if (feeDisplay && document.activeElement !== feeDisplay) {
+    feeDisplay.value = deliveryFee.toFixed(2);
+  }
+}
+window.recalcWaiverPricing = recalcWaiverPricing;
+
+export function recalcDepositOnly() {
+  const total = parseFloat(document.getElementById('qwm-total')?.value) || 0;
+  const deposit = Math.round(total * 0.3 * 100) / 100;
+
+  const depInput = document.getElementById('qwm-deposit');
+  if (depInput) depInput.value = deposit.toFixed(2);
+
+  const depDisplay = document.getElementById('qwm-deposit-display');
+  if (depDisplay) depDisplay.textContent = `$${deposit.toFixed(2)}`;
+}
+window.recalcDepositOnly = recalcDepositOnly;
+
+export function addQuickDishToWaiver(dishName) {
+  const menuArea = document.getElementById('qwm-menu');
+  if (!menuArea) return;
+  const current = menuArea.value.trim();
+  if (current) {
+    menuArea.value = `${current}\n• 1x ${dishName}`;
+  } else {
+    menuArea.value = `• 1x ${dishName}`;
+  }
+}
+window.addQuickDishToWaiver = addQuickDishToWaiver;
+
 export function openQuickWaiverModal() {
   const modal = document.getElementById('quick-waiver-modal');
   if (!modal) return;
@@ -1977,11 +2058,15 @@ export function openQuickWaiverModal() {
     dateInput.value = futureDate.toISOString().split('T')[0];
   }
 
-  // Reset form and success box
+  // Reset form, error, and success box
   document.getElementById('quick-waiver-form')?.reset();
+  const errBanner = document.getElementById('qwm-error-banner');
+  if (errBanner) errBanner.style.display = 'none';
   document.getElementById('qwm-success-box').style.display = 'none';
-  document.getElementById('qwm-btn-submit').style.display = 'inline-block';
+  document.getElementById('qwm-btn-submit').style.display = 'inline-flex';
   document.getElementById('qwm-address-wrap').style.display = 'none';
+  document.getElementById('qwm-fee-wrap').style.display = 'none';
+  document.getElementById('qwm-deposit-display').textContent = '$0.00';
 
   modal.classList.add('open');
   modal.style.display = 'flex';
@@ -2000,9 +2085,12 @@ window.closeQuickWaiverModal = closeQuickWaiverModal;
 export async function submitQuickWaiver(e) {
   e.preventDefault();
   const btn = document.getElementById('qwm-btn-submit');
+  const errBanner = document.getElementById('qwm-error-banner');
+  if (errBanner) errBanner.style.display = 'none';
+
   if (btn) {
     btn.disabled = true;
-    btn.textContent = 'Generating Link...';
+    btn.innerHTML = '<span>Generating Link...</span>';
   }
 
   try {
@@ -2011,6 +2099,7 @@ export async function submitQuickWaiver(e) {
     const email = document.getElementById('qwm-email')?.value.trim();
     const fulfillment = document.getElementById('qwm-fulfillment')?.value;
     const deliveryAddress = document.getElementById('qwm-address')?.value.trim();
+    const deliveryFee = fulfillment === 'delivery' ? (parseFloat(document.getElementById('qwm-delivery-fee')?.value) || 0) : 0;
     const eventDate = document.getElementById('qwm-date')?.value;
     const eventTime = document.getElementById('qwm-time')?.value || '17:00';
     const guestCount = parseInt(document.getElementById('qwm-guests')?.value, 10) || 25;
@@ -2018,13 +2107,21 @@ export async function submitQuickWaiver(e) {
     const estimatedTotal = parseFloat(document.getElementById('qwm-total')?.value) || 0;
     const depositAmount = parseFloat(document.getElementById('qwm-deposit')?.value) || Math.round(estimatedTotal * 0.3 * 100) / 100;
 
-    const createFn = httpsCallable(functions, 'createCateringWaiver');
+    if (!name || !phone || !eventDate) {
+      throw new Error('Please fill in Client Full Name, Phone Number, and Event Date.');
+    }
+    if (estimatedTotal <= 0) {
+      throw new Error('Please enter the estimated total or food subtotal for this catering order.');
+    }
+
+    const createFn = httpsCallable(getFunctions(app), 'createCateringWaiver');
     const res = await createFn({
       clientName: name,
       clientPhone: phone,
       clientEmail: email,
       fulfillment,
       deliveryAddress,
+      deliveryFee,
       eventDate,
       eventTime,
       guestCount,
@@ -2048,10 +2145,16 @@ export async function submitQuickWaiver(e) {
 
   } catch (err) {
     console.error('Error creating quick waiver:', err);
-    alert(`Failed to create waiver: ${err.message || 'Unknown error'}`);
+    if (errBanner) {
+      errBanner.textContent = `Error creating waiver: ${err.message || 'Unknown error'}`;
+      errBanner.style.display = 'block';
+      errBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      alert(`Failed to create waiver: ${err.message || 'Unknown error'}`);
+    }
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Generate Waiver Link →';
+      btn.innerHTML = '<span>Generate waiver link</span>';
     }
   }
 }
@@ -2160,7 +2263,9 @@ export async function submitRecordCash(e) {
   if (!activeCashAgreement) return;
 
   const btn = document.getElementById('rcm-btn-submit');
-  if (btn) {
+  if (btn && window.setButtonLoading) {
+    window.setButtonLoading(btn, true, 'Recording Deposit...');
+  } else if (btn) {
     btn.disabled = true;
     btn.textContent = 'Recording Deposit...';
   }
@@ -2169,7 +2274,7 @@ export async function submitRecordCash(e) {
     const amount = parseFloat(document.getElementById('rcm-amount')?.value) || 0;
     const notes = document.getElementById('rcm-notes')?.value.trim();
 
-    const cashFn = httpsCallable(functions, 'markWaiverCashReceived');
+    const cashFn = httpsCallable(getFunctions(app), 'markWaiverCashReceived');
     await cashFn({
       agreementNumber: activeCashAgreement.agreementNumber,
       amountReceived: amount,
@@ -2182,7 +2287,9 @@ export async function submitRecordCash(e) {
     console.error('Error recording cash deposit:', err);
     alert(`Failed to record cash: ${err.message || 'Unknown error'}`);
   } finally {
-    if (btn) {
+    if (btn && window.setButtonLoading) {
+      window.setButtonLoading(btn, false);
+    } else if (btn) {
       btn.disabled = false;
       btn.textContent = 'Confirm & Lock Booking';
     }

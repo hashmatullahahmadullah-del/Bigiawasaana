@@ -1,5 +1,6 @@
 import { app } from './firebase.js';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import './lib/button-utils.js';
 
 const functions = getFunctions(app);
 
@@ -266,6 +267,7 @@ function renderWaiverForm(ag) {
   const total = ag.pricing?.estimatedTotal || 0;
   const deposit = ag.pricing?.depositRequired || (total * 0.3);
   const balance = ag.pricing?.balanceDue || (total - deposit);
+  const delFee = ag.pricing?.deliveryFee !== undefined ? ag.pricing.deliveryFee : ag.event?.deliveryFee;
 
   document.getElementById('view-estimated-total').textContent = formatCurrency(total);
   document.getElementById('view-deposit-required').textContent = formatCurrency(deposit);
@@ -273,11 +275,27 @@ function renderWaiverForm(ag) {
   document.getElementById('btn-card-amt').textContent = formatCurrency(deposit);
   document.getElementById('cash-amt-display').textContent = formatCurrency(deposit);
 
+  const subEl = document.getElementById('view-pricing-subbreakdown');
+  if (subEl) {
+    if (ag.event?.fulfillment === 'delivery') {
+      const feeNum = Number(delFee) || 0;
+      const foodSub = ag.pricing?.foodSubtotal !== undefined ? ag.pricing.foodSubtotal : Math.max(0, total - feeNum);
+      subEl.textContent = `Food: $${foodSub.toFixed(2)} • Delivery: $${feeNum.toFixed(2)}`;
+    } else {
+      subEl.textContent = 'Food Subtotal (Trailer Pickup: Free)';
+    }
+  }
+
   // Event info
   const dateStr = formatDate(ag.event?.date);
   const timeStr = ag.event?.time || '05:00 PM';
   document.getElementById('view-event-datetime').textContent = `${dateStr} at ${timeStr}`;
-  document.getElementById('view-fulfillment').textContent = ag.event?.fulfillment === 'delivery' ? 'White-Glove Delivery' : 'Trailer Pickup';
+  if (ag.event?.fulfillment === 'delivery') {
+    const feeNum = Number(delFee) || 0;
+    document.getElementById('view-fulfillment').textContent = feeNum > 0 ? `White-Glove Delivery ($${feeNum.toFixed(2)})` : 'White-Glove Delivery';
+  } else {
+    document.getElementById('view-fulfillment').textContent = 'Trailer Pickup (Free)';
+  }
   document.getElementById('view-guest-count').textContent = `${ag.event?.guestCount || 20} Guests`;
 
   // Menu breakdown
@@ -490,8 +508,7 @@ async function handleWaiverSubmission(methodOverride = null) {
     : document.getElementById('btn-submit-card-pay');
   
   if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span>Processing Signature &amp; Booking...</span>';
+    window.setButtonLoading(submitBtn, true, 'Processing Signature & Booking...');
   }
 
   try {
@@ -577,11 +594,9 @@ async function handleWaiverSubmission(methodOverride = null) {
     } else {
       alert(err.message || 'Submission error');
     }
+  } finally {
     if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = method === 'cash' 
-        ? '<span>Sign &amp; Confirm Agreement (Cash at Trailer)</span>'
-        : '<span>Sign &amp; Pay 30% Deposit</span>';
+      window.setButtonLoading(submitBtn, false);
     }
   }
 }

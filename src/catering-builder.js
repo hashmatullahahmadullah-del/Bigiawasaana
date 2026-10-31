@@ -7,6 +7,7 @@ import { db, app } from './firebase.js';
 import { collection, addDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { DEFAULT_CATERING_CATALOG, DEFAULT_PACKAGE_TEMPLATES, OPTIONAL_CATERING_SERVICES } from './lib/catering-catalog-data.js';
+import './lib/button-utils.js';
 
 // Live catalog cache with fallback to DEFAULT_CATERING_CATALOG
 export let activeCateringCatalog = [...DEFAULT_CATERING_CATALOG];
@@ -518,8 +519,8 @@ function renderBanquetRail() {
       </div>
     </div>
 
-    <button type="button" class="btn-primary" onclick="window.nextStep()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 8px;">
-      Continue to Amenities &rarr;
+    <button type="button" class="btn-primary" onclick="window.nextStep()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 600; border-radius: 8px;">
+      Continue to amenities
     </button>
   `;
 }
@@ -650,7 +651,7 @@ function renderStep5() {
     if (items.length === 0) {
       summaryDishesContainer.innerHTML = `
         <div style="text-align: center; padding: 28px; color: #888; background: #141414; border-radius: 12px;">
-          No party trays selected yet. <button type="button" onclick="window.goToStep(3)" style="color: #FF4500; background: none; border: none; cursor: pointer; text-decoration: underline; font-weight: bold;">Select dishes &rarr;</button>
+          No party trays selected yet. <button type="button" onclick="window.goToStep(3)" style="color: var(--accent); background: none; border: none; cursor: pointer; text-decoration: underline; font-weight: 600;">Choose dishes</button>
         </div>
       `;
       return;
@@ -789,8 +790,7 @@ export async function submitCateringPackage(e) {
 
   const submitBtn = document.getElementById('builder-submit-btn');
   if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Submitting Package Request...';
+    window.setButtonLoading(submitBtn, true, 'Submitting Package Request...');
   }
 
   const payload = {
@@ -844,8 +844,7 @@ export async function submitCateringPackage(e) {
       console.error('Firestore fallback failed:', dbErr);
       alert('We experienced a network error submitting your package. Please call us directly at (323) 921-1646.');
       if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Request Official Catering Proposal';
+        window.setButtonLoading(submitBtn, false);
       }
     }
   }

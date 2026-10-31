@@ -933,7 +933,7 @@
       </a>
       <ul class="nav-links">
         <li><a href="/menu" data-i18n="nav.menu">Menu</a></li>
-        <li><a href="/menu" class="nav-cta-primary">ORDER NOW</a></li>
+        <li><a href="/menu" class="nav-cta-primary">Order Online</a></li>
         <li><a href="/locations" data-i18n="nav.location">Location & Hours</a></li>
         <li><a href="/catering" data-i18n="nav.catering">Catering</a></li>
         <li><a href="/blog">Blog</a></li>
@@ -945,7 +945,7 @@
             <span class="nav-signin-text">Sign In</span>
           </button>
         </li>
-        <li><button class="site-lang-toggle" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
+        <li><button type="button" class="site-lang-toggle" aria-label="Switch language" style="padding: 4px 12px; font-size: 12px; font-family: 'Outfit'; cursor: pointer;">EN | فا</button></li>
         <li><a href="tel:+13239211646" class="nav-cta-outline">(323) 921-1646</a></li>
       </ul>
       <div class="nav-actions">
@@ -953,7 +953,7 @@
           <svg class="ui-icon ui-icon-no-margin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span class="nav-signin-text">Sign In</span>
         </button>
-        <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
+        <button type="button" class="nav-hamburger" id="nav-hamburger" aria-label="Open menu">
           <span></span><span></span><span></span>
         </button>
       </div>
@@ -973,7 +973,7 @@
     <a href="/catering" data-i18n="nav.catering">Catering</a>
     <a href="/blog">Blog</a>
     <a href="/shop" style="color: var(--accent); font-weight: 700;">Shop</a>
-    <button class="site-lang-toggle" aria-label="Switch language" style="margin: 16px 24px 16px 24px; padding: 8px 16px; font-size: 14px; font-family: 'Outfit', sans-serif; width: fit-content; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; letter-spacing: 1px; font-weight: 500;">EN | فا</button>
+    <button type="button" class="site-lang-toggle" aria-label="Switch language" style="margin: 16px 24px 16px 24px; padding: 8px 16px; font-size: 14px; font-family: 'Outfit', sans-serif; width: fit-content; cursor: pointer; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; letter-spacing: 1px; font-weight: 500;">EN | فا</button>
     <a href="tel:+13239211646" class="nav-cta">(323) 921-1646</a>
   </div>
 
@@ -1055,7 +1055,7 @@
             <span>View My Orders</span>
           </button>
           <div class="verify-helper" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
-            <button type="button" id="btn-back-to-phone" class="btn-link">← Different phone</button>
+            <button type="button" id="btn-back-to-phone" class="btn-link">Different phone number</button>
             <button type="button" id="btn-switch-to-set-pin" class="btn-link" style="color: var(--gray);">Set PIN instead</button>
           </div>
         </form>
@@ -1082,7 +1082,7 @@
             <span>Save PIN & View Orders</span>
           </button>
           <div class="verify-helper" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
-            <button type="button" id="btn-back-from-set-pin" class="btn-link">← Different phone</button>
+            <button type="button" id="btn-back-from-set-pin" class="btn-link">Different phone number</button>
             <button type="button" id="btn-switch-to-enter-pin" class="btn-link" style="color: var(--gray);">Already have a PIN?</button>
           </div>
         </form>
@@ -1113,7 +1113,7 @@
           <p style="color: var(--gray); font-size: 14px;">View your past orders and rewards progress</p>
         </div>
         <div>
-          <button id="btn-switch-account" class="btn-secondary">
+          <button type="button" id="btn-switch-account" class="btn-secondary">
             <span>Switch Account</span>
           </button>
         </div>
@@ -1288,11 +1288,11 @@
 
       <!-- Tab Navigation -->
       <div class="tab-navigation">
-        <button class="tab-btn active" id="tab-btn-food" data-tab="food">
+        <button type="button" class="tab-btn active" id="tab-btn-food" data-tab="food">
           <span style="display: inline-flex; align-items: center; gap: 6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v10a4 4 0 0 1-8 0V2"/><path d="M11 2v4"/><path d="M15 14v8"/><path d="M7 14v8"/></svg> Food Orders</span>
           <span class="tab-badge" id="badge-food-count">0</span>
         </button>
-        <button class="tab-btn" id="tab-btn-shop" data-tab="shop">
+        <button type="button" class="tab-btn" id="tab-btn-shop" data-tab="shop">
           <span style="display: inline-flex; align-items: center; gap: 6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Shop Orders</span>
           <span class="tab-badge" id="badge-shop-count">0</span>
         </button>
@@ -1373,7 +1373,7 @@
           </div>
           <a href="https://maps.google.com/?q=18411+Victory+Blvd,+Reseda,+CA+91335" target="_blank" rel="noopener" class="footer-link" style="display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 12px; color: var(--accent);">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            <span>Get Directions &rarr;</span>
+            <span>Get directions</span>
           </a>
         </div>
 

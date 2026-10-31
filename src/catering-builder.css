@@ -8,8 +8,8 @@
 
 /* --- Hero Banner CTA on Catering Page --- */
 .catering-builder-hero-cta {
-  background: linear-gradient(180deg, rgba(255, 69, 0, 0.12) 0%, rgba(14, 14, 14, 0.98) 100%);
-  border: 1px solid rgba(255, 69, 0, 0.35);
+  background: var(--surface, #121212);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 44px 32px;
   margin: 32px auto 48px;
@@ -19,17 +19,7 @@
   text-align: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 69, 0, 0.08);
-}
-
-.catering-builder-hero-cta::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #FF4500, #FF8C00, transparent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
 @media (max-width: 640px) {
@@ -211,9 +201,8 @@
 }
 
 .builder-step-tab.active .step-num {
-  background: #FF4500;
+  background: var(--accent, #FF4500);
   color: #ffffff;
-  box-shadow: 0 0 12px rgba(255, 69, 0, 0.5);
 }
 
 .builder-step-tab.completed .step-num {
@@ -317,10 +306,9 @@
 }
 
 .guest-pill.active {
-  background: rgba(255, 69, 0, 0.14);
-  border-color: #FF4500;
-  color: #FF4500;
-  box-shadow: 0 0 14px rgba(255, 69, 0, 0.25);
+  background: rgba(255, 69, 0, 0.12);
+  border-color: var(--accent, #FF4500);
+  color: #ffffff;
 }
 
 @media (max-width: 640px) {
@@ -365,9 +353,8 @@
 }
 
 .event-type-card.active {
-  border-color: #FF4500;
-  background: rgba(255, 69, 0, 0.08);
-  box-shadow: 0 0 16px rgba(255, 69, 0, 0.18);
+  border-color: var(--accent, #FF4500);
+  background: rgba(255, 69, 0, 0.06);
 }
 
 .event-type-icon {
@@ -432,9 +419,8 @@
 }
 
 .start-path-card.active {
-  border-color: #FF4500;
-  background: rgba(255, 69, 0, 0.05);
-  box-shadow: 0 0 25px rgba(255, 69, 0, 0.15);
+  border-color: var(--accent, #FF4500);
+  background: rgba(255, 69, 0, 0.04);
 }
 
 @media (max-width: 640px) {
@@ -476,8 +462,8 @@
 }
 
 .template-card.active {
-  border-color: #FF4500;
-  box-shadow: 0 0 0 2px #FF4500, 0 8px 30px rgba(255, 69, 0, 0.25);
+  border-color: var(--accent, #FF4500);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
 }
 
 .template-card-img {
@@ -766,9 +752,8 @@
 }
 
 .service-toggle-card.active {
-  border-color: #FF4500;
-  background: rgba(255, 69, 0, 0.05);
-  box-shadow: 0 0 20px rgba(255, 69, 0, 0.12);
+  border-color: var(--accent, #FF4500);
+  background: rgba(255, 69, 0, 0.04);
 }
 
 @media (max-width: 640px) {

@@ -68,6 +68,7 @@ exports.createCateringWaiver = functions.https.onCall(async (data, context) => {
     guestCount,
     fulfillment,
     deliveryAddress,
+    deliveryFee,
     menuSummary,
     dishes,
     estimatedTotal,
@@ -80,6 +81,7 @@ exports.createCateringWaiver = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', 'Client Name, Phone, and Event Date are required.');
   }
 
+  const fee = fulfillment === 'delivery' ? (Number(deliveryFee) || 0) : 0;
   const total = Number(estimatedTotal) || 0;
   if (total <= 0) {
     throw new functions.https.HttpsError('invalid-argument', 'Estimated total must be greater than $0.');
@@ -102,6 +104,7 @@ exports.createCateringWaiver = functions.https.onCall(async (data, context) => {
       guestCount: Number(guestCount) || 20,
       fulfillment: fulfillment === 'delivery' ? 'delivery' : 'pickup',
       deliveryAddress: deliveryAddress ? String(deliveryAddress).trim() : '',
+      deliveryFee: fee,
       menuSummary: menuSummary ? String(menuSummary).trim() : '',
       dishes: Array.isArray(dishes) ? dishes : [],
       specialInstructions: specialInstructions ? String(specialInstructions).trim() : ''
@@ -109,6 +112,7 @@ exports.createCateringWaiver = functions.https.onCall(async (data, context) => {
 
     pricing: {
       estimatedTotal: total,
+      deliveryFee: fee,
       depositRequired: deposit,
       depositPaid: 0,
       balanceDue: total - deposit,

@@ -192,7 +192,7 @@ exports.renderBlogPage = functions.https.onRequest(async (req, res) => {
               <p style="color: var(--gray-light, #a1a1aa); font-size: 15px; line-height: 1.7; max-width: 620px; margin: 0 auto 24px;">Every skewer is 100% hand-slaughtered Zabiha Halal, marinated in fresh spices, and grilled over red-hot coals. Stop by our trailer on Victory Blvd or build a custom catering package for your event.</p>
               <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
                 <a href="/menu" class="btn-primary" style="text-decoration: none; padding: 12px 24px; font-size: 14px; border-radius: 6px; font-weight: 700;">Explore Menu &amp; Order</a>
-                <a href="/catering" class="btn-outline" style="text-decoration: none; padding: 12px 24px; font-size: 14px; border-radius: 6px; font-weight: 600;">Build Catering Package &rarr;</a>
+                <a href="/catering" class="btn-outline" style="text-decoration: none; padding: 12px 24px; font-size: 14px; border-radius: 6px; font-weight: 600;">Build catering package</a>
               </div>
             </div>
 

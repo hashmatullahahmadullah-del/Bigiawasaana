@@ -5,6 +5,7 @@ import { evaluateDeals } from './lib/deals-evaluator.js';
 import { getLang, t } from './i18n/index.js';
 import { iconBolt, iconCard, iconCheck, iconFlame, iconPlus, iconMinus, iconTrash, iconUtensils, iconSparkle, iconGift, iconDrinkCan, iconSkewer, iconVoucher, renderTierBadge } from './icons.js';
 import './analytics.js';
+import './lib/button-utils.js';
 
 // ─────────────────────────────────────────────────────────────────
 // SQUARE CONFIGURATION
@@ -1369,7 +1370,7 @@ function renderDealsGrid() {
           </div>
           <button type="button" class="promo-claim-btn" aria-label="Claim Deal: ${escapeHtml(deal.title)}" onclick="handleDealClick('${deal.id}', event)">
             <span>Claim Deal</span>
-            <span class="claim-arrow">→</span>
+            
           </button>
         </div>
       `;
@@ -2397,7 +2398,7 @@ function updateCartUI() {
       if (hasPaymentModal && window.isStoreClosed && pType === 'asap') {
         checkoutBtn.textContent = 'STORE CLOSED · SCHEDULE PICKUP';
       } else {
-        checkoutBtn.textContent = 'PROCEED TO CHECKOUT →';
+        checkoutBtn.textContent = 'Checkout';
       }
     }
   }
