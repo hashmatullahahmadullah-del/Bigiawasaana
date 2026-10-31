@@ -2436,6 +2436,11 @@ window.toggleCart = (show) => {
   const drawer = document.getElementById('cart-drawer');
   if (drawer) {
     drawer.style.right = show ? '0' : '-100%';
+    drawer.style.visibility = show ? 'visible' : 'hidden';
+    drawer.style.pointerEvents = show ? 'auto' : 'none';
+    drawer.style.boxShadow = show ? '-10px 0 30px rgba(0,0,0,0.5)' : 'none';
+    if (show) drawer.classList.add('open');
+    else drawer.classList.remove('open');
   } else if (show) {
     window.location.href = '/menu?openCart=true';
   }

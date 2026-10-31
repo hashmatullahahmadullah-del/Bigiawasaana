@@ -330,17 +330,22 @@
   max-width: 440px;
   background: #111111;
   border-left: 1px solid #242424;
-  box-shadow: -15px 0 40px rgba(0, 0, 0, 0.8);
+  box-shadow: none;
   z-index: 99999;
   transform: translateX(100%);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .account-drawer.active {
   transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+  box-shadow: -15px 0 40px rgba(0, 0, 0, 0.8);
 }
 
 .account-drawer-header {
