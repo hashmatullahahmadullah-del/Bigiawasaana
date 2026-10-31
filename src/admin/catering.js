@@ -102,25 +102,45 @@ export function renderCateringInquiries() {
       : 'background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.3);';
 
     tr.innerHTML = `
-      <td data-label="Date">${inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString() : 'N/A'}</td>
+      <td data-label="Date">
+        <div class="crm-cell-value">
+          <span style="font-weight: 500;">${inquiry.createdAt ? new Date(inquiry.createdAt).toLocaleDateString() : 'N/A'}</span>
+        </div>
+      </td>
       <td data-label="Customer">
-        <strong>${escapeHtml(inquiry.name)}</strong>
-        <br><small style="color: var(--text-muted);">${escapeHtml(inquiry.phone || inquiry.email || '')}</small>
+        <div class="crm-cell-value">
+          <strong style="color: var(--text-main); font-weight: 600;">${escapeHtml(inquiry.name)}</strong>
+          <small style="color: var(--text-muted); font-size: 12px;">${escapeHtml(inquiry.phone || inquiry.email || '')}</small>
+        </div>
       </td>
-      <td data-label="Event Date">${escapeHtml(inquiry.date || 'N/A')}</td>
-      <td data-label="Guests">${escapeHtml(String(inquiry.guests || 'N/A'))}</td>
+      <td data-label="Event Date">
+        <div class="crm-cell-value">
+          <span>${escapeHtml(inquiry.date || 'N/A')}</span>
+        </div>
+      </td>
+      <td data-label="Guests">
+        <div class="crm-cell-value">
+          <span>${escapeHtml(String(inquiry.guests || 'N/A'))}</span>
+        </div>
+      </td>
       <td data-label="Status">
-        <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
-          ${escapeHtml(inquiry.status)}
-        </span>
+        <div class="crm-cell-value">
+          <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+            ${escapeHtml(inquiry.status)}
+          </span>
+        </div>
       </td>
-      <td data-label="Actions" style="text-align: right; white-space: nowrap;">
-        <button type="button" class="btn-outline btn-sm action-quote-btn" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 6px;">
-          Create Quote
-        </button>
-        <button type="button" class="btn-outline btn-sm action-view-btn" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm, 6px);">
-          Details
-        </button>
+      <td data-label="Actions" class="crm-actions-cell">
+        <div class="crm-actions-grid crm-actions-2">
+          <button type="button" class="btn-primary btn-sm action-quote-btn" title="Create Quote From Inquiry">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Quote</span>
+          </button>
+          <button type="button" class="btn-outline btn-sm action-view-btn" title="View Inquiry Details">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <span>Details</span>
+          </button>
+        </div>
       </td>
     `;
 
@@ -313,44 +333,62 @@ export function renderCateringQuotes() {
 
     tr.innerHTML = `
       <td data-label="Quote #">
-        <strong style="color: var(--accent-admin); font-family: monospace; font-size: 13px;">${escapeHtml(quote.quoteNumber)}</strong>
-        <br><small style="color: var(--text-muted);">${quote.createdAtDate ? quote.createdAtDate.toLocaleDateString() : 'N/A'}</small>
+        <div class="crm-cell-value">
+          <strong style="color: var(--accent-admin); font-family: monospace; font-size: 13px;">${escapeHtml(quote.quoteNumber)}</strong>
+          <small style="color: var(--text-muted); font-size: 11px;">${quote.createdAtDate ? quote.createdAtDate.toLocaleDateString() : 'N/A'}</small>
+        </div>
       </td>
       <td data-label="Customer">
-        <strong>${escapeHtml(quote.customer?.name || 'Unknown')}</strong>
-        ${quote.customer?.company ? `<br><small style="color: var(--text-muted);">${escapeHtml(quote.customer.company)}</small>` : ''}
-        <br><small style="color: var(--text-muted);">${escapeHtml(quote.customer?.phone || quote.customer?.email || '')}</small>
+        <div class="crm-cell-value">
+          <strong style="color: var(--text-main); font-weight: 600;">${escapeHtml(quote.customer?.name || 'Unknown')}</strong>
+          ${quote.customer?.company ? `<small style="color: var(--text-muted); font-size: 11px;">${escapeHtml(quote.customer.company)}</small>` : ''}
+          <small style="color: var(--text-muted); font-size: 12px;">${escapeHtml(quote.customer?.phone || quote.customer?.email || '')}</small>
+        </div>
       </td>
-      <td data-label="Event Date">
-        <strong>${escapeHtml(quote.event?.date || 'N/A')}</strong>
-        ${quote.event?.serviceType ? `<br><small style="color: var(--text-muted); text-transform: capitalize;">${escapeHtml(quote.event.serviceType.replace('_', ' '))}</small>` : ''}
+      <td data-label="Event Date & Guests">
+        <div class="crm-cell-value">
+          <strong style="color: var(--text-main);">${escapeHtml(quote.event?.date || 'N/A')}</strong>
+          <small style="color: var(--text-muted); font-size: 12px;">${escapeHtml(String(quote.event?.guests || 0))} guests</small>
+          ${quote.event?.serviceType ? `<small style="color: var(--text-muted); font-size: 11px; text-transform: capitalize;">${escapeHtml(quote.event.serviceType.replace('_', ' '))}</small>` : ''}
+        </div>
       </td>
-      <td data-label="Guests">${escapeHtml(String(quote.event?.guests || 0))}</td>
       <td data-label="Total">
-        <strong>$${total.toFixed(2)}</strong>
+        <div class="crm-cell-value">
+          <strong style="color: var(--text-main); font-size: 14px;">$${total.toFixed(2)}</strong>
+        </div>
       </td>
       <td data-label="Deposit">
-        <span style="color: #4caf50; font-weight: 600;">$${deposit.toFixed(2)}</span>
-        <br><small style="color: var(--text-muted); font-size: 11px;">(${quote.pricing?.depositPercentage || 30}%)</small>
+        <div class="crm-cell-value">
+          <span style="color: #4caf50; font-weight: 700;">$${deposit.toFixed(2)}</span>
+          <small style="color: var(--text-muted); font-size: 11px;">(${quote.pricing?.depositPercentage || 30}%)</small>
+        </div>
       </td>
       <td data-label="Status">
-        <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
-          ${escapeHtml(statusLabel)}
-        </span>
+        <div class="crm-cell-value">
+          <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+            ${escapeHtml(statusLabel)}
+          </span>
+        </div>
       </td>
-      <td data-label="Actions" style="text-align: right; white-space: nowrap;">
-        <button type="button" class="btn-outline btn-sm action-edit-quote" title="Edit Quote" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 4px;">
-          Edit
-        </button>
-        <button type="button" class="btn-outline btn-sm action-copy-link" title="Copy Private Portal Link" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 4px;">
-          Copy Link
-        </button>
-        <button type="button" class="btn-outline btn-sm action-preview-quote" title="Preview Customer View" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 4px;">
-          Preview
-        </button>
-        <button type="button" class="btn-outline btn-sm action-dup-quote" title="Duplicate Quote" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm, 6px); margin-right: 4px;">
-          Duplicate
-        </button>
+      <td data-label="Actions" class="crm-actions-cell">
+        <div class="crm-actions-grid">
+          <button type="button" class="btn-outline btn-sm action-edit-quote" title="Edit Quote">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <span>Edit</span>
+          </button>
+          <button type="button" class="btn-outline btn-sm action-copy-link" title="Copy Private Portal Link">
+            <svg class="copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span class="copy-text">Copy Link</span>
+          </button>
+          <button type="button" class="btn-outline btn-sm action-preview-quote" title="Preview Customer View">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <span>Preview</span>
+          </button>
+          <button type="button" class="btn-outline btn-sm action-dup-quote" title="Duplicate Quote">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><rect x="3" y="3" width="13" height="13" rx="2" ry="2"></rect></svg>
+            <span>Duplicate</span>
+          </button>
+        </div>
       </td>
     `;
 
@@ -1136,38 +1174,52 @@ export function renderPackageRequests() {
 
     return `
       <tr>
-        <td data-label="Request #" style="font-family: monospace; font-weight: 700; color: var(--accent-admin);">
-          ${escapeHtml(req.requestNumber || req.id)}
+        <td data-label="Request #">
+          <div class="crm-cell-value">
+            <span style="font-family: monospace; font-weight: 700; color: var(--accent-admin);">${escapeHtml(req.requestNumber || req.id)}</span>
+          </div>
         </td>
         <td data-label="Client">
-          <div style="font-weight: 600; color: var(--text-main);">${escapeHtml(req.customerContact?.name || 'Unknown')}</div>
-          <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(req.customerContact?.phone || '')} &bull; ${escapeHtml(req.customerContact?.email || '')}</div>
+          <div class="crm-cell-value">
+            <strong style="font-weight: 600; color: var(--text-main);">${escapeHtml(req.customerContact?.name || 'Unknown')}</strong>
+            <small style="font-size: 12px; color: var(--text-muted); word-break: break-all;">${escapeHtml(req.customerContact?.phone || '')} &bull; ${escapeHtml(req.customerContact?.email || '')}</small>
+          </div>
         </td>
         <td data-label="Event Date & Guests">
-          <div style="color: var(--text-main);">${escapeHtml(req.eventDetails?.date || 'N/A')}</div>
-          <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(String(req.eventDetails?.guests || 0))} guests (${escapeHtml(req.eventDetails?.type || 'Event')})</div>
+          <div class="crm-cell-value">
+            <strong style="color: var(--text-main);">${escapeHtml(req.eventDetails?.date || 'N/A')}</strong>
+            <small style="font-size: 12px; color: var(--text-muted);">${escapeHtml(String(req.eventDetails?.guests || 0))} guests (${escapeHtml(req.eventDetails?.type || 'Event')})</small>
+          </div>
         </td>
         <td data-label="Fulfillment">
-          <span style="font-size: 12px; text-transform: uppercase; font-weight: 700; color: ${req.eventDetails?.fulfillment === 'delivery' ? '#ff9800' : '#4caf50'};">
-            ${escapeHtml(req.eventDetails?.fulfillment || 'pickup')}
-          </span>
+          <div class="crm-cell-value">
+            <span style="font-size: 12px; text-transform: uppercase; font-weight: 700; color: ${req.eventDetails?.fulfillment === 'delivery' ? '#ff9800' : '#4caf50'};">
+              ${escapeHtml(req.eventDetails?.fulfillment || 'pickup')}
+            </span>
+          </div>
         </td>
-        <td data-label="Estimated Total" style="font-weight: 700; color: var(--text-main);">
-          $${estTotal.toFixed(2)}
-          <div style="font-size: 11px; font-weight: normal; color: var(--text-muted);">${itemsCount} trays</div>
+        <td data-label="Estimated Total">
+          <div class="crm-cell-value">
+            <strong style="font-weight: 700; color: var(--text-main);">$${estTotal.toFixed(2)}</strong>
+            <small style="font-size: 11px; font-weight: normal; color: var(--text-muted);">${itemsCount} trays</small>
+          </div>
         </td>
         <td data-label="Status">
-          <span style="display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: ${statusBg}; color: ${statusColor};">
-            ${escapeHtml(req.status || 'new')}
-          </span>
+          <div class="crm-cell-value">
+            <span style="display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: ${statusBg}; color: ${statusColor};">
+              ${escapeHtml(req.status || 'new')}
+            </span>
+          </div>
         </td>
-        <td data-label="Actions" style="text-align: right;">
-          <div style="display: flex; gap: 6px; justify-content: flex-end;">
-            <button type="button" class="btn-outline btn-sm" onclick="window.openPackageRequestById('${req.id}')" style="padding: 6px 10px; font-size: 12px;">
-              Review
+        <td data-label="Actions" class="crm-actions-cell">
+          <div class="crm-actions-grid crm-actions-2">
+            <button type="button" class="btn-outline btn-sm action-review-pkg" onclick="window.openPackageRequestById('${escapeHtml(req.id)}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>Review</span>
             </button>
-            <button type="button" class="btn-primary btn-sm" onclick="window.convertPackageRequestById('${req.id}')" style="padding: 6px 12px; font-size: 12px; font-weight: 700;">
-              Convert
+            <button type="button" class="btn-primary btn-sm action-convert-pkg" onclick="window.convertPackageRequestById('${escapeHtml(req.id)}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Convert</span>
             </button>
           </div>
         </td>
