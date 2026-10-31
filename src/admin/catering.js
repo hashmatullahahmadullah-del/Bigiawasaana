@@ -43,7 +43,7 @@ let currentQuoteItems = [];
  * ─────────────────────────────────────────────────────────────────
  */
 export function switchCateringTab(tabName) {
-  const tabs = ['inquiries', 'packages', 'quotes', 'bookings', 'catalog'];
+  const tabs = ['inquiries', 'packages', 'quotes', 'bookings', 'waivers', 'catalog'];
   tabs.forEach(t => {
     const btn = document.getElementById(`btn-cat-${t}`);
     const pane = document.getElementById(`cat-tab-${t}`);
@@ -55,6 +55,7 @@ export function switchCateringTab(tabName) {
   if (tabName === 'packages') renderPackageRequests();
   if (tabName === 'quotes') renderCateringQuotes();
   if (tabName === 'bookings') renderConfirmedBookings();
+  if (tabName === 'waivers') renderCateringWaivers();
   if (tabName === 'catalog') renderCateringCatalog();
 }
 window.switchCateringTab = switchCateringTab;
@@ -1772,3 +1773,443 @@ window.selectMenuItemToImport = function(dishId) {
   window.closeImportFromMenuModal();
   window.openCatalogDishModal(cateringDishData);
 };
+
+/**
+ * ─────────────────────────────────────────────────────────────────
+ * 6. Catering Agreements, Waivers & Penalty System (Phone Orders)
+ * ─────────────────────────────────────────────────────────────────
+ */
+
+let activeProofAgreement = null;
+let activeCashAgreement = null;
+
+export function renderCateringWaivers() {
+  const tbody = document.getElementById('catering-waivers-table-body');
+  if (!tbody) return;
+
+  const agreements = state.agreements || [];
+
+  const searchTerm = (document.getElementById('waiver-search-input')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('waiver-status-filter')?.value || 'all';
+
+  const filtered = agreements.filter(a => {
+    const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
+    const matchesSearch = !searchTerm ||
+      (a.agreementNumber && a.agreementNumber.toLowerCase().includes(searchTerm)) ||
+      (a.client?.name && a.client.name.toLowerCase().includes(searchTerm)) ||
+      (a.client?.phone && a.client.phone.includes(searchTerm)) ||
+      (a.client?.email && a.client.email.toLowerCase().includes(searchTerm));
+    return matchesStatus && matchesSearch;
+  });
+
+  // Calculate Metrics
+  const totalCount = agreements.length;
+  const pendingCount = agreements.filter(a => a.status === 'sent').length;
+  const cashCount = agreements.filter(a => a.status === 'signed_cash_pending').length;
+  const paidCount = agreements.filter(a => ['deposit_paid', 'paid_in_full'].includes(a.status)).length;
+  const pipelineVal = agreements
+    .filter(a => a.status !== 'cancelled')
+    .reduce((sum, a) => sum + (Number(a.pricing?.estimatedTotal) || 0), 0);
+
+  const totEl = document.getElementById('waivers-stat-total');
+  if (totEl) totEl.textContent = totalCount;
+  const penEl = document.getElementById('waivers-stat-pending');
+  if (penEl) penEl.textContent = pendingCount;
+  const cashEl = document.getElementById('waivers-stat-cash');
+  if (cashEl) cashEl.textContent = cashCount;
+  const paidEl = document.getElementById('waivers-stat-paid');
+  if (paidEl) paidEl.textContent = paidCount;
+  const valEl = document.getElementById('waivers-stat-value');
+  if (valEl) valEl.textContent = `$${pipelineVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const badgeEl = document.getElementById('badge-cat-waivers');
+  if (badgeEl) {
+    const needsAction = pendingCount + cashCount;
+    badgeEl.textContent = needsAction;
+    badgeEl.style.display = needsAction > 0 ? 'inline-block' : 'none';
+  }
+
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="table-empty-cell" style="text-align: center; color: var(--text-muted); padding: 32px;">No catering agreements found matching criteria. Click "+ New Phone Waiver" to create one.</td></tr>';
+    return;
+  }
+
+  filtered.forEach(a => {
+    const tr = document.createElement('tr');
+
+    let statusBg = 'background: rgba(161, 161, 170, 0.15); color: #a1a1aa; border: 1px solid rgba(161, 161, 170, 0.3);';
+    let statusLabel = 'Awaiting Sign';
+
+    if (a.status === 'sent') {
+      statusBg = 'background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);';
+      statusLabel = 'Awaiting Sign';
+    } else if (a.status === 'signed_cash_pending') {
+      statusBg = 'background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);';
+      statusLabel = 'Cash Pending';
+    } else if (a.status === 'deposit_paid' || a.status === 'confirmed') {
+      statusBg = 'background: rgba(76, 175, 80, 0.15); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3);';
+      statusLabel = 'Deposit Paid (30%)';
+    } else if (a.status === 'cancelled') {
+      statusBg = 'background: rgba(244, 67, 54, 0.15); color: #f44336; border: 1px solid rgba(244, 67, 54, 0.3);';
+      statusLabel = 'Cancelled';
+    }
+
+    const total = Number(a.pricing?.estimatedTotal) || 0;
+    const deposit = Number(a.pricing?.depositRequired) || (total * 0.3);
+    const isSigned = !!(a.legalProof && a.legalProof.signatureDataUrl);
+
+    tr.innerHTML = `
+      <td data-label="Agreement #">
+        <div class="crm-cell-value">
+          <strong style="color: var(--accent-admin, #FF4500); font-family: monospace; font-size: 13px;">${escapeHtml(a.agreementNumber)}</strong>
+          <small style="color: var(--text-muted); font-size: 11px;">${a.createdAtDate ? a.createdAtDate.toLocaleDateString() : 'N/A'}</small>
+        </div>
+      </td>
+      <td data-label="Client">
+        <div class="crm-cell-value">
+          <strong style="color: var(--text-main); font-weight: 600;">${escapeHtml(a.client?.name || 'Unknown')}</strong>
+          <small style="color: var(--text-muted); font-size: 12px;">${escapeHtml(a.client?.phone || '')}</small>
+          ${a.client?.email ? `<small style="color: var(--text-muted); font-size: 11px;">${escapeHtml(a.client.email)}</small>` : ''}
+        </div>
+      </td>
+      <td data-label="Event Date & Guests">
+        <div class="crm-cell-value">
+          <strong style="color: var(--text-main);">${escapeHtml(a.event?.date || 'N/A')}</strong>
+          <small style="color: var(--text-muted); font-size: 12px;">${escapeHtml(String(a.event?.guestCount || 20))} guests &bull; ${escapeHtml(a.event?.fulfillment || 'pickup')}</small>
+        </div>
+      </td>
+      <td data-label="Total">
+        <div class="crm-cell-value">
+          <strong style="color: var(--text-main); font-size: 14px;">$${total.toFixed(2)}</strong>
+        </div>
+      </td>
+      <td data-label="Deposit (30%)">
+        <div class="crm-cell-value">
+          <span style="color: #4caf50; font-weight: 700;">$${deposit.toFixed(2)}</span>
+          <small style="color: var(--text-muted); font-size: 11px;">${a.status === 'deposit_paid' ? 'PAID ✓' : 'Due to lock'}</small>
+        </div>
+      </td>
+      <td data-label="Status">
+        <div class="crm-cell-value">
+          <span style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+            ${escapeHtml(statusLabel)}
+          </span>
+        </div>
+      </td>
+      <td data-label="Actions" class="crm-actions-cell">
+        <div class="crm-actions-grid">
+          ${isSigned ? `
+            <button type="button" class="btn-primary btn-sm action-view-proof" title="View Digital Signature & Proof">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>Proof</span>
+            </button>
+          ` : `
+            <button type="button" class="btn-outline btn-sm action-preview-waiver" title="Preview Waiver Portal">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span>Preview</span>
+            </button>
+          `}
+          <button type="button" class="btn-outline btn-sm action-copy-waiver" title="Copy Private Signing Link">
+            <svg class="copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span class="copy-text">Copy Link</span>
+          </button>
+          ${a.status === 'signed_cash_pending' || a.status === 'sent' ? `
+            <button type="button" class="btn-outline btn-sm action-record-cash" title="Record Cash Deposit at Trailer" style="color: #4caf50; border-color: rgba(76,175,80,0.4);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <span>Cash $</span>
+            </button>
+          ` : ''}
+          ${a.status !== 'cancelled' ? `
+            <button type="button" class="btn-outline btn-sm action-cancel-waiver" title="Cancel Booking / Assess Penalty" style="color: #ef4444; border-color: rgba(239,68,68,0.3);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              <span>Cancel</span>
+            </button>
+          ` : ''}
+        </div>
+      </td>
+    `;
+
+    // Event listeners
+    if (isSigned) {
+      tr.querySelector('.action-view-proof')?.addEventListener('click', () => window.openWaiverProofModal(a));
+    } else {
+      tr.querySelector('.action-preview-waiver')?.addEventListener('click', () => {
+        const token = a.security?.directAccessToken || a.token || '';
+        const url = `/waiver.html?w=${encodeURIComponent(a.agreementNumber)}&token=${encodeURIComponent(token)}`;
+        window.open(url, '_blank');
+      });
+    }
+
+    tr.querySelector('.action-copy-waiver')?.addEventListener('click', (e) => {
+      const token = a.security?.directAccessToken || a.token || '';
+      const fullUrl = `https://www.bigiawasaana.com/waiver.html?w=${encodeURIComponent(a.agreementNumber)}&token=${encodeURIComponent(token)}`;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        const textSpan = e.currentTarget.querySelector('.copy-text');
+        if (textSpan) textSpan.textContent = 'Copied!';
+        setTimeout(() => {
+          if (textSpan) textSpan.textContent = 'Copy Link';
+        }, 2000);
+      });
+    });
+
+    tr.querySelector('.action-record-cash')?.addEventListener('click', () => window.openRecordCashModal(a));
+    tr.querySelector('.action-cancel-waiver')?.addEventListener('click', () => window.promptCancelWaiver(a));
+
+    tbody.appendChild(tr);
+  });
+}
+window.renderCateringWaivers = renderCateringWaivers;
+
+/**
+ * Quick Phone Waiver Modal Management
+ */
+export function openQuickWaiverModal() {
+  const modal = document.getElementById('quick-waiver-modal');
+  if (!modal) return;
+
+  // Set default event date to 7 days from now
+  const dateInput = document.getElementById('qwm-date');
+  if (dateInput) {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    dateInput.value = futureDate.toISOString().split('T')[0];
+  }
+
+  // Reset form and success box
+  document.getElementById('quick-waiver-form')?.reset();
+  document.getElementById('qwm-success-box').style.display = 'none';
+  document.getElementById('qwm-btn-submit').style.display = 'inline-block';
+  document.getElementById('qwm-address-wrap').style.display = 'none';
+
+  modal.classList.add('open');
+  modal.style.display = 'flex';
+}
+window.openQuickWaiverModal = openQuickWaiverModal;
+
+export function closeQuickWaiverModal() {
+  const modal = document.getElementById('quick-waiver-modal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
+}
+window.closeQuickWaiverModal = closeQuickWaiverModal;
+
+export async function submitQuickWaiver(e) {
+  e.preventDefault();
+  const btn = document.getElementById('qwm-btn-submit');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Generating Link...';
+  }
+
+  try {
+    const name = document.getElementById('qwm-name')?.value.trim();
+    const phone = document.getElementById('qwm-phone')?.value.trim();
+    const email = document.getElementById('qwm-email')?.value.trim();
+    const fulfillment = document.getElementById('qwm-fulfillment')?.value;
+    const deliveryAddress = document.getElementById('qwm-address')?.value.trim();
+    const eventDate = document.getElementById('qwm-date')?.value;
+    const eventTime = document.getElementById('qwm-time')?.value || '17:00';
+    const guestCount = parseInt(document.getElementById('qwm-guests')?.value, 10) || 25;
+    const menuSummary = document.getElementById('qwm-menu')?.value.trim();
+    const estimatedTotal = parseFloat(document.getElementById('qwm-total')?.value) || 0;
+    const depositAmount = parseFloat(document.getElementById('qwm-deposit')?.value) || Math.round(estimatedTotal * 0.3 * 100) / 100;
+
+    const createFn = httpsCallable(functions, 'createCateringWaiver');
+    const res = await createFn({
+      clientName: name,
+      clientPhone: phone,
+      clientEmail: email,
+      fulfillment,
+      deliveryAddress,
+      eventDate,
+      eventTime,
+      guestCount,
+      menuSummary,
+      estimatedTotal,
+      depositAmount
+    });
+
+    const waiverUrl = res.data?.waiverUrl || `https://www.bigiawasaana.com/waiver.html?w=${encodeURIComponent(res.data.agreementNumber)}&token=${encodeURIComponent(res.data.token)}`;
+
+    // Show success state
+    const successBox = document.getElementById('qwm-success-box');
+    const linkInput = document.getElementById('qwm-link-input');
+    if (successBox && linkInput) {
+      linkInput.value = waiverUrl;
+      successBox.style.display = 'block';
+      successBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    if (btn) btn.style.display = 'none';
+
+  } catch (err) {
+    console.error('Error creating quick waiver:', err);
+    alert(`Failed to create waiver: ${err.message || 'Unknown error'}`);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Generate Waiver Link →';
+    }
+  }
+}
+window.submitQuickWaiver = submitQuickWaiver;
+
+export function copyQuickWaiverLink() {
+  const linkInput = document.getElementById('qwm-link-input');
+  const copyBtn = document.getElementById('qwm-btn-copy');
+  if (!linkInput) return;
+
+  navigator.clipboard.writeText(linkInput.value).then(() => {
+    if (copyBtn) {
+      copyBtn.textContent = 'Copied ✓';
+      setTimeout(() => copyBtn.textContent = 'Copy Link', 2000);
+    }
+  });
+}
+window.copyQuickWaiverLink = copyQuickWaiverLink;
+
+/**
+ * View Signed Proof Modal
+ */
+export function openWaiverProofModal(agreement) {
+  activeProofAgreement = agreement;
+  const modal = document.getElementById('waiver-proof-modal');
+  if (!modal) return;
+
+  document.getElementById('wpm-agreement-num').textContent = agreement.agreementNumber;
+  document.getElementById('wpm-status').textContent = (agreement.status || 'deposit_paid').replace(/_/g, ' ').toUpperCase();
+  document.getElementById('wpm-payment-method').textContent = agreement.payment?.method ? agreement.payment.method.replace('_', ' ').toUpperCase() : 'Online';
+
+  document.getElementById('wpm-client-name').textContent = agreement.client?.name || agreement.legalProof?.signedName || 'Signer';
+  document.getElementById('wpm-client-phone').textContent = agreement.client?.phone || '';
+  document.getElementById('wpm-client-email').textContent = agreement.client?.email || '';
+
+  document.getElementById('wpm-event-date').textContent = `${agreement.event?.date || 'N/A'} at ${agreement.event?.time || '05:00 PM'}`;
+  document.getElementById('wpm-event-fulfillment').textContent = (agreement.event?.fulfillment || 'pickup').toUpperCase();
+  document.getElementById('wpm-event-address').textContent = agreement.client?.confirmedAddress || agreement.event?.deliveryAddress || '18411 Victory Blvd, Reseda, CA (Trailer Pickup)';
+
+  document.getElementById('wpm-allergies').textContent = agreement.client?.allergies || 'None Declared';
+
+  const sigImg = document.getElementById('wpm-signature-img');
+  if (sigImg && agreement.legalProof?.signatureDataUrl) {
+    sigImg.src = agreement.legalProof.signatureDataUrl;
+    sigImg.style.display = 'inline-block';
+  } else if (sigImg) {
+    sigImg.style.display = 'none';
+  }
+
+  const signedDate = agreement.legalProof?.signedAt ? (agreement.legalProof.signedAt.toDate ? agreement.legalProof.signedAt.toDate() : new Date(agreement.legalProof.signedAt)) : (agreement.updatedAt?.toDate ? agreement.updatedAt.toDate() : new Date());
+  document.getElementById('wpm-signed-by-line').textContent = `Signed by ${agreement.legalProof?.signedName || agreement.client?.name || 'Customer'} on ${signedDate.toLocaleString()}`;
+
+  document.getElementById('wpm-audit-ip').textContent = agreement.legalProof?.ipAddress || 'Recorded on submission';
+  document.getElementById('wpm-audit-ua').textContent = agreement.legalProof?.userAgent || 'Standard Browser';
+
+  modal.classList.add('open');
+  modal.style.display = 'flex';
+}
+window.openWaiverProofModal = openWaiverProofModal;
+
+export function closeWaiverProofModal() {
+  const modal = document.getElementById('waiver-proof-modal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
+}
+window.closeWaiverProofModal = closeWaiverProofModal;
+
+export function printWaiverProof() {
+  window.print();
+}
+window.printWaiverProof = printWaiverProof;
+
+/**
+ * Record Cash Modal
+ */
+export function openRecordCashModal(agreement) {
+  activeCashAgreement = agreement;
+  const modal = document.getElementById('waiver-cash-modal');
+  if (!modal) return;
+
+  document.getElementById('rcm-agreement-num').textContent = agreement.agreementNumber;
+  document.getElementById('rcm-client-name').textContent = `${agreement.client?.name || ''} (${agreement.client?.phone || ''})`;
+
+  const total = Number(agreement.pricing?.estimatedTotal) || 0;
+  const depReq = Number(agreement.pricing?.depositRequired) || (total * 0.3);
+  document.getElementById('rcm-amount').value = depReq.toFixed(2);
+
+  modal.classList.add('open');
+  modal.style.display = 'flex';
+}
+window.openRecordCashModal = openRecordCashModal;
+
+export function closeRecordCashModal() {
+  const modal = document.getElementById('waiver-cash-modal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
+}
+window.closeRecordCashModal = closeRecordCashModal;
+
+export async function submitRecordCash(e) {
+  e.preventDefault();
+  if (!activeCashAgreement) return;
+
+  const btn = document.getElementById('rcm-btn-submit');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Recording Deposit...';
+  }
+
+  try {
+    const amount = parseFloat(document.getElementById('rcm-amount')?.value) || 0;
+    const notes = document.getElementById('rcm-notes')?.value.trim();
+
+    const cashFn = httpsCallable(functions, 'markWaiverCashReceived');
+    await cashFn({
+      agreementNumber: activeCashAgreement.agreementNumber,
+      amountReceived: amount,
+      notes
+    });
+
+    closeRecordCashModal();
+    alert(`Cash deposit of $${amount.toFixed(2)} recorded successfully! Catering booking confirmed.`);
+  } catch (err) {
+    console.error('Error recording cash deposit:', err);
+    alert(`Failed to record cash: ${err.message || 'Unknown error'}`);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Confirm & Lock Booking';
+    }
+  }
+}
+window.submitRecordCash = submitRecordCash;
+
+/**
+ * Cancel Waiver & Assess Penalty
+ */
+export async function promptCancelWaiver(agreement) {
+  const confirmCancel = confirm(`Are you sure you want to cancel Agreement #${agreement.agreementNumber} (${agreement.client?.name})?\n\nIf canceled, the $199 preparation penalty will be recorded and the 30% deposit is non-refundable.`);
+  if (!confirmCancel) return;
+
+  try {
+    const docRef = doc(db, 'catering_agreements', agreement.id);
+    await updateDoc(docRef, {
+      status: 'cancelled',
+      penaltyAssessed: true,
+      penaltyAmount: 199.00,
+      cancelledAt: serverTimestamp()
+    });
+    alert(`Agreement #${agreement.agreementNumber} marked as Cancelled. Penalty fee noted.`);
+  } catch (err) {
+    console.error('Error cancelling agreement:', err);
+    alert(`Failed to cancel agreement: ${err.message}`);
+  }
+}
+window.promptCancelWaiver = promptCancelWaiver;
+

@@ -1105,6 +1105,10 @@
               <p style="color: var(--text-muted); font-size: 14px; margin: 0;">Manage catering inquiries, custom proposals, 30% deposits, and confirmed bookings.</p>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn-outline" onclick="window.openQuickWaiverModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; border-color: var(--accent-admin, #FF4500); color: var(--accent-admin, #FF4500);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                <span>+ Phone Waiver</span>
+              </button>
               <button type="button" id="btn-open-quote-editor" class="btn-primary" onclick="window.openCreateQuoteModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 <span>Create Quote</span>
@@ -1133,6 +1137,11 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>
               <span>Confirmed Bookings</span>
               <span id="badge-cat-bookings" style="display: none; background: #10b981; color: #fff; padding: 1px 7px; border-radius: 99px; font-size: 11px;">0</span>
+            </button>
+            <button type="button" class="btn-outline" id="btn-cat-waivers" onclick="window.switchCateringTab('waivers')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <span>Agreements &amp; Waivers</span>
+              <span id="badge-cat-waivers" style="display: none; background: #FF4500; color: #fff; padding: 1px 7px; border-radius: 99px; font-size: 11px;">0</span>
             </button>
             <button type="button" class="btn-outline" id="btn-cat-catalog" onclick="window.switchCateringTab('catalog')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -1257,6 +1266,73 @@
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px; opacity: 0.6;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 <div style="font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 4px;">No Confirmed Bookings Yet</div>
                 <div style="font-size: 13px;">When clients accept proposals and pay their 30% deposit, their events appear here with balances and countdowns.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab: Agreements & Waivers -->
+          <div id="cat-tab-waivers" style="display: none;">
+            <div class="crm-stats-grid" style="margin-top: 8px; margin-bottom: 24px;">
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Total Agreements</div>
+                <div class="stat-value" id="waivers-stat-total">0</div>
+              </div>
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Awaiting Signature</div>
+                <div class="stat-value" id="waivers-stat-pending" style="color: #3b82f6;">0</div>
+              </div>
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Cash Pending at Trailer</div>
+                <div class="stat-value" id="waivers-stat-cash" style="color: #f59e0b;">0</div>
+              </div>
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Confirmed &amp; Paid</div>
+                <div class="stat-value" id="waivers-stat-paid" style="color: #10b981;">0</div>
+              </div>
+              <div class="crm-stat-card" style="padding: 16px;">
+                <div class="stat-title">Pipeline Booked Value</div>
+                <div class="stat-value" id="waivers-stat-value" style="color: var(--accent);">$0.00</div>
+              </div>
+            </div>
+
+            <div class="crm-panel mt-m">
+              <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; flex: 1; width: 100%;">
+                  <input type="text" id="waiver-search-input" class="crm-input" placeholder="Search by Agreement #, Client, Phone..." oninput="window.renderCateringWaivers()" style="flex: 1; min-width: 180px;">
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <label style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">Status:</label>
+                    <select id="waiver-status-filter" class="crm-select" onchange="window.renderCateringWaivers()" style="min-width: 150px;">
+                      <option value="all">All Statuses</option>
+                      <option value="sent">Awaiting Signature</option>
+                      <option value="signed_cash_pending">Cash Pending at Trailer</option>
+                      <option value="deposit_paid">Deposit Paid / Confirmed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <button type="button" class="btn-primary" onclick="window.openQuickWaiverModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>New Phone Waiver</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="crm-table-container">
+                <table class="crm-table" id="catering-waivers-table">
+                  <thead>
+                    <tr>
+                      <th>Agreement #</th>
+                      <th>Client</th>
+                      <th>Event Date &amp; Guests</th>
+                      <th>Total</th>
+                      <th>Deposit (30%)</th>
+                      <th>Status</th>
+                      <th style="text-align: right; width: 1%; white-space: nowrap;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="catering-waivers-table-body">
+                    <tr><td colspan="7" class="table-empty-cell" style="text-align: center; color: var(--text-muted); padding: 32px;">No catering agreements created yet. Click "+ New Phone Waiver" to create one.</td></tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -3305,6 +3381,229 @@
       </div>
     </div>
   </div>
+
+  <!-- 1. Quick Phone Waiver / Agreement Modal -->
+  <div class="crm-modal" id="quick-waiver-modal">
+    <div class="crm-modal-box" style="max-width: 680px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="crm-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-admin); flex-shrink: 0;">
+        <div>
+          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: var(--text-main);">Create Quick Phone Catering Waiver</h3>
+          <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">Generate a legally binding e-signature agreement &amp; penalty disclosure for direct phone callers.</p>
+        </div>
+        <button type="button" class="crm-btn-icon" onclick="window.closeQuickWaiverModal()" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <form id="quick-waiver-form" onsubmit="window.submitQuickWaiver(event)" style="display: flex; flex-direction: column; overflow-y: auto; flex: 1;">
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Client Name *</label>
+              <input type="text" id="qwm-name" class="crm-input" placeholder="e.g. Tariq Nasiri" required>
+            </div>
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Phone Number *</label>
+              <input type="tel" id="qwm-phone" class="crm-input" placeholder="e.g. (818) 555-0199" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Client Email (optional)</label>
+              <input type="email" id="qwm-email" class="crm-input" placeholder="e.g. tariq@gmail.com">
+            </div>
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Fulfillment *</label>
+              <select id="qwm-fulfillment" class="crm-select" onchange="document.getElementById('qwm-address-wrap').style.display = this.value === 'delivery' ? 'block' : 'none';">
+                <option value="pickup">Trailer Pickup (Free) — 18411 Victory Blvd</option>
+                <option value="delivery">White-Glove Delivery ($50.00)</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="qwm-address-wrap" style="display: none;">
+            <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Delivery Address</label>
+            <input type="text" id="qwm-address" class="crm-input" placeholder="e.g. 1234 Oak St, Woodland Hills, CA 91367">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Event Date *</label>
+              <input type="date" id="qwm-date" class="crm-input" required>
+            </div>
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Serving Time</label>
+              <input type="time" id="qwm-time" class="crm-input" value="17:00">
+            </div>
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Guests</label>
+              <input type="number" id="qwm-guests" class="crm-input" value="25" min="1">
+            </div>
+          </div>
+
+          <div>
+            <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Agreed Food &amp; Catering Dishes *</label>
+            <textarea id="qwm-menu" class="crm-input" rows="3" placeholder="e.g. 2x Braised Lamb Shank Qabuli Trays, 2x Chapli Kabob Trays (60 patties), 1x Bolani Platter, 1x Mast-o-Khiar..." required></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: rgba(255,69,0,0.05); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,69,0,0.2);">
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 700; color: var(--accent-admin, #FF4500); margin-bottom: 4px;">Estimated Total ($) *</label>
+              <input type="number" id="qwm-total" class="crm-input" step="0.01" min="1" placeholder="e.g. 640.00" oninput="document.getElementById('qwm-deposit').value = (Number(this.value || 0) * 0.3).toFixed(2);" required>
+            </div>
+            <div>
+              <label class="crm-label" style="display: block; font-size: 12px; font-weight: 700; color: #4caf50; margin-bottom: 4px;">Required 30% Deposit ($)</label>
+              <input type="number" id="qwm-deposit" class="crm-input" step="0.01" placeholder="e.g. 192.00" readonly style="background: rgba(0,0,0,0.2); color: #4caf50; font-weight: bold;">
+            </div>
+          </div>
+
+          <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #fca5a5;">
+            <strong>$199 Cancellation Penalty Notice:</strong> The customer agreement will legally bind the signer to our $199 preparation cancellation penalty and 30% non-refundable deposit terms.
+          </div>
+
+          <!-- Generated Link State (Hidden until created) -->
+          <div id="qwm-success-box" style="display: none; background: #000; border: 1px solid #10b981; border-radius: 8px; padding: 16px; margin-top: 6px;">
+            <div style="color: #10b981; font-weight: 700; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Agreement Created Successfully!</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Send this direct link to the customer via SMS or WhatsApp to sign and pay:</div>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="qwm-link-input" class="crm-input" readonly style="flex: 1; font-family: monospace; font-size: 12px;">
+              <button type="button" class="btn-primary" id="qwm-btn-copy" onclick="window.copyQuickWaiverLink()" style="padding: 8px 14px; font-size: 12px; white-space: nowrap;">Copy Link</button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="crm-modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-top: 1px solid var(--border-admin); flex-shrink: 0;">
+          <button type="button" class="btn-outline" onclick="window.closeQuickWaiverModal()">Close</button>
+          <button type="submit" id="qwm-btn-submit" class="btn-primary" style="padding: 10px 22px; font-weight: 700;">
+            Generate Waiver Link &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Signed Proof & Audit Log Modal -->
+  <div class="crm-modal" id="waiver-proof-modal">
+    <div class="crm-modal-box" style="max-width: 680px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="crm-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-admin); flex-shrink: 0;">
+        <div>
+          <span style="font-size: 11px; font-weight: 700; color: var(--accent-admin, #FF4500); text-transform: uppercase;" id="wpm-agreement-num">BA-W-XXXX</span>
+          <h3 style="margin: 2px 0 0; font-size: 18px; font-weight: 700; color: var(--text-main);">Signed Catering Agreement &amp; Proof</h3>
+        </div>
+        <button type="button" class="crm-btn-icon" onclick="window.closeWaiverProofModal()" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div style="padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;" id="wpm-printable-content">
+        <!-- Status Box -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border-admin); border-radius: 8px; padding: 14px 16px;">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Booking Status</div>
+            <div style="font-size: 16px; font-weight: 700; color: #4caf50;" id="wpm-status">DEPOSIT PAID</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Payment Method</div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--text-main);" id="wpm-payment-method">Square Card</div>
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+          <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border: 1px solid var(--border-admin);">
+            <div style="color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Legal Signer</div>
+            <div style="font-weight: 600; color: var(--text-main); margin-top: 2px;" id="wpm-client-name">John Doe</div>
+            <div style="color: var(--text-muted); font-size: 12px;" id="wpm-client-phone">(323) 555-0199</div>
+            <div style="color: var(--text-muted); font-size: 12px;" id="wpm-client-email">john@example.com</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border: 1px solid var(--border-admin);">
+            <div style="color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Event Details</div>
+            <div style="font-weight: 600; color: var(--text-main); margin-top: 2px;" id="wpm-event-date">Nov 6, 2026 at 05:00 PM</div>
+            <div style="color: var(--text-muted); font-size: 12px;" id="wpm-event-fulfillment">Trailer Pickup</div>
+            <div style="color: var(--text-muted); font-size: 12px;" id="wpm-event-address">18411 Victory Blvd</div>
+          </div>
+        </div>
+
+        <!-- Allergies -->
+        <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border: 1px solid var(--border-admin); font-size: 13px;">
+          <div style="color: var(--text-muted); font-size: 11px; text-transform: uppercase;">Declared Dietary Restrictions &amp; Allergies</div>
+          <div style="color: #FFFFFF; font-weight: 600; margin-top: 2px;" id="wpm-allergies">None Declared</div>
+        </div>
+
+        <!-- Signature Card -->
+        <div style="background: #000; border: 1px solid var(--border-admin); border-radius: 8px; padding: 16px; text-align: center;">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Recorded Digital Signature</div>
+          <img id="wpm-signature-img" src="" alt="Digital Signature" style="max-height: 90px; filter: invert(1); max-width: 100%;">
+          <div style="font-size: 12px; color: var(--text-dim); margin-top: 8px;" id="wpm-signed-by-line">
+            Signed by John Doe on 10/31/2026, 01:00:00 AM PST
+          </div>
+        </div>
+
+        <!-- Legal Audit Trail -->
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-admin); border-radius: 6px; padding: 12px; font-size: 11px; color: var(--text-dim); line-height: 1.6;">
+          <div><strong>$199 Penalty Acknowledged:</strong> <span style="color: #4caf50;">YES (Accepted by client before signing)</span></div>
+          <div><strong>IP Address:</strong> <span id="wpm-audit-ip">127.0.0.1</span></div>
+          <div><strong>Device / User-Agent:</strong> <span id="wpm-audit-ua" style="word-break: break-all;">Mozilla...</span></div>
+          <div><strong>Terms Version:</strong> 2026.1 (100% Zabiha Halal Fresh Prep Agreement)</div>
+        </div>
+
+      </div>
+
+      <div class="crm-modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-top: 1px solid var(--border-admin); flex-shrink: 0;">
+        <button type="button" class="btn-outline" onclick="window.closeWaiverProofModal()">Close</button>
+        <button type="button" class="btn-primary" onclick="window.printWaiverProof()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print / Save PDF</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Record Cash Deposit Modal -->
+  <div class="crm-modal" id="waiver-cash-modal">
+    <div class="crm-modal-box" style="max-width: 500px; width: 95vw;">
+      <div class="crm-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-admin);">
+        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: var(--text-main);">Record Cash Deposit at Trailer</h3>
+        <button type="button" class="crm-btn-icon" onclick="window.closeRecordCashModal()" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <form id="record-cash-form" onsubmit="window.submitRecordCash(event)">
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Agreement</span>
+            <div style="font-weight: 700; font-size: 16px; color: var(--text-main);" id="rcm-agreement-num">BA-W-XXXX</div>
+            <div style="font-size: 13px; color: var(--text-muted);" id="rcm-client-name">Client Name</div>
+          </div>
+
+          <div>
+            <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Cash Amount Received ($) *</label>
+            <input type="number" id="rcm-amount" class="crm-input" step="0.01" min="1" required style="font-size: 18px; font-weight: 700; color: #4caf50;">
+          </div>
+
+          <div>
+            <label class="crm-label" style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Notes (e.g. Received at Reseda trailer)</label>
+            <input type="text" id="rcm-notes" class="crm-input" placeholder="e.g. Cash received in person by Ahmad" value="Cash received at Reseda trailer">
+          </div>
+        </div>
+
+        <div class="crm-modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-top: 1px solid var(--border-admin);">
+          <button type="button" class="btn-outline" onclick="window.closeRecordCashModal()">Cancel</button>
+          <button type="submit" id="rcm-btn-submit" class="btn-primary" style="padding: 10px 20px; font-weight: 700;">
+            Confirm &amp; Lock Booking
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 
 </body>
 </html>

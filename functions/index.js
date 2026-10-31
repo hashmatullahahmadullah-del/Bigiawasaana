@@ -59,3 +59,10 @@ exports.sendCateringQuoteEmail = require('./catering-quotes').sendCateringQuoteE
 exports.submitCateringPackageRequest = require('./catering-packages').submitCateringPackageRequest;
 exports.convertPackageRequestToQuote = require('./catering-packages').convertPackageRequestToQuote;
 
+// Catering Agreements, Waivers & Penalty System
+exports.createCateringWaiver = require('./catering-agreements').createCateringWaiver;
+exports.lookupCateringWaiver = require('./catering-agreements').lookupCateringWaiver;
+exports.signCateringWaiver = require('./catering-agreements').signCateringWaiver;
+exports.payWaiverDeposit = require('./catering-agreements').payWaiverDeposit;
+exports.markWaiverCashReceived = require('./catering-agreements').markWaiverCashReceived;
+

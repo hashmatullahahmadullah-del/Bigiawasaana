@@ -197,6 +197,28 @@ export function initCRMData() {
   }, (err) => {
     console.warn('Catering catalog listener notice:', err);
   });
+
+  // 4e. Listen to Catering Agreements (Waivers, E-Signatures & Penalties)
+  const agreementsQuery = query(collection(db, 'catering_agreements'), orderBy('createdAt', 'desc'));
+  window.cateringAgreementsUnsub = onSnapshot(agreementsQuery, (snapshot) => {
+    state.agreements = [];
+    snapshot.forEach(d => {
+      state.agreements.push({
+        id: d.id,
+        ...d.data(),
+        createdAtDate: d.data().createdAt?.toDate ? d.data().createdAt.toDate() : new Date()
+      });
+    });
+    if (typeof window.renderCateringWaivers === 'function') window.renderCateringWaivers();
+    const badge = document.getElementById('badge-cat-waivers');
+    if (badge) {
+      const pendingCount = state.agreements.filter(a => a.status === 'sent' || a.status === 'signed_cash_pending').length;
+      badge.textContent = pendingCount;
+      badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+    }
+  }, (err) => {
+    console.warn('Catering agreements listener notice:', err);
+  });
   window.unitSettingsUnsub = onSnapshot(doc(db, 'unitEconomics_settings', 'config'), (docSnap) => {
     if (docSnap.exists()) {
       state.unitSettings = { ...state.unitSettings, ...docSnap.data() };

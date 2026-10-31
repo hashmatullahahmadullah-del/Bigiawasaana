@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Catering Agreement &amp; E-Signature Waiver | Bigi Awasaana</title>
+  <meta name="description" content="Review, e-sign, and secure your 100% Zabiha Halal Afghan catering booking with Bigi Awasaana in Reseda, Los Angeles.">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Lalezar&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
+  <!-- Square Web Payments SDK -->
+  <script src="https://web.squarecdn.com/v1/square.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0B0B0B;
+      --surface-dark: #141414;
+      --surface-card: #18181b;
+      --border-dark: #27272a;
+      --border-focus: #FF4500;
+      --accent: #FF4500;
+      --accent-glow: rgba(255, 69, 0, 0.25);
+      --text-main: #FFFFFF;
+      --text-muted: #A1A1AA;
+      --text-dim: #71717A;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* Prevent Edge native search clear button in dark mode */
+    input::-webkit-search-cancel-button,
+    input::-ms-clear {
+      display: none;
+    }
+
+    /* Header */
+    .waiver-header {
+      background: #0B0B0B;
+      border-bottom: 1px solid #1f1f1f;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .waiver-nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .waiver-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .waiver-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 69, 0, 0.4);
+    }
+
+    .waiver-brand-text h1 {
+      font-family: 'Lalezar', cursive;
+      font-size: 22px;
+      margin: 0;
+      line-height: 1;
+      color: #FFFFFF;
+      letter-spacing: 0.5px;
+    }
+
+    .waiver-brand-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 2px 0 0;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .halal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #4ade80;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    /* Main Container */
+    .waiver-main {
+      flex: 1;
+      max-width: 880px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    /* Cards */
+    .waiver-card {
+      background: var(--surface-dark);
+      border: 1px solid var(--border-dark);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    @media (max-width: 600px) {
+      .waiver-card {
+        padding: 18px 14px;
+        border-radius: 10px;
+      }
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 16px;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Form Inputs */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: #09090b;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      color: #FFFFFF;
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    textarea.form-control {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    /* Grid for inputs */
+    .input-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 640px) {
+      .input-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
+
+    /* Penalty Callout Banner */
+    .penalty-banner {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(185, 28, 28, 0.08) 100%);
+      border: 1.5px solid rgba(239, 68, 68, 0.4);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+
+    .penalty-title {
+      color: #f87171;
+      font-weight: 800;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .penalty-text {
+      color: #fca5a5;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* Why Agreement Box */
+    .why-box {
+      background: rgba(255, 69, 0, 0.06);
+      border: 1px solid rgba(255, 69, 0, 0.25);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #d4d4d8;
+      line-height: 1.6;
+    }
+
+    /* Signature Canvas Pad */
+    .sig-canvas-container {
+      background: #000000;
+      border: 2px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      position: relative;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: crosshair;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .sig-canvas-container:focus-within,
+    .sig-canvas-container.active {
+      border-color: var(--accent);
+    }
+
+    #sig-canvas {
+      display: block;
+      width: 100%;
+      height: 180px;
+      background: transparent;
+      touch-action: none;
+    }
+
+    .sig-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, 0.15);
+      font-size: 15px;
+      font-weight: 600;
+      pointer-events: none;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sig-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .btn-clear-sig {
+      background: none;
+      border: 1px solid var(--border-dark);
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-clear-sig:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    /* Allergies Checkbox Grid */
+    .allergy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .allergy-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #111113;
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .allergy-pill input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .allergy-pill.selected {
+      border-color: var(--accent);
+      color: #FFFFFF;
+      background: rgba(255, 69, 0, 0.1);
+    }
+
+    /* Payment Tabs */
+    .payment-tab-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 500px) {
+      .payment-tab-group {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .payment-tab-btn {
+      background: #111113;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .payment-tab-btn.active {
+      border-color: var(--accent);
+      background: rgba(255, 69, 0, 0.08);
+      color: #FFFFFF;
+    }
+
+    .payment-tab-btn .tab-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .payment-tab-btn .tab-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .payment-tab-btn.active .tab-desc {
+      color: #cbd5e1;
+    }
+
+    /* Cash Instruction Box */
+    .cash-instruction-box {
+      background: #101012;
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+
+    .cash-title {
+      color: #facc15;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .cash-details {
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+
+    .hours-badge {
+      display: inline-block;
+      background: rgba(234, 179, 8, 0.15);
+      color: #fef08a;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* Summary Bar */
+    .pricing-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      background: #09090b;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    @media (max-width: 500px) {
+      .pricing-summary-grid {
+        grid-template-columns: 1fr;
+        text-align: left;
+        gap: 10px;
+      }
+    }
+
+    .price-box-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .price-box-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .price-box-val.highlight {
+      color: #4ade80;
+    }
+
+    .price-box-val.accent {
+      color: var(--accent);
+    }
+
+    /* Big Submit Buttons */
+    .btn-submit-waiver {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      color: #FFFFFF;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(255, 69, 0, 0.35);
+    }
+
+    .btn-submit-waiver:hover:not(:disabled) {
+      background: #ff5722;
+      box-shadow: 0 6px 22px rgba(255, 69, 0, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit-waiver:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Print / Receipt View */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+      }
+      .waiver-header,
+      .btn-submit-waiver,
+      .btn-clear-sig,
+      .payment-tab-group,
+      #card-container,
+      .no-print {
+        display: none !important;
+      }
+      .waiver-card {
+        background: #FFFFFF !important;
+        border: 1px solid #CCCCCC !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="waiver-header">
+    <div class="waiver-nav-inner">
+      <a href="/" class="waiver-brand">
+        <img src="/favicon.jpg" alt="Bigi Awasaana" class="waiver-logo">
+        <div class="waiver-brand-text">
+          <h1>BIGI AWASAANA</h1>
+          <p>Direct Catering Agreement &amp; Waiver</p>
+        </div>
+      </a>
+      <div class="halal-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span>100% Zabiha Halal</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="waiver-main">
+
+    <!-- Loading State -->
+    <div id="waiver-loading" style="text-align: center; padding: 60px 20px;">
+      <div style="display: inline-block; width: 44px; height: 44px; border: 3px solid rgba(255,69,0,0.3); border-top-color: #FF4500; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+      <p style="margin-top: 16px; color: var(--text-muted); font-size: 14px;">Loading catering agreement details...</p>
+    </div>
+
+    <!-- Error / Lookup Fallback -->
+    <div id="waiver-lookup" class="waiver-card" style="display: none; max-width: 520px; margin: 40px auto; text-align: center;">
+      <div style="width: 52px; height: 52px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #ef4444;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      </div>
+      <h2 style="font-size: 20px; margin: 0 0 8px;">Catering Agreement Lookup</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        Please enter your Agreement # (e.g., <code style="color: var(--accent);">BA-W-2610-8A1C</code>) and phone number to access your agreement.
+      </p>
+      <div class="form-group" style="text-align: left;">
+        <label>Agreement #</label>
+        <input type="text" id="manual-waiver-num" class="form-control" placeholder="BA-W-XXXX-XXXX" style="text-transform: uppercase;">
+      </div>
+      <div class="form-group" style="text-align: left;">
+        <label>Your Phone Number</label>
+        <input type="tel" id="manual-waiver-phone" class="form-control" placeholder="(323) 555-0199">
+      </div>
+      <button type="button" class="btn-submit-waiver" id="btn-manual-lookup" style="margin-top: 12px; font-size: 16px; padding: 12px;">
+        Find Agreement &rarr;
+      </button>
+      <p id="manual-lookup-err" style="color: #f87171; font-size: 13px; margin-top: 12px; display: none;"></p>
+    </div>
+
+    <!-- Active Waiver Form -->
+    <div id="waiver-content" style="display: none;">
+
+      <!-- 1. Event & Agreement Details -->
+      <div class="waiver-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-dark); padding-bottom: 14px;">
+          <div>
+            <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: 0.8px; text-transform: uppercase;">
+              Catering Agreement
+            </div>
+            <h2 id="view-agreement-num" style="font-family: 'Lalezar', cursive; font-size: 28px; margin: 2px 0 0; line-height: 1;">
+              BA-W-2610-XXXX
+            </h2>
+          </div>
+          <div id="view-status-badge" style="display: inline-block; padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 700; text-transform: uppercase; background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3);">
+            Awaiting Signature
+          </div>
+        </div>
+
+        <!-- Why We Require This -->
+        <div class="why-box">
+          <strong style="color: #FFFFFF; display: block; margin-bottom: 4px;">Why We Require This Agreement:</strong>
+          Bigi Awasaana sources fresh, 100% hand-slaughtered Zabiha Halal meats directly from certified suppliers and reserves our master charcoal grillers exclusively for your event. This agreement secures your kitchen time slot, locks your menu pricing, and outlines our mutual commitments.
+        </div>
+
+        <!-- Pricing Summary -->
+        <div class="pricing-summary-grid">
+          <div>
+            <div class="price-box-label">Estimated Food Total</div>
+            <div class="price-box-val" id="view-estimated-total">$0.00</div>
+          </div>
+          <div>
+            <div class="price-box-label">Required 30% Downpayment</div>
+            <div class="price-box-val highlight" id="view-deposit-required">$0.00</div>
+          </div>
+          <div>
+            <div class="price-box-label">Remaining Balance Due at Handover</div>
+            <div class="price-box-val" id="view-balance-due">$0.00</div>
+          </div>
+        </div>
+
+        <!-- Event & Menu Info -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 16px;">
+          <div style="background: #101012; border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px 14px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Event Date &amp; Time</div>
+            <div style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-top: 4px;" id="view-event-datetime">Nov 6, 2026 at 05:00 PM</div>
+          </div>
+          <div style="background: #101012; border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px 14px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Fulfillment Method</div>
+            <div style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-top: 4px;" id="view-fulfillment">Trailer Pickup</div>
+          </div>
+          <div style="background: #101012; border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px 14px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Guest Count</div>
+            <div style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-top: 4px;" id="view-guest-count">25 Guests</div>
+          </div>
+        </div>
+
+        <!-- Agreed Food Menu -->
+        <div style="background: #101012; border: 1px solid var(--border-dark); border-radius: 8px; padding: 14px 16px;">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.6px; margin-bottom: 6px;">Agreed Food &amp; Menu Breakdown</div>
+          <div id="view-menu-summary" style="font-size: 14px; color: #f4f4f5; line-height: 1.6; white-space: pre-wrap;">
+            Loading menu items...
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Customer Information & Venue Confirmation -->
+      <div class="waiver-card">
+        <h3 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span>Customer &amp; Venue Details</span>
+        </h3>
+
+        <div class="input-grid-2">
+          <div class="form-group">
+            <label for="cust-full-name">Full Legal Name *</label>
+            <input type="text" id="cust-full-name" class="form-control" placeholder="First and Last Name" required>
+          </div>
+          <div class="form-group">
+            <label for="cust-phone">Direct Phone Number *</label>
+            <input type="tel" id="cust-phone" class="form-control" placeholder="(323) 555-0199" required>
+          </div>
+        </div>
+
+        <div class="input-grid-2">
+          <div class="form-group">
+            <label for="cust-email">Email Address (for instant signed receipt) *</label>
+            <input type="email" id="cust-email" class="form-control" placeholder="yourname@gmail.com" required>
+          </div>
+          <div class="form-group">
+            <label for="cust-address">Delivery / Venue Address (or Pickup Confirmation) *</label>
+            <input type="text" id="cust-address" class="form-control" placeholder="1234 Main St, Los Angeles, CA (or 'Trailer Pickup')">
+          </div>
+        </div>
+
+        <!-- Severe Allergies Declaration -->
+        <div class="form-group" style="margin-top: 8px;">
+          <label>Severe Dietary Restrictions &amp; Food Allergies *</label>
+          <div class="allergy-grid">
+            <label class="allergy-pill"><input type="checkbox" name="allergy" value="Tree Nuts"> <span>Tree Nuts</span></label>
+            <label class="allergy-pill"><input type="checkbox" name="allergy" value="Peanuts"> <span>Peanuts</span></label>
+            <label class="allergy-pill"><input type="checkbox" name="allergy" value="Dairy"> <span>Dairy / Milk</span></label>
+            <label class="allergy-pill"><input type="checkbox" name="allergy" value="Gluten"> <span>Gluten / Wheat</span></label>
+            <label class="allergy-pill"><input type="checkbox" name="allergy" value="Sesame"> <span>Sesame</span></label>
+            <label class="allergy-pill"><input type="checkbox" name="allergy" value="Shellfish"> <span>Shellfish</span></label>
+            <label class="allergy-pill selected"><input type="checkbox" id="allergy-none" checked> <span>No Allergies</span></label>
+          </div>
+          <input type="text" id="cust-allergy-notes" class="form-control" placeholder="Specific notes on allergies or special dietary needs (if any)...">
+        </div>
+
+        <!-- Setup Instructions -->
+        <div class="form-group">
+          <label for="cust-setup-notes">Venue Setup &amp; Timing Notes</label>
+          <textarea id="cust-setup-notes" class="form-control" placeholder="Gate codes, delivery window instructions, table setup location, or venue coordinator phone..."></textarea>
+        </div>
+      </div>
+
+      <!-- 3. Mandatory Terms & $199 Penalty Disclosure -->
+      <div class="waiver-card">
+        <div class="penalty-banner">
+          <div class="penalty-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <span>Mandatory $199 Cancellation Penalty Notice</span>
+          </div>
+          <p class="penalty-text">
+            Due to advance procurement of 100% hand-slaughtered Zabiha Halal meats, dedicated meat marination (24+ hours), and reservation of our master charcoal grill capacity, <strong>any cancellation after signing incurs a mandatory $199.00 Cancellation &amp; Kitchen Preparation Penalty</strong>. Cancellations made within 72 hours of the scheduled event forfeit the entire 30% booking downpayment.
+          </p>
+        </div>
+
+        <div style="font-size: 13px; color: #a1a1aa; line-height: 1.6; margin-bottom: 16px;">
+          <p style="margin-bottom: 8px;"><strong>1. 30% Downpayment:</strong> A non-refundable 30% deposit is required to lock in the event date on our catering calendar. Orders without a deposit remain tentative and may be released.</p>
+          <p style="margin-bottom: 8px;"><strong>2. 70% Final Balance:</strong> The remaining balance is strictly due upon handover / delivery of the food.</p>
+          <p style="margin-bottom: 0;"><strong>3. Food Holding &amp; Safety:</strong> All meats and party platters are delivered piping hot off natural charcoal embers. Client assumes full responsibility for food temperature maintenance and consumption within two (2) hours of delivery.</p>
+        </div>
+
+        <!-- Agreement Checkbox -->
+        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 12px; background: #000000; border: 1px solid var(--border-dark); border-radius: 8px; margin-top: 12px;">
+          <input type="checkbox" id="waiver-terms-checkbox" style="margin-top: 3px; accent-color: var(--accent); width: 18px; height: 18px; flex-shrink: 0;" required>
+          <span style="font-size: 13px; color: #FFFFFF; font-weight: 500;">
+            I have read, understand, and agree to all catering terms, the non-refundable 30% deposit, and the <strong>mandatory $199 cancellation penalty</strong>.
+          </span>
+        </label>
+      </div>
+
+      <!-- 4. Interactive E-Signature Pad -->
+      <div class="waiver-card">
+        <h3 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+          <span>Digital E-Signature</span>
+        </h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+          Please sign using your finger or stylus on mobile, or your mouse on desktop.
+        </p>
+
+        <div class="sig-canvas-container" id="sig-pad-box">
+          <div class="sig-watermark" id="sig-watermark">Draw Your Signature Here</div>
+          <canvas id="sig-canvas"></canvas>
+        </div>
+
+        <div class="sig-actions">
+          <button type="button" class="btn-clear-sig" id="btn-clear-sig">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            <span>Clear Signature</span>
+          </button>
+          <span style="font-size: 11px; color: var(--text-dim);" id="sig-status">Signature Required</span>
+        </div>
+
+        <div class="form-group">
+          <label for="sig-typed-name">Signer's Full Legal Name (Typed) *</label>
+          <input type="text" id="sig-typed-name" class="form-control" placeholder="e.g. Ahmad Haidari" required>
+        </div>
+      </div>
+
+      <!-- 5. Payment Method & Confirmation -->
+      <div class="waiver-card" id="payment-selection-card">
+        <h3 class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+          <span>How Would You Like to Pay the 30% Downpayment?</span>
+        </h3>
+
+        <div class="payment-tab-group">
+          <button type="button" class="payment-tab-btn active" id="tab-btn-card">
+            <span class="tab-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              <span>Card / Google Pay / Apple Pay</span>
+            </span>
+            <span class="tab-desc">Pay 30% deposit online now via Square Web Payments.</span>
+          </button>
+
+          <button type="button" class="payment-tab-btn" id="tab-btn-cash">
+            <span class="tab-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <span>Cash at Trailer</span>
+            </span>
+            <span class="tab-desc">Bring 30% cash downpayment in person to 18411 Victory Blvd.</span>
+          </button>
+        </div>
+
+        <!-- Path A: Card / Square Payment Container -->
+        <div id="path-card-container">
+          <div id="apple-pay-button" style="height: 48px; width: 100%; display: none; margin-bottom: 12px;"></div>
+          <div id="google-pay-button" style="height: 48px; width: 100%; display: none; margin-bottom: 12px;"></div>
+          
+          <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+            Credit or Debit Card
+          </div>
+          <div id="card-container" style="min-height: 90px; margin-bottom: 16px;"></div>
+
+          <button type="button" class="btn-submit-waiver" id="btn-submit-card-pay">
+            <span>Sign &amp; Pay 30% Deposit (<span id="btn-card-amt">$0.00</span>)</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+
+        <!-- Path B: Cash In-Person Instructions -->
+        <div id="path-cash-container" style="display: none;">
+          <div class="cash-instruction-box">
+            <div class="cash-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Bring 30% Cash Downpayment in Person</span>
+            </div>
+            <div class="cash-details">
+              Please bring your 30% cash deposit (<strong style="color: #facc15;" id="cash-amt-display">$0.00</strong>) to our trailer to confirm your booking:
+              <div style="margin-top: 8px; font-weight: 600; color: #FFFFFF;">
+                📍 Bigi Awasaana<br>
+                18411 Victory Blvd, Reseda, CA 91335<br>
+                <span style="font-size: 12px; color: #94a3b8;">(Corner of Reseda Blvd &amp; Victory Blvd, across from Reseda Park)</span>
+              </div>
+              <div class="hours-badge">
+                Hours: Monday – Saturday: 01:00 PM – 10:30 PM &bull; Sunday: Closed
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn-submit-waiver" id="btn-submit-cash-agreement">
+            <span>Sign &amp; Confirm Agreement (Cash at Trailer)</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </div>
+
+        <p id="waiver-submit-error" style="color: #f87171; font-size: 13px; margin-top: 14px; display: none; text-align: center;"></p>
+      </div>
+
+    </div>
+
+    <!-- 6. Confirmed Proof Receipt State -->
+    <div id="waiver-confirmed-receipt" class="waiver-card" style="display: none; text-align: center; max-width: 680px; margin: 20px auto;">
+      <div style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.15); border: 2px solid #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #22c55e;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      <h2 style="font-family: 'Lalezar', cursive; font-size: 32px; margin: 0 0 4px; color: #FFFFFF;">
+        AGREEMENT CONFIRMED &amp; SIGNED
+      </h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;" id="receipt-subtitle">
+        Your catering reservation has been recorded on our master kitchen schedule.
+      </p>
+
+      <div style="background: #09090b; border: 1px solid var(--border-dark); border-radius: 8px; padding: 20px; text-align: left; margin-bottom: 20px; font-size: 14px; line-height: 1.8;">
+        <div><strong>Agreement Number:</strong> <span style="color: var(--accent); font-family: monospace;" id="receipt-num">BA-W-XXXX</span></div>
+        <div><strong>Legal Signer:</strong> <span id="receipt-signer">John Doe</span></div>
+        <div><strong>Signed Timestamp:</strong> <span id="receipt-timestamp">October 31, 2026</span></div>
+        <div><strong>Downpayment Status:</strong> <span id="receipt-payment-status" style="color: #4ade80; font-weight: 700;">Deposit Paid ($0.00)</span></div>
+        <div><strong>$199 Cancellation Penalty:</strong> <span style="color: #f87171; font-weight: 600;">Acknowledged &amp; Legally Binding</span></div>
+      </div>
+
+      <div style="background: #000000; border: 1px solid var(--border-dark); border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
+        <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px;">Recorded Digital Signature</div>
+        <img id="receipt-sig-img" src="" alt="Digital Signature" style="max-height: 80px; filter: invert(1); max-width: 100%;">
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button type="button" class="btn-clear-sig no-print" onclick="window.print()" style="padding: 10px 20px; font-size: 14px; color: #FFFFFF; border-color: var(--border-dark);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print / Save PDF Copy</span>
+        </button>
+        <a href="tel:+13239211646" class="btn-submit-waiver no-print" style="width: auto; padding: 10px 24px; font-size: 15px; text-decoration: none;">
+          <span>Call Trailer: (323) 921-1646</span>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer style="background: #080808; border-top: 1px solid #1a1a1a; padding: 24px 20px; text-align: center; font-size: 12px; color: var(--text-dim);">
+    <div style="max-width: 880px; margin: 0 auto;">
+      <p style="margin: 0 0 6px;"><strong>Bigi Awasaana LLC</strong> &bull; 18411 Victory Blvd, Reseda, CA 91335 &bull; (323) 921-1646</p>
+      <p style="margin: 0;">Born From the Silk Road. Grilled in Los Angeles. 100% Hand-Slaughtered Zabiha Halal.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/waiver.js"></script>
+</body>
+</html>

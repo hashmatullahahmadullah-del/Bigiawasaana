@@ -85,6 +85,11 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Catering Agreements & Waivers Collection (Admin Managed; Public client access via Cloud Functions)
+    match /catering_agreements/{agreement} {
+      allow read, write: if isAdmin();
+    }
+
     // Catering Catalog Collection (Public read, Authenticated Admin write)
     match /catering_catalog/{item} {
       allow read: if true;
