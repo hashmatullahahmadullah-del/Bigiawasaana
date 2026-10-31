@@ -2,7 +2,7 @@ import { DEFAULT_CATERING_CATALOG, DEFAULT_PACKAGE_TEMPLATES } from '../lib/cate
 import { state } from './shared.js';
 window.state = state;
 import { db, app } from '../firebase.js';
-import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, setDoc, deleteDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { showToast } from './orders.js';
 
@@ -1410,31 +1410,65 @@ window.convertPackageRequestToQuote = convertPackageRequestToQuote;
 
 /**
  * ═══════════════════════════════════════════════════════════════════
- * 1C. Catering Catalog & Preset Templates Admin View
+ * 1C. Catering Catalog & Preset Templates Admin View & Full CRUD
  * ═══════════════════════════════════════════════════════════════════
  */
+export function getActiveCateringCatalog() {
+  if (state.cateringCatalog && state.cateringCatalog.length > 0) {
+    return state.cateringCatalog;
+  }
+  return DEFAULT_CATERING_CATALOG;
+}
+
 export function renderCateringCatalog() {
   const dishesGrid = document.getElementById('catalog-dishes-grid');
   const templatesGrid = document.getElementById('catalog-templates-admin-grid');
+  const catalog = getActiveCateringCatalog();
 
   if (dishesGrid) {
-    dishesGrid.innerHTML = DEFAULT_CATERING_CATALOG.map(dish => `
-      <div style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
-        <img src="${dish.imageUrl}" alt="${escapeHtml(dish.nameEn)}" style="width: 100%; height: 130px; object-fit: cover; background: #000;">
-        <div style="padding: 14px; flex: 1; display: flex; flex-direction: column;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-            <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0;">${escapeHtml(dish.nameEn)}</h4>
-            <span style="font-weight: 700; color: var(--accent-admin);">$${dish.unitPrice.toFixed(2)}</span>
+    if (catalog.length === 0) {
+      dishesGrid.innerHTML = '<p style="color: var(--text-muted); padding: 20px; grid-column: 1 / -1; text-align: center;">No catering dishes found. Click "+ Add Custom Dish" or "+ Import From Menu" to get started.</p>';
+    } else {
+      dishesGrid.innerHTML = catalog.map(dish => `
+        <div class="catering-catalog-card" style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+          <div style="position: relative; width: 100%; height: 130px; background: #000;">
+            <img src="${dish.imageUrl || '/logo.webp'}" alt="${escapeHtml(dish.nameEn)}" style="width: 100%; height: 100%; object-fit: cover;">
+            <span style="position: absolute; top: 8px; right: 8px; font-size: 11px; background: rgba(0,0,0,0.75); color: #4caf50; padding: 2px 8px; border-radius: 4px; font-weight: 700;">
+              ${escapeHtml(dish.dietary?.[0] || '100% Zabiha')}
+            </span>
           </div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">${escapeHtml(dish.portionSize)}</div>
-          <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; flex: 1;">${escapeHtml(dish.descriptionEn)}</p>
-          <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-admin); padding-top: 8px;">
-            <span style="font-size: 11px; color: #4caf50; font-weight: 600;">Yield: ~${dish.servingYield} guests</span>
-            <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Published</span>
+          <div style="padding: 14px; flex: 1; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; gap: 8px;">
+              <div>
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0;">${escapeHtml(dish.nameEn)}</h4>
+                ${dish.nameFa ? `<div style="font-size: 11px; color: #ff6a00; direction: rtl; font-family: 'Vazirmatn', sans-serif;">${escapeHtml(dish.nameFa)}</div>` : ''}
+              </div>
+              <span style="font-weight: 700; color: var(--accent-admin); font-size: 16px; flex-shrink: 0;">$${(dish.unitPrice || 0).toFixed(2)}</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">${escapeHtml(dish.portionSize || 'Party Tray')}</div>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px; line-height: 1.4; flex: 1;">${escapeHtml(dish.descriptionEn || '')}</p>
+            
+            <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-admin); padding-top: 8px; margin-bottom: 12px;">
+              <span style="font-size: 11px; color: #4caf50; font-weight: 600;">Yield: ~${dish.servingYield || 20} guests</span>
+              <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">/${escapeHtml(dish.pricingUnit || 'tray')}</span>
+            </div>
+
+            <!-- Card Actions: Edit & Delete -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <button type="button" class="btn-outline btn-small action-edit-dish" onclick="window.editCatalogDish('${dish.id}')" style="padding: 7px 10px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span>Edit</span>
+              </button>
+              <button type="button" class="btn-outline btn-small action-delete-dish" onclick="window.deleteCatalogDish('${dish.id}')" style="padding: 7px 10px; font-size: 12px; font-weight: 600; color: #ef4444; border-color: rgba(239,68,68,0.3); display: inline-flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Delete</span>
+              </button>
+            </div>
+
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    }
   }
 
   if (templatesGrid) {
@@ -1454,3 +1488,287 @@ export function renderCateringCatalog() {
   }
 }
 window.renderCateringCatalog = renderCateringCatalog;
+
+/**
+ * Add / Edit Catering Dish Modal Handlers
+ */
+window.openCatalogDishModal = function(dishData = null) {
+  const modal = document.getElementById('catalog-dish-modal');
+  if (!modal) return;
+
+  const titleEl = document.getElementById('cdm-modal-title');
+  const idEl = document.getElementById('cdm-dish-id');
+  const nameEnEl = document.getElementById('cdm-name-en');
+  const nameFaEl = document.getElementById('cdm-name-fa');
+  const catEl = document.getElementById('cdm-category');
+  const priceEl = document.getElementById('cdm-price');
+  const yieldEl = document.getElementById('cdm-yield');
+  const portionEl = document.getElementById('cdm-portion');
+  const unitEl = document.getElementById('cdm-unit');
+  const dietaryEl = document.getElementById('cdm-dietary');
+  const imgEl = document.getElementById('cdm-image');
+  const descEnEl = document.getElementById('cdm-desc-en');
+  const descFaEl = document.getElementById('cdm-desc-fa');
+
+  if (dishData) {
+    if (titleEl) titleEl.textContent = `Edit Dish: ${dishData.nameEn}`;
+    if (idEl) idEl.value = dishData.id || '';
+    if (nameEnEl) nameEnEl.value = dishData.nameEn || '';
+    if (nameFaEl) nameFaEl.value = dishData.nameFa || '';
+    if (catEl) catEl.value = dishData.category || 'kabobs_mains';
+    if (priceEl) priceEl.value = dishData.unitPrice || '';
+    if (yieldEl) yieldEl.value = dishData.servingYield || 25;
+    if (portionEl) portionEl.value = dishData.portionSize || 'Large Party Tray (Serves 25-30)';
+    if (unitEl) unitEl.value = dishData.pricingUnit || 'tray';
+    if (dietaryEl) dietaryEl.value = Array.isArray(dishData.dietary) ? dishData.dietary.join(', ') : (dishData.dietary || '100% Zabiha Halal');
+    if (imgEl) imgEl.value = dishData.imageUrl || '';
+    if (descEnEl) descEnEl.value = dishData.descriptionEn || '';
+    if (descFaEl) descFaEl.value = dishData.descriptionFa || '';
+  } else {
+    if (titleEl) titleEl.textContent = 'Add Custom Catering Dish';
+    if (idEl) idEl.value = '';
+    if (nameEnEl) nameEnEl.value = '';
+    if (nameFaEl) nameFaEl.value = '';
+    if (catEl) catEl.value = 'kabobs_mains';
+    if (priceEl) priceEl.value = '';
+    if (yieldEl) yieldEl.value = '25';
+    if (portionEl) portionEl.value = 'Large Party Tray (Serves 25-30)';
+    if (unitEl) unitEl.value = 'tray';
+    if (dietaryEl) dietaryEl.value = '100% Zabiha Halal';
+    if (imgEl) imgEl.value = '/m-img/1788493414501_BigiAwasaana_QabuliPalau.webp';
+    if (descEnEl) descEnEl.value = '';
+    if (descFaEl) descFaEl.value = '';
+  }
+
+  modal.classList.add('open');
+};
+
+window.closeCatalogDishModal = function() {
+  const modal = document.getElementById('catalog-dish-modal');
+  if (modal) modal.classList.remove('open');
+};
+
+window.editCatalogDish = function(dishId) {
+  const catalog = getActiveCateringCatalog();
+  const dish = catalog.find(d => d.id === dishId);
+  if (dish) {
+    window.openCatalogDishModal(dish);
+  } else {
+    showToast('Dish not found.');
+  }
+};
+
+window.deleteCatalogDish = async function(dishId) {
+  const catalog = getActiveCateringCatalog();
+  const dish = catalog.find(d => d.id === dishId);
+  const dishName = dish ? dish.nameEn : 'this dish';
+  
+  if (!confirm(`Are you sure you want to delete "${dishName}" from the catering catalog?`)) {
+    return;
+  }
+
+  try {
+    await deleteDoc(doc(db, 'catering_catalog', dishId));
+    
+    // Also update local state
+    if (state.cateringCatalog) {
+      state.cateringCatalog = state.cateringCatalog.filter(d => d.id !== dishId);
+    }
+    showToast(`Deleted "${dishName}" from catering catalog.`);
+    renderCateringCatalog();
+  } catch (err) {
+    console.error('Delete error:', err);
+    alert('Error deleting dish: ' + err.message);
+  }
+};
+
+window.saveCatalogDish = async function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const idInput = document.getElementById('cdm-dish-id');
+  const nameEn = document.getElementById('cdm-name-en')?.value.trim();
+  const nameFa = document.getElementById('cdm-name-fa')?.value.trim();
+  const category = document.getElementById('cdm-category')?.value || 'kabobs_mains';
+  const price = parseFloat(document.getElementById('cdm-price')?.value) || 0;
+  const yieldCount = parseInt(document.getElementById('cdm-yield')?.value, 10) || 25;
+  const portionSize = document.getElementById('cdm-portion')?.value.trim() || 'Large Party Tray';
+  const pricingUnit = document.getElementById('cdm-unit')?.value || 'tray';
+  const dietaryStr = document.getElementById('cdm-dietary')?.value.trim() || '100% Zabiha Halal';
+  const imageUrl = document.getElementById('cdm-image')?.value.trim() || '/logo.webp';
+  const descEn = document.getElementById('cdm-desc-en')?.value.trim();
+  const descFa = document.getElementById('cdm-desc-fa')?.value.trim();
+
+  if (!nameEn || price <= 0) {
+    alert('Please enter a valid dish name and price.');
+    return;
+  }
+
+  const saveBtn = document.getElementById('cdm-btn-save');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="crm-spinner"></span> Saving...';
+  }
+
+  const dishId = idInput?.value || (nameEn.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36));
+  const dietaryArray = dietaryStr.split(',').map(s => s.trim()).filter(Boolean);
+
+  const dishDoc = {
+    id: dishId,
+    nameEn,
+    nameFa: nameFa || '',
+    category,
+    unitPrice: price,
+    servingYield: yieldCount,
+    portionSize,
+    pricingUnit,
+    dietary: dietaryArray,
+    imageUrl,
+    descriptionEn: descEn || '',
+    descriptionFa: descFa || '',
+    published: true,
+    updatedAt: serverTimestamp()
+  };
+
+  try {
+    await setDoc(doc(db, 'catering_catalog', dishId), dishDoc, { merge: true });
+    
+    // Update local state immediately
+    if (!state.cateringCatalog) state.cateringCatalog = [];
+    const existingIdx = state.cateringCatalog.findIndex(d => d.id === dishId);
+    if (existingIdx >= 0) {
+      state.cateringCatalog[existingIdx] = { ...state.cateringCatalog[existingIdx], ...dishDoc };
+    } else {
+      state.cateringCatalog.push(dishDoc);
+    }
+
+    showToast(`Saved "${nameEn}" to catering catalog.`);
+    window.closeCatalogDishModal();
+    renderCateringCatalog();
+  } catch (err) {
+    console.error('Save catering dish error:', err);
+    alert('Failed to save catering dish: ' + err.message);
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Catering Dish';
+    }
+  }
+};
+
+/**
+ * Import From Existing Restaurant Menu Modal Handlers
+ */
+let loadedMenuItemsCache = [];
+
+window.openImportFromMenuModal = async function() {
+  const modal = document.getElementById('import-menu-modal');
+  const grid = document.getElementById('import-menu-grid');
+  if (!modal || !grid) return;
+
+  grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 30px;"><span class="crm-spinner"></span> Loading restaurant menu...</div>';
+  modal.classList.add('open');
+
+  try {
+    let items = [];
+    if (window.adminMenuData && Object.keys(window.adminMenuData).length > 0) {
+      items = Object.entries(window.adminMenuData).map(([id, data]) => ({ id, ...data }));
+    } else {
+      const snap = await getDocs(collection(db, 'menu'));
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+    }
+
+    loadedMenuItemsCache = items;
+    renderImportMenuGrid(items);
+  } catch (err) {
+    console.error('Failed to load menu for import:', err);
+    grid.innerHTML = `<div style="grid-column: 1 / -1; color: #ef4444; padding: 20px; text-align: center;">Error loading menu: ${err.message}</div>`;
+  }
+};
+
+function renderImportMenuGrid(items) {
+  const grid = document.getElementById('import-menu-grid');
+  if (!grid) return;
+
+  if (items.length === 0) {
+    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 30px;">No matching menu dishes found.</p>';
+    return;
+  }
+
+  grid.innerHTML = items.map(dish => {
+    const dishPrice = typeof dish.price === 'number' ? dish.price : parseFloat(dish.price) || 0;
+    const suggestedTrayPrice = Math.round(dishPrice * 7.5);
+    const imgUrl = dish.img || dish.image || '/logo.webp';
+
+    return `
+      <div style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="width: 100%; height: 110px; background: #000; overflow: hidden;">
+          <img src="${imgUrl}" alt="${escapeHtml(dish.name)}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <div style="padding: 12px; flex: 1; display: flex; flex-direction: column;">
+          <strong style="font-size: 14px; color: var(--text-main); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(dish.name)}</strong>
+          <span style="font-size: 11px; color: var(--text-muted); text-transform: capitalize; margin-bottom: 8px;">${escapeHtml(dish.category || 'Specialty')} • Regular: $${dishPrice.toFixed(2)}</span>
+          <div style="font-size: 12px; color: var(--accent-admin); font-weight: 700; margin-bottom: 10px;">Suggested Party Tray: $${suggestedTrayPrice}</div>
+          
+          <button type="button" class="btn-primary btn-small" onclick="window.selectMenuItemToImport('${dish.id}')" style="margin-top: auto; width: 100%; padding: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Convert to Tray</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.filterImportMenuDishes = function(query) {
+  const q = (query || '').toLowerCase().trim();
+  if (!q) {
+    renderImportMenuGrid(loadedMenuItemsCache);
+    return;
+  }
+  const filtered = loadedMenuItemsCache.filter(item => {
+    return (item.name && item.name.toLowerCase().includes(q)) ||
+           (item.category && item.category.toLowerCase().includes(q));
+  });
+  renderImportMenuGrid(filtered);
+};
+
+window.closeImportFromMenuModal = function() {
+  const modal = document.getElementById('import-menu-modal');
+  if (modal) modal.classList.remove('open');
+};
+
+window.selectMenuItemToImport = function(dishId) {
+  const dish = loadedMenuItemsCache.find(d => d.id === dishId);
+  if (!dish) return;
+
+  const dishPrice = typeof dish.price === 'number' ? dish.price : parseFloat(dish.price) || 15;
+  const suggestedTrayPrice = Math.round(dishPrice * 7.5);
+
+  let cat = 'kabobs_mains';
+  const origCat = (dish.category || '').toLowerCase();
+  if (origCat.includes('rice') || origCat.includes('plate') || origCat.includes('pulao')) {
+    cat = 'rice_traditional';
+  } else if (origCat.includes('street') || origCat.includes('bite') || origCat.includes('side')) {
+    cat = 'street_bites';
+  } else if (origCat.includes('drink') || origCat.includes('sweet') || origCat.includes('dessert')) {
+    cat = 'desserts_drinks';
+  }
+
+  const cateringDishData = {
+    id: `custom-tray-${dishId}`,
+    nameEn: `${dish.name} Party Tray`,
+    nameFa: dish.name_fa || '',
+    category: cat,
+    unitPrice: suggestedTrayPrice,
+    servingYield: 25,
+    portionSize: 'Large Party Tray (Serves 20-25)',
+    pricingUnit: 'tray',
+    dietary: ['100% Zabiha Halal'],
+    imageUrl: dish.img || dish.image || '/logo.webp',
+    descriptionEn: dish.desc || `Generous party platter of freshly prepared authentic 100% Zabiha Halal ${dish.name}.`,
+    descriptionFa: dish.desc_fa || ''
+  };
+
+  window.closeImportFromMenuModal();
+  window.openCatalogDishModal(cateringDishData);
+};

@@ -183,6 +183,20 @@ export function initCRMData() {
   }, (err) => {
     console.warn('Catering package requests listener notice:', err);
   });
+
+  // 4d. Listen to Catering Catalog (Real-time sync of catering dishes & options)
+  const catalogQuery = query(collection(db, 'catering_catalog'));
+  window.cateringCatalogUnsub = onSnapshot(catalogQuery, (snapshot) => {
+    state.cateringCatalog = [];
+    snapshot.forEach(d => {
+      state.cateringCatalog.push({ id: d.id, ...d.data() });
+    });
+    // Sort by sortOrder then name
+    state.cateringCatalog.sort((a, b) => (a.sortOrder || 99) - (b.sortOrder || 99));
+    if (typeof window.renderCateringCatalog === 'function') window.renderCateringCatalog();
+  }, (err) => {
+    console.warn('Catering catalog listener notice:', err);
+  });
   window.unitSettingsUnsub = onSnapshot(doc(db, 'unitEconomics_settings', 'config'), (docSnap) => {
     if (docSnap.exists()) {
       state.unitSettings = { ...state.unitSettings, ...docSnap.data() };

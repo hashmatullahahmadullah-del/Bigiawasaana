@@ -4,9 +4,34 @@
  */
 
 import { db, app } from './firebase.js';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { DEFAULT_CATERING_CATALOG, DEFAULT_PACKAGE_TEMPLATES, OPTIONAL_CATERING_SERVICES } from './lib/catering-catalog-data.js';
+
+// Live catalog cache with fallback to DEFAULT_CATERING_CATALOG
+export let activeCateringCatalog = [...DEFAULT_CATERING_CATALOG];
+
+export async function loadLiveCateringCatalog() {
+  try {
+    const snap = await getDocs(collection(db, 'catering_catalog'));
+    if (!snap.empty) {
+      const items = [];
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.published !== false) {
+          items.push({ id: d.id, ...data });
+        }
+      });
+      if (items.length > 0) {
+        items.sort((a, b) => (a.sortOrder || 99) - (b.sortOrder || 99));
+        activeCateringCatalog = items;
+      }
+    }
+  } catch (err) {
+    console.warn('Using default catering catalog fallback:', err);
+  }
+}
+loadLiveCateringCatalog();
 
 // State
 export const builderState = {
@@ -30,6 +55,32 @@ export const builderState = {
 window.builderState = builderState;
 window.nextStep = () => goToStep(Math.min(5, (builderState.currentStep || 1) + 1));
 window.prevStep = () => goToStep(Math.max(1, (builderState.currentStep || 1) - 1));
+
+export function clearBuilderCart() {
+  builderState.cartItems = {};
+  builderState.selectedServices = {};
+  builderState.selectedTemplateId = null;
+  builderState.packageType = 'custom_scratch';
+  updatePriceBreakdown();
+  if (builderState.currentStep === 1) renderStep1();
+  if (builderState.currentStep === 2) renderStep2();
+  if (builderState.currentStep === 3) renderStep3();
+  if (builderState.currentStep === 4) renderStep4();
+  if (builderState.currentStep === 5) renderStep5();
+}
+window.clearBuilderCart = clearBuilderCart;
+
+export function removeDishFromCart(dishId) {
+  if (builderState.cartItems[dishId]) {
+    delete builderState.cartItems[dishId];
+    renderPortionAssistant();
+    renderBanquetRail();
+    updatePriceBreakdown();
+    if (builderState.currentStep === 3) renderStep3();
+    if (builderState.currentStep === 5) renderStep5();
+  }
+}
+window.removeDishFromCart = removeDishFromCart;
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -59,16 +110,7 @@ export function openPackageBuilder(presetGuests = null) {
     builderState.eventDetails.date = futureDate.toISOString().split('T')[0];
   }
 
-  // Start with balanced starter feast if cart is empty
-  if (Object.keys(builderState.cartItems).length === 0) {
-    const defaultRice = DEFAULT_CATERING_CATALOG.find(d => d.id === 'qabuli-pulao-tray');
-    const defaultKabob = DEFAULT_CATERING_CATALOG.find(d => d.id === 'chapli-kabob-tray');
-    const defaultBolani = DEFAULT_CATERING_CATALOG.find(d => d.id === 'bolani-potato-tray');
-    if (defaultRice) builderState.cartItems[defaultRice.id] = { ...defaultRice, quantity: 2 };
-    if (defaultKabob) builderState.cartItems[defaultKabob.id] = { ...defaultKabob, quantity: 2 };
-    if (defaultBolani) builderState.cartItems[defaultBolani.id] = { ...defaultBolani, quantity: 2 };
-  }
-
+  // Start fresh with clean cart for custom scratch orders
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
   goToStep(builderState.currentStep || 1);
@@ -297,7 +339,7 @@ export function selectPackageTemplate(templateId) {
   if (tpl) {
     builderState.cartItems = {};
     tpl.defaultItems.forEach(item => {
-      const catalogItem = DEFAULT_CATERING_CATALOG.find(c => c.id === item.catalogId);
+      const catalogItem = activeCateringCatalog.find(c => c.id === item.catalogId) || DEFAULT_CATERING_CATALOG.find(c => c.id === item.catalogId);
       if (catalogItem) {
         builderState.cartItems[catalogItem.id] = {
           ...catalogItem,
@@ -321,9 +363,10 @@ function renderStep3() {
   const container = document.getElementById('builder-catalog-grid');
   if (!container) return;
 
+  const catalogSource = (activeCateringCatalog && activeCateringCatalog.length > 0) ? activeCateringCatalog : DEFAULT_CATERING_CATALOG;
   const filteredItems = builderState.activeCategory === 'all'
-    ? DEFAULT_CATERING_CATALOG
-    : DEFAULT_CATERING_CATALOG.filter(it => it.category === builderState.activeCategory);
+    ? catalogSource
+    : catalogSource.filter(it => it.category === builderState.activeCategory);
 
   let html = '';
   filteredItems.forEach(dish => {
@@ -334,7 +377,7 @@ function renderStep3() {
     html += `
       <div class="catalog-food-card ${inCart ? 'in-cart' : ''}" id="dish-card-${dish.id}">
         <div class="food-card-img-wrap">
-          <img src="${dish.imageUrl}" alt="${escapeHtml(dish.nameEn)}" loading="lazy">
+          <img src="${dish.imageUrl || '/logo.webp'}" alt="${escapeHtml(dish.nameEn)}" loading="lazy">
           <div class="food-card-badge">${escapeHtml(dish.dietary?.[0] || '100% Zabiha')}</div>
         </div>
         <div class="food-card-body">
@@ -345,15 +388,15 @@ function renderStep3() {
             </div>
             <div style="text-align: right; flex-shrink: 0;">
               <div style="font-size: 18px; font-weight: 800; color: #FF4500;">$${dish.unitPrice.toFixed(2)}</div>
-              <div style="font-size: 11px; color: #888; text-transform: uppercase;">/${dish.pricingUnit}</div>
+              <div style="font-size: 11px; color: #888; text-transform: uppercase;">/${dish.pricingUnit || 'tray'}</div>
             </div>
           </div>
 
-          <p style="font-size: 12px; color: #aaa; margin: 8px 0; line-height: 1.45; flex: 1;">${escapeHtml(dish.descriptionEn)}</p>
+          <p style="font-size: 12px; color: #aaa; margin: 8px 0; line-height: 1.45; flex: 1;">${escapeHtml(dish.descriptionEn || '')}</p>
 
           <div style="font-size: 12px; color: #10b981; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            <span>${escapeHtml(dish.portionSize)}</span>
+            <span>${escapeHtml(dish.portionSize || 'Party Tray')}</span>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #222; padding-top: 12px; margin-top: auto;">
@@ -428,22 +471,30 @@ function renderBanquetRail() {
 
   let itemsHtml = '';
   if (items.length === 0) {
-    itemsHtml = '<div style="color: #666; font-size: 13px; text-align: center; padding: 20px 0;">No party trays selected yet.</div>';
+    itemsHtml = '<div style="color: #666; font-size: 13px; text-align: center; padding: 20px 0;">No party trays selected yet.<br><span style="font-size: 11px; color: #555;">Use the cards to add dishes</span></div>';
   } else {
     itemsHtml = items.map(it => `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #202020; font-size: 13px;">
-        <div style="flex: 1; padding-right: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #202020; font-size: 13px; gap: 8px;">
+        <div style="flex: 1; padding-right: 4px;">
           <div style="font-weight: 700; color: #fff;">${it.quantity}x ${escapeHtml(it.nameEn)}</div>
           <div style="font-size: 11px; color: #888;">$${it.unitPrice.toFixed(2)} each</div>
         </div>
-        <div style="font-weight: 700; color: #FF4500;">$${(it.unitPrice * it.quantity).toFixed(2)}</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="font-weight: 700; color: #FF4500;">$${(it.unitPrice * it.quantity).toFixed(2)}</div>
+          <button type="button" onclick="window.removeDishFromCart('${it.id}')" title="Remove ${escapeHtml(it.nameEn)}" style="background: none; border: none; color: #888; cursor: pointer; padding: 4px; display: flex; align-items: center; transition: color 0.15s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#888'">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
       </div>
     `).join('');
   }
 
   railContainer.innerHTML = `
-    <div style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #FF4500; margin-bottom: 8px;">
-      LIVE BANQUET CART
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <span style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #FF4500;">
+        LIVE BANQUET CART
+      </span>
+      ${items.length > 0 ? `<button type="button" onclick="window.clearBuilderCart()" style="background:none; border:none; color:#888; font-size:11px; text-decoration:underline; cursor:pointer;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#888'">Clear All</button>` : ''}
     </div>
     <div style="font-size: 13px; color: #888; margin-bottom: 16px;">
       ${guests} Guests • ${builderState.eventDetails.fulfillment.toUpperCase()}
@@ -483,7 +534,8 @@ export function filterFoodCategory(cat) {
 window.filterFoodCategory = filterFoodCategory;
 
 export function updateDishQuantity(dishId, delta) {
-  const dish = DEFAULT_CATERING_CATALOG.find(d => d.id === dishId);
+  const catalogSource = (activeCateringCatalog && activeCateringCatalog.length > 0) ? activeCateringCatalog : DEFAULT_CATERING_CATALOG;
+  const dish = catalogSource.find(d => d.id === dishId) || DEFAULT_CATERING_CATALOG.find(d => d.id === dishId);
   if (!dish) return;
 
   const currentQty = builderState.cartItems[dishId] ? builderState.cartItems[dishId].quantity : 0;
@@ -495,7 +547,7 @@ export function updateDishQuantity(dishId, delta) {
     builderState.cartItems[dishId] = {
       id: dish.id,
       nameEn: dish.nameEn,
-      nameFa: dish.nameFa,
+      nameFa: dish.nameFa || '',
       category: dish.category,
       unitPrice: dish.unitPrice,
       portionSize: dish.portionSize,
@@ -594,11 +646,11 @@ function renderStep5() {
   }
 
   if (summaryDishesContainer) {
-    const items = Object.values(builderState.cartItems);
+    const items = Object.values(builderState.cartItems).filter(i => i.quantity > 0);
     if (items.length === 0) {
       summaryDishesContainer.innerHTML = `
         <div style="text-align: center; padding: 28px; color: #888; background: #141414; border-radius: 12px;">
-          No party trays selected yet. <button type="button" onclick="window.goToStep(3)" style="color: #FF4500; background: none; border: none; cursor: pointer; text-decoration: underline; font-weight: bold;">Select dishes</button>
+          No party trays selected yet. <button type="button" onclick="window.goToStep(3)" style="color: #FF4500; background: none; border: none; cursor: pointer; text-decoration: underline; font-weight: bold;">Select dishes &rarr;</button>
         </div>
       `;
       return;
@@ -607,16 +659,26 @@ function renderStep5() {
     let html = '<div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">';
     items.forEach(it => {
       html += `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #141414; border: 1px solid #282828; border-radius: 10px; padding: 14px 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #141414; border: 1px solid #282828; border-radius: 10px; padding: 14px 18px; flex-wrap: wrap; gap: 12px;">
           <div style="display: flex; align-items: center; gap: 14px;">
-            <img src="${it.imageUrl}" alt="${escapeHtml(it.nameEn)}" style="width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: #111;">
+            <img src="${it.imageUrl || '/logo.webp'}" alt="${escapeHtml(it.nameEn)}" style="width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: #111;">
             <div>
               <div style="font-size: 15px; font-weight: 700; color: #fff;">${it.quantity}x ${escapeHtml(it.nameEn)}</div>
-              <div style="font-size: 12px; color: #888;">${escapeHtml(it.portionSize)}</div>
+              <div style="font-size: 12px; color: #888;">${escapeHtml(it.portionSize || 'Party Tray')} • $${it.unitPrice.toFixed(2)} each</div>
             </div>
           </div>
-          <div style="font-size: 16px; font-weight: 700; color: #FF4500;">
-            $${(it.unitPrice * it.quantity).toFixed(2)}
+          <div style="display: flex; align-items: center; gap: 14px; margin-left: auto;">
+            <div style="font-size: 16px; font-weight: 700; color: #FF4500;">
+              $${(it.unitPrice * it.quantity).toFixed(2)}
+            </div>
+            <div class="food-card-stepper" style="padding: 2px;">
+              <button type="button" class="stepper-btn" onclick="window.updateDishQuantity('${it.id}', -1)" aria-label="Decrease quantity">-</button>
+              <span class="stepper-qty" style="min-width: 20px;">${it.quantity}</span>
+              <button type="button" class="stepper-btn" onclick="window.updateDishQuantity('${it.id}', 1)" aria-label="Increase quantity">+</button>
+            </div>
+            <button type="button" onclick="window.removeDishFromCart('${it.id}')" title="Delete ${escapeHtml(it.nameEn)}" style="background: none; border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; color: #ef4444; padding: 5px 8px; font-size: 11px; font-weight: 600; cursor: pointer;">
+              Delete
+            </button>
           </div>
         </div>
       `;
@@ -647,10 +709,10 @@ export function calculatePackagePrices() {
     }
   });
 
-  const deliveryFee = builderState.eventDetails.fulfillment === 'delivery' ? 50.00 : 0;
+  const deliveryFee = (foodSubtotal > 0 && builderState.eventDetails.fulfillment === 'delivery') ? 50.00 : 0;
   const taxable = foodSubtotal + servicesTotal;
   const taxAmount = Math.round(taxable * 0.1025 * 100) / 100;
-  const estimatedTotal = taxable + deliveryFee + taxAmount;
+  const estimatedTotal = (foodSubtotal > 0 || servicesTotal > 0) ? (taxable + deliveryFee + taxAmount) : 0;
 
   return {
     foodSubtotal,
@@ -663,6 +725,7 @@ export function calculatePackagePrices() {
 
 export function updatePriceBreakdown() {
   const prices = calculatePackagePrices();
+  const itemsCount = Object.values(builderState.cartItems).reduce((sum, i) => sum + (i.quantity || 0), 0);
 
   // Desktop & Modal summaries
   const subEl = document.getElementById('calc-food-subtotal');
@@ -678,14 +741,25 @@ export function updatePriceBreakdown() {
   if (totEl) totEl.textContent = `$${prices.estimatedTotal.toFixed(2)}`;
 
   const footerTotEl = document.getElementById('builder-footer-total');
-  if (footerTotEl) footerTotEl.textContent = `$${prices.estimatedTotal.toFixed(2)}`;
+  if (footerTotEl) {
+    if (itemsCount === 0 && (builderState.currentStep === 1 || builderState.currentStep === 2)) {
+      footerTotEl.innerHTML = `$0.00 <span style="font-size: 11px; font-weight: normal; color: #888;">(Dishes chosen in Step 3)</span>`;
+    } else {
+      footerTotEl.innerHTML = `$${prices.estimatedTotal.toFixed(2)} ${itemsCount > 0 ? `<button type="button" onclick="window.clearBuilderCart()" style="background:none; border:none; color:#888; font-size:11px; text-decoration:underline; cursor:pointer; margin-left:6px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#888'">Reset</button>` : ''}`;
+    }
+  }
+
   const desktopPreview = document.getElementById('builder-desktop-total-preview');
   if (desktopPreview) desktopPreview.style.display = 'block';
 
   // Mobile bottom sticky bar
   const mobileTotalEl = document.getElementById('builder-mobile-total-display');
   if (mobileTotalEl) {
-    mobileTotalEl.textContent = `$${prices.estimatedTotal.toFixed(2)}`;
+    if (itemsCount === 0 && (builderState.currentStep === 1 || builderState.currentStep === 2)) {
+      mobileTotalEl.textContent = '$0.00';
+    } else {
+      mobileTotalEl.textContent = `$${prices.estimatedTotal.toFixed(2)}`;
+    }
   }
 }
 
