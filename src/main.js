@@ -1319,6 +1319,36 @@ function handleDealClick(dealId, event) {
   openDealModal(dealId);
 }
 
+function getDealMeta(deal) {
+  if (!deal) return { reqQty: 2, isGyro: false, targetPlural: 'Plates', targetSingular: 'Plate', rewardTitle: 'Soft Drink' };
+  const cond = deal.conditions || {};
+  const reqQty = cond.minQty || 2;
+  const isGyro = (deal.title || '').toLowerCase().includes('gyro') || 
+                 (deal.description || '').toLowerCase().includes('gyro') ||
+                 (cond.itemIds || []).some(id => {
+                   const item = (menuItems || []).find(m => m.id === id);
+                   return item && item.name.toLowerCase().includes('gyro');
+                 });
+  
+  const targetPlural = isGyro ? 'Gyro Rice Bowls' : 'Plates';
+  const targetSingular = isGyro ? 'Gyro Rice Bowl' : 'Plate';
+  
+  const reward = deal.reward || {};
+  let rewardTitle = 'Soft Drink';
+  if (reward.rewardItemIds && reward.rewardItemIds.length > 0) {
+    const rItem = (menuItems || []).find(m => reward.rewardItemIds.includes(m.id));
+    if (rItem) rewardTitle = rItem.name;
+  }
+  
+  return {
+    reqQty,
+    isGyro,
+    targetPlural,
+    targetSingular,
+    rewardTitle
+  };
+}
+
 function renderDealsGrid() {
   const dealsToRender = activeDeals.filter(d => d.showOnSite);
   const sections = document.querySelectorAll('.deals-section');
@@ -1340,13 +1370,14 @@ function renderDealsGrid() {
       
       const badgeText = deal.badge || 'CHEF\'S SPECIAL COMBO';
       
+      const meta = getDealMeta(deal);
       card.innerHTML = `
         <div class="promo-top-bar">
           <div class="promo-badge-pill">
             <span class="promo-pulse-dot"></span>
             <span>${escapeHtml(badgeText)}</span>
           </div>
-          <div class="promo-value-tag">SAVE $2.45</div>
+          <div class="promo-value-tag">FREE ${escapeHtml(meta.rewardTitle.toUpperCase())}</div>
         </div>
         <div class="promo-card-content">
           <h3 class="promo-title">${escapeHtml(deal.title)}</h3>
@@ -1354,23 +1385,22 @@ function renderDealsGrid() {
           <div class="promo-features-grid">
             <div class="promo-feature-chip">
               ${iconSkewer(15)}
-              <span>2x Kabob Platters</span>
+              <span>${meta.reqQty}x ${escapeHtml(meta.targetPlural)}</span>
             </div>
             <span class="promo-feature-plus">+</span>
             <div class="promo-feature-chip promo-feature-free">
               ${iconDrinkCan(15)}
-              <span>1x FREE Soft Drink</span>
+              <span>1x FREE ${escapeHtml(meta.rewardTitle)}</span>
             </div>
           </div>
         </div>
         <div class="promo-card-footer">
           <div class="promo-footer-info">
             <span class="promo-status-label">Online Exclusive Combo</span>
-            <span class="promo-savings-sub">Includes basmati rice, salad &amp; naan</span>
+            <span class="promo-savings-sub">Includes basmati rice, salad &amp; house sauces</span>
           </div>
           <button type="button" class="promo-claim-btn" aria-label="Claim Deal: ${escapeHtml(deal.title)}" onclick="handleDealClick('${deal.id}', event)">
             <span>Claim Deal</span>
-            
           </button>
         </div>
       `;
@@ -1398,22 +1428,11 @@ function ensureDealModal() {
             <span id="deal-modal-badge" class="deal-hero-badge">EXCLUSIVE DEAL</span>
             <span class="deal-hero-saving-pill">SAVE $2.45</span>
           </div>
-          <h2 id="deal-modal-hero-title" class="deal-hero-title">Kabob Lovers Deal</h2>
-          <p id="deal-modal-desc" class="deal-hero-desc">Order any 2 Kabob Plates and get a FREE Soft Drink of your choice!</p>
+          <h2 id="deal-modal-hero-title" class="deal-hero-title">Special Combo Deal</h2>
+          <p id="deal-modal-desc" class="deal-hero-desc">Order your qualifying favorites and get a complimentary soft drink of your choice!</p>
           
-          <div class="deal-hero-perks">
-            <div class="deal-hero-perk-item">
-              <span class="perk-check">${iconCheck(13)}</span>
-              <span>2 Authentic Charcoal Kabob Plates</span>
-            </div>
-            <div class="deal-hero-perk-item">
-              <span class="perk-check">${iconCheck(13)}</span>
-              <span>1 Complimentary Chilled Soft Drink</span>
-            </div>
-            <div class="deal-hero-perk-item">
-              <span class="perk-check">${iconCheck(13)}</span>
-              <span>Includes Saffron Basmati Rice, Naan &amp; Chutney</span>
-            </div>
+          <div class="deal-hero-perks" id="deal-modal-perks">
+            <!-- Dynamic perks populated by openDealModal -->
           </div>
         </div>
       </div>
@@ -1434,8 +1453,8 @@ function ensureDealModal() {
             <div class="deal-section-title">
               <span class="step-badge">1</span>
               <div>
-                <h3 class="step-heading">Select Your 2 Kabob Plates</h3>
-                <span class="step-subheading">Mix &amp; match your favorite charcoal-grilled skewers</span>
+                <h3 class="step-heading" id="deal-modal-step1-heading">Select Your Qualifying Items</h3>
+                <span class="step-subheading" id="deal-modal-step1-subheading">Mix &amp; match your favorites for this special promotion</span>
               </div>
             </div>
             <div id="deal-qualifying-items-container" class="deal-plates-list"></div>
@@ -1502,18 +1521,50 @@ function openDealModal(dealId) {
   const descEl = document.getElementById('deal-modal-desc');
   if (descEl) descEl.textContent = deal.description || '';
 
-  // Extract Qualifying Plates
+  const meta = getDealMeta(deal);
   const cond = deal.conditions || {};
   const reqQty = cond.minQty || 2;
+
+  // Set Dynamic Hero Perks
+  const perksEl = document.getElementById('deal-modal-perks');
+  if (perksEl) {
+    perksEl.innerHTML = `
+      <div class="deal-hero-perk-item">
+        <span class="perk-check">${iconCheck(13)}</span>
+        <span>${meta.reqQty} Authentic ${escapeHtml(meta.targetPlural)}</span>
+      </div>
+      <div class="deal-hero-perk-item">
+        <span class="perk-check">${iconCheck(13)}</span>
+        <span>1 Complimentary Chilled ${escapeHtml(meta.rewardTitle)}</span>
+      </div>
+      <div class="deal-hero-perk-item">
+        <span class="perk-check">${iconCheck(13)}</span>
+        <span>Includes Fragrant Basmati Rice, Fresh Salad &amp; House Sauces</span>
+      </div>
+    `;
+  }
+
+  // Set Step 1 Headings
+  const step1Heading = document.getElementById('deal-modal-step1-heading');
+  if (step1Heading) step1Heading.textContent = `Select Your ${meta.reqQty} ${meta.targetPlural}`;
+
+  const step1Sub = document.getElementById('deal-modal-step1-subheading');
+  if (step1Sub) step1Sub.textContent = `Mix & match your favorite freshly-crafted ${meta.targetPlural.toLowerCase()}`;
+
+  // Extract Qualifying Plates - Strict Priority:
   const eligiblePlates = menuItems.filter(item => {
     if (item.hidden) return false;
-    const cat = (item.category || '').toLowerCase();
-    const isIdMatch = cond.itemIds && cond.itemIds.includes(item.id);
-    const isCatMatch = cond.categoryIds && cond.categoryIds.some(c => c.toLowerCase() === cat);
-    if (cond.itemIds?.length > 0 || cond.categoryIds?.length > 0) {
-      return isIdMatch || isCatMatch;
+    // 1. If specific item IDs are configured, ONLY those items qualify!
+    if (cond.itemIds && cond.itemIds.length > 0) {
+      return cond.itemIds.includes(item.id);
     }
-    return cat.includes('plate') || cat.includes('platter') || cat.includes('kabob');
+    // 2. Otherwise match configured categories
+    const cat = (item.category || '').toLowerCase();
+    if (cond.categoryIds && cond.categoryIds.length > 0) {
+      return cond.categoryIds.some(c => c.toLowerCase() === cat);
+    }
+    // 3. Fallback
+    return cat.includes('plate') || cat.includes('platter') || cat.includes('gyro') || cat.includes('kabob');
   });
 
   // Extract Reward Item (Drink)
@@ -1690,17 +1741,19 @@ function updateDealModalState() {
   const isComplete = totalSelected === reqQty && dealSelectedRewardVariant;
 
   if (isComplete) {
-    if (progressText) progressText.innerHTML = `<span style="color: #ffffff; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">${iconCheck(14)} All ${reqQty} Plates Selected • Free Drink Unlocked!</span>`;
+    const meta = getDealMeta(currentDealItem);
+    if (progressText) progressText.innerHTML = `<span style="color: #ffffff; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">${iconCheck(14)} All ${reqQty} ${escapeHtml(meta.targetPlural)} Selected • Free ${escapeHtml(meta.rewardTitle)} Unlocked!</span>`;
     if (addBtn) {
       addBtn.disabled = false;
       addBtn.innerHTML = `Add Deal to Bag — $${platesTotal.toFixed(2)}`;
     }
   } else {
     const remaining = reqQty - totalSelected;
-    if (progressText) progressText.textContent = `Step 1: Choose ${remaining} more plate${remaining > 1 ? 's' : ''}`;
+    const meta = getDealMeta(currentDealItem);
+    if (progressText) progressText.textContent = `Step 1: Choose ${remaining} more ${remaining > 1 ? meta.targetPlural : meta.targetSingular}`;
     if (addBtn) {
       addBtn.disabled = true;
-      addBtn.innerHTML = `Select ${remaining} more plate${remaining > 1 ? 's' : ''} to claim`;
+      addBtn.innerHTML = `Select ${remaining} more to claim`;
     }
   }
 }

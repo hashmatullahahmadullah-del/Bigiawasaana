@@ -39,6 +39,7 @@ export function initCRMData() {
       state.reviews.push({ id: d.id, ...d.data(), date: d.data().date?.toDate() || new Date() });
     });
     renderReviews();
+    renderDashboard();
   }, (err) => {
     console.warn('Reviews listener notice:', err);
   });
@@ -141,6 +142,7 @@ export function initCRMData() {
     });
     if (typeof window.renderCateringInquiries === 'function') window.renderCateringInquiries();
     renderCatering();
+    renderDashboard();
   }, (err) => {
     console.warn('Catering inquiries listener notice:', err);
   });
@@ -158,6 +160,7 @@ export function initCRMData() {
     });
     if (typeof window.renderCateringQuotes === 'function') window.renderCateringQuotes();
     if (typeof window.renderConfirmedBookings === 'function') window.renderConfirmedBookings();
+    renderDashboard();
   }, (err) => {
     console.warn('Catering quotes listener notice:', err);
   });
@@ -210,6 +213,7 @@ export function initCRMData() {
       });
     });
     if (typeof window.renderCateringWaivers === 'function') window.renderCateringWaivers();
+    renderDashboard();
     const badge = document.getElementById('badge-cat-waivers');
     if (badge) {
       const pendingCount = state.agreements.filter(a => a.status === 'sent' || a.status === 'signed_cash_pending').length;

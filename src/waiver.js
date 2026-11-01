@@ -337,80 +337,65 @@ async function initSquarePayments(depositAmount) {
 
   try {
     const Square = await ensureSquareLoaded();
+    if (!Square) return;
     squarePayments = Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
 
     // Initialize Card Element
     const cardContainer = document.getElementById('card-container');
     if (cardContainer && !squareCard) {
       cardContainer.innerHTML = '';
-      squareCard = await squarePayments.card({
-        style: {
-          '.input-container': {
-            borderColor: '#27272a',
-            borderRadius: '6px'
-          },
-          '.input-container.is-focus': {
-            borderColor: '#FF4500'
-          },
-          input: {
-            color: '#FFFFFF',
-            backgroundColor: '#09090b',
-            fontFamily: 'Outfit, sans-serif'
-          },
-          'input::placeholder': {
-            color: '#71717A'
-          }
-        }
-      });
+      squareCard = await squarePayments.card();
       await squareCard.attach('#card-container');
     }
 
-    // Google Pay
-    try {
-      const gpayBtn = document.getElementById('google-pay-button');
-      if (gpayBtn && !googlePayInstance) {
-        const paymentRequest = squarePayments.paymentRequest({
-          countryCode: 'US',
-          currencyCode: 'USD',
-          total: {
-            amount: depositAmount.toFixed(2),
-            label: 'Bigi Awasaana 30% Deposit'
-          }
-        });
-        googlePayInstance = await squarePayments.googlePay(paymentRequest);
-        await googlePayInstance.attach('#google-pay-button');
-        gpayBtn.style.display = 'block';
-
-        googlePayInstance.addEventListener('payment_method_selected', async () => {
-          handleWaiverSubmission('google_pay');
-        });
+    const paymentRequest = squarePayments.paymentRequest({
+      countryCode: 'US',
+      currencyCode: 'USD',
+      total: {
+        amount: Number(depositAmount).toFixed(2),
+        label: 'Bigi Awasaana 30% Deposit'
       }
-    } catch (gErr) {
-      console.warn('Google Pay not available:', gErr.message);
-    }
+    });
 
-    // Apple Pay
+    // Apple Pay (Native Web Payments SDK)
     try {
       const appleBtn = document.getElementById('apple-pay-button');
       if (appleBtn && !applePayInstance) {
-        const paymentRequest = squarePayments.paymentRequest({
-          countryCode: 'US',
-          currencyCode: 'USD',
-          total: {
-            amount: depositAmount.toFixed(2),
-            label: 'Bigi Awasaana 30% Deposit'
-          }
-        });
-        applePayInstance = await squarePayments.applePay(paymentRequest);
-        await applePayInstance.attach('#apple-pay-button');
+        const applePay = await squarePayments.applePay(paymentRequest);
+        applePayInstance = applePay;
         appleBtn.style.display = 'block';
 
-        applePayInstance.addEventListener('payment_method_selected', async () => {
+        appleBtn.onclick = async (e) => {
+          e.preventDefault();
           handleWaiverSubmission('apple_pay');
-        });
+        };
       }
     } catch (aErr) {
-      console.warn('Apple Pay not available:', aErr.message);
+      console.log('Apple Pay not available on this device:', aErr.message || aErr);
+    }
+
+    // Google Pay (Square Web Payments SDK)
+    try {
+      const gpayBtn = document.getElementById('google-pay-button');
+      if (gpayBtn && !googlePayInstance) {
+        const googlePay = await squarePayments.googlePay(paymentRequest);
+        googlePayInstance = googlePay;
+        gpayBtn.innerHTML = '';
+        await googlePay.attach('#google-pay-button', {
+          buttonColor: 'default',
+          buttonType: 'long',
+          buttonSizeMode: 'fill',
+          buttonRadius: 6
+        });
+        gpayBtn.style.display = 'block';
+
+        gpayBtn.onclick = async (e) => {
+          e.preventDefault();
+          handleWaiverSubmission('google_pay');
+        };
+      }
+    } catch (gErr) {
+      console.log('Google Pay not available on this device:', gErr.message || gErr);
     }
   } catch (err) {
     console.error('Error initializing Square Payments in waiver:', err);
@@ -514,7 +499,36 @@ async function handleWaiverSubmission(methodOverride = null) {
   try {
     const signatureDataUrl = canvas.toDataURL('image/png');
 
-    // 1. Sign Catering Waiver in Backend
+    // 1. If Card or Wallet, tokenize IMMEDIATELY inside the user click event loop (crucial for Apple Pay on Safari/iOS)
+    let sourceId = null;
+    let verificationToken = null;
+
+    if (method !== 'cash') {
+      if (method === 'apple_pay') {
+        if (!applePayInstance) throw new Error('Apple Pay is not initialized on this device.');
+        const tokenResult = await applePayInstance.tokenize();
+        if (tokenResult.status !== 'OK') {
+          throw new Error(tokenResult.errors?.[0]?.message || 'Apple Pay authorization was cancelled or failed.');
+        }
+        sourceId = tokenResult.token;
+      } else if (method === 'google_pay') {
+        if (!googlePayInstance) throw new Error('Google Pay is not initialized on this device.');
+        const tokenResult = await googlePayInstance.tokenize();
+        if (tokenResult.status !== 'OK') {
+          throw new Error(tokenResult.errors?.[0]?.message || 'Google Pay authorization was cancelled or failed.');
+        }
+        sourceId = tokenResult.token;
+      } else {
+        if (!squareCard) throw new Error('Square card payment form is not ready. Please refresh the page.');
+        const tokenResult = await squareCard.tokenize();
+        if (tokenResult.status !== 'OK') {
+          throw new Error(tokenResult.errors?.[0]?.message || 'Card payment details are incomplete or invalid.');
+        }
+        sourceId = tokenResult.token;
+      }
+    }
+
+    // 2. Record Signed Agreement in Backend
     const signFn = httpsCallable(functions, 'signCateringWaiver');
     await signFn({
       agreementNumber: activeAgreementNumber,
@@ -524,29 +538,8 @@ async function handleWaiverSubmission(methodOverride = null) {
       paymentMethod: method === 'cash' ? 'cash' : 'card'
     });
 
-    // 2. If Card / Wallet, tokenize and pay 30% deposit via Square
+    // 3. If Card / Wallet, charge deposit using the verified sourceId
     if (method !== 'cash') {
-      let sourceId = null;
-      let verificationToken = null;
-
-      if (method === 'google_pay' && googlePayInstance) {
-        const tokenResult = await googlePayInstance.tokenize();
-        if (tokenResult.status !== 'OK') throw new Error(tokenResult.errors?.[0]?.message || 'Google Pay tokenization failed.');
-        sourceId = tokenResult.token;
-      } else if (method === 'apple_pay' && applePayInstance) {
-        const tokenResult = await applePayInstance.tokenize();
-        if (tokenResult.status !== 'OK') throw new Error(tokenResult.errors?.[0]?.message || 'Apple Pay tokenization failed.');
-        sourceId = tokenResult.token;
-      } else {
-        if (!squareCard) throw new Error('Square card field is not initialized. Please refresh.');
-        const tokenResult = await squareCard.tokenize();
-        if (tokenResult.status !== 'OK') {
-          throw new Error(tokenResult.errors?.[0]?.message || 'Card payment details are incomplete or invalid.');
-        }
-        sourceId = tokenResult.token;
-      }
-
-      // Execute deposit payment Cloud Function
       const payFn = httpsCallable(functions, 'payWaiverDeposit');
       const payRes = await payFn({
         agreementNumber: activeAgreementNumber,

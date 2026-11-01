@@ -1,10 +1,9 @@
 import { DEFAULT_CATERING_CATALOG, DEFAULT_PACKAGE_TEMPLATES } from '../lib/catering-catalog-data.js';
 import { state } from './shared.js';
 window.state = state;
-import { db, app } from '../firebase.js';
+import { db, app, functions } from '../firebase.js';
 import { collection, doc, addDoc, updateDoc, setDoc, deleteDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-const functions = getFunctions(app);
 import { showToast } from './orders.js';
 
 function escapeHtml(str) {
@@ -23,6 +22,14 @@ function generateQuoteNumber() {
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const randomHex = Math.random().toString(16).substring(2, 6).toUpperCase();
   return `BA-Q-${year}${month}-${randomHex}`;
+}
+
+function generateAgreementNumber() {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const randomHex = Math.random().toString(16).substring(2, 6).toUpperCase();
+  return `BA-W-${yy}${mm}-${randomHex}`;
 }
 
 function generateSecureToken() {
@@ -380,7 +387,7 @@ export function renderCateringQuotes() {
           </button>
           <button type="button" class="btn-outline btn-sm action-copy-link" title="Copy Private Portal Link">
             <svg class="copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            <span class="copy-text">Copy Link</span>
+            <span class="copy-text">Copy link</span>
           </button>
           <button type="button" class="btn-outline btn-sm action-preview-quote" title="Preview Customer View">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -1862,7 +1869,7 @@ export function renderCateringWaivers() {
     tr.innerHTML = `
       <td data-label="Agreement #">
         <div class="crm-cell-value">
-          <strong style="color: var(--accent-admin, #FF4500); font-family: monospace; font-size: 13px;">${escapeHtml(a.agreementNumber)}</strong>
+          <strong style="color: var(--accent-admin, #e11d48); font-family: monospace; font-size: 13px;">${escapeHtml(a.agreementNumber)}</strong>
           <small style="color: var(--text-muted); font-size: 11px;">${a.createdAtDate ? a.createdAtDate.toLocaleDateString() : 'N/A'}</small>
         </div>
       </td>
@@ -1912,12 +1919,12 @@ export function renderCateringWaivers() {
           `}
           <button type="button" class="btn-outline btn-sm action-copy-waiver" title="Copy Private Signing Link">
             <svg class="copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            <span class="copy-text">Copy Link</span>
+            <span class="copy-text">Copy link</span>
           </button>
           ${a.status === 'signed_cash_pending' || a.status === 'sent' ? `
             <button type="button" class="btn-outline btn-sm action-record-cash" title="Record Cash Deposit at Trailer" style="color: #4caf50; border-color: rgba(76,175,80,0.4);">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-              <span>Cash $</span>
+              <span>Record cash</span>
             </button>
           ` : ''}
           ${a.status !== 'cancelled' ? `
@@ -2114,23 +2121,82 @@ export async function submitQuickWaiver(e) {
       throw new Error('Please enter the estimated total or food subtotal for this catering order.');
     }
 
-    const createFn = httpsCallable(getFunctions(app), 'createCateringWaiver');
-    const res = await createFn({
-      clientName: name,
-      clientPhone: phone,
-      clientEmail: email,
-      fulfillment,
-      deliveryAddress,
-      deliveryFee,
-      eventDate,
-      eventTime,
-      guestCount,
-      menuSummary,
-      estimatedTotal,
-      depositAmount
-    });
+    let waiverUrl = '';
+    let agreementNumber = '';
+    let token = '';
 
-    const waiverUrl = res.data?.waiverUrl || `https://www.bigiawasaana.com/waiver.html?w=${encodeURIComponent(res.data.agreementNumber)}&token=${encodeURIComponent(res.data.token)}`;
+    try {
+      const createFn = httpsCallable(functions || getFunctions(app), 'createCateringWaiver');
+      const res = await createFn({
+        clientName: name,
+        clientPhone: phone,
+        clientEmail: email,
+        fulfillment,
+        deliveryAddress,
+        deliveryFee,
+        eventDate,
+        eventTime,
+        guestCount,
+        menuSummary,
+        estimatedTotal,
+        depositAmount
+      });
+      agreementNumber = res.data?.agreementNumber;
+      token = res.data?.token;
+      waiverUrl = res.data?.waiverUrl || `https://www.bigiawasaana.com/waiver.html?w=${encodeURIComponent(agreementNumber)}&token=${encodeURIComponent(token)}`;
+    } catch (fnErr) {
+      console.warn('createCateringWaiver Cloud Function call failed, utilizing direct Firestore fallback:', fnErr);
+      agreementNumber = generateAgreementNumber();
+      token = generateSecureToken();
+      const fee = fulfillment === 'delivery' ? deliveryFee : 0;
+      const deposit = depositAmount > 0 ? depositAmount : Math.round(estimatedTotal * 0.3 * 100) / 100;
+
+      const agreementDoc = {
+        agreementNumber,
+        token,
+        status: 'sent',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        event: {
+          date: String(eventDate).trim(),
+          time: eventTime ? String(eventTime).trim() : '05:00 PM',
+          guestCount: Number(guestCount) || 20,
+          fulfillment: fulfillment === 'delivery' ? 'delivery' : 'pickup',
+          deliveryAddress: deliveryAddress ? String(deliveryAddress).trim() : '',
+          deliveryFee: fee,
+          menuSummary: menuSummary ? String(menuSummary).trim() : '',
+          dishes: [],
+          specialInstructions: ''
+        },
+        pricing: {
+          estimatedTotal,
+          deliveryFee: fee,
+          depositRequired: deposit,
+          depositPaid: 0,
+          balanceDue: Math.max(0, estimatedTotal - deposit),
+          penaltyFee: 199.00
+        },
+        client: {
+          name: String(name).trim(),
+          phone: String(phone).trim(),
+          email: email ? String(email).trim() : '',
+          confirmedAddress: deliveryAddress ? String(deliveryAddress).trim() : '',
+          allergies: '',
+          notes: ''
+        },
+        legalProof: null,
+        payment: {
+          method: null,
+          paymentStatus: 'unpaid',
+          squarePaymentId: null,
+          cashReceivedAt: null,
+          cashReceivedBy: null
+        }
+      };
+
+      await setDoc(doc(db, 'catering_agreements', agreementNumber), agreementDoc);
+      waiverUrl = `https://www.bigiawasaana.com/waiver.html?w=${encodeURIComponent(agreementNumber)}&token=${encodeURIComponent(token)}`;
+    }
 
     // Show success state
     const successBox = document.getElementById('qwm-success-box');

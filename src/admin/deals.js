@@ -13,33 +13,184 @@ window.populateDealSelects = () => {
   if (!condItemsDiv || !condCatsDiv || !rewardItemsDiv) return;
   if (!window.adminMenuData) return;
 
-  const items = Object.entries(window.adminMenuData).map(([id, data]) => ({ id, name: data.name, category: data.category }));
+  const items = Object.entries(window.adminMenuData).map(([id, data]) => ({
+    id,
+    name: data.name,
+    category: data.category,
+    price: data.price || 0,
+    img: data.img || ''
+  }));
   const categories = [...new Set(items.map(i => i.category).filter(Boolean))];
 
-  // Condition Items Checklist
+  // Condition Items Checklist (Cards with thumbnail and tag)
   condItemsDiv.innerHTML = items.map(item => `
-    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: var(--gray); user-select: none;">
-      <input type="checkbox" name="cond-item-checkbox" value="${item.id}" style="accent-color: var(--accent);">
-      <span>${item.name}</span>
+    <label class="deal-dish-chip" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 6px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none; transition: border-color 0.15s;">
+      <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</span>
+        <span style="font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px;">${Number(item.price).toFixed(2)}</span>
+      </div>
+      <input type="checkbox" name="cond-item-checkbox" value="${item.id}" style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0;">
     </label>
   `).join('');
 
   // Reward Items Checklist
   rewardItemsDiv.innerHTML = items.map(item => `
-    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: var(--gray); user-select: none;">
-      <input type="checkbox" name="reward-item-checkbox" value="${item.id}" style="accent-color: var(--accent);">
-      <span>${item.name}</span>
+    <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 6px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none;">
+      <span style="font-weight: 600;">${item.name}</span>
+      <input type="checkbox" name="reward-item-checkbox" value="${item.id}" style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;">
     </label>
   `).join('');
 
   // Condition Categories Checklist
   condCatsDiv.innerHTML = categories.map(cat => `
-    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: var(--gray); user-select: none;">
-      <input type="checkbox" name="cond-cat-checkbox" value="${cat}" style="accent-color: var(--accent);">
+    <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 6px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none;">
       <span>${cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
+      <input type="checkbox" name="cond-cat-checkbox" value="${cat}" style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;">
     </label>
   `).join('');
 };
+
+// 1-Click Deal Presets
+window.applyDealPreset = (presetKey) => {
+  const form = document.getElementById('deal-form');
+  if (form) {
+    form.classList.add('open');
+    form.style.display = 'flex';
+  }
+  const chevron = document.getElementById('deal-form-chevron');
+  if (chevron) chevron.textContent = '▲';
+
+  // Clear previous
+  document.querySelectorAll('input[name="cond-item-checkbox"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('input[name="cond-cat-checkbox"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('input[name="reward-item-checkbox"]').forEach(cb => cb.checked = false);
+
+  const titleEl = document.getElementById('deal-title');
+  const badgeEl = document.getElementById('deal-badge');
+  const descEl = document.getElementById('deal-desc');
+  const typeEl = document.getElementById('deal-type');
+  const activeEl = document.getElementById('deal-active');
+  const showEl = document.getElementById('deal-showonsite');
+  const condOrderEl = document.getElementById('deal-cond-order');
+  const condQtyEl = document.getElementById('deal-cond-qty');
+  const rewardTypeEl = document.getElementById('deal-reward-type');
+  const rewardValEl = document.getElementById('deal-reward-val');
+  const rewardQtyEl = document.getElementById('deal-reward-qty');
+  const promoEl = document.getElementById('deal-promo-code');
+
+  if (activeEl) activeEl.checked = true;
+  if (showEl) showEl.checked = true;
+  if (condOrderEl) condOrderEl.checked = false;
+  if (promoEl) promoEl.value = '';
+
+  if (presetKey === 'gyro_deal') {
+    if (titleEl) titleEl.value = 'Gyro Lovers Deal';
+    if (badgeEl) badgeEl.value = 'Website Only, Limited';
+    if (descEl) descEl.value = 'Buy Any 2 Chicken Gyro or Beef Gyro Plates and Get a Free Drink!';
+    if (typeEl) typeEl.value = 'bogo';
+    if (condQtyEl) condQtyEl.value = '2';
+    if (rewardTypeEl) rewardTypeEl.value = 'freeItem';
+    if (rewardValEl) rewardValEl.value = '2.45';
+    if (rewardQtyEl) rewardQtyEl.value = '1';
+
+    // Auto-select gyro bowls
+    window.selectDealDishFilter('gyro');
+    window.selectRewardItemByName('Soft Drinks');
+    showToast('Applied "Gyro Lovers Deal" preset');
+  } else if (presetKey === 'free_drink') {
+    if (titleEl) titleEl.value = 'Platters & Drink Combo Deal';
+    if (badgeEl) badgeEl.value = 'SPECIAL COMBO';
+    if (descEl) descEl.value = 'Buy Any 2 Plates or Platters and Get a Free Chilled Soft Drink!';
+    if (typeEl) typeEl.value = 'bogo';
+    if (condQtyEl) condQtyEl.value = '2';
+    if (rewardTypeEl) rewardTypeEl.value = 'freeItem';
+    if (rewardValEl) rewardValEl.value = '2.45';
+    if (rewardQtyEl) rewardQtyEl.value = '1';
+
+    window.selectDealDishFilter('platters');
+    window.selectRewardItemByName('Soft Drinks');
+    showToast('Applied "Buy 2 Get Free Drink" preset');
+  } else if (presetKey === 'percent_order') {
+    if (titleEl) titleEl.value = '15% Off Your Entire Order';
+    if (badgeEl) badgeEl.value = '15% OFF SPECIAL';
+    if (descEl) descEl.value = 'Save 15% on your entire authentic Afghan meal when you spend $30 or more!';
+    if (typeEl) typeEl.value = 'percent_off';
+    if (condOrderEl) condOrderEl.checked = true;
+    if (condQtyEl) condQtyEl.value = '30';
+    if (rewardTypeEl) rewardTypeEl.value = 'percent';
+    if (rewardValEl) rewardValEl.value = '15';
+    if (rewardQtyEl) rewardQtyEl.value = '1';
+    showToast('Applied "15% Off Order" preset');
+  } else if (presetKey === 'fixed_spend') {
+    if (titleEl) titleEl.value = '$5 Off Orders Over $35';
+    if (badgeEl) badgeEl.value = '$5 OFF DEAL';
+    if (descEl) descEl.value = 'Enjoy $5 off when your order total reaches $35 or more!';
+    if (typeEl) typeEl.value = 'fixed_off';
+    if (condOrderEl) condOrderEl.checked = true;
+    if (condQtyEl) condQtyEl.value = '35';
+    if (rewardTypeEl) rewardTypeEl.value = 'fixed';
+    if (rewardValEl) rewardValEl.value = '5';
+    if (rewardQtyEl) rewardQtyEl.value = '1';
+    showToast('Applied "$5 Off Over $35" preset');
+  } else if (presetKey === 'bogo_half') {
+    if (titleEl) titleEl.value = 'Buy 1 Plate, Get 2nd 50% Off';
+    if (badgeEl) badgeEl.value = 'BOGO 50% OFF';
+    if (descEl) descEl.value = 'Order any 2 plates and receive 50% discount on the second plate!';
+    if (typeEl) typeEl.value = 'bogo';
+    if (condQtyEl) condQtyEl.value = '2';
+    if (rewardTypeEl) rewardTypeEl.value = 'percent';
+    if (rewardValEl) rewardValEl.value = '50';
+    if (rewardQtyEl) rewardQtyEl.value = '1';
+    window.selectDealDishFilter('platters');
+    showToast('Applied "BOGO 50% Off" preset');
+  }
+
+  (document.getElementById('deal-form') || document.getElementById('marketing-view'))?.scrollIntoView({ behavior: 'smooth' });
+};
+
+window.selectDealDishFilter = (filterType) => {
+  if (!window.adminMenuData) return;
+  const checkboxes = document.querySelectorAll('input[name="cond-item-checkbox"]');
+  checkboxes.forEach(cb => {
+    const item = window.adminMenuData[cb.value];
+    if (!item) return;
+    const name = (item.name || '').toLowerCase();
+    const cat = (item.category || '').toLowerCase();
+
+    if (filterType === 'gyro') {
+      cb.checked = name.includes('gyro');
+    } else if (filterType === 'platters') {
+      cb.checked = cat.includes('platter') || cat.includes('plate') || name.includes('plate') || name.includes('kabob');
+    } else if (filterType === 'clear') {
+      cb.checked = false;
+    } else if (filterType === 'all') {
+      cb.checked = true;
+    }
+  });
+};
+
+window.selectRewardItemByName = (searchName) => {
+  if (!window.adminMenuData) return;
+  const rewardCheckboxes = document.querySelectorAll('input[name="reward-item-checkbox"]');
+  rewardCheckboxes.forEach(cb => {
+    const item = window.adminMenuData[cb.value];
+    if (item && item.name.toLowerCase().includes(searchName.toLowerCase())) {
+      cb.checked = true;
+    } else {
+      cb.checked = false;
+    }
+  });
+};
+
+window.filterDishList = (query) => {
+  const q = (query || '').toLowerCase().trim();
+  const chips = document.querySelectorAll('.deal-dish-chip');
+  chips.forEach(chip => {
+    const text = chip.textContent.toLowerCase();
+    chip.style.display = (!q || text.includes(q)) ? 'flex' : 'none';
+  });
+};
+
 
 export function formatDateForDatetimeLocal(timestamp) {
   if (!timestamp) return '';
@@ -428,10 +579,13 @@ if (dealForm) {
       condItemIds.push(cb.value);
     });
 
+    // If specific item IDs are chosen, category IDs must be empty to avoid unintentional overrides!
     const condCategoryIds = [];
-    document.querySelectorAll('input[name="cond-cat-checkbox"]:checked').forEach(cb => {
-      condCategoryIds.push(cb.value);
-    });
+    if (condItemIds.length === 0) {
+      document.querySelectorAll('input[name="cond-cat-checkbox"]:checked').forEach(cb => {
+        condCategoryIds.push(cb.value);
+      });
+    }
 
     // Parse rewards
     const discountType = document.getElementById('deal-reward-type').value;

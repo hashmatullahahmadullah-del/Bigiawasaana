@@ -201,8 +201,15 @@ function matchConditions(units, conditions, dealType) {
     const hasItems = conditions.itemIds?.length > 0;
     const hasCats = conditions.categoryIds?.length > 0;
 
-    if ((hasItems && matchesItem) || (hasCats && matchesCat)) {
-      matchingUnits.push({ index: idx, price: u.priceCents });
+    if (hasItems) {
+      if (matchesItem) matchingUnits.push({ index: idx, price: u.priceCents });
+    } else if (hasCats) {
+      if (matchesCat) matchingUnits.push({ index: idx, price: u.priceCents });
+    } else {
+      const cat = (u.category || '').toLowerCase();
+      if (cat.includes('plate') || cat.includes('platter') || cat.includes('gyro') || cat.includes('kabob')) {
+        matchingUnits.push({ index: idx, price: u.priceCents });
+      }
     }
   });
 

@@ -7,6 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase.js';
 import { iconSparkle } from '../icons.js';
+import '../lib/button-utils.js';
 
 window.quill = null;
 document.addEventListener('DOMContentLoaded', () => {
@@ -114,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!topic) return;
 
     generateBtn.disabled = true;
-    generateBtn.textContent = 'Generating...';
+    window.setButtonLoading(generateBtn, true, 'Generating with AI...');
     
     try {
       showToast('Generating AI blog post. This may take 10-20 seconds...');
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Failed to generate blog: ' + err.message);
     } finally {
       generateBtn.disabled = false;
-      generateBtn.innerHTML = `${iconSparkle(15, 'ui-icon ui-icon-no-margin')} Generate with AI`;
+      window.setButtonLoading(generateBtn, false);
     }
   });
 

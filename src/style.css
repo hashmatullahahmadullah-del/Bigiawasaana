@@ -733,7 +733,7 @@ button.btn-loading {
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: #060606 url('/halal-tikka-kabob-los-angeles.webp') center/cover no-repeat;
+  background: #060606 url('/hero-food-spread.webp') center/cover no-repeat;
   position: relative;
   overflow: hidden;
 }
@@ -946,33 +946,24 @@ button.btn-loading {
   justify-content: center;
   flex-wrap: wrap;
 }
-/* ── Ultra-Sleek Bespoke Delivery Buttons ── */
+/* ── Clean, Modern, Flat Delivery Partner Buttons ── */
 .delivery-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, var(--surface-light), var(--bg));
-  border: 1px solid var(--border);
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
-  box-shadow: 
-    4px 4px 12px rgba(0,0,0,0.6), 
-    -2px -2px 10px rgba(255,255,255,0.02);
-  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: none !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   position: relative;
   overflow: hidden;
   text-decoration: none;
+  cursor: pointer;
 }
 
-/* Subtle glowing top edge */
 .delivery-btn::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 15%;
-  width: 70%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-  transition: all 0.4s ease;
+  display: none !important;
 }
 
 .delivery-btn img {
@@ -981,54 +972,51 @@ button.btn-loading {
   display: block;
   width: auto;
   object-fit: contain;
-  /* Make logos sleek metallic silver by default, abandoning their native brand colors */
-  filter: brightness(0) invert(0.7);
-  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: brightness(0) invert(0.85);
+  transition: filter 0.15s ease, opacity 0.15s ease;
+  pointer-events: none;
 }
 
-/* The Halal Fire Hover Effect */
 .delivery-btn:hover {
-  border-color: var(--accent);
-  background: linear-gradient(145deg, var(--surface), var(--bg));
-  box-shadow: 
-    0 8px 25px rgba(0,0,0,0.8),
-    0 0 15px rgba(255, 69, 0, 0.15); /* Accent aura */
-  transform: translateY(-3px) scale(1.02);
-}
-.delivery-btn:hover::after {
-  /* The top edge ignites with the site's accent color */
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  box-shadow: 0 1px 8px var(--accent);
-}
-.delivery-btn:hover img {
-  /* Logos turn pure glowing white */
-  filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255,255,255,0.4));
-  transform: scale(1.06);
+  background: #27272a;
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: none !important;
+  transform: translateY(-1px);
 }
 
-/* Precise Sleek Proportions */
+.delivery-btn:hover img {
+  filter: brightness(0) invert(1);
+}
+
+.delivery-btn:active {
+  transform: scale(0.98);
+  background: #202023;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Precise Flat Proportions */
 .delivery-btn-sm {
-  padding: 8px 20px;
-  height: 42px;
+  padding: 8px 18px;
+  height: 40px;
 }
 .delivery-btn-sm img {
   height: 18px;
 }
 
 .delivery-btn-lg {
-  padding: 12px 32px;
-  height: 56px;
+  padding: 12px 28px;
+  height: 52px;
 }
 .delivery-btn-lg img {
-  height: 26px;
+  height: 24px;
 }
 
 .delivery-btn:not(.delivery-btn-sm):not(.delivery-btn-lg) {
-  padding: 10px 24px;
-  height: 48px;
+  padding: 10px 22px;
+  height: 46px;
 }
 .delivery-btn:not(.delivery-btn-sm):not(.delivery-btn-lg) img {
-  height: 22px;
+  height: 21px;
 }
 
 .footer {
@@ -3991,7 +3979,7 @@ body.has-store-closed-banner .nav-mobile-drawer {
 
 #deal-modal-hero {
   position: relative;
-  background: url('/halal-tikka-kabob-los-angeles.webp') center/cover no-repeat;
+  background: url('/hero-food-spread.webp') center/cover no-repeat;
   min-height: 220px;
   overflow: hidden;
 }
@@ -4809,4 +4797,54 @@ body.has-store-closed-banner .nav-mobile-drawer {
   visibility: visible !important;
   pointer-events: auto !important;
   box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+
+/* ==========================================================================
+   FLAT UI BUTTON STANDARDIZATION (MATCHING SCREENSHOT 8)
+   ========================================================================== */
+.btn-primary,
+button.btn-primary,
+a.btn-primary {
+  background: #ff5722 !important;
+  color: #ffffff !important;
+  border: 1px solid #ff5722 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+.btn-primary:hover,
+button.btn-primary:hover,
+a.btn-primary:hover {
+  background: #f4511e !important;
+  border-color: #f4511e !important;
+  color: #ffffff !important;
+}
+
+.btn-outline,
+button.btn-outline,
+a.btn-outline {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+.btn-outline:hover,
+button.btn-outline:hover,
+a.btn-outline:hover {
+  background: #27272a !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+.btn-outline.active,
+button.btn-outline.active {
+  background: #ff5722 !important;
+  color: #ffffff !important;
+  border-color: #ff5722 !important;
+  border-radius: 8px !important;
 }
