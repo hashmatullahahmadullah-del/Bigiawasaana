@@ -99,7 +99,7 @@ export function renderLiveOrders(snapshot) {
   ordersList.innerHTML = '';
   if (snapshot.empty || pendingCount === 0) {
     ordersList.innerHTML = `
-      <div style="text-align: center; padding: 48px 24px; background: var(--surface-admin); border: 1px dashed var(--border-admin); border-radius: 12px;">
+      <div style="text-align: center; padding: 48px 24px; background: var(--surface-admin); border: 1px dashed var(--border-admin); border-radius: 4px;">
         <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--accent-admin);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
         <h3 style="margin: 0 0 6px 0; font-size: 18px; color: var(--text-main);">All Caught Up!</h3>
         <p style="color: var(--text-muted); font-size: 14px; margin: 0;">No active pending orders right now. Orders placed online will appear here automatically.</p>
@@ -287,7 +287,7 @@ if (totalEl) {
       <td data-label="Customer"><strong>${inquiry.name}</strong><br><small style="color: var(--gray);">${inquiry.phone}</small></td>
       <td data-label="Event Date">${inquiry.date}</td>
       <td data-label="Guests">${inquiry.guests}</td>
-      <td data-label="Status"><span class="status-badge" style="${inquiry.status === 'new' ? 'background: rgba(255,152,0,0.15); color: #ff9800; border: 1px solid rgba(255,152,0,0.3);' : inquiry.status === 'contacted' ? 'background: rgba(33,150,243,0.15); color: #2196f3; border: 1px solid rgba(33,150,243,0.3);' : 'background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.3);'} padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">${inquiry.status}</span></td>
+      <td data-label="Status"><span class="status-badge" style="${inquiry.status === 'new' ? 'background: rgba(255,152,0,0.15); color: #ff9800; border: 1px solid rgba(255,152,0,0.3);' : inquiry.status === 'contacted' ? 'background: rgba(33,150,243,0.15); color: #2196f3; border: 1px solid rgba(33,150,243,0.3);' : 'background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.3);'} padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase;">${inquiry.status}</span></td>
     `;
     tbody.appendChild(tr);
   });
@@ -322,13 +322,13 @@ window.showCateringDetails = (inquiry) => {
     </div>
     <div style="margin-bottom: 24px;">
       <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Details</div>
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-admin); padding: 12px; border-radius: 8px; white-space: pre-wrap; font-size: 14px;">${escapeHtml(inquiry.details || "No additional details provided.")}</div>
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-admin); padding: 12px; border-radius: 4px; white-space: pre-wrap; font-size: 14px;">${escapeHtml(inquiry.details || "No additional details provided.")}</div>
     </div>
     <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border-admin); padding-top: 16px; flex-wrap: wrap;">
       <button class="btn-primary" onclick="updateCateringStatus('${inquiry.id}', 'contacted')" style="flex: 1; min-width: 130px;">Mark Contacted</button>
       <button class="btn-outline" onclick="updateCateringStatus('${inquiry.id}', 'resolved')" style="flex: 1; min-width: 130px;">Mark Resolved</button>
     </div>
-    <button type="button" class="btn-outline" onclick="closeCateringModal()" style="width: 100%; margin-top: 16px; padding: 12px; font-weight: 600; font-size: 14px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+    <button type="button" class="btn-outline" onclick="closeCateringModal()" style="width: 100%; margin-top: 16px; padding: 12px; font-weight: 600; font-size: 14px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
       Close Inquiry
     </button>
   `;

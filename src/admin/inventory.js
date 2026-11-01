@@ -270,7 +270,7 @@ export function renderEconomicsIngredients() {
       <h2 style="font-family: 'Barlow Condensed';">${t('ue.tab.ingredients')}</h2>
       <button class="btn-primary btn-small" onclick="addIngredient()">+ ${t('ue.btn.addIngredient')}</button>
     </div>
-    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 16px;">
       <form id="add-ing-form" onsubmit="saveNewIngredient(event)" style="display: none; gap: 8px; margin-bottom: 16px; align-items: center;">
         <input type="text" id="new-ing-name" placeholder="Name (e.g. Lamb)" required style="flex: 2; padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
         <input type="number" id="new-ing-cost" placeholder="Cost ($)" step="0.001" required style="flex: 1; padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px;">
@@ -388,7 +388,7 @@ export function renderEconomicsLaborEvents() {
     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
       
       <!-- Labor Cost Tracker -->
-      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px;">
         <h3 style="margin-top: 0; font-family: 'Barlow Condensed';">Labor Cost Tracker</h3>
         <p style="font-size: 12px; color: var(--gray); margin-bottom: 16px;">Calculate Prime Cost % based on selected date range revenue.</p>
         
@@ -437,7 +437,7 @@ export function renderEconomicsLaborEvents() {
           <button class="btn-primary btn-small" onclick="openEditEventModal()">+ New Event</button>
         </div>
         
-        <div style="background: rgba(255,69,0,0.1); border: 1px solid var(--accent); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+        <div style="background: rgba(255,69,0,0.1); border: 1px solid var(--accent); padding: 12px; border-radius: 4px; margin-bottom: 16px;">
           <strong style="color: var(--accent); font-size: 14px;">Weighted Average Contribution Margin: $${avgMargin.toFixed(2)}</strong>
           <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--gray);">Based on order mix from the last 90 days. Break-even calculates how many average orders you need to cover fixed event costs.</p>
         </div>
@@ -672,7 +672,7 @@ export function renderEconomicsDelivery() {
   }).sort((a, b) => b.contributionMargin - a.contributionMargin);
 
   let html = `
-    <div style="background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 24px;">
+    <div style="background: var(--surface); padding: 16px; border-radius: 4px; border: 1px solid var(--border); margin-bottom: 24px;">
       <h3 style="margin-top: 0; font-family: 'Barlow Condensed';">Platform Commission Rates (%)</h3>
       <div style="display: flex; gap: 16px; align-items: flex-end;">
         <div>

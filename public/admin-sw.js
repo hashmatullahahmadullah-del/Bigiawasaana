@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bigi-admin-cache-v1';
+const CACHE_NAME = 'bigi-admin-cache-v2';
 
 self.addEventListener('install', (e) => {
   // Service worker installed. We don't precache anything since the admin needs live data.

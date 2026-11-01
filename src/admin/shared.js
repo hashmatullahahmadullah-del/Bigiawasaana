@@ -618,7 +618,7 @@ export function renderDashboard() {
             <div style="font-weight: 700; font-size: 12.5px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(ev.title)}</div>
             <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(ev.detail)}</div>
           </div>
-          <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: ${ev.badgeColor}22; color: ${ev.badgeColor}; border: 1px solid ${ev.badgeColor}44; white-space: nowrap;">
+          <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 2px; background: ${ev.badgeColor}22; color: ${ev.badgeColor}; border: 1px solid ${ev.badgeColor}44; white-space: nowrap;">
             ${escapeHtml(ev.badge)}
           </span>
         `;
@@ -655,7 +655,7 @@ export function renderDashboard() {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; background: ${tierColor}22; color: ${tierColor}; border: 1px solid ${tierColor}44;">${tier}</span>
+            <span style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 2px; background: ${tierColor}22; color: ${tierColor}; border: 1px solid ${tierColor}44;">${tier}</span>
             <strong style="color: #10b981; font-weight: 800; font-size: 13px;">$${(c.totalSpent || 0).toFixed(2)}</strong>
           </div>
         `;
@@ -937,7 +937,7 @@ window.openMockOrderDetail = (order) => {
   }
 
   const returnsHtml = (order.returns && order.returns.length > 0) ? `
-    <div style="margin-top: 16px; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 12px;">
+    <div style="margin-top: 16px; background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 4px; padding: 12px;">
       <div style="font-size: 12px; font-weight: 700; color: #ef4444; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
         <span>↩️</span>
         <span>Returned / Refunded Items</span>
@@ -957,7 +957,7 @@ window.openMockOrderDetail = (order) => {
 
   content.innerHTML = `
     <!-- Order ID info banner -->
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-admin); border-radius: 8px; padding: 8px 12px; margin-bottom: 16px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-admin); border-radius: 4px; padding: 8px 12px; margin-bottom: 16px;">
       <div style="min-width: 0; flex: 1; overflow: hidden;">
         <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;">Order ID</div>
         <div style="font-family: monospace; font-size: 13px; color: var(--text-main); word-break: break-all; user-select: all;">${escapeHtml(order.id)}</div>
@@ -966,7 +966,7 @@ window.openMockOrderDetail = (order) => {
     </div>
 
     <!-- Customer and Date Meta -->
-    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-admin); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-admin); border-radius: 4px; padding: 12px; margin-bottom: 16px; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
       <div>
         <div style="color: var(--text-muted); margin-bottom: 4px;">Customer: <strong style="color: var(--text-main);">${escapeHtml(order.customerName || 'Walk-in / Guest')}</strong></div>
         <div style="color: var(--text-muted); font-size: 13px;">Placed on: <span style="color: var(--text-main);">${dateStr}</span></div>
@@ -976,7 +976,7 @@ window.openMockOrderDetail = (order) => {
 
     ${(order.cancellationReason || order.refundReason) ? `
     <!-- Cancellation / Refund Reason Banner -->
-    <div style="margin-bottom: 16px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-left: 4px solid #ef4444; border-radius: 8px; padding: 12px 14px;">
+    <div style="margin-bottom: 16px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-left: 4px solid #ef4444; border-radius: 4px; padding: 12px 14px;">
       <div style="font-size: 11px; font-weight: 700; color: #ef4444; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
         <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon ui-icon-no-margin"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
         <span>${order.cancellationReason ? 'Cancellation Reason' : 'Refund Reason'}</span>
@@ -1021,7 +1021,7 @@ window.openMockOrderDetail = (order) => {
 
     ${net > 0 && order.status !== 'cancelled' ? `
     <!-- Refund & Order Actions -->
-    <div style="margin-top: 20px; padding: 14px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px;">
+    <div style="margin-top: 20px; padding: 14px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px;">
       <div style="font-size: 11px; text-transform: uppercase; color: #ef4444; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px;">Refund Actions</div>
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <button type="button" class="btn-outline btn-small" onclick="window.issueAdminRefund('${escapeHtml(order.id)}', true, ${net})" style="flex: 1; min-width: 140px; padding: 8px 12px; font-weight: 600; font-size: 13px; border-color: rgba(239, 68, 68, 0.5); color: #ef4444;">
@@ -1035,7 +1035,7 @@ window.openMockOrderDetail = (order) => {
     ` : ''}
 
     <!-- Prominent Bottom Close Button for Mobile -->
-    <button type="button" class="btn-outline modal-bottom-close-btn" onclick="closeOrderModal()" style="width: 100%; margin-top: 24px; padding: 12px; font-weight: 600; font-size: 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+    <button type="button" class="btn-outline modal-bottom-close-btn" onclick="closeOrderModal()" style="width: 100%; margin-top: 24px; padding: 12px; font-weight: 600; font-size: 15px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
       Close
     </button>
   `;

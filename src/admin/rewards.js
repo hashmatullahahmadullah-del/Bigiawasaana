@@ -103,7 +103,7 @@ export function renderRewardsCatalog() {
 
   if (adminRewards.length === 0) {
     container.innerHTML = `
-      <div style="grid-column: 1 / -1; padding: 32px 16px; text-align: center; color: var(--gray); background: rgba(255,255,255,0.02); border: 1px dashed var(--border); border-radius: 8px;">
+      <div style="grid-column: 1 / -1; padding: 32px 16px; text-align: center; color: var(--gray); background: rgba(255,255,255,0.02); border: 1px dashed var(--border); border-radius: 4px;">
         <p style="font-size: 15px; margin-bottom: 12px;">No reward items created yet.</p>
         <button type="button" class="btn-primary btn-small" onclick="window.openRewardModal()">+ Add Your First Reward Item</button>
       </div>
@@ -135,7 +135,7 @@ export function renderRewardsCatalog() {
         <div>
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="width: 36px; height: 36px; border-radius: 6px; background: rgba(255,106,0,0.12); border: 1px solid rgba(255,106,0,0.3); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${getRewardItemIcon(r, 20)}</div>
+              <div style="width: 36px; height: 36px; border-radius: 4px; background: rgba(255,106,0,0.12); border: 1px solid rgba(255,106,0,0.3); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${getRewardItemIcon(r, 20)}</div>
               <div>
                 <h3 style="font-size: 16px; margin: 0; color: var(--white); font-weight: 700; line-height: 1.3;">${title}</h3>
                 <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">

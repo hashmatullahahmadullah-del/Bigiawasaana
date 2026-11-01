@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const storageRef = ref(storage, `img/blog/${Date.now()}_${compressedFile.name}`);
       await uploadBytes(storageRef, compressedFile);
       currentCoverUrl = await getDownloadURL(storageRef);
-      document.getElementById('post-cover-preview').innerHTML = `<img src="${currentCoverUrl}" style="height: 100px; border-radius: 8px;">`;
+      document.getElementById('post-cover-preview').innerHTML = `<img src="${currentCoverUrl}" style="height: 100px; border-radius: 4px;">`;
     } catch (err) {
       console.error(err);
       document.getElementById('post-cover-preview').innerHTML = '<span style="color:red">Upload failed</span>';
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.style.display = 'flex';
         card.style.flexDirection = 'column';
         card.innerHTML = `
-          ${post.coverImage ? `<img src="${post.coverImage}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 16px;">` : ''}
+          ${post.coverImage ? `<img src="${post.coverImage}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 4px; margin-bottom: 16px;">` : ''}
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
             <h3 style="margin: 0; font-size: 1.2rem;">${post.title}</h3>
             <span class="crm-badge ${post.isPublished ? 'status-success' : 'status-warning'}">${post.isPublished ? 'Live' : 'Draft'}</span>
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('post-published').value = post.isPublished ? 'true' : 'false';
           currentCoverUrl = post.coverImage || '';
           if (currentCoverUrl) {
-            document.getElementById('post-cover-preview').innerHTML = `<img src="${currentCoverUrl}" style="height: 100px; border-radius: 8px;">`;
+            document.getElementById('post-cover-preview').innerHTML = `<img src="${currentCoverUrl}" style="height: 100px; border-radius: 4px;">`;
           } else {
             document.getElementById('post-cover-preview').innerHTML = '';
           }

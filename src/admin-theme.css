@@ -5,71 +5,93 @@ html, body.crm-body {
   overflow-x: hidden !important;
   position: relative;
 }
-* { box-sizing: border-box; }
+* { 
+  box-sizing: border-box; 
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
 
 /* 
  * admin-theme.css 
- * Overrides global restaurant theme variables for a modern SaaS look.
+ * Overrides global restaurant theme variables for a strict Modern Flat SaaS look.
  */
 
-:root {
-  /* Backwards compatibility */
-  --accent: #e11d48;
-  --white: #fafafa;
-  --gray: #a1a1aa;
-  --gray-light: #d4d4d8;
-  --bg: #09090b;
+:root,
+html,
+body,
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+  /* Backwards compatibility & Aliases for Dark Theme */
+  --accent: #e11d48 !important;
+  --white: #fafafa !important;
+  --gray: #a1a1aa !important;
+  --gray-light: #d4d4d8 !important;
+  --bg: #09090b !important;
+  --surface: #18181b !important;
+  --border: #27272a !important;
 
   /* Default SaaS Dark Theme Palette */
-  --bg-admin: #09090b;
-  --surface-admin: #18181b;
-  --border-admin: #27272a;
+  --bg-admin: #09090b !important;
+  --surface-admin: #18181b !important;
+  --border-admin: #27272a !important;
   
-  /* Restoring the original brand Red, but optimized for SaaS */
-  --accent-admin: #e11d48;
-  --accent-hover: #be123c;
-  --accent-light: rgba(225, 29, 72, 0.15);
+  /* Brand Red Palette */
+  --accent-admin: #e11d48 !important;
+  --accent-hover: #be123c !important;
+  --accent-light: rgba(225, 29, 72, 0.15) !important;
   
-  --text-main: #fafafa;
-  --text-muted: #a1a1aa;
-  --table-header-bg: #1f1f22;
-  --hover-bg: rgba(255, 255, 255, 0.05);
+  --text-main: #fafafa !important;
+  --text-muted: #a1a1aa !important;
+  --table-header-bg: #18181b !important;
+  --hover-bg: rgba(255, 255, 255, 0.05) !important;
   
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  --success: #10b981 !important;
+  --warning: #f59e0b !important;
+  --danger: #ef4444 !important;
+  --shadow-sm: none !important;
+  --shadow-md: none !important;
   
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 2px !important;
+  --radius-md: 4px !important;
+  --radius-lg: 4px !important;
 }
 
-:root[data-theme="light"] {
-  /* Backwards compatibility */
-  --accent: #e11d48;
-  --white: #0f172a;
-  --gray: #64748b;
-  --gray-light: #475569;
-  --bg: #f8fafc;
+:root[data-theme="light"],
+html[data-theme="light"],
+html[data-theme="light"] body,
+body[data-theme="light"] {
+  /* Backwards compatibility & Aliases for Light Theme */
+  --accent: #e11d48 !important;
+  --white: #0f172a !important;
+  --gray: #64748b !important;
+  --gray-light: #475569 !important;
+  --bg: #f8fafc !important;
+  --surface: #ffffff !important;
+  --border: #e2e8f0 !important;
 
-  /* SaaS Light Theme Palette */
-  --bg-admin: #f8fafc;
-  --surface-admin: #ffffff;
-  --border-admin: #e2e8f0;
+  /* SaaS Light Theme Palette (Preserving Exact Color Palette) */
+  --bg-admin: #f8fafc !important;
+  --surface-admin: #ffffff !important;
+  --border-admin: #e2e8f0 !important;
   
-  --accent-admin: #e11d48;
-  --accent-hover: #be123c;
-  --accent-light: rgba(225, 29, 72, 0.1);
+  --accent-admin: #e11d48 !important;
+  --accent-hover: #be123c !important;
+  --accent-light: rgba(225, 29, 72, 0.1) !important;
   
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --table-header-bg: #f1f5f9;
-  --hover-bg: #f1f5f9;
+  --text-main: #0f172a !important;
+  --text-muted: #64748b !important;
+  --table-header-bg: #f1f5f9 !important;
+  --hover-bg: #f1f5f9 !important;
   
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --success: #10b981 !important;
+  --warning: #f59e0b !important;
+  --danger: #ef4444 !important;
+  --shadow-sm: none !important;
+  --shadow-md: none !important;
+
+  --radius-sm: 2px !important;
+  --radius-md: 4px !important;
+  --radius-lg: 4px !important;
 }
 
 /* Global Reset for Admin */
@@ -254,7 +276,7 @@ h1, h2, h3, h4 {
 @media (max-width: 768px) {
   .crm-panel {
     padding: 14px 12px !important;
-    border-radius: 6px !important;
+    border-radius: 4px !important;
   }
 }
 
@@ -300,15 +322,16 @@ h1, h2, h3, h4 {
   font-size: 14px !important;
   font-weight: 600 !important;
   line-height: 1.2 !important;
-  border-radius: var(--radius-sm, 6px) !important;
+  border-radius: var(--radius-sm, 2px) !important;
   cursor: pointer !important;
   border: 1px solid transparent !important;
   padding: 10px 18px !important;
-  min-height: 42px !important;
+  min-height: 38px !important;
   box-sizing: border-box !important;
   user-select: none !important;
   white-space: nowrap !important;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+  box-shadow: none !important;
 }
 
 /* SVG Icon normalization across all admin buttons */
@@ -331,12 +354,13 @@ h1, h2, h3, h4 {
 /* Sizing Modifiers */
 .btn-sm,
 .btn-small {
-  min-height: 34px !important;
-  height: 34px !important;
-  padding: 6px 14px !important;
-  font-size: 13px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 6px 12px !important;
+  font-size: 12.5px !important;
   gap: 6px !important;
-  border-radius: 5px !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 .btn-sm svg,
 .btn-small svg {
@@ -345,81 +369,94 @@ h1, h2, h3, h4 {
 }
 
 .btn-md {
-  min-height: 42px !important;
-  height: 42px !important;
+  min-height: 38px !important;
+  height: 38px !important;
   padding: 10px 18px !important;
-  font-size: 14px !important;
+  font-size: 13.5px !important;
   gap: 8px !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 
 .btn-lg,
 .btn-large {
-  min-height: 48px !important;
-  height: 48px !important;
-  padding: 12px 24px !important;
-  font-size: 15px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  padding: 12px 22px !important;
+  font-size: 14.5px !important;
   gap: 10px !important;
-  border-radius: 8px !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 .btn-lg svg,
 .btn-large svg {
-  width: 17px !important;
-  height: 17px !important;
+  width: 16px !important;
+  height: 16px !important;
 }
 
-/* Variants in Dark Theme */
+/* Variants - Strict Modern Flat UI & Theme Adaptive */
 .btn-primary,
 .crm-btn-primary {
   background: var(--accent-admin, #e11d48) !important;
   color: #ffffff !important;
-  border-color: transparent !important;
-  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.3) !important;
+  border: 1px solid var(--accent-admin, #e11d48) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 .btn-primary:hover,
 .crm-btn-primary:hover {
   background: var(--accent-hover, #be123c) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.45) !important;
+  border-color: var(--accent-hover, #be123c) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .btn-secondary {
-  background: #18181b !important;
-  color: var(--text-main, #fafafa) !important;
-  border: 1px solid var(--border-admin, #27272a) !important;
+  background: var(--surface-admin) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-admin) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 .btn-secondary:hover {
-  background: #27272a !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
+  background: var(--bg-admin) !important;
+  border-color: var(--border-admin) !important;
+  color: var(--text-main) !important;
 }
 
 .btn-outline,
 .crm-btn-outline {
-  background: rgba(255, 255, 255, 0.03) !important;
-  color: var(--text-main, #fafafa) !important;
-  border: 1px solid var(--border-admin, #27272a) !important;
+  background: var(--surface-admin) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-admin) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 .btn-outline:hover,
 .crm-btn-outline:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
+  background: var(--bg-admin) !important;
+  border-color: var(--border-admin) !important;
+  color: var(--text-main) !important;
 }
 .btn-outline.active,
 .crm-btn-outline.active {
-  background: var(--accent-light, rgba(225, 29, 72, 0.15)) !important;
-  color: var(--accent-admin, #e11d48) !important;
+  background: var(--accent-admin, #e11d48) !important;
+  color: #ffffff !important;
   border-color: var(--accent-admin, #e11d48) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 
 .btn-ghost {
   background: transparent !important;
-  color: var(--text-muted, #a1a1aa) !important;
+  color: var(--text-muted) !important;
   border: 1px solid transparent !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 .btn-ghost:hover {
   background: var(--hover-bg, rgba(255, 255, 255, 0.05)) !important;
-  color: var(--text-main, #fafafa) !important;
+  color: var(--text-main) !important;
 }
 
 .btn-destructive,
@@ -427,12 +464,18 @@ h1, h2, h3, h4 {
   background: #ef4444 !important;
   color: #ffffff !important;
   border: 1px solid #dc2626 !important;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.25) !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
 }
 .btn-destructive:hover,
 .btn-danger:hover {
   background: #dc2626 !important;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.btn-danger:hover {
+  background: #dc2626 !important;
+  box-shadow: none !important;
 }
 
 /* Light Theme Enhancements (Prevents white-on-white / zero contrast) */
@@ -452,7 +495,7 @@ h1, h2, h3, h4 {
   background: #ffffff !important;
   color: #0f172a !important;
   border: 1.5px solid #cbd5e1 !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: none !important;
 }
 :root[data-theme="light"] .btn-outline:hover,
 :root[data-theme="light"] .crm-btn-outline:hover {
@@ -497,7 +540,7 @@ h1, h2, h3, h4 {
 .crm-btn-icon:focus-visible {
   outline: 2px solid var(--accent-admin, #e11d48) !important;
   outline-offset: 2px !important;
-  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.3) !important;
+  box-shadow: none !important;
 }
 
 /* Loading State (Animated Spinner & Dimensions Lock) */
@@ -537,7 +580,7 @@ button.btn-loading {
 .crm-input:focus, .crm-select:focus, input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent-admin) !important;
-  box-shadow: 0 0 0 3px var(--accent-light) !important;
+  box-shadow: none !important;
 }
 .crm-form-group label {
   color: var(--text-main) !important;
@@ -676,7 +719,7 @@ button.btn-loading {
   }
   .crm-nav.open {
     left: 0 !important;
-    box-shadow: 4px 0 28px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: none !important;
   }
   .crm-nav-header {
     flex-shrink: 0 !important;
@@ -696,7 +739,7 @@ button.btn-loading {
     border-top: 1px solid var(--border-admin) !important;
     z-index: 10 !important;
     padding: 12px 16px !important;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: none !important;
   }
   
   #today-glance, .crm-stats-grid {
@@ -711,7 +754,7 @@ button.btn-loading {
   .inv-stats-grid .crm-stat-card {
     padding: 10px 6px !important;
     text-align: center;
-    border-radius: 8px !important;
+    border-radius: 4px !important;
   }
   .inv-stats-grid .crm-stat-card > div:first-child {
     font-size: 10px !important;
@@ -737,7 +780,7 @@ button.btn-loading {
 
   /* Mobile Table Cards */
   .crm-table-container {
-    box-shadow: none;
+    box-shadow: none !important;
     border: none;
     border-radius: 0;
     background: transparent;
@@ -758,7 +801,7 @@ button.btn-loading {
     border-radius: var(--radius-md) !important;
     background: var(--surface-admin) !important;
     padding: 8px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: none !important;
   }
   .crm-table-container {
     overflow-x: hidden !important;
@@ -863,7 +906,7 @@ button.btn-loading {
     font-weight: 600 !important;
     padding: 8px 10px !important;
     margin: 0 !important;
-    border-radius: 8px !important;
+    border-radius: 4px !important;
     box-sizing: border-box !important;
     white-space: nowrap !important;
     text-transform: capitalize !important;
@@ -878,7 +921,7 @@ button.btn-loading {
     font-size: 12px !important;
     font-weight: 600 !important;
     margin: 0 !important;
-    border-radius: 8px !important;
+    border-radius: 4px !important;
     box-sizing: border-box !important;
   }
   .crm-actions-grid.crm-actions-2 {
@@ -917,9 +960,9 @@ button.btn-loading {
 }
 
 @keyframes pulse-upload {
-  0% { opacity: 0.8; transform: scale(0.99); box-shadow: 0 0 0 rgba(16,185,129,0); }
-  50% { opacity: 1; transform: scale(1); box-shadow: 0 0 20px rgba(16,185,129,0.4); border-color: var(--accent-admin); }
-  100% { opacity: 0.8; transform: scale(0.99); box-shadow: 0 0 0 rgba(16,185,129,0); }
+  0% { opacity: 0.8; transform: scale(0.99); box-shadow: none !important; }
+  50% { opacity: 1; transform: scale(1); box-shadow: none !important; border-color: var(--accent-admin); }
+  100% { opacity: 0.8; transform: scale(0.99); box-shadow: none !important; }
 }
 .uploading-pulse {
   animation: pulse-upload 2s infinite ease-in-out;
@@ -976,8 +1019,8 @@ button.btn-loading {
   width: 100% !important;
   max-width: 520px !important;
   max-height: min(92vh, calc(100dvh - 24px)) !important;
-  border-radius: 14px !important;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
@@ -1027,7 +1070,7 @@ button.btn-loading {
   height: 38px !important;
   min-width: 38px !important;
   min-height: 38px !important;
-  border-radius: 8px !important;
+  border-radius: 4px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1072,13 +1115,13 @@ button.btn-loading {
   z-index: 20 !important;
   display: flex !important;
   gap: 12px !important;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: none !important;
 }
 
 :root[data-theme="light"] .crm-modal-actions {
   background: #ffffff !important;
   border-color: #e2e8f0 !important;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: none !important;
 }
 
 .crm-modal-actions button {
@@ -1120,7 +1163,7 @@ button.btn-loading {
   }
   .crm-modal-box {
     max-height: calc(100dvh - 20px) !important;
-    border-radius: 12px !important;
+    border-radius: 4px !important;
   }
   .crm-modal-header {
     padding: 14px 16px !important;
@@ -1210,7 +1253,7 @@ button.btn-loading {
 .ql-snow .ql-picker-options {
   background: var(--surface-admin) !important;
   border-color: var(--border-admin) !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: none !important;
 }
 
 /* Remove default blue outline on focus for title */
@@ -1398,7 +1441,7 @@ button.btn-loading {
   justify-content: center;
   width: 38px;
   height: 38px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-admin);
   color: var(--text-main);
@@ -1416,7 +1459,7 @@ button.btn-loading {
   gap: 4px;
   height: 38px;
   padding: 0 10px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-admin);
   color: var(--text-main);
@@ -1488,7 +1531,7 @@ button.btn-loading {
   }
   .crm-nav.open {
     transform: translateX(0) !important;
-    box-shadow: 6px 0 32px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: none !important;
   }
   #crm-nav-overlay {
     backdrop-filter: blur(4px);
@@ -1501,7 +1544,7 @@ button.btn-loading {
   }
   .crm-modal-box {
     max-height: calc(100vh - 24px) !important;
-    border-radius: 12px !important;
+    border-radius: 4px !important;
   }
   .crm-modal-header {
     padding: 14px 16px !important;
@@ -1523,7 +1566,7 @@ button.btn-loading {
     right: 0 !important;
     visibility: visible !important;
     pointer-events: auto !important;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: none !important;
   }
 }
 
@@ -1534,7 +1577,7 @@ button.btn-loading {
   background: var(--surface-admin, #18181b);
   border: 1px solid var(--border-admin, rgba(255, 255, 255, 0.1));
   padding: 16px;
-  border-radius: 10px;
+  border-radius: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1556,7 +1599,7 @@ button.btn-loading {
   width: 72px;
   height: 72px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid var(--border-admin, rgba(255, 255, 255, 0.1));
 }
 
@@ -1656,7 +1699,7 @@ button.btn-loading {
   align-items: center;
   gap: 6px;
   padding: 3px 10px;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 11px;
   font-weight: 700;
   background: rgba(16, 185, 129, 0.12);
@@ -1671,7 +1714,7 @@ button.btn-loading {
   height: 7px;
   border-radius: 50%;
   background: #10b981;
-  box-shadow: 0 0 6px #10b981;
+  box-shadow: none !important;
 }
 
 .tv-header-desc {
@@ -1692,7 +1735,7 @@ button.btn-loading {
   align-items: center;
   gap: 6px;
   padding: 7px 12px;
-  border-radius: 8px;
+  border-radius: 2px;
   font-size: 12.5px;
   font-weight: 600;
   text-decoration: none;
@@ -1710,7 +1753,7 @@ button.btn-loading {
 
 .tv-preview-tv1:hover {
   border-color: rgba(255, 69, 0, 0.5);
-  color: #ff5722;
+  color: #e11d48;
 }
 
 .tv-preview-tv2:hover {
@@ -1730,7 +1773,7 @@ button.btn-loading {
   display: flex;
   gap: 6px;
   padding: 4px;
-  border-radius: 10px;
+  border-radius: 4px;
   background: var(--bg-admin);
   border: 1px solid var(--border-admin);
   margin-bottom: 12px;
@@ -1745,7 +1788,7 @@ button.btn-loading {
   justify-content: center;
   gap: 6px;
   padding: 9px 8px;
-  border-radius: 7px;
+  border-radius: 4px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
@@ -1764,7 +1807,7 @@ button.btn-loading {
   background: var(--surface-admin, #1e293b);
   color: var(--text-main);
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: none !important;
 }
 
 .tv-tab-accent-dot {
@@ -1777,12 +1820,12 @@ button.btn-loading {
 
 .tv-dot-tv1 {
   background: #ff4500;
-  box-shadow: 0 0 6px rgba(255, 69, 0, 0.5);
+  box-shadow: none !important;
 }
 
 .tv-dot-tv2 {
   background: #ffb703;
-  box-shadow: 0 0 6px rgba(255, 183, 3, 0.5);
+  box-shadow: none !important;
 }
 
 .tv-dot-unassigned {
@@ -1791,7 +1834,7 @@ button.btn-loading {
 
 .tv-tab-badge {
   padding: 1px 7px;
-  border-radius: 10px;
+  border-radius: 4px;
   font-size: 11px;
   background: rgba(255, 255, 255, 0.12);
   color: var(--text-main);
@@ -1827,7 +1870,7 @@ button.btn-loading {
   width: 100%;
   height: 38px;
   padding: 0 34px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--bg-admin);
   border: 1px solid var(--border-admin);
   font-size: 13px;
@@ -1882,7 +1925,7 @@ button.btn-loading {
   flex-direction: column;
   background: var(--bg-admin, #09090b);
   border: 1px solid var(--border-admin, rgba(255, 255, 255, 0.1));
-  border-radius: 12px;
+  border-radius: 4px;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -1913,8 +1956,8 @@ button.btn-loading {
 }
 
 .tv-tag-tv1 {
-  background: rgba(255, 69, 0, 0.2);
-  color: #ff5722;
+  background: rgba(225, 29, 72, 0.15);
+  color: #e11d48;
   border: 1px solid rgba(255, 69, 0, 0.4);
 }
 
@@ -1947,7 +1990,7 @@ button.btn-loading {
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-admin);
   transition: all 0.15s ease;
@@ -1967,7 +2010,7 @@ button.btn-loading {
 
 .tv-col-count {
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: 4px;
   font-size: 12px;
   font-family: 'Inter', sans-serif;
   font-weight: 700;
@@ -1994,7 +2037,7 @@ button.btn-loading {
   padding: 12px;
   background: var(--surface-admin, #18181b);
   border: 1px solid var(--border-admin);
-  border-radius: 10px;
+  border-radius: 4px;
   margin-bottom: 2px;
   box-sizing: border-box;
   user-select: none;
@@ -2004,7 +2047,7 @@ button.btn-loading {
 .tv-drag-item:hover {
   border-color: var(--border-admin);
   background: var(--surface-admin);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: none !important;
 }
 
 .tv-drag-item:active {
@@ -2013,7 +2056,7 @@ button.btn-loading {
 
 .tv-drag-ghost {
   opacity: 0.35;
-  background: rgba(255, 69, 0, 0.2) !important;
+  background: rgba(225, 29, 72, 0.15) !important;
   border: 1px dashed var(--accent-admin) !important;
 }
 
@@ -2027,7 +2070,7 @@ button.btn-loading {
 .tv-card-rank {
   width: 24px;
   height: 24px;
-  border-radius: 6px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-main);
   font-size: 11px;
@@ -2052,7 +2095,7 @@ button.btn-loading {
 .tv-card-thumb-wrap {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--border-admin);
   background: #000;
@@ -2136,7 +2179,7 @@ button.btn-loading {
   gap: 4px;
   height: 32px;
   padding: 0 10px;
-  border-radius: 6px;
+  border-radius: 2px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border-admin);
   color: var(--text-main);
@@ -2192,7 +2235,7 @@ button.btn-loading {
   gap: 5px;
   height: 32px;
   padding: 0 11px;
-  border-radius: 6px;
+  border-radius: 2px;
   font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
@@ -2205,7 +2248,7 @@ button.btn-loading {
 }
 
 .tv-action-to-tv1 {
-  background: rgba(255, 69, 0, 0.12);
+  background: rgba(225, 29, 72, 0.12);
   border: 1px solid rgba(255, 69, 0, 0.35);
   color: #ff6e40;
 }
@@ -2249,7 +2292,7 @@ button.btn-loading {
   padding: 32px 16px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px dashed var(--border-admin);
-  border-radius: 10px;
+  border-radius: 4px;
   margin: 8px 0;
 }
 
@@ -2289,7 +2332,7 @@ button.btn-loading {
 
 .admin-cat-pill {
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border-admin);
   color: var(--text-muted);
@@ -2310,14 +2353,14 @@ button.btn-loading {
   background: var(--accent-admin, #f43f5e) !important;
   color: #ffffff !important;
   border-color: var(--accent-admin, #f43f5e) !important;
-  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.3) !important;
+  box-shadow: none !important;
 }
 
 .admin-menu-item-thumb {
   width: 68px;
   height: 68px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid var(--border-admin);
   flex-shrink: 0;
 }
@@ -2355,7 +2398,7 @@ button.btn-loading {
     flex-direction: column !important;
     padding: 14px !important;
     gap: 12px !important;
-    border-radius: 12px !important;
+    border-radius: 4px !important;
     background: var(--surface-admin, #18181b) !important;
     border: 1px solid var(--border-admin, rgba(255, 255, 255, 0.1)) !important;
     box-sizing: border-box !important;
@@ -2372,7 +2415,7 @@ button.btn-loading {
   .admin-menu-item-thumb {
     width: 64px !important;
     height: 64px !important;
-    border-radius: 8px !important;
+    border-radius: 4px !important;
   }
   .admin-menu-item-info {
     flex: 1 !important;
@@ -2453,7 +2496,7 @@ button.btn-loading {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     border: 1px solid var(--border-admin) !important;
-    border-radius: 6px !important;
+    border-radius: 4px !important;
     padding: 4px !important;
     margin-bottom: 12px !important;
     gap: 6px !important;
@@ -2484,14 +2527,14 @@ button.btn-loading {
     padding-right: 34px !important;
   }
   .tv-mobile-tab.active {
-    background: var(--accent, #ff4500) !important;
+    background: var(--accent-admin, #e11d48) !important;
     color: #ffffff !important;
-    border-color: var(--accent, #ff4500) !important;
+    border-color: var(--accent-admin, #e11d48) !important;
     box-shadow: none !important;
   }
   .tv-tab-badge {
     padding: 1px 6px !important;
-    border-radius: 10px !important;
+    border-radius: 4px !important;
     font-size: 11px !important;
     background: rgba(0, 0, 0, 0.2) !important;
     color: inherit !important;
@@ -2518,7 +2561,7 @@ button.btn-loading {
     max-width: 100% !important;
     min-width: 0 !important;
     flex: none !important;
-    border-radius: 6px !important;
+    border-radius: 4px !important;
     margin-bottom: 16px !important;
     background: var(--surface-admin) !important;
     border: 1px solid var(--border-admin) !important;
@@ -2545,7 +2588,7 @@ button.btn-loading {
     padding: 12px !important;
     gap: 10px !important;
     margin-bottom: 10px !important;
-    border-radius: 10px !important;
+    border-radius: 4px !important;
   }
   .tv-card-title {
     font-size: 15px !important;
@@ -2690,9 +2733,9 @@ button.btn-loading {
 }
 
 .tv-day-pill:has(input:checked) {
-  background: rgba(255, 69, 0, 0.12) !important;
-  border-color: var(--accent, #ff4500) !important;
-  color: var(--accent, #ff4500) !important;
+  background: rgba(225, 29, 72, 0.12) !important;
+  border-color: var(--accent-admin, #e11d48) !important;
+  color: var(--accent-admin, #e11d48) !important;
 }
 
 .tv-day-pill input[type="checkbox"] {
@@ -2703,7 +2746,7 @@ button.btn-loading {
   max-width: 14px !important;
   max-height: 14px !important;
   margin: 0 0 4px 0 !important;
-  accent-color: var(--accent, #ff4500) !important;
+  accent-color: var(--accent-admin, #e11d48) !important;
   cursor: pointer !important;
   flex: none !important;
 }
@@ -2722,10 +2765,10 @@ button.btn-loading {
 
 .tv-display-settings-card {
   padding: 16px !important;
-  border-radius: 12px !important;
+  border-radius: 4px !important;
   background: var(--surface-admin, #18181b) !important;
   border: 1px solid var(--border-admin) !important;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: none !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -2757,9 +2800,9 @@ button.btn-loading {
 .analytics-stat-card {
   background: var(--surface-admin, #18181b);
   border: 1px solid var(--border-admin, rgba(255, 255, 255, 0.08));
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 20px 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: none !important;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -2774,10 +2817,10 @@ button.btn-loading {
 .analytics-chart-panel {
   background: var(--surface-admin, #18181b);
   border: 1px solid var(--border-admin, rgba(255, 255, 255, 0.08));
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 24px;
   margin-bottom: 28px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: none !important;
 }
 
 .analytics-chart-wrapper {
@@ -2836,12 +2879,12 @@ button.btn-loading {
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   padding: 12px 22px !important;
-  border-radius: 6px !important;
+  border-radius: 4px !important;
   font-weight: 600 !important;
   font-size: 13.5px !important;
   line-height: 1.4 !important;
   letter-spacing: 0.3px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
+  box-shadow: none !important;
   pointer-events: auto !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -2855,7 +2898,7 @@ button.btn-loading {
   background: #18181b !important;
   color: #ffffff !important;
   border: 1px solid rgba(0, 0, 0, 0.35) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: none !important;
 }
 
 .toast-error {
@@ -2934,7 +2977,7 @@ button.btn-loading {
     max-height: 94vh !important;
     max-height: 94dvh !important;
     margin: 0 auto !important;
-    border-radius: 12px !important;
+    border-radius: 4px !important;
     overflow: hidden !important;
   }
   #quote-editor-modal .crm-modal-content,
@@ -3094,7 +3137,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
   visibility: visible !important;
   pointer-events: auto !important;
   transform: translateX(0) !important;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: none !important;
 }
 
 
@@ -3126,7 +3169,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 
 .flat-status-dot.open {
   background-color: #10b981 !important;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  box-shadow: none !important;
 }
 
 .flat-status-dot.closed {
@@ -3135,7 +3178,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 
 .flat-status-dot.busy {
   background-color: #f59e0b !important;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  box-shadow: none !important;
 }
 
 /* Tablet & Mobile Breakpoints for Overview */
@@ -3205,10 +3248,10 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 .crm-btn-primary,
 .tv-btn-save-primary,
 .btn-primary.active {
-  background: #ff5722 !important;
+  background: #e11d48 !important;
   color: #ffffff !important;
-  border: 1px solid #ff5722 !important;
-  border-radius: 8px !important;
+  border: 1px solid #e11d48 !important;
+  border-radius: 2px !important;
   font-weight: 600 !important;
   box-shadow: none !important;
   outline: none !important;
@@ -3217,19 +3260,19 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 .btn-primary:hover,
 .crm-btn-primary:hover,
 .tv-btn-save-primary:hover {
-  background: #f4511e !important;
-  border-color: #f4511e !important;
+  background: var(--accent-hover, #be123c) !important;
+  border-color: var(--accent-hover, #be123c) !important;
   color: #ffffff !important;
 }
 
-/* Flat Outline Buttons & Inactive Subnav Tabs */
+/* Flat Outline Buttons & Inactive Subnav Tabs (Theme Adaptive & Flat 2px) */
 .btn-outline,
 .crm-btn-outline,
 .crm-subnav button:not(.active) {
-  background: #18181b !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  border-radius: 8px !important;
+  background: var(--surface-admin) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-admin) !important;
+  border-radius: 2px !important;
   font-weight: 600 !important;
   box-shadow: none !important;
 }
@@ -3237,9 +3280,9 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 .btn-outline:hover,
 .crm-btn-outline:hover,
 .crm-subnav button:not(.active):hover {
-  background: #27272a !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
-  color: #ffffff !important;
+  background: var(--bg-admin) !important;
+  border-color: var(--border-admin) !important;
+  color: var(--text-main) !important;
 }
 
 /* Active Outline / Subnav Button State */
@@ -3247,14 +3290,14 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 .crm-btn-outline.active,
 .crm-subnav button.active,
 .crm-subnav .btn-outline.active {
-  background: #ff5722 !important;
+  background: var(--accent-admin, #e11d48) !important;
   color: #ffffff !important;
-  border-color: #ff5722 !important;
-  border-radius: 8px !important;
+  border-color: var(--accent-admin, #e11d48) !important;
+  border-radius: 2px !important;
   box-shadow: none !important;
 }
 
-/* Clean Flat Sign Out Button */
+/* Clean Flat Sign Out Button (Theme Adaptive) */
 .crm-logout-btn {
   width: 100% !important;
   display: flex !important;
@@ -3265,14 +3308,19 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
   font-weight: 600 !important;
   padding: 10px 16px !important;
   margin-top: 8px !important;
-  border-radius: 8px !important;
+  border-radius: 2px !important;
   color: #ef4444 !important;
-  border: 1px solid rgba(239, 68, 68, 0.25) !important;
-  background: #18181b !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  background: var(--surface-admin) !important;
   cursor: pointer !important;
   transition: all 0.15s ease !important;
   box-sizing: border-box !important;
   box-shadow: none !important;
+}
+
+.crm-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: #ef4444 !important;
 }
 
 .crm-logout-btn svg {
@@ -3339,7 +3387,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
   display: flex !important;
   gap: 6px !important;
   padding: 4px !important;
-  border-radius: 6px !important;
+  border-radius: 4px !important;
   background: var(--surface-admin) !important;
   border: 1px solid var(--border-admin) !important;
   margin-bottom: 14px !important;
@@ -3372,9 +3420,9 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 }
 
 .tv-mobile-tab.active {
-  background: var(--accent, #ff4500) !important;
+  background: var(--accent-admin, #e11d48) !important;
   color: #ffffff !important;
-  border-color: var(--accent, #ff4500) !important;
+  border-color: var(--accent-admin, #e11d48) !important;
   box-shadow: none !important;
 }
 
@@ -3398,7 +3446,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
   color: #a1a1aa !important;
   font-size: 11px !important;
   padding: 2px 7px !important;
-  border-radius: 10px !important;
+  border-radius: 4px !important;
   font-weight: 700 !important;
 }
 
@@ -3428,7 +3476,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 
 .tv-drag-item:hover {
   background: var(--bg-admin) !important;
-  border-color: var(--accent, #ff4500) !important;
+  border-color: var(--accent-admin, #e11d48) !important;
 }
 
 .tv-card-main-row {
@@ -3515,7 +3563,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 
 .tv-card-price {
   font-weight: 700 !important;
-  color: var(--accent, #ff4500) !important;
+  color: var(--accent-admin, #e11d48) !important;
 }
 
 .tv-card-actions {
@@ -3540,7 +3588,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
   justify-content: center !important;
   background: var(--bg-admin) !important;
   border: 1px solid var(--border-admin) !important;
-  border-radius: 4px !important;
+  border-radius: 2px !important;
   color: var(--text-main) !important;
   cursor: pointer !important;
   transition: all 0.15s ease !important;
@@ -3549,7 +3597,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 
 .tv-btn-order:hover {
   background: var(--surface-admin) !important;
-  border-color: var(--accent, #ff4500) !important;
+  border-color: var(--accent-admin, #e11d48) !important;
 }
 
 .tv-btn-order.disabled,
@@ -3570,7 +3618,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
   padding: 0 10px !important;
   font-size: 11.5px !important;
   font-weight: 600 !important;
-  border-radius: 4px !important;
+  border-radius: 2px !important;
   background: var(--bg-admin) !important;
   border: 1px solid var(--border-admin) !important;
   color: var(--text-main) !important;
@@ -3584,15 +3632,15 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 }
 
 .tv-pill-action:hover {
-  background: var(--accent, #ff4500) !important;
-  border-color: var(--accent, #ff4500) !important;
+  background: var(--accent-admin, #e11d48) !important;
+  border-color: var(--accent-admin, #e11d48) !important;
   color: #ffffff !important;
 }
 
 .tv-action-to-tv1:hover,
 .tv-action-to-tv2:hover {
-  background: var(--accent, #ff4500) !important;
-  border-color: var(--accent, #ff4500) !important;
+  background: var(--accent-admin, #e11d48) !important;
+  border-color: var(--accent-admin, #e11d48) !important;
   color: #ffffff !important;
 }
 
@@ -3621,7 +3669,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
     z-index: 1 !important;
     background: var(--surface-admin) !important;
     border: 1px solid var(--border-admin) !important;
-    border-radius: 6px !important;
+    border-radius: 4px !important;
     padding: 4px !important;
     margin: 0 0 12px 0 !important;
     box-shadow: none !important;
@@ -3629,7 +3677,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
   .tv-drag-item {
     padding: 8px 10px !important;
     margin-bottom: 6px !important;
-    border-radius: 6px !important;
+    border-radius: 4px !important;
     box-shadow: none !important;
   }
   .tv-card-thumb-wrap {
@@ -3650,7 +3698,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 /* Modern Flat TV Themes */
 .tv-theme-option {
   border: 1px solid var(--border-admin) !important;
-  border-radius: 6px !important;
+  border-radius: 4px !important;
   padding: 12px !important;
   cursor: pointer !important;
   display: flex !important;
@@ -3680,15 +3728,15 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 
 .tv-theme-option.active,
 .tv-theme-option:has(input:checked) {
-  border-color: var(--accent, #ff4500) !important;
-  background: rgba(255, 69, 0, 0.08) !important;
+  border-color: var(--accent-admin, #e11d48) !important;
+  background: rgba(225, 29, 72, 0.08) !important;
 }
 
 /* Modern Flat Deal Cards (Marketing & Promotions) */
 .deal-admin-card {
   background: var(--surface-admin) !important;
   border: 1px solid var(--border-admin) !important;
-  border-radius: 6px !important;
+  border-radius: 4px !important;
   padding: 14px !important;
   display: flex !important;
   flex-direction: column !important;
@@ -3810,7 +3858,7 @@ button:active, .btn-primary:active, .btn-outline:active, .btn-secondary:active, 
 }
 
 .deal-spec-heading {
-  color: var(--accent, #ff4500) !important;
+  color: var(--accent-admin, #e11d48) !important;
   font-weight: 700 !important;
   display: block !important;
   margin-bottom: 4px !important;

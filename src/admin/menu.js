@@ -129,9 +129,9 @@ export function createOptionRow(prefix, type, name = '', price = '') {
   const div = document.createElement('div');
   div.className = 'option-row';
   div.innerHTML = `
-    <input type="text" class="opt-name" placeholder="${type} Name" value="${name}" style="flex: 2; min-width: 0; padding: 9px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 6px; font-size: 14px;">
-    <input type="number" step="0.01" class="opt-price" placeholder="Price ($)" value="${price}" style="flex: 1; min-width: 75px; max-width: 100px; padding: 9px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 6px; font-size: 14px;">
-    <button type="button" class="btn-outline" onclick="this.parentElement.remove()" style="width: 36px; height: 36px; min-width: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: #f87171; border-color: rgba(239,68,68,0.4); border-radius: 6px; font-size: 18px; cursor: pointer;">×</button>
+    <input type="text" class="opt-name" placeholder="${type} Name" value="${name}" style="flex: 2; min-width: 0; padding: 9px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-size: 14px;">
+    <input type="number" step="0.01" class="opt-price" placeholder="Price ($)" value="${price}" style="flex: 1; min-width: 75px; max-width: 100px; padding: 9px; background: var(--bg); border: 1px solid var(--border); color: var(--white); border-radius: 4px; font-size: 14px;">
+    <button type="button" class="btn-outline" onclick="this.parentElement.remove()" style="width: 36px; height: 36px; min-width: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: #f87171; border-color: rgba(239,68,68,0.4); border-radius: 4px; font-size: 18px; cursor: pointer;">×</button>
   `;
   container.appendChild(div);
 }
@@ -1014,8 +1014,8 @@ function highlightActiveTheme(theme) {
     const isSelected = el.dataset.theme === theme;
     if (isSelected) {
       el.classList.add('active');
-      el.style.borderColor = 'var(--accent, #ff4500)';
-      el.style.background = 'rgba(255, 69, 0, 0.08)';
+      el.style.borderColor = 'var(--accent-admin, #e11d48)';
+      el.style.background = 'rgba(225, 29, 72, 0.08)';
     } else {
       el.classList.remove('active');
       el.style.borderColor = 'var(--border-admin)';

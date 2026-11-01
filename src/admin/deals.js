@@ -24,7 +24,7 @@ window.populateDealSelects = () => {
 
   // Condition Items Checklist (Cards with thumbnail and tag)
   condItemsDiv.innerHTML = items.map(item => `
-    <label class="deal-dish-chip" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 6px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none; transition: border-color 0.15s;">
+    <label class="deal-dish-chip" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 4px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none; transition: border-color 0.15s;">
       <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
         <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</span>
         <span style="font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px;">${Number(item.price).toFixed(2)}</span>
@@ -35,7 +35,7 @@ window.populateDealSelects = () => {
 
   // Reward Items Checklist
   rewardItemsDiv.innerHTML = items.map(item => `
-    <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 6px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none;">
+    <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 4px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none;">
       <span style="font-weight: 600;">${item.name}</span>
       <input type="checkbox" name="reward-item-checkbox" value="${item.id}" style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;">
     </label>
@@ -43,7 +43,7 @@ window.populateDealSelects = () => {
 
   // Condition Categories Checklist
   condCatsDiv.innerHTML = categories.map(cat => `
-    <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 6px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none;">
+    <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 4px; background: var(--surface-admin); border: 1px solid var(--border-admin); color: var(--text-main); user-select: none;">
       <span>${cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
       <input type="checkbox" name="cond-cat-checkbox" value="${cat}" style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;">
     </label>

@@ -134,7 +134,7 @@ export function renderCateringInquiries() {
       </td>
       <td data-label="Status">
         <div class="crm-cell-value">
-          <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+          <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 2px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
             ${escapeHtml(inquiry.status)}
           </span>
         </div>
@@ -209,17 +209,17 @@ window.showCateringDetails = (inquiry) => {
 
     <div style="margin-bottom: 24px;">
       <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Event Details & Requests</div>
-      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); padding: 14px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: var(--text-main);">
+      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); padding: 14px; border-radius: 4px; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: var(--text-main);">
         ${escapeHtml(inquiry.details || 'No additional details provided.')}
       </div>
     </div>
 
-    <div style="background: rgba(225, 29, 72, 0.06); border: 1px solid rgba(225, 29, 72, 0.2); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <div style="background: rgba(225, 29, 72, 0.06); border: 1px solid rgba(225, 29, 72, 0.2); padding: 16px; border-radius: 4px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
       <div>
         <strong style="color: var(--text-main); font-size: 14px; display: block;">Convert to Official Quote</strong>
         <span style="font-size: 12px; color: var(--text-muted);">Transfer this client's event details into the custom catering quote builder.</span>
       </div>
-      <button type="button" class="btn-primary" id="btn-inquiry-to-quote" style="padding: 10px 18px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer;">
+      <button type="button" class="btn-primary" id="btn-inquiry-to-quote" style="padding: 10px 18px; font-size: 13px; font-weight: 600; border-radius: 4px; cursor: pointer;">
         Create Quote Now
       </button>
     </div>
@@ -374,7 +374,7 @@ export function renderCateringQuotes() {
       </td>
       <td data-label="Status">
         <div class="crm-cell-value">
-          <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+          <span class="status-badge" style="${statusBg} padding: 4px 10px; border-radius: 2px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
             ${escapeHtml(statusLabel)}
           </span>
         </div>
@@ -472,7 +472,7 @@ export function renderConfirmedBookings() {
               <span style="font-size: 11px; font-weight: 700; color: #4caf50; text-transform: uppercase; letter-spacing: 0.5px;">Confirmed Event</span>
               <h3 style="margin: 4px 0 0 0; font-size: 18px; color: var(--text-main);">${escapeHtml(b.event?.title || 'Catering Event')}</h3>
             </div>
-            ${daysDiffText ? `<span style="background: rgba(76, 175, 80, 0.1); color: #4caf50; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px;">${daysDiffText}</span>` : ''}
+            ${daysDiffText ? `<span style="background: rgba(76, 175, 80, 0.1); color: #4caf50; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 2px;">${daysDiffText}</span>` : ''}
           </div>
 
           <div style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px;">
@@ -484,7 +484,7 @@ export function renderConfirmedBookings() {
             <div><strong>Location:</strong> ${escapeHtml(b.event?.location?.address || '18411 Victory Blvd, Reseda, CA 91335')}</div>
           </div>
 
-          <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
+          <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); padding: 12px; border-radius: 4px; margin-bottom: 16px; font-size: 13px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
               <span style="color: var(--text-muted);">Total Value:</span>
               <strong>$${total.toFixed(2)}</strong>
@@ -671,7 +671,7 @@ export function renderQuoteEditorItems() {
 
   if (currentQuoteItems.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 24px; color: var(--text-muted); border: 1px dashed var(--border-admin); border-radius: 8px;">
+      <div style="text-align: center; padding: 24px; color: var(--text-muted); border: 1px dashed var(--border-admin); border-radius: 4px;">
         No items in this quote yet. Click "Add from Menu" or "Add Custom Item" below.
       </div>
     `;
@@ -682,13 +682,13 @@ export function renderQuoteEditorItems() {
 
   currentQuoteItems.forEach((item, index) => {
     html += `
-      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
+      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
         <!-- Row 1: Image, Title, Portion & Remove -->
         <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
           <div style="flex-shrink: 0;">
             ${item.imageUrl 
-              ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-admin);">`
-              : `<div style="width: 48px; height: 48px; background: var(--surface-admin); border-radius: 6px; border: 1px solid var(--border-admin); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Pic</div>`}
+              ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-admin);">`
+              : `<div style="width: 48px; height: 48px; background: var(--surface-admin); border-radius: 4px; border: 1px solid var(--border-admin); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">No Pic</div>`}
           </div>
 
           <div style="flex: 1; min-width: 0;">
@@ -697,7 +697,7 @@ export function renderQuoteEditorItems() {
           </div>
 
           <div style="flex-shrink: 0;">
-            <button type="button" class="btn-outline" onclick="window.removeQuoteItem(${index})" title="Remove item" style="padding: 6px; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--danger); border-color: rgba(239,68,68,0.3); cursor: pointer;">
+            <button type="button" class="btn-outline" onclick="window.removeQuoteItem(${index})" title="Remove item" style="padding: 6px; width: 34px; height: 34px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--danger); border-color: rgba(239,68,68,0.3); cursor: pointer;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
@@ -788,14 +788,14 @@ window.openDishPickerModal = () => {
     const trayPrice = Math.round(dishPrice * 8);
 
     html += `
-      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: center;">
-        <img src="${dish.img || dish.image || '/logo.webp'}" alt="${escapeHtml(dish.name)}" style="width: 52px; height: 52px; object-fit: cover; border-radius: 6px; flex-shrink: 0;">
+      <div style="background: var(--bg-admin); border: 1px solid var(--border-admin); border-radius: 4px; padding: 12px; display: flex; gap: 12px; align-items: center;">
+        <img src="${dish.img || dish.image || '/logo.webp'}" alt="${escapeHtml(dish.name)}" style="width: 52px; height: 52px; object-fit: cover; border-radius: 4px; flex-shrink: 0;">
         <div style="flex: 1; min-width: 0;">
           <strong style="font-size: 13px; color: var(--text-main); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(dish.name)}</strong>
           <span style="font-size: 11px; color: var(--text-muted); display: block;">${escapeHtml(dish.category || 'Menu')}</span>
           <span style="font-size: 12px; color: var(--accent-admin); font-weight: 700;">Suggested Tray: $${trayPrice}</span>
         </div>
-        <button type="button" class="btn-primary" onclick="window.selectDishForQuote('${dish.id}', '${escapeHtml(dish.name)}', '${dish.img || dish.image || ''}', ${trayPrice})" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; flex-shrink: 0; cursor: pointer;">
+        <button type="button" class="btn-primary" onclick="window.selectDishForQuote('${dish.id}', '${escapeHtml(dish.name)}', '${dish.img || dish.image || ''}', ${trayPrice})" style="padding: 6px 10px; font-size: 12px; border-radius: 4px; flex-shrink: 0; cursor: pointer;">
           Add
         </button>
       </div>
@@ -1215,7 +1215,7 @@ export function renderPackageRequests() {
         </td>
         <td data-label="Status">
           <div class="crm-cell-value">
-            <span style="display: inline-block; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: ${statusBg}; color: ${statusColor};">
+            <span style="display: inline-block; padding: 4px 10px; border-radius: 2px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: ${statusBg}; color: ${statusColor};">
               ${escapeHtml(req.status || 'new')}
             </span>
           </div>
@@ -1439,7 +1439,7 @@ export function renderCateringCatalog() {
       dishesGrid.innerHTML = '<p style="color: var(--text-muted); padding: 20px; grid-column: 1 / -1; text-align: center;">No catering dishes found. Click "+ Add Custom Dish" or "+ Import From Menu" to get started.</p>';
     } else {
       dishesGrid.innerHTML = catalog.map(dish => `
-        <div class="catering-catalog-card" style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+        <div class="catering-catalog-card" style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 4px; overflow: hidden; display: flex; flex-direction: column;">
           <div style="position: relative; width: 100%; height: 130px; background: #000;">
             <img src="${dish.imageUrl || '/logo.webp'}" alt="${escapeHtml(dish.nameEn)}" style="width: 100%; height: 100%; object-fit: cover;">
             <span style="position: absolute; top: 8px; right: 8px; font-size: 11px; background: rgba(0,0,0,0.75); color: #4caf50; padding: 2px 8px; border-radius: 4px; font-weight: 700;">
@@ -1482,12 +1482,12 @@ export function renderCateringCatalog() {
 
   if (templatesGrid) {
     templatesGrid.innerHTML = DEFAULT_PACKAGE_TEMPLATES.map(tpl => `
-      <div style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 4px; overflow: hidden; display: flex; flex-direction: column;">
         <img src="${tpl.imageUrl}" alt="${escapeHtml(tpl.titleEn)}" style="width: 100%; height: 130px; object-fit: cover; background: #000;">
         <div style="padding: 14px; flex: 1; display: flex; flex-direction: column;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
             <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0;">${escapeHtml(tpl.titleEn)}</h4>
-            <span style="font-size: 11px; background: rgba(225,29,72,0.1); color: var(--accent-admin); padding: 2px 8px; border-radius: 99px; font-weight: 700;">~${tpl.recommendedGuests} Guests</span>
+            <span style="font-size: 11px; background: rgba(225,29,72,0.1); color: var(--accent-admin); padding: 2px 8px; border-radius: 2px; font-weight: 700;">~${tpl.recommendedGuests} Guests</span>
           </div>
           <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.4; flex: 1;">${escapeHtml(tpl.descriptionEn)}</p>
           <div style="font-size: 12px; color: var(--text-main); font-weight: 600;">Included Trays: ${tpl.defaultItems.length} dish types</div>
@@ -1707,7 +1707,7 @@ function renderImportMenuGrid(items) {
     const imgUrl = dish.img || dish.image || '/logo.webp';
 
     return `
-      <div style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="background: var(--surface-admin); border: 1px solid var(--border-admin); border-radius: 4px; overflow: hidden; display: flex; flex-direction: column;">
         <div style="width: 100%; height: 110px; background: #000; overflow: hidden;">
           <img src="${imgUrl}" alt="${escapeHtml(dish.name)}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
@@ -1899,7 +1899,7 @@ export function renderCateringWaivers() {
       </td>
       <td data-label="Status">
         <div class="crm-cell-value">
-          <span style="${statusBg} padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+          <span style="${statusBg} padding: 4px 10px; border-radius: 2px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
             ${escapeHtml(statusLabel)}
           </span>
         </div>

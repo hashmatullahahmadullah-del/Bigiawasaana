@@ -372,20 +372,10 @@ function renderTopSourcesTable(referrerCounts) {
   }
   
   topRefsTbody.innerHTML = sortedRefs.map(sr => {
-    let icon = '🌐';
-    const lower = sr.ref.toLowerCase();
-    if (lower.includes('google')) icon = '🔍';
-    else if (lower.includes('instagram')) icon = '📸';
-    else if (lower.includes('tiktok')) icon = '🎵';
-    else if (lower.includes('facebook')) icon = '👥';
-    else if (lower.includes('yelp')) icon = '⭐';
-    else if (lower.includes('direct')) icon = '🔗';
-    
     return `
       <tr style="border-bottom: 1px solid var(--border-admin);">
         <td style="padding: 12px 16px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 14px;">${icon}</span>
             <span style="color: var(--text-main); font-size: 13px; font-weight: 500; text-transform: capitalize;">
               ${escapeHtml(sr.ref)}
             </span>
@@ -1296,7 +1286,7 @@ window.renderTopSourcesTable = renderTopSourcesTable;
       
       if (receipt.originalImageUrl) {
           html += `<div style="margin-bottom: 24px;">
-              <img src="${receipt.originalImageUrl}" alt="Receipt" style="width: 100%; border-radius: 8px; border: 1px solid var(--border);" />
+              <img src="${receipt.originalImageUrl}" alt="Receipt" style="width: 100%; border-radius: 4px; border: 1px solid var(--border);" />
           </div>`;
       }
       
@@ -1528,7 +1518,7 @@ window.renderTopSourcesTable = renderTopSourcesTable;
                 window[`draft_data_${d.id}`] = d;
                 
                 return `
-                  <div onclick="openDraftReview('${d.id}')" style="background: var(--bg); border: 1px solid var(--accent); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(233,171,0,0.1)'" onmouseout="this.style.background='var(--bg)'">
+                  <div onclick="openDraftReview('${d.id}')" style="background: var(--bg); border: 1px solid var(--accent); border-radius: 4px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(233,171,0,0.1)'" onmouseout="this.style.background='var(--bg)'">
                     <div>
                       <strong style="color: var(--white); font-size: 16px;">${vendor}</strong>
                       <div style="font-size: 13px; color: var(--gray); margin-top: 4px;">${dateStr} &bull; ${itemCount} items</div>
@@ -1757,13 +1747,13 @@ window.renderTopSourcesTable = renderTopSourcesTable;
               ${stockLevelHtml}
             </td>
             <td data-label="Qty" style="padding: 12px;">
-              <input type="number" class="inventory-stock-input" data-id="${data.id}" value="${qty}" step="0.01" style="width: 80px; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: var(--white); text-align: right; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+              <input type="number" class="inventory-stock-input" data-id="${data.id}" value="${qty}" step="0.01" style="width: 80px; padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: var(--white); text-align: right; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
             </td>
             <td data-label="Last Price" style="padding: 12px; font-weight:bold; color:var(--white);">$${(data.lastPrice || 0).toFixed(2)}</td>
             <td data-label="Avg Price" style="padding: 12px; color:var(--gray);">$${(avgPrice || 0).toFixed(2)}</td>
             <td data-label="Trend" style="padding: 12px;">${priceTrendHtml}</td>
             <td data-label="Deadline" style="padding: 12px;">
-              <input type="date" class="inventory-deadline-input" data-id="${data.id}" value="${data.deadline || ''}" style="width: 130px; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: var(--white); outline: none;">
+              <input type="date" class="inventory-deadline-input" data-id="${data.id}" value="${data.deadline || ''}" style="width: 130px; padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: var(--white); outline: none;">
             </td>
             <td data-label="Actions" style="padding: 12px; text-align: right;">
               <button class="btn-outline btn-small" onclick="deleteInventoryItem('${data.id}')" style="border-color: rgba(244,67,54,0.3); color: #f44336;">Del</button>
