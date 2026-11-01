@@ -2,6 +2,7 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const { defineSecret } = require("firebase-functions/params");
 const { GoogleGenAI } = require("@google/genai");
+const { isAdminContext } = require("./shared");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -24,7 +25,8 @@ exports.parseReceipt = functions
     }
 
     try {
-      const bucket = admin.storage().bucket();
+      const bucketName = process.env.STORAGE_BUCKET || "bigi-awasaana-7b3ce.firebasestorage.app";
+      const bucket = admin.storage().bucket(bucketName);
       // 1. Download image from Google Cloud Storage to a local buffer
       const file = bucket.file(storagePath);
       const [metadata] = await file.getMetadata();
@@ -32,7 +34,8 @@ exports.parseReceipt = functions
       const [buffer] = await file.download();
 
       // 2. Initialize Gemini API
-      const ai = new GoogleGenAI({ apiKey: geminiApiKey.value() });
+      const apiKey = process.env.GEMINI_API_KEY || (geminiApiKey && typeof geminiApiKey.value === "function" ? geminiApiKey.value() : "");
+      const ai = new GoogleGenAI({ apiKey });
 
       // 3. Define the desired JSON schema for the output
       const schema = {
@@ -66,7 +69,7 @@ exports.parseReceipt = functions
 
       // 4. Call Gemini to parse the image
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-lite",
+        model: "gemini-2.5-flash",
         contents: [
           {
             role: 'user',
