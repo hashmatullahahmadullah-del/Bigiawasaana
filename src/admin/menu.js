@@ -1011,12 +1011,15 @@ if (document.readyState === 'loading') {
 
 function highlightActiveTheme(theme) {
   document.querySelectorAll('.tv-theme-option').forEach(el => {
-    if (el.dataset.theme === theme) {
-      el.style.borderColor = 'var(--accent-admin)';
-      el.style.background = 'rgba(233,171,0,0.1)';
+    const isSelected = el.dataset.theme === theme;
+    if (isSelected) {
+      el.classList.add('active');
+      el.style.borderColor = 'var(--accent, #ff4500)';
+      el.style.background = 'rgba(255, 69, 0, 0.08)';
     } else {
+      el.classList.remove('active');
       el.style.borderColor = 'var(--border-admin)';
-      el.style.background = 'var(--bg-admin)';
+      el.style.background = 'var(--surface-admin)';
     }
   });
 }
@@ -1341,7 +1344,7 @@ export function initTvSettingsAccordion() {
   if (!body._hasInitializedDisplay) {
     const isMobile = window.innerWidth <= 768;
     body.style.display = isMobile ? 'none' : 'flex';
-    if (icon) icon.textContent = isMobile ? '▼ Options' : '▲ Close';
+    if (icon) icon.textContent = isMobile ? 'Options' : 'Close';
     body._hasInitializedDisplay = true;
   }
 
@@ -1349,7 +1352,7 @@ export function initTvSettingsAccordion() {
     if (e) e.preventDefault();
     const isVisible = body.style.display !== 'none';
     body.style.display = isVisible ? 'none' : 'flex';
-    if (icon) icon.textContent = isVisible ? '▼ Options' : '▲ Close';
+    if (icon) icon.textContent = isVisible ? 'Options' : 'Close';
   };
 
   if (!header._hasAccordion) {

@@ -306,13 +306,13 @@ export function renderDealsList() {
     
     let statusBadge = '';
     if (!deal.active) {
-      statusBadge = '<span class="status-badge" style="background: rgba(244,67,54,0.15); color: #f44336; border: 1px solid rgba(244,67,54,0.3);">Inactive</span>';
+      statusBadge = '<span class="deal-status-badge inactive">Inactive</span>';
     } else if (isScheduled) {
-      statusBadge = '<span class="status-badge" style="background: rgba(255,193,7,0.15); color: #ffc107; border: 1px solid rgba(255,193,7,0.3);">Scheduled</span>';
+      statusBadge = '<span class="deal-status-badge scheduled">Scheduled</span>';
     } else if (isExpired) {
-      statusBadge = '<span class="status-badge" style="background: rgba(158,158,158,0.15); color: #9e9e9e; border: 1px solid rgba(158,158,158,0.3);">Expired</span>';
+      statusBadge = '<span class="deal-status-badge expired">Expired</span>';
     } else {
-      statusBadge = '<span class="status-badge" style="background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.3);">Active</span>';
+      statusBadge = '<span class="deal-status-badge active">Active</span>';
     }
 
     const typeLabels = {
@@ -358,52 +358,50 @@ export function renderDealsList() {
     }
 
     return `
-      <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
-        <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-          <div>
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-              <strong style="font-size: 16px; color: var(--white);">${deal.title}</strong>
-              ${statusBadge}
-            </div>
-            <span style="font-size: 12px; color: var(--gray); text-transform: uppercase; font-family: 'Barlow Condensed'; font-weight: 600; letter-spacing: 0.5px;">
+      <div class="deal-admin-card">
+        <div class="deal-card-header">
+          <div class="deal-card-title-row">
+            <h3 class="deal-card-title">${deal.title}</h3>
+            <span class="deal-priority-pill">Priority: ${deal.priority || 0}</span>
+          </div>
+          <div class="deal-card-meta-row">
+            ${statusBadge}
+            <span class="deal-type-badge">
               ${typeLabels[deal.type] || deal.type}
               ${deal.badge ? ` • Badge: "${deal.badge}"` : ''}
             </span>
           </div>
-          <span style="font-size: 12px; background: var(--surface); color: var(--gray); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-weight: 600;">
-            Priority: ${deal.priority || 0}
-          </span>
         </div>
 
-        <p style="color: var(--white); font-size: 13px; line-height: 1.4; margin: 0;">${deal.description}</p>
+        <p class="deal-card-desc">${deal.description}</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: var(--surface); border: 1px solid var(--border); padding: 10px; border-radius: 4px; font-size: 12px;">
-          <div>
-            <span style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; font-family: 'Barlow Condensed';">Conditions</span>
-            <ul style="margin: 0; padding-left: 16px; color: var(--gray); display: flex; flex-direction: column; gap: 2px;">
+        <div class="deal-card-specs-grid">
+          <div class="deal-spec-block">
+            <span class="deal-spec-heading">Conditions</span>
+            <ul class="deal-spec-list">
               ${condHtml || '<li>No specific conditions</li>'}
             </ul>
           </div>
-          <div>
-            <span style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; font-family: 'Barlow Condensed';">Reward</span>
-            <span style="color: var(--white); font-weight: 600; font-size: 13px;">${rewardHtml}</span>
-            <div style="color: var(--gray); font-size: 11px; margin-top: 4px;">
+          <div class="deal-spec-block">
+            <span class="deal-spec-heading">Reward</span>
+            <span class="deal-reward-val">${rewardHtml}</span>
+            <div class="deal-reward-extra">
               Stackable: ${deal.stackable ? 'Yes' : 'No'}
               ${deal.usageLimitPerOrder ? ` • Limit: ${deal.usageLimitPerOrder} per order` : ''}
             </div>
           </div>
         </div>
 
-        <div style="font-size: 11px; color: var(--gray);">
-          ${start || end ? `⏰ Scheduled: ${start ? start.toLocaleString() : 'Anytime'} to ${end ? end.toLocaleString() : 'Forever'}` : '⏰ Always active'}
+        <div class="deal-card-time">
+          ${start || end ? `Scheduled: ${start ? start.toLocaleString() : 'Anytime'} to ${end ? end.toLocaleString() : 'Forever'}` : 'Always active'}
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px;">
-          <button class="btn-outline btn-small" onclick="toggleDealActive('${deal.id}', ${deal.active})" style="padding: 6px 12px; font-size: 11px;">
+        <div class="deal-card-actions">
+          <button type="button" class="btn-outline btn-small deal-btn-action" onclick="toggleDealActive('${deal.id}', ${deal.active})">
             ${deal.active ? 'Disable' : 'Enable'}
           </button>
-          <button class="btn-outline btn-small" onclick="editDeal('${deal.id}')" style="padding: 6px 12px; font-size: 11px;">Edit</button>
-          <button class="btn-outline btn-small" onclick="deleteDeal('${deal.id}')" style="padding: 6px 12px; font-size: 11px; border-color: rgba(255,69,0,0.4); color: var(--accent);">Delete</button>
+          <button type="button" class="btn-outline btn-small deal-btn-action" onclick="editDeal('${deal.id}')">Edit</button>
+          <button type="button" class="btn-outline btn-small deal-btn-action deal-btn-delete" onclick="deleteDeal('${deal.id}')">Delete</button>
         </div>
       </div>
     `;
