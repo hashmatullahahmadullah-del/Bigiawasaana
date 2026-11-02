@@ -946,24 +946,85 @@ button.btn-loading {
   justify-content: center;
   flex-wrap: wrap;
 }
-/* ── Clean, Modern, Flat Delivery Partner Buttons ── */
+/* ── Clean, Modern, Flat Delivery Partner Buttons with Nonstop Motion Design ── */
 .delivery-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   box-shadow: none !important;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   position: relative;
   overflow: hidden;
   text-decoration: none;
   cursor: pointer;
+  box-sizing: border-box;
+  /* Dual background for animated flowing gradient border */
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#18181b, #18181b) padding-box,
+    linear-gradient(120deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 106, 0, 0.7) 45%, rgba(225, 29, 72, 0.75) 60%, rgba(255, 255, 255, 0.12) 100%) border-box;
+  background-size: 100% 100%, 250% 250%;
+  animation: deliveryBorderGlow 4s ease infinite;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 .delivery-btn::after {
   display: none !important;
+}
+
+/* Continuous light sheen sweep across the button surface */
+.delivery-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+  z-index: 2;
+  animation: deliverySheenSweep 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Synchronized wave: sweeps UberEats -> DoorDash -> Grubhub */
+.delivery-btn-ubereats::before {
+  animation-delay: 0s;
+}
+.delivery-btn-doordash::before {
+  animation-delay: 0.35s;
+}
+.delivery-btn-grubhub::before {
+  animation-delay: 0.7s;
+}
+
+@keyframes deliveryBorderGlow {
+  0% {
+    background-position: 0% 0%, 0% 50%;
+  }
+  50% {
+    background-position: 0% 0%, 100% 50%;
+  }
+  100% {
+    background-position: 0% 0%, 0% 50%;
+  }
+}
+
+@keyframes deliverySheenSweep {
+  0% {
+    left: -130%;
+  }
+  30% {
+    left: 230%;
+  }
+  100% {
+    left: 230%;
+  }
 }
 
 .delivery-btn img {
@@ -978,10 +1039,9 @@ button.btn-loading {
 }
 
 .delivery-btn:hover {
-  background: #27272a;
-  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+  filter: brightness(1.15);
   box-shadow: none !important;
-  transform: translateY(-1px);
 }
 
 .delivery-btn:hover img {
@@ -989,9 +1049,47 @@ button.btn-loading {
 }
 
 .delivery-btn:active {
-  transform: scale(0.98);
-  background: #202023;
-  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(0.97);
+}
+
+/* Live radar indicator for delivery section */
+.delivery-live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+}
+.delivery-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FF6A00;
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.delivery-live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid #FF6A00;
+  animation: deliveryRadar 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes deliveryRadar {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
 }
 
 /* Precise Flat Proportions with Uniform Dimensions */
