@@ -1229,9 +1229,11 @@ window.renderTopSourcesTable = renderTopSourcesTable;
           slide.style.pointerEvents = 'none';
       }
       if (backdrop) {
+          backdrop.classList.remove('open');
           backdrop.style.opacity = '0';
           backdrop.style.pointerEvents = 'none';
       }
+      document.body.style.overflow = '';
   };
   
     window.deleteSavedReceipt = async (id) => {
@@ -1290,14 +1292,14 @@ window.renderTopSourcesTable = renderTopSourcesTable;
           </div>`;
       }
       
-      html += `<h4 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px;">Parsed Items</h4>`;
-      html += `<div class="crm-table-container"><table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-         <tr style="color: var(--gray); border-bottom: 1px solid var(--border);">
-            <th style="text-align: left; padding: 4px 0;">Item</th>
-            <th style="text-align: center; padding: 4px 0;">Qty</th>
-            <th style="text-align: right; padding: 4px 0;">Price</th>
-            <th style="text-align: right; padding: 4px 0;">Total</th>
-            ${editMode ? `<th style="text-align: right; padding: 4px 0;"></th>` : ''}
+      html += `<h4 style="margin-top:0; border-bottom: 1px solid var(--border-admin); padding-bottom: 8px; margin-bottom: 12px; font-size: 14px; font-weight: 700; color: var(--text-main);">Parsed Items</h4>`;
+      html += `<div class="crm-table-container" style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; margin-bottom: 16px;"><table style="width: 100%; min-width: 320px; font-size: 13px; border-collapse: collapse;">
+         <tr style="color: var(--text-muted); border-bottom: 1px solid var(--border-admin);">
+            <th style="text-align: left; padding: 6px 4px 6px 0;">Item</th>
+            <th style="text-align: center; padding: 6px 4px;">Qty</th>
+            <th style="text-align: right; padding: 6px 4px;">Price</th>
+            <th style="text-align: right; padding: 6px 4px;">Total</th>
+            ${editMode ? `<th style="text-align: right; padding: 6px 0;"></th>` : ''}
          </tr>`;
       
       (receipt.items || []).forEach((item, idx) => {
@@ -1306,34 +1308,34 @@ window.renderTopSourcesTable = renderTopSourcesTable;
           
           if (editMode) {
               html += `<tr class="edit-item-row" data-idx="${idx}">
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <input type="text" class="crm-input edit-item-name" value="${escapeHtml(item.name || '')}" style="width: 100%; margin-bottom: 4px;">
-                      <div style="font-size: 11px; color: var(--gray);">Raw: ${escapeHtml(item.rawText || 'N/A')}</div>
+                  <td style="padding: 8px 4px 8px 0; border-bottom: 1px solid var(--border-admin); min-width: 130px;">
+                      <input type="text" class="crm-input edit-item-name" value="${escapeHtml(item.name || '')}" style="width: 100%; margin-bottom: 4px; font-size: 13px; padding: 6px 8px;">
+                      <div style="font-size: 11px; color: var(--text-muted);">Raw: ${escapeHtml(item.rawText || 'N/A')}</div>
                       <input type="hidden" class="edit-item-rawtext" value="${escapeHtml(item.rawText || '')}">
                       <input type="hidden" class="edit-item-cat" value="${escapeHtml(item.category || '')}">
                   </td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;">
-                      <input type="number" class="crm-input edit-item-qty" value="${item.quantity || 1}" style="width: 60px; text-align: center;">
+                  <td style="padding: 8px 4px; border-bottom: 1px solid var(--border-admin); text-align: center; width: 48px;">
+                      <input type="number" class="crm-input edit-item-qty" value="${item.quantity || 1}" style="width: 48px; text-align: center; padding: 6px 2px; font-size: 13px;">
                   </td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">
-                      $<input type="number" class="crm-input edit-item-price" step="0.01" value="${uPrice.toFixed(2)}" style="width: 70px; text-align: right;">
+                  <td style="padding: 8px 4px; border-bottom: 1px solid var(--border-admin); text-align: right; width: 60px;">
+                      $<input type="number" class="crm-input edit-item-price" step="0.01" value="${uPrice.toFixed(2)}" style="width: 58px; text-align: right; padding: 6px 2px; font-size: 13px;">
                   </td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">
-                      $<input type="number" class="crm-input edit-item-linetotal" step="0.01" value="${lTotal.toFixed(2)}" style="width: 70px; text-align: right;">
+                  <td style="padding: 8px 4px; border-bottom: 1px solid var(--border-admin); text-align: right; width: 60px;">
+                      $<input type="number" class="crm-input edit-item-linetotal" step="0.01" value="${lTotal.toFixed(2)}" style="width: 58px; text-align: right; padding: 6px 2px; font-size: 13px;">
                   </td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">
-                      <button class="crm-btn-icon" onclick="this.closest('tr').remove()" style="color: #ef4444; font-size: 16px;">×</button>
+                  <td style="padding: 8px 0; border-bottom: 1px solid var(--border-admin); text-align: right; width: 32px;">
+                      <button type="button" class="crm-btn-icon" onclick="this.closest('tr').remove()" style="color: #ef4444; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;" aria-label="Remove item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                   </td>
               </tr>`;
           } else {
               html += `<tr>
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                      <div style="font-weight: bold;">${escapeHtml(item.name || 'Unknown')}</div>
-                      <div style="font-size: 11px; color: var(--gray);">Raw: ${escapeHtml(item.rawText || 'N/A')}</div>
+                  <td style="padding: 10px 4px 10px 0; border-bottom: 1px solid var(--border-admin);">
+                      <div style="font-weight: 600; color: var(--text-main); font-size: 13.5px;">${escapeHtml(item.name || 'Unknown')}</div>
+                      <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Raw: ${escapeHtml(item.rawText || 'N/A')}</div>
                   </td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;">${item.quantity || 1}</td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${uPrice.toFixed(2)}</td>
-                  <td style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: right;">$${lTotal.toFixed(2)}</td>
+                  <td style="padding: 10px 4px; border-bottom: 1px solid var(--border-admin); text-align: center; color: var(--text-main); font-size: 13px;">${item.quantity || 1}</td>
+                  <td style="padding: 10px 4px; border-bottom: 1px solid var(--border-admin); text-align: right; color: var(--text-muted); font-size: 13px;">$${uPrice.toFixed(2)}</td>
+                  <td style="padding: 10px 4px; border-bottom: 1px solid var(--border-admin); text-align: right; font-weight: 600; color: var(--text-main); font-size: 13px;">$${lTotal.toFixed(2)}</td>
               </tr>`;
           }
       });
@@ -1418,11 +1420,11 @@ window.renderTopSourcesTable = renderTopSourcesTable;
       let isEditMode = false;
       
       if (editBtn) {
-          editBtn.style.display = 'inline-block';
+          editBtn.style.display = 'inline-flex';
           editBtn.onclick = () => {
               isEditMode = true;
               editBtn.style.display = 'none';
-              if (saveBtn) saveBtn.style.display = 'inline-block';
+              if (saveBtn) saveBtn.style.display = 'inline-flex';
               window.renderReceiptSlideContent(receipt, isEditMode);
           };
       }
@@ -1441,13 +1443,15 @@ window.renderTopSourcesTable = renderTopSourcesTable;
           slide.classList.add('open');
           slide.style.visibility = 'visible';
           slide.style.pointerEvents = 'auto';
-          slide.style.boxShadow = '-4px 0 24px rgba(0,0,0,0.5)';
+          slide.style.boxShadow = 'none';
           slide.style.transform = 'translateX(0)';
       }
       if (backdrop) {
+          backdrop.classList.add('open');
           backdrop.style.opacity = '1';
           backdrop.style.pointerEvents = 'auto';
       }
+      document.body.style.overflow = 'hidden';
 
       window.renderReceiptSlideContent(receipt, false);
   };

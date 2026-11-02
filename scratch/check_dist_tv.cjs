@@ -1,0 +1,11 @@
+const fs = require('fs');
+const d1 = fs.readFileSync('dist/tv1.html', 'utf8');
+const d2 = fs.readFileSync('dist/tv2.html', 'utf8');
+console.log('dist/tv1.html length:', d1.length);
+console.log('dist/tv2.html length:', d2.length);
+console.log('dist/tv1.html title:', (d1.match(/<title>(.*?)<\/title>/) || [])[1]);
+console.log('dist/tv2.html title:', (d2.match(/<title>(.*?)<\/title>/) || [])[1]);
+console.log('dist/tv1 has menu-img (old):', d1.includes('menu-img'));
+console.log('dist/tv1 has menu-container (new):', d1.includes('menu-container'));
+console.log('dist/tv2 has menu-img (old):', d2.includes('menu-img'));
+console.log('dist/tv2 has menu-container (new):', d2.includes('menu-container'));

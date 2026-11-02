@@ -367,6 +367,11 @@
   <main id="main-content">
   <!-- Hero -->
   <header class="hero">
+    <picture class="hero-picture">
+      <source type="image/avif" srcset="/images/hero/hero-400.avif 400w, /images/hero/hero-800.avif 800w, /images/hero/hero-1200.avif 1200w" sizes="100vw">
+      <source type="image/webp" srcset="/images/hero/hero-400.webp 400w, /images/hero/hero-800.webp 800w, /images/hero/hero-1200.webp 1200w" sizes="100vw">
+      <img src="/hero-food-spread.webp" alt="Authentic Afghan Food and Charcoal Grill Feast in Los Angeles" class="hero-bg-img" width="1024" height="768" fetchpriority="high">
+    </picture>
     <div class="hero-content text-center-mobile">
       <div id="welcome-container" class="reveal" style="min-height: 2em; margin-bottom: 8px; display: flex; align-items: center;">
         <div id="welcome-text" style="font-family: 'Outfit', sans-serif; font-size: clamp(14px, 2.5vw, 22px); line-height: 1.4; color: var(--accent-light); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;">Welcome to Bigi Awasaana</div>
@@ -381,12 +386,15 @@
         
         <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
           <span style="font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Barlow Condensed'; font-weight: 600;">Order delivery</span>
-          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;" class="delivery-platforms-animated">
             <a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" class="delivery-btn delivery-btn-ubereats">
               <img loading="lazy" src="/ubereats_logo.svg" alt="Order Halal Afghan Food on Uber Eats" width="110" height="28">
             </a>
             <a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" class="delivery-btn delivery-btn-doordash">
               <img loading="lazy" src="/doordash_logo.svg" alt="Order Halal Afghan Food Delivery on DoorDash" width="110" height="28">
+            </a>
+            <a href="https://www.grubhub.com/restaurant/bigi-awasaana-15530-hesby-st-reseda/15107496" target="_blank" rel="noopener" class="delivery-btn delivery-btn-grubhub">
+              <img loading="lazy" src="/grubhub_logo.svg" alt="Order Halal Afghan Food on Grubhub" width="110" height="28">
             </a>
           </div>
         </div>
@@ -628,13 +636,16 @@
       <h2 class="font-lalezar" style="font-size: clamp(28px, 5vw, 42px); margin-bottom: 16px; line-height: 1.1;">WE DELIVER ACROSS THE VALLEY</h2>
       <p style="color: var(--gray); font-size: 15px; max-width: 500px; margin-bottom: 32px;">Craving authentic Afghan street food but want to stay in? We deliver across the San Fernando Valley.</p>
       
-      <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; align-items: center;">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; align-items: center;" class="delivery-platforms-animated">
         <a href="/locations#delivery-areas" class="btn-primary" style="text-decoration: none; height: 60px; display: flex; align-items: center; justify-content: center; padding: 0 32px;">View Delivery Areas</a>
         <a href="https://www.ubereats.com/store/bigi-awasaana-%E2%80%93-halal-burgers-%26-kabobs/F2Nn6alaR6eTb6AAwVxq4g?diningMode=DELIVERY&sc=SEARCH_SUGGESTION" target="_blank" rel="noopener" class="delivery-btn delivery-btn-ubereats delivery-btn-lg">
           <img loading="lazy" src="/ubereats_logo.svg" alt="Order Halal Afghan Food on Uber Eats" width="110" height="28">
         </a>
         <a href="https://www.doordash.com/store/bigi-awasaana-(afghan-halal-cuisine)-reseda-45987589/111478560/?event_type=autocomplete&pickup=false" target="_blank" rel="noopener" class="delivery-btn delivery-btn-doordash delivery-btn-lg">
           <img loading="lazy" src="/doordash_logo.svg" alt="Order Halal Afghan Food Delivery on DoorDash" width="110" height="28">
+        </a>
+        <a href="https://www.grubhub.com/restaurant/bigi-awasaana-15530-hesby-st-reseda/15107496" target="_blank" rel="noopener" class="delivery-btn delivery-btn-grubhub delivery-btn-lg">
+          <img loading="lazy" src="/grubhub_logo.svg" alt="Order Halal Afghan Food on Grubhub" width="110" height="28">
         </a>
       </div>
     </div>

@@ -1,0 +1,1911 @@
+{
+  "timestamp": "2026-10-31T09:55:33.088Z",
+  "viewportsTested": 7,
+  "pagesTested": 5,
+  "totalButtonsAudited": 1257,
+  "textOverflowViolations": [
+    {
+      "page": "Homepage",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Menu",
+      "text": "BAG\n    0",
+      "scrollWidth": 113,
+      "clientWidth": 52
+    },
+    {
+      "page": "Menu",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Catering",
+      "text": "Build Your Own Package",
+      "scrollWidth": 492,
+      "clientWidth": 242
+    },
+    {
+      "page": "Catering",
+      "text": "Submit Inquiry",
+      "scrollWidth": 500,
+      "clientWidth": 246
+    },
+    {
+      "page": "Catering",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Shop",
+      "text": "BAG\n    0",
+      "scrollWidth": 113,
+      "clientWidth": 52
+    },
+    {
+      "page": "Shop",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Admin",
+      "text": "Create Quote",
+      "scrollWidth": 484,
+      "clientWidth": 286
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Dish",
+      "scrollWidth": 317,
+      "clientWidth": 187
+    },
+    {
+      "page": "Admin",
+      "text": "Save Changes",
+      "scrollWidth": 512,
+      "clientWidth": 252
+    },
+    {
+      "page": "Admin",
+      "text": "Add Item",
+      "scrollWidth": 512,
+      "clientWidth": 252
+    },
+    {
+      "page": "Admin",
+      "text": "Verify",
+      "scrollWidth": 512,
+      "clientWidth": 252
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 94,
+      "clientWidth": 85
+    },
+    {
+      "page": "Admin",
+      "text": "Save Reward Item",
+      "scrollWidth": 318,
+      "clientWidth": 155
+    },
+    {
+      "page": "Admin",
+      "text": "Save & Send to Client",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Quote",
+      "scrollWidth": 462,
+      "clientWidth": 228
+    },
+    {
+      "page": "Admin",
+      "text": "Close",
+      "scrollWidth": 77,
+      "clientWidth": 65
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Formal Quote →",
+      "scrollWidth": 361,
+      "clientWidth": 177
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 93,
+      "clientWidth": 83
+    },
+    {
+      "page": "Admin",
+      "text": "Save Catering Dish",
+      "scrollWidth": 326,
+      "clientWidth": 159
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 90,
+      "clientWidth": 78
+    },
+    {
+      "page": "Admin",
+      "text": "Generate Waiver Link",
+      "scrollWidth": 359,
+      "clientWidth": 176
+    },
+    {
+      "page": "Admin",
+      "text": "Close",
+      "scrollWidth": 85,
+      "clientWidth": 80
+    },
+    {
+      "page": "Admin",
+      "text": "Print / Save PDF",
+      "scrollWidth": 355,
+      "clientWidth": 174
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 90,
+      "clientWidth": 78
+    },
+    {
+      "page": "Admin",
+      "text": "Confirm & Lock Booking",
+      "scrollWidth": 360,
+      "clientWidth": 176
+    },
+    {
+      "page": "Homepage",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Menu",
+      "text": "BAG\n    0",
+      "scrollWidth": 113,
+      "clientWidth": 52
+    },
+    {
+      "page": "Menu",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Catering",
+      "text": "Build Your Own Package",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Catering",
+      "text": "Submit Inquiry",
+      "scrollWidth": 610,
+      "clientWidth": 301
+    },
+    {
+      "page": "Catering",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Shop",
+      "text": "BAG\n    0",
+      "scrollWidth": 113,
+      "clientWidth": 52
+    },
+    {
+      "page": "Shop",
+      "text": "Accept All",
+      "scrollWidth": 262,
+      "clientWidth": 127
+    },
+    {
+      "page": "Admin",
+      "text": "Create Quote",
+      "scrollWidth": 557,
+      "clientWidth": 341
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Dish",
+      "scrollWidth": 307,
+      "clientWidth": 187
+    },
+    {
+      "page": "Admin",
+      "text": "Save Changes",
+      "scrollWidth": 611,
+      "clientWidth": 302
+    },
+    {
+      "page": "Admin",
+      "text": "Add Item",
+      "scrollWidth": 611,
+      "clientWidth": 302
+    },
+    {
+      "page": "Admin",
+      "text": "Verify",
+      "scrollWidth": 611,
+      "clientWidth": 302
+    },
+    {
+      "page": "Admin",
+      "text": "Save Reward Item",
+      "scrollWidth": 388,
+      "clientWidth": 190
+    },
+    {
+      "page": "Admin",
+      "text": "Save & Send to Client",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Quote",
+      "scrollWidth": 462,
+      "clientWidth": 228
+    },
+    {
+      "page": "Admin",
+      "text": "Close",
+      "scrollWidth": 82,
+      "clientWidth": 74
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Formal Quote →",
+      "scrollWidth": 452,
+      "clientWidth": 223
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 99,
+      "clientWidth": 96
+    },
+    {
+      "page": "Admin",
+      "text": "Save Catering Dish",
+      "scrollWidth": 397,
+      "clientWidth": 195
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 97,
+      "clientWidth": 91
+    },
+    {
+      "page": "Admin",
+      "text": "Generate Waiver Link",
+      "scrollWidth": 444,
+      "clientWidth": 218
+    },
+    {
+      "page": "Admin",
+      "text": "Print / Save PDF",
+      "scrollWidth": 417,
+      "clientWidth": 205
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 97,
+      "clientWidth": 90
+    },
+    {
+      "page": "Admin",
+      "text": "Confirm & Lock Booking",
+      "scrollWidth": 444,
+      "clientWidth": 219
+    },
+    {
+      "page": "Homepage",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Menu",
+      "text": "BAG\n    0",
+      "scrollWidth": 113,
+      "clientWidth": 52
+    },
+    {
+      "page": "Menu",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Catering",
+      "text": "Build Your Own Package",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Catering",
+      "text": "Submit Inquiry",
+      "scrollWidth": 640,
+      "clientWidth": 316
+    },
+    {
+      "page": "Catering",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Shop",
+      "text": "BAG\n    0",
+      "scrollWidth": 113,
+      "clientWidth": 52
+    },
+    {
+      "page": "Shop",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Admin",
+      "text": "Create Quote",
+      "scrollWidth": 633,
+      "clientWidth": 356
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Dish",
+      "scrollWidth": 334,
+      "clientWidth": 187
+    },
+    {
+      "page": "Admin",
+      "text": "Save Changes",
+      "scrollWidth": 638,
+      "clientWidth": 315
+    },
+    {
+      "page": "Admin",
+      "text": "Add Item",
+      "scrollWidth": 638,
+      "clientWidth": 315
+    },
+    {
+      "page": "Admin",
+      "text": "Verify",
+      "scrollWidth": 638,
+      "clientWidth": 315
+    },
+    {
+      "page": "Admin",
+      "text": "Save Reward Item",
+      "scrollWidth": 405,
+      "clientWidth": 199
+    },
+    {
+      "page": "Admin",
+      "text": "Save & Send to Client",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Quote",
+      "scrollWidth": 462,
+      "clientWidth": 228
+    },
+    {
+      "page": "Admin",
+      "text": "Close",
+      "scrollWidth": 83,
+      "clientWidth": 77
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Formal Quote →",
+      "scrollWidth": 477,
+      "clientWidth": 235
+    },
+    {
+      "page": "Admin",
+      "text": "Save Catering Dish",
+      "scrollWidth": 417,
+      "clientWidth": 205
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 98,
+      "clientWidth": 94
+    },
+    {
+      "page": "Admin",
+      "text": "Generate Waiver Link",
+      "scrollWidth": 467,
+      "clientWidth": 230
+    },
+    {
+      "page": "Admin",
+      "text": "Print / Save PDF",
+      "scrollWidth": 417,
+      "clientWidth": 205
+    },
+    {
+      "page": "Admin",
+      "text": "Cancel",
+      "scrollWidth": 98,
+      "clientWidth": 94
+    },
+    {
+      "page": "Admin",
+      "text": "Confirm & Lock Booking",
+      "scrollWidth": 467,
+      "clientWidth": 230
+    },
+    {
+      "page": "Homepage",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Menu",
+      "text": "BAG\n    0",
+      "scrollWidth": 122,
+      "clientWidth": 56
+    },
+    {
+      "page": "Menu",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Catering",
+      "text": "Build Your Own Package",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Catering",
+      "text": "Submit Inquiry",
+      "scrollWidth": 720,
+      "clientWidth": 356
+    },
+    {
+      "page": "Catering",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Shop",
+      "text": "BAG\n    0",
+      "scrollWidth": 122,
+      "clientWidth": 56
+    },
+    {
+      "page": "Shop",
+      "text": "Accept All",
+      "scrollWidth": 262,
+      "clientWidth": 127
+    },
+    {
+      "page": "Admin",
+      "text": "Create Quote",
+      "scrollWidth": 630,
+      "clientWidth": 373
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Dish",
+      "scrollWidth": 317,
+      "clientWidth": 187
+    },
+    {
+      "page": "Admin",
+      "text": "Save Changes",
+      "scrollWidth": 710,
+      "clientWidth": 351
+    },
+    {
+      "page": "Admin",
+      "text": "Add Item",
+      "scrollWidth": 710,
+      "clientWidth": 351
+    },
+    {
+      "page": "Admin",
+      "text": "Verify",
+      "scrollWidth": 710,
+      "clientWidth": 351
+    },
+    {
+      "page": "Admin",
+      "text": "Save Reward Item",
+      "scrollWidth": 405,
+      "clientWidth": 199
+    },
+    {
+      "page": "Admin",
+      "text": "Save & Send to Client",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Quote",
+      "scrollWidth": 462,
+      "clientWidth": 228
+    },
+    {
+      "page": "Admin",
+      "text": "Close",
+      "scrollWidth": 87,
+      "clientWidth": 84
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Formal Quote →",
+      "scrollWidth": 544,
+      "clientWidth": 268
+    },
+    {
+      "page": "Admin",
+      "text": "Save Catering Dish",
+      "scrollWidth": 430,
+      "clientWidth": 211
+    },
+    {
+      "page": "Admin",
+      "text": "Generate Waiver Link",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Admin",
+      "text": "Print / Save PDF",
+      "scrollWidth": 417,
+      "clientWidth": 205
+    },
+    {
+      "page": "Admin",
+      "text": "Confirm & Lock Booking",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    },
+    {
+      "page": "Homepage",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Menu",
+      "text": "BAG\n    0",
+      "scrollWidth": 122,
+      "clientWidth": 56
+    },
+    {
+      "page": "Menu",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Catering",
+      "text": "Build Your Own Package",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Catering",
+      "text": "Submit Inquiry",
+      "scrollWidth": 1124,
+      "clientWidth": 558
+    },
+    {
+      "page": "Catering",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Shop",
+      "text": "BAG\n    0",
+      "scrollWidth": 122,
+      "clientWidth": 56
+    },
+    {
+      "page": "Shop",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Admin",
+      "text": "Create Quote",
+      "scrollWidth": 331,
+      "clientWidth": 184
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Dish",
+      "scrollWidth": 334,
+      "clientWidth": 187
+    },
+    {
+      "page": "Admin",
+      "text": "Save Changes",
+      "scrollWidth": 976,
+      "clientWidth": 484
+    },
+    {
+      "page": "Admin",
+      "text": "Add Item",
+      "scrollWidth": 976,
+      "clientWidth": 484
+    },
+    {
+      "page": "Admin",
+      "text": "Verify",
+      "scrollWidth": 976,
+      "clientWidth": 484
+    },
+    {
+      "page": "Admin",
+      "text": "Save Reward Item",
+      "scrollWidth": 405,
+      "clientWidth": 199
+    },
+    {
+      "page": "Admin",
+      "text": "Save & Send to Client",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Quote",
+      "scrollWidth": 462,
+      "clientWidth": 228
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Formal Quote →",
+      "scrollWidth": 600,
+      "clientWidth": 296
+    },
+    {
+      "page": "Admin",
+      "text": "Save Catering Dish",
+      "scrollWidth": 430,
+      "clientWidth": 211
+    },
+    {
+      "page": "Admin",
+      "text": "Generate Waiver Link",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Admin",
+      "text": "Print / Save PDF",
+      "scrollWidth": 417,
+      "clientWidth": 205
+    },
+    {
+      "page": "Admin",
+      "text": "Confirm & Lock Booking",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    },
+    {
+      "page": "Homepage",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Menu",
+      "text": "BAG\n    0",
+      "scrollWidth": 122,
+      "clientWidth": 56
+    },
+    {
+      "page": "Menu",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Catering",
+      "text": "Build Your Own Package",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Catering",
+      "text": "Submit Inquiry",
+      "scrollWidth": 1124,
+      "clientWidth": 558
+    },
+    {
+      "page": "Catering",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Shop",
+      "text": "BAG\n    0",
+      "scrollWidth": 122,
+      "clientWidth": 56
+    },
+    {
+      "page": "Shop",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Admin",
+      "text": "Create Quote",
+      "scrollWidth": 315,
+      "clientWidth": 184
+    },
+    {
+      "page": "Admin",
+      "text": "Inquiries\n              0",
+      "scrollWidth": 109,
+      "clientWidth": 76
+    },
+    {
+      "page": "Admin",
+      "text": "Package Requests\n             ",
+      "scrollWidth": 167,
+      "clientWidth": 107
+    },
+    {
+      "page": "Admin",
+      "text": "Quotes & Proposals\n           ",
+      "scrollWidth": 180,
+      "clientWidth": 114
+    },
+    {
+      "page": "Admin",
+      "text": "Confirmed Bookings\n           ",
+      "scrollWidth": 182,
+      "clientWidth": 115
+    },
+    {
+      "page": "Admin",
+      "text": "Agreements & Waivers\n         ",
+      "scrollWidth": 194,
+      "clientWidth": 122
+    },
+    {
+      "page": "Admin",
+      "text": "Catalog & Templates",
+      "scrollWidth": 185,
+      "clientWidth": 117
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Dish",
+      "scrollWidth": 317,
+      "clientWidth": 187
+    },
+    {
+      "page": "Admin",
+      "text": "Save Changes",
+      "scrollWidth": 538,
+      "clientWidth": 270
+    },
+    {
+      "page": "Admin",
+      "text": "Add Item",
+      "scrollWidth": 538,
+      "clientWidth": 270
+    },
+    {
+      "page": "Admin",
+      "text": "Verify",
+      "scrollWidth": 538,
+      "clientWidth": 270
+    },
+    {
+      "page": "Admin",
+      "text": "Save Reward Item",
+      "scrollWidth": 387,
+      "clientWidth": 199
+    },
+    {
+      "page": "Admin",
+      "text": "Save & Send to Client",
+      "scrollWidth": 502,
+      "clientWidth": 259
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Quote",
+      "scrollWidth": 431,
+      "clientWidth": 228
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Formal Quote →",
+      "scrollWidth": 558,
+      "clientWidth": 296
+    },
+    {
+      "page": "Admin",
+      "text": "Save Catering Dish",
+      "scrollWidth": 400,
+      "clientWidth": 211
+    },
+    {
+      "page": "Admin",
+      "text": "Generate Waiver Link",
+      "scrollWidth": 486,
+      "clientWidth": 257
+    },
+    {
+      "page": "Admin",
+      "text": "Print / Save PDF",
+      "scrollWidth": 389,
+      "clientWidth": 205
+    },
+    {
+      "page": "Admin",
+      "text": "Confirm & Lock Booking",
+      "scrollWidth": 489,
+      "clientWidth": 259
+    },
+    {
+      "page": "Homepage",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Menu",
+      "text": "BAG\n    0",
+      "scrollWidth": 122,
+      "clientWidth": 56
+    },
+    {
+      "page": "Menu",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Catering",
+      "text": "Build Your Own Package",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Catering",
+      "text": "Submit Inquiry",
+      "scrollWidth": 1124,
+      "clientWidth": 558
+    },
+    {
+      "page": "Catering",
+      "text": "Accept All",
+      "scrollWidth": 262,
+      "clientWidth": 127
+    },
+    {
+      "page": "Shop",
+      "text": "BAG\n    0",
+      "scrollWidth": 122,
+      "clientWidth": 56
+    },
+    {
+      "page": "Shop",
+      "text": "Accept All",
+      "scrollWidth": 263,
+      "clientWidth": 127
+    },
+    {
+      "page": "Admin",
+      "text": "Create Quote",
+      "scrollWidth": 323,
+      "clientWidth": 184
+    },
+    {
+      "page": "Admin",
+      "text": "Inquiries\n              0",
+      "scrollWidth": 128,
+      "clientWidth": 114
+    },
+    {
+      "page": "Admin",
+      "text": "Package Requests\n             ",
+      "scrollWidth": 202,
+      "clientWidth": 176
+    },
+    {
+      "page": "Admin",
+      "text": "Quotes & Proposals\n           ",
+      "scrollWidth": 217,
+      "clientWidth": 189
+    },
+    {
+      "page": "Admin",
+      "text": "Confirmed Bookings\n           ",
+      "scrollWidth": 220,
+      "clientWidth": 191
+    },
+    {
+      "page": "Admin",
+      "text": "Agreements & Waivers\n         ",
+      "scrollWidth": 235,
+      "clientWidth": 204
+    },
+    {
+      "page": "Admin",
+      "text": "Catalog & Templates",
+      "scrollWidth": 224,
+      "clientWidth": 194
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Dish",
+      "scrollWidth": 326,
+      "clientWidth": 187
+    },
+    {
+      "page": "Admin",
+      "text": "Save Changes",
+      "scrollWidth": 548,
+      "clientWidth": 270
+    },
+    {
+      "page": "Admin",
+      "text": "Add Item",
+      "scrollWidth": 548,
+      "clientWidth": 270
+    },
+    {
+      "page": "Admin",
+      "text": "Verify",
+      "scrollWidth": 548,
+      "clientWidth": 270
+    },
+    {
+      "page": "Admin",
+      "text": "Save Reward Item",
+      "scrollWidth": 405,
+      "clientWidth": 199
+    },
+    {
+      "page": "Admin",
+      "text": "Save & Send to Client",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Quote",
+      "scrollWidth": 462,
+      "clientWidth": 228
+    },
+    {
+      "page": "Admin",
+      "text": "Convert to Formal Quote →",
+      "scrollWidth": 600,
+      "clientWidth": 296
+    },
+    {
+      "page": "Admin",
+      "text": "Save Catering Dish",
+      "scrollWidth": 430,
+      "clientWidth": 211
+    },
+    {
+      "page": "Admin",
+      "text": "Generate Waiver Link",
+      "scrollWidth": 522,
+      "clientWidth": 257
+    },
+    {
+      "page": "Admin",
+      "text": "Print / Save PDF",
+      "scrollWidth": 417,
+      "clientWidth": 205
+    },
+    {
+      "page": "Admin",
+      "text": "Confirm & Lock Booking",
+      "scrollWidth": 525,
+      "clientWidth": 259
+    }
+  ],
+  "viewportOverflowViolations": [
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 381,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 588,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 795,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1002,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1209,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1416,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1623,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1830,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2037,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2244,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2451,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2658,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2865,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3072,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3279,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3486,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3693,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "Accept All",
+      "right": 365,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Platters",
+      "right": 403,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Burgers",
+      "right": 525,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Drinks",
+      "right": 636,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Street Bites",
+      "right": 794,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Bigi Street Meals",
+      "right": 989,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Wraps",
+      "right": 1097,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Sweet Finish",
+      "right": 1255,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Afghan Plate",
+      "right": 1418,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Signature",
+      "right": 1554,
+      "vpWidth": 320
+    },
+    {
+      "page": "Menu",
+      "text": "Accept All",
+      "right": 365,
+      "vpWidth": 320
+    },
+    {
+      "page": "Catering",
+      "text": "Accept All",
+      "right": 365,
+      "vpWidth": 320
+    },
+    {
+      "page": "Shop",
+      "text": "Accept All",
+      "right": 365,
+      "vpWidth": 320
+    },
+    {
+      "page": "Admin",
+      "text": "Package Requests\n             ",
+      "right": 343,
+      "vpWidth": 320
+    },
+    {
+      "page": "Admin",
+      "text": "Quotes & Proposals\n           ",
+      "right": 564,
+      "vpWidth": 320
+    },
+    {
+      "page": "Admin",
+      "text": "Confirmed Bookings\n           ",
+      "right": 787,
+      "vpWidth": 320
+    },
+    {
+      "page": "Admin",
+      "text": "Agreements & Waivers\n         ",
+      "right": 1026,
+      "vpWidth": 320
+    },
+    {
+      "page": "Admin",
+      "text": "Catalog & Templates",
+      "right": 1254,
+      "vpWidth": 320
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Item",
+      "right": 453,
+      "vpWidth": 320
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 564,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 771,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 978,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1185,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1392,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1599,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1806,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2013,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2220,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2427,
+      "vpWidth": 375
+    },
+    {
+      "page": "Admin",
+      "text": "Quotes & Proposals\n           ",
+      "right": 564,
+      "vpWidth": 375
+    },
+    {
+      "page": "Admin",
+      "text": "Confirmed Bookings\n           ",
+      "right": 787,
+      "vpWidth": 375
+    },
+    {
+      "page": "Admin",
+      "text": "Agreements & Waivers\n         ",
+      "right": 1026,
+      "vpWidth": 375
+    },
+    {
+      "page": "Admin",
+      "text": "Catalog & Templates",
+      "right": 1254,
+      "vpWidth": 375
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Item",
+      "right": 453,
+      "vpWidth": 375
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 554,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 761,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 968,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1175,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1382,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1589,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1796,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2003,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2210,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2417,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2624,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2831,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3038,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3245,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3452,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3659,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Platters",
+      "right": 403,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Burgers",
+      "right": 525,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Drinks",
+      "right": 636,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Street Bites",
+      "right": 794,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Bigi Street Meals",
+      "right": 989,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Wraps",
+      "right": 1097,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Sweet Finish",
+      "right": 1255,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Afghan Plate",
+      "right": 1418,
+      "vpWidth": 390
+    },
+    {
+      "page": "Menu",
+      "text": "Signature",
+      "right": 1554,
+      "vpWidth": 390
+    },
+    {
+      "page": "Admin",
+      "text": "Quotes & Proposals\n           ",
+      "right": 564,
+      "vpWidth": 390
+    },
+    {
+      "page": "Admin",
+      "text": "Confirmed Bookings\n           ",
+      "right": 787,
+      "vpWidth": 390
+    },
+    {
+      "page": "Admin",
+      "text": "Agreements & Waivers\n         ",
+      "right": 1026,
+      "vpWidth": 390
+    },
+    {
+      "page": "Admin",
+      "text": "Catalog & Templates",
+      "right": 1254,
+      "vpWidth": 390
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Item",
+      "right": 453,
+      "vpWidth": 390
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 552,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 759,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 966,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1173,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1380,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1587,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1794,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2001,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2208,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2415,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2622,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2829,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3036,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3243,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3450,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 3657,
+      "vpWidth": 430
+    },
+    {
+      "page": "Menu",
+      "text": "Burgers",
+      "right": 525,
+      "vpWidth": 430
+    },
+    {
+      "page": "Menu",
+      "text": "Drinks",
+      "right": 636,
+      "vpWidth": 430
+    },
+    {
+      "page": "Menu",
+      "text": "Street Bites",
+      "right": 794,
+      "vpWidth": 430
+    },
+    {
+      "page": "Menu",
+      "text": "Bigi Street Meals",
+      "right": 989,
+      "vpWidth": 430
+    },
+    {
+      "page": "Menu",
+      "text": "Wraps",
+      "right": 1097,
+      "vpWidth": 430
+    },
+    {
+      "page": "Menu",
+      "text": "Sweet Finish",
+      "right": 1255,
+      "vpWidth": 430
+    },
+    {
+      "page": "Menu",
+      "text": "Afghan Plate",
+      "right": 1418,
+      "vpWidth": 430
+    },
+    {
+      "page": "Menu",
+      "text": "Signature",
+      "right": 1554,
+      "vpWidth": 430
+    },
+    {
+      "page": "Admin",
+      "text": "Quotes & Proposals\n           ",
+      "right": 564,
+      "vpWidth": 430
+    },
+    {
+      "page": "Admin",
+      "text": "Confirmed Bookings\n           ",
+      "right": 787,
+      "vpWidth": 430
+    },
+    {
+      "page": "Admin",
+      "text": "Agreements & Waivers\n         ",
+      "right": 1026,
+      "vpWidth": 430
+    },
+    {
+      "page": "Admin",
+      "text": "Catalog & Templates",
+      "right": 1254,
+      "vpWidth": 430
+    },
+    {
+      "page": "Admin",
+      "text": "Add Custom Item",
+      "right": 454,
+      "vpWidth": 430
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 772,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 979,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1186,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1393,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1600,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1807,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2014,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2221,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2428,
+      "vpWidth": 768
+    },
+    {
+      "page": "Admin",
+      "text": "Confirmed Bookings\n           ",
+      "right": 787,
+      "vpWidth": 768
+    },
+    {
+      "page": "Admin",
+      "text": "Agreements & Waivers\n         ",
+      "right": 1026,
+      "vpWidth": 768
+    },
+    {
+      "page": "Admin",
+      "text": "Catalog & Templates",
+      "right": 1254,
+      "vpWidth": 768
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1161,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1395,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1629,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1863,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2097,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2331,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2565,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2799,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Menu",
+      "text": "Wraps",
+      "right": 1097,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Menu",
+      "text": "Sweet Finish",
+      "right": 1255,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Menu",
+      "text": "Afghan Plate",
+      "right": 1418,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Menu",
+      "text": "Signature",
+      "right": 1554,
+      "vpWidth": 1024
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1470,
+      "vpWidth": 1440
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1704,
+      "vpWidth": 1440
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 1938,
+      "vpWidth": 1440
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2172,
+      "vpWidth": 1440
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2406,
+      "vpWidth": 1440
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2640,
+      "vpWidth": 1440
+    },
+    {
+      "page": "Homepage",
+      "text": "ADD",
+      "right": 2874,
+      "vpWidth": 1440
+    }
+  ],
+  "duplicateIconViolations": [],
+  "loadingStatePassed": true,
+  "screenshotsTaken": [
+    "C:\\Users\\User\\Documents\\Bigi-Awasaana\\scratch\\admin_catalog_dark_verified.png",
+    "C:\\Users\\User\\Documents\\Bigi-Awasaana\\scratch\\admin_catalog_light_verified.png",
+    "C:\\Users\\User\\Documents\\Bigi-Awasaana\\scratch\\catering_builder_375_verified.png"
+  ],
+  "loadingTest": {
+    "initialWidth": 148.515625,
+    "loadingWidth": 214.578125,
+    "revertedWidth": 148.515625,
+    "widthLocked": true,
+    "hasSpinner": true,
+    "isBusy": true,
+    "isDisabled": true,
+    "revertedSuccessfully": true
+  }
+}

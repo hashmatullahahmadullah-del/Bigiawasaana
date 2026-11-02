@@ -29,12 +29,15 @@ function safeWrite(dest, content) {
   let attempts = 0;
   while (attempts < 5) {
     try {
-      fs.writeFileSync(dest, content);
+      safeWrite(dest, content);
       return;
     } catch (err) {
       attempts++;
-      if (attempts >= 5) throw err;
-      const waitTill = new Date(new Date().getTime() + 200);
+      if (attempts >= 5) {
+        console.warn(`Could not write ${dest} after 5 attempts:`, err.message);
+        return;
+      }
+      const waitTill = new Date(new Date().getTime() + 250);
       while (waitTill > new Date()) {}
     }
   }
@@ -48,7 +51,10 @@ function safeCopy(src, dest) {
       return;
     } catch (err) {
       attempts++;
-      if (attempts >= 5) throw err;
+      if (attempts >= 5) {
+        console.warn(`Could not copy ${src} to ${dest} after 5 attempts:`, err.message);
+        return;
+      }
       const waitTill = new Date(new Date().getTime() + 200);
       while (waitTill > new Date()) {}
     }

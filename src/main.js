@@ -1320,32 +1320,60 @@ function handleDealClick(dealId, event) {
 }
 
 function getDealMeta(deal) {
-  if (!deal) return { reqQty: 2, isGyro: false, targetPlural: 'Plates', targetSingular: 'Plate', rewardTitle: 'Soft Drink' };
+  if (!deal) return { reqQty: 2, isGyro: false, isStreetBite: false, isPlate: true, targetPlural: 'Plates', targetSingular: 'Plate', rewardTitle: 'Soft Drink', rewardHasVariants: true };
   const cond = deal.conditions || {};
   const reqQty = cond.minQty || 2;
-  const isGyro = (deal.title || '').toLowerCase().includes('gyro') || 
-                 (deal.description || '').toLowerCase().includes('gyro') ||
-                 (cond.itemIds || []).some(id => {
-                   const item = (menuItems || []).find(m => m.id === id);
-                   return item && item.name.toLowerCase().includes('gyro');
-                 });
-  
-  const targetPlural = isGyro ? 'Gyro Rice Bowls' : 'Plates';
-  const targetSingular = isGyro ? 'Gyro Rice Bowl' : 'Plate';
-  
+
+  // Detect item categories from the deal's qualifying item IDs
+  const dealItemCategories = (cond.itemIds || []).map(id => {
+    const item = (menuItems || []).find(m => m.id === id);
+    return item ? (item.category || '').toLowerCase() : '';
+  });
+  const dealItemNames = (cond.itemIds || []).map(id => {
+    const item = (menuItems || []).find(m => m.id === id);
+    return item ? item.name.toLowerCase() : '';
+  });
+
+  const isGyro = dealItemNames.some(n => n.includes('gyro')) ||
+                 (deal.title || '').toLowerCase().includes('gyro') ||
+                 (deal.description || '').toLowerCase().includes('gyro');
+
+  const isStreetBite = dealItemCategories.some(c => c.includes('street') || c.includes('bite') || c.includes('samosa') || c.includes('bolani')) ||
+                       dealItemNames.some(n => n.includes('samosa') || n.includes('bolani') || n.includes('street'));
+
+  const isPlate = !isStreetBite && !isGyro &&
+                  (dealItemCategories.some(c => c.includes('plate') || c.includes('platter') || c.includes('kabob')) ||
+                   dealItemNames.some(n => n.includes('kabob') || n.includes('plate')));
+
+  let targetPlural, targetSingular;
+  if (isGyro) {
+    targetPlural = 'Gyro Rice Bowls'; targetSingular = 'Gyro Rice Bowl';
+  } else if (isStreetBite) {
+    targetPlural = 'Street Bites'; targetSingular = 'Street Bite';
+  } else {
+    targetPlural = 'Plates'; targetSingular = 'Plate';
+  }
+
   const reward = deal.reward || {};
   let rewardTitle = 'Soft Drink';
+  let rewardHasVariants = true;
   if (reward.rewardItemIds && reward.rewardItemIds.length > 0) {
     const rItem = (menuItems || []).find(m => reward.rewardItemIds.includes(m.id));
-    if (rItem) rewardTitle = rItem.name;
+    if (rItem) {
+      rewardTitle = rItem.name;
+      rewardHasVariants = rItem.variants && rItem.variants.length > 0;
+    }
   }
-  
+
   return {
     reqQty,
     isGyro,
+    isStreetBite,
+    isPlate,
     targetPlural,
     targetSingular,
-    rewardTitle
+    rewardTitle,
+    rewardHasVariants
   };
 }
 
@@ -1397,7 +1425,7 @@ function renderDealsGrid() {
         <div class="promo-card-footer">
           <div class="promo-footer-info">
             <span class="promo-status-label">Online Exclusive Combo</span>
-            <span class="promo-savings-sub">Includes basmati rice, salad &amp; house sauces</span>
+            <span class="promo-savings-sub">${meta.isStreetBite ? 'Includes 1 free ' + escapeHtml(meta.rewardTitle) : 'Includes basmati rice, salad &amp; house sauces'}</span>
           </div>
           <button type="button" class="promo-claim-btn" aria-label="Claim Deal: ${escapeHtml(deal.title)}" onclick="handleDealClick('${deal.id}', event)">
             <span>Claim Deal</span>
@@ -1464,7 +1492,7 @@ function ensureDealModal() {
             <div class="deal-section-title">
               <span class="step-badge step-badge-free">${iconSparkle(13)}</span>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <h3 class="step-heading">Choose Your Free Drink</h3>
+                <h3 class="step-heading" id="deal-modal-step2-heading">Your Free Item</h3>
                 <span class="badge-free-pill">FREE</span>
               </div>
             </div>
@@ -1518,6 +1546,18 @@ function openDealModal(dealId) {
   const heroBadge = document.getElementById('deal-modal-badge');
   if (heroBadge) heroBadge.textContent = deal.badge || 'EXCLUSIVE DEAL';
 
+  // Update hero saving pill dynamically
+  const savingPill = document.querySelector('.deal-hero-saving-pill');
+  if (savingPill) {
+    const rewardVal = (deal.reward || {}).value;
+    if (rewardVal) {
+      savingPill.textContent = `SAVE $${Number(rewardVal).toFixed(2)}`;
+      savingPill.style.display = '';
+    } else {
+      savingPill.style.display = 'none';
+    }
+  }
+
   const descEl = document.getElementById('deal-modal-desc');
   if (descEl) descEl.textContent = deal.description || '';
 
@@ -1528,19 +1568,23 @@ function openDealModal(dealId) {
   // Set Dynamic Hero Perks
   const perksEl = document.getElementById('deal-modal-perks');
   if (perksEl) {
+    // Only show the rice/salad perk for gyro or plate deals, not street bites
+    const riceAndSaladPerk = (!meta.isStreetBite)
+      ? `<div class="deal-hero-perk-item">
+          <span class="perk-check">${iconCheck(13)}</span>
+          <span>Includes Fragrant Basmati Rice, Fresh Salad &amp; House Sauces</span>
+         </div>`
+      : '';
     perksEl.innerHTML = `
       <div class="deal-hero-perk-item">
         <span class="perk-check">${iconCheck(13)}</span>
-        <span>${meta.reqQty} Authentic ${escapeHtml(meta.targetPlural)}</span>
+        <span>${meta.reqQty} ${escapeHtml(meta.targetPlural)}</span>
       </div>
       <div class="deal-hero-perk-item">
         <span class="perk-check">${iconCheck(13)}</span>
-        <span>1 Complimentary Chilled ${escapeHtml(meta.rewardTitle)}</span>
+        <span>1 Complimentary ${escapeHtml(meta.rewardTitle)}</span>
       </div>
-      <div class="deal-hero-perk-item">
-        <span class="perk-check">${iconCheck(13)}</span>
-        <span>Includes Fragrant Basmati Rice, Fresh Salad &amp; House Sauces</span>
-      </div>
+      ${riceAndSaladPerk}
     `;
   }
 
@@ -1604,7 +1648,7 @@ function openDealModal(dealId) {
                 <span style="font-size: 14px; color: var(--accent); font-family: 'Barlow Condensed'; font-weight: 700;">
                   $${(plate.price || 0).toFixed(2)}
                 </span>
-                <span style="font-size: 11px; color: #71717a;">• Saffron rice &amp; salad</span>
+                ${(!meta.isStreetBite) ? '<span style="font-size: 11px; color: #71717a;">• Served with rice &amp; salad</span>' : ''}
               </div>
             </div>
           </div>
@@ -1618,30 +1662,50 @@ function openDealModal(dealId) {
     }).join('');
   }
 
-  // Render Reward Drink Flavors (Step 2)
+  // Render Reward Section (Step 2)
   const rewardContainer = document.getElementById('deal-reward-items-container');
   if (rewardContainer) {
-    const flavors = (rewardItem && rewardItem.variants && rewardItem.variants.length > 0)
-      ? rewardItem.variants.map(v => v.name)
-      : ['Coca Cola', 'Diet Coke', 'Sprite', 'Fanta'];
-    
-    dealSelectedRewardVariant = flavors[0];
-
-    rewardContainer.innerHTML = `
-      <div class="deal-flavor-grid">
-        ${flavors.map(flavor => `
-          <div class="deal-flavor-card ${flavor === dealSelectedRewardVariant ? 'selected' : ''}" onclick="selectDealReward('${flavor}')">
-            <div class="deal-radio-circle">
-              <span class="deal-radio-dot"></span>
+    if (rewardItem && rewardItem.variants && rewardItem.variants.length > 0) {
+      // Has variants — show flavor picker grid
+      const flavors = rewardItem.variants.map(v => v.name);
+      dealSelectedRewardVariant = flavors[0];
+      rewardContainer.innerHTML = `
+        <div class="deal-flavor-grid">
+          ${flavors.map(flavor => `
+            <div class="deal-flavor-card ${flavor === dealSelectedRewardVariant ? 'selected' : ''}" onclick="selectDealReward('${flavor}')">
+              <div class="deal-radio-circle">
+                <span class="deal-radio-dot"></span>
+              </div>
+              <div>
+                <div class="flavor-name">${escapeHtml(flavor)}</div>
+                <div class="flavor-free-tag">FREE INCLUDED</div>
+              </div>
             </div>
-            <div>
-              <div class="flavor-name">${escapeHtml(flavor)}</div>
-              <div class="flavor-free-tag">FREE INCLUDED</div>
-            </div>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      // No variants — show single free-item confirmation card (e.g. Bigi's Doogh)
+      const rewardName = rewardItem ? rewardItem.name : 'Free Item';
+      dealSelectedRewardVariant = rewardName;
+      rewardContainer.innerHTML = `
+        <div class="deal-flavor-card selected" style="cursor: default; pointer-events: none;">
+          <div class="deal-radio-circle">
+            <span class="deal-radio-dot"></span>
           </div>
-        `).join('')}
-      </div>
-    `;
+          <div>
+            <div class="flavor-name">${escapeHtml(rewardName)}</div>
+            <div class="flavor-free-tag">FREE INCLUDED</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Also update step 2 heading to match actual reward item
+  const step2Heading = document.getElementById('deal-modal-step2-heading');
+  if (step2Heading) {
+    step2Heading.textContent = meta.rewardHasVariants ? 'Choose Your Free Drink' : `Your Free ${meta.rewardTitle}`;
   }
 
   updateDealModalState();
@@ -1676,6 +1740,12 @@ function adjustDealPlateQty(plateId, delta) {
     else rowEl.classList.remove('has-qty');
   }
 
+  // Also update step 2 heading to match actual reward item
+  const step2Heading = document.getElementById('deal-modal-step2-heading');
+  if (step2Heading) {
+    step2Heading.textContent = meta.rewardHasVariants ? 'Choose Your Free Drink' : `Your Free ${meta.rewardTitle}`;
+  }
+
   updateDealModalState();
 }
 
@@ -1689,6 +1759,12 @@ function selectDealReward(flavor) {
       card.classList.remove('selected');
     }
   });
+  // Also update step 2 heading to match actual reward item
+  const step2Heading = document.getElementById('deal-modal-step2-heading');
+  if (step2Heading) {
+    step2Heading.textContent = meta.rewardHasVariants ? 'Choose Your Free Drink' : `Your Free ${meta.rewardTitle}`;
+  }
+
   updateDealModalState();
 }
 
@@ -1723,8 +1799,19 @@ function updateDealModalState() {
   }
   if (origPriceEl) {
     if (platesTotal > 0) {
-      origPriceEl.style.display = 'inline';
-      origPriceEl.textContent = `$${(platesTotal + 2.45).toFixed(2)}`;
+      // Use reward.value from Firestore if available, otherwise use reward item's actual price
+      const rewardVal = currentDealItem.reward?.value;
+      const savings = rewardVal ? Number(rewardVal) : (() => {
+        const rewardItemId = (currentDealItem.reward?.rewardItemIds || [])[0];
+        const ri = rewardItemId ? (menuItems || []).find(m => m.id === rewardItemId) : null;
+        return ri ? (ri.price || 0) : 0;
+      })();
+      if (savings > 0) {
+        origPriceEl.style.display = 'inline';
+        origPriceEl.textContent = `$${(platesTotal + savings).toFixed(2)}`;
+      } else {
+        origPriceEl.style.display = 'none';
+      }
     } else {
       origPriceEl.style.display = 'none';
     }
@@ -1812,7 +1899,9 @@ function addDealToCart() {
   }
 
   if (drinkItem) {
-    const variant = dealSelectedRewardVariant || 'Coca Cola';
+    // If reward item has no variants (e.g. Bigi's Doogh), don't append variant to cart key
+    const hasVariants = drinkItem.variants && drinkItem.variants.length > 0;
+    const variant = hasVariants ? (dealSelectedRewardVariant || '') : '';
     const drinkKey = `${drinkItem.id}|${variant}|`;
     const existingDrink = cart.find(c => c.cartKey === drinkKey);
     if (existingDrink) {
@@ -1826,7 +1915,8 @@ function addDealToCart() {
         originalPrice: drinkItem.price,
         selectedVariant: variant,
         selectedAddOns: [],
-        isMeal: false
+        isMeal: false,
+        isDealReward: true
       });
     }
   }

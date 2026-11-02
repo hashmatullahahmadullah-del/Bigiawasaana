@@ -1,0 +1,679 @@
+const fs = require('fs');
+
+const quoteHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Catering Proposal &amp; Booking | Bigi Awasaana</title>
+  <meta name="description" content="Review, accept, and secure your 100% Zabiha Halal Afghan catering proposal and party trays from Bigi Awasaana in Reseda, Los Angeles.">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/mobile-nav.css">
+  <!-- Square Web Payments SDK -->
+  <script src="https://web.squarecdn.com/v1/square.js"></script>
+
+  <style>
+    :root {
+      --bg-portal: #0B0B0B;
+      --surface-portal: #141416;
+      --surface-sub: #1a1a1e;
+      --surface-elevated: #202026;
+      --border-portal: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.16);
+      --border-focus: #FF4500;
+      --accent: #FF4500;
+      --accent-hover: #ff571a;
+      --accent-glow: rgba(255, 69, 0, 0.2);
+      --text-main: #FFFFFF;
+      --text-muted: #A1A1AA;
+      --text-dim: #71717A;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-portal);
+      color: var(--text-main);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    input::-webkit-search-cancel-button,
+    input::-ms-clear {
+      display: none;
+    }
+
+    /* Portal Sticky Header */
+    .portal-header {
+      background: rgba(11, 11, 11, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-portal);
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .portal-nav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .portal-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .portal-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid rgba(255, 69, 0, 0.4);
+      box-shadow: 0 0 12px rgba(255, 69, 0, 0.2);
+      flex-shrink: 0;
+    }
+
+    .portal-brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .portal-brand-title {
+      font-family: 'Lalezar', cursive;
+      font-size: 22px;
+      margin: 0;
+      line-height: 1.05;
+      color: #FFFFFF;
+      letter-spacing: 0.5px;
+    }
+
+    .portal-brand-tagline {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .portal-header-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .portal-meta-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-portal);
+      background: rgba(255, 255, 255, 0.03);
+      transition: all 0.2s ease;
+    }
+
+    .portal-meta-link:hover {
+      color: #FFFFFF;
+      border-color: var(--border-hover);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .portal-halal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    /* Portal Main Container */
+    .portal-container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .portal-card {
+      background: var(--surface-portal);
+      border: 1px solid var(--border-portal);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .food-item-card {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      background: var(--surface-sub);
+      border: 1px solid var(--border-portal);
+      border-radius: 10px;
+      align-items: center;
+      transition: border-color 0.2s ease;
+    }
+    .food-item-card:hover {
+      border-color: var(--border-hover);
+    }
+
+    .food-item-img {
+      width: 76px;
+      height: 76px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #0e0e0e;
+      border: 1px solid var(--border-portal);
+    }
+
+    .portal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      text-transform: capitalize;
+    }
+
+    .status-draft { background: rgba(161,161,170,0.15); color: #a1a1aa; border: 1px solid rgba(161,161,170,0.3); }
+    .status-sent { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+    .status-viewed { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .status-accepted { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .status-deposit-paid { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981; }
+    .status-paid-full { background: rgba(34,197,94,0.25); color: #22c55e; border: 1px solid #22c55e; }
+
+    /* Payment Options & Digital Wallets */
+    #apple-pay-button {
+      height: 48px;
+      width: 100%;
+      display: none;
+      margin-bottom: 12px;
+      cursor: pointer;
+      direction: ltr !important;
+    }
+    #google-pay-button {
+      height: 48px;
+      width: 100%;
+      display: none;
+      margin-bottom: 12px;
+      cursor: pointer;
+      direction: ltr !important;
+    }
+    #card-container {
+      min-height: 90px;
+      margin: 10px 0;
+      direction: ltr !important;
+      text-align: left !important;
+    }
+    .wallet-divider {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      margin: 18px 0;
+    }
+    .wallet-divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border-portal);
+    }
+    .wallet-divider-text {
+      padding: 0 14px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .payment-option-pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface-sub);
+      border: 1px solid var(--border-portal);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 10px;
+    }
+    .payment-option-pill.active {
+      border-color: var(--accent);
+      background: rgba(255, 69, 0, 0.08);
+    }
+
+    /* Buttons System */
+    .btn-portal-primary {
+      background: var(--accent);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 12px 24px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      width: 100%;
+    }
+    .btn-portal-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn-portal-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-portal-secondary {
+      background: var(--surface-sub);
+      color: var(--text-main);
+      border: 1px solid var(--border-portal);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 10px 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-portal-secondary:hover {
+      border-color: var(--border-hover);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 860px) {
+      .portal-container {
+        padding: 20px 14px 48px;
+      }
+      .portal-card {
+        padding: 18px 14px;
+      }
+      .food-item-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .food-item-img {
+        width: 100%;
+        height: 140px;
+      }
+      .desktop-only {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Portal Header -->
+  <header class="portal-header">
+    <div class="portal-nav-inner">
+      <a href="/" class="portal-brand" aria-label="Bigi Awasaana Home">
+        <img src="/logo.webp" alt="Bigi Awasaana" class="portal-logo">
+        <div class="portal-brand-text">
+          <div class="portal-brand-title">BIGI AWASAANA</div>
+          <div class="portal-brand-tagline">Authentic Afghan Hospitality &amp; Charcoal Grill</div>
+        </div>
+      </a>
+      <div class="portal-header-meta">
+        <span class="portal-halal-badge desktop-only">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          100% Zabiha Halal
+        </span>
+        <a href="tel:+13239211646" class="portal-meta-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          <span>(323) 921-1646</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div id="portal-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 20px; text-align: center;">
+    <div style="width: 44px; height: 44px; border: 3px solid rgba(255,69,0,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;"></div>
+    <div style="font-size: 18px; font-weight: 600; color: #fff;">Verifying Proposal Access...</div>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">Retrieving your personalized catering proposal and menu details.</div>
+  </div>
+
+  <!-- Verification Card (Dual-Mode Access if token missing or invalid) -->
+  <div id="portal-auth-card" style="display: none; max-width: 500px; margin: 60px auto; padding: 0 16px;">
+    <div class="portal-card">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 52px; height: 52px; background: rgba(255,69,0,0.1); border: 1px solid rgba(255,69,0,0.25); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <h1 style="font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 6px;">Catering Proposal Access</h1>
+        <p style="font-size: 14px; color: var(--text-muted); margin: 0;">Enter your assigned Quote Number and your contact information to securely open your proposal.</p>
+      </div>
+
+      <div id="auth-error-banner" style="display: none; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 12px; border-radius: 6px; font-size: 13px; margin-bottom: 18px; text-align: center;"></div>
+
+      <form id="portal-auth-form" onsubmit="window.handlePortalAuthSubmit(event)">
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Quote Number *</label>
+          <input type="text" id="auth-quote-input" required placeholder="e.g. BA-Q-2610-A1B2" style="width: 100%; box-sizing: border-box; background: var(--surface-sub); border: 1px solid var(--border-portal); color: #fff; border-radius: 8px; padding: 12px 14px; font-size: 14px; font-family: inherit;">
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Phone Number or Email *</label>
+          <input type="text" id="auth-contact-input" required placeholder="Matching phone or email on proposal" style="width: 100%; box-sizing: border-box; background: var(--surface-sub); border: 1px solid var(--border-portal); color: #fff; border-radius: 8px; padding: 12px 14px; font-size: 14px; font-family: inherit;">
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="btn-portal-primary">
+          <span>View proposal</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Proposal Container -->
+  <main class="portal-container" id="portal-content" style="display: none;">
+
+    <!-- Top Banner / Event Title Bar -->
+    <div class="portal-card" style="margin-bottom: 24px; position: relative; overflow: hidden;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px;">
+            <span class="portal-badge" id="portal-status-badge">Proposal Sent</span>
+            <span style="font-family: monospace; font-size: 15px; font-weight: 700; color: var(--accent);" id="portal-quote-number">BA-Q-XXXX-XXXX</span>
+          </div>
+          <h1 style="font-size: clamp(24px, 4vw, 34px); font-weight: 700; margin: 0 0 4px; color: #fff;" id="portal-client-title">Catering Proposal</h1>
+          <p style="color: var(--text-muted); font-size: 14px; margin: 0;" id="portal-created-date">Prepared on October 30, 2026</p>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" onclick="window.print()" class="btn-portal-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            <span>Print or save PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Event Key Details Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 18px; background: var(--surface-sub); border-radius: 10px; border: 1px solid var(--border-portal);">
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px;">Event Date &amp; Time</div>
+          <div style="font-size: 15px; font-weight: 600; color: #fff;" id="portal-event-datetime">--</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px;">Guest Count</div>
+          <div style="font-size: 15px; font-weight: 600; color: #fff;" id="portal-guest-count">-- Guests</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px;">Fulfillment</div>
+          <div style="font-size: 15px; font-weight: 600; color: #fff;" id="portal-fulfillment-type">White-Glove Delivery</div>
+        </div>
+        <div id="portal-address-row">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px;">Venue / Delivery Address</div>
+          <div style="font-size: 14px; font-weight: 500; color: #fff; line-height: 1.4;" id="portal-delivery-address">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dual Column Layout: Left Menu Breakdown, Right Financial & Payment -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+
+      <!-- Left Column: Catering Menu Items List -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+
+        <div class="portal-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-portal); padding-bottom: 14px;">
+            <div>
+              <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 4px;">Custom Banquet Menu</h2>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Prepared fresh over charcoal for your celebration.</p>
+            </div>
+            <div style="text-align: right;">
+              <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>100% Hand-Slaughtered Zabiha Halal</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="portal-items-list" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Populated dynamically by quote.js -->
+          </div>
+
+          <!-- Special Dietary & Prep Notes -->
+          <div id="portal-notes-container" style="display: none; margin-top: 18px; padding: 14px; background: var(--surface-sub); border: 1px solid var(--border-portal); border-radius: 8px;">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Special Preparation Notes:</div>
+            <div style="font-size: 13px; color: #e4e4e7; line-height: 1.6;" id="portal-notes-text"></div>
+          </div>
+        </div>
+
+        <!-- Afghan Culinary Heritage Card -->
+        <div class="portal-card">
+          <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0 0 8px;">The Bigi Awasaana Catering Standard</h3>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.7; margin: 0 0 12px;">
+            Every single catering tray is prepared fresh over authentic hardwood charcoal right before your event. We never use pre-frozen meats, commercial tenderizers, or machine-cut shortcuts. From our house-baked Afghan bread to our hand-ground Chapli Kabobs seasoned with pomegranate seeds and crushed coriander, your guests will experience true Silk Road hospitality.
+          </p>
+          <div style="display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Fresh Charcoal Grilling</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Zero Artificial Additives</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Financial Summary & Acceptance / Payment -->
+      <div>
+        
+        <!-- Pricing Breakdown Card -->
+        <div class="portal-card" style="margin-bottom: 24px;">
+          <h2 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 16px; border-bottom: 1px solid var(--border-portal); padding-bottom: 12px;">Proposal Financials</h2>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+            <span style="color: var(--text-muted);">Food &amp; Beverage Subtotal</span>
+            <span style="font-weight: 600; color: #fff;" id="portal-subtotal">$0.00</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;" id="portal-delivery-row">
+            <span style="color: var(--text-muted);">Delivery &amp; Buffet Setup</span>
+            <span style="font-weight: 600; color: #fff;" id="portal-delivery-fee">$0.00</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;" id="portal-discount-row">
+            <span style="color: #10b981;">Special Discount</span>
+            <span style="font-weight: 600; color: #10b981;" id="portal-discount">-$0.00</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 14px;">
+            <span style="color: var(--text-muted);">Sales Tax (9.5% LA County)</span>
+            <span style="font-weight: 600; color: #fff;" id="portal-tax">$0.00</span>
+          </div>
+
+          <div style="height: 1px; background: var(--border-portal); margin: 14px 0;"></div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <span style="font-size: 16px; font-weight: 700; color: #fff;">Grand Total</span>
+            <span style="font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800; color: #fff;" id="portal-grand-total">$0.00</span>
+          </div>
+
+          <!-- Deposit & Balance Highlight -->
+          <div style="background: rgba(255,69,0,0.06); border: 1px solid rgba(255,69,0,0.25); border-radius: 10px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 13px; font-weight: 700; color: #ff8c00; text-transform: uppercase; letter-spacing: 0.5px;" id="portal-deposit-label">30% Deposit to Confirm:</span>
+              <span style="font-size: 20px; font-weight: 800; color: #10b981;" id="portal-deposit-amount">$0.00</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+              A 30% initial deposit locks in your event date with our kitchen. The remaining balance is payable on or before your event day.
+            </div>
+          </div>
+        </div>
+
+        <!-- Acceptance Card (Active when quote status is 'sent' or 'viewed') -->
+        <div class="portal-card" id="portal-acceptance-card" style="display: none; margin-bottom: 24px;">
+          <h2 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 12px;">Accept Catering Proposal</h2>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin: 0 0 16px;">
+            Please enter your legal name and acknowledge our catering guidelines to lock in this package.
+          </p>
+
+          <form onsubmit="window.handleAcceptProposalSubmit(event)">
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Your Full Name *</label>
+              <input type="text" id="signer-name-input" required placeholder="e.g. Ahmad Stanikzai" style="width: 100%; box-sizing: border-box; background: var(--surface-sub); border: 1px solid var(--border-portal); color: #fff; border-radius: 8px; padding: 12px 14px; font-size: 14px; font-family: inherit;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                <input type="checkbox" id="accept-terms-checkbox" required style="margin-top: 3px; accent-color: var(--accent);">
+                <span>I have reviewed the menu portions, event timing, and delivery address. I agree to the catering terms and 30% deposit requirement.</span>
+              </label>
+            </div>
+
+            <button type="submit" id="btn-accept-proposal" class="btn-portal-primary">
+              <span>Accept proposal &amp; continue</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Deposit Payment Card (Active when status is 'accepted') -->
+        <div class="portal-card" id="portal-payment-card" style="display: none;">
+          <h2 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 8px;">Lock In Your Event</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 18px;">
+            Pay your 30% reservation deposit or pay in full using any major card or Apple Pay / Google Pay.
+          </p>
+
+          <!-- Payment Option Selector -->
+          <div style="margin-bottom: 18px;">
+            <div class="payment-option-pill active" id="pill-opt-deposit" onclick="window.selectPaymentTier('deposit')">
+              <input type="radio" name="pay-tier" id="radio-pay-deposit" checked style="accent-color: var(--accent);">
+              <div style="flex: 1;">
+                <div style="font-weight: 700; color: #fff; font-size: 14px;" id="label-pay-deposit-title">Pay 30% Deposit</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Remaining balance due on event day</div>
+              </div>
+              <div style="font-weight: 800; color: #10b981; font-size: 16px;" id="pay-deposit-val">$0.00</div>
+            </div>
+
+            <div class="payment-option-pill" id="pill-opt-full" onclick="window.selectPaymentTier('full')">
+              <input type="radio" name="pay-tier" id="radio-pay-full" style="accent-color: var(--accent);">
+              <div style="flex: 1;">
+                <div style="font-weight: 700; color: #fff; font-size: 14px;">Pay In Full (100%)</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Settle complete order today</div>
+              </div>
+              <div style="font-weight: 800; color: #fff; font-size: 16px;" id="pay-full-val">$0.00</div>
+            </div>
+          </div>
+
+          <!-- Digital Wallets (Apple Pay / Google Pay) -->
+          <div id="digital-wallets">
+            <div id="apple-pay-button"></div>
+            <div id="google-pay-button"></div>
+            <div class="wallet-divider" id="wallets-or-divider">
+              <div class="wallet-divider-line"></div>
+              <span class="wallet-divider-text">Or Pay with Card</span>
+              <div class="wallet-divider-line"></div>
+            </div>
+          </div>
+
+          <!-- Square Card Container -->
+          <div>
+            <div id="card-container"></div>
+            <div id="payment-error-msg" style="display: none; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin: 10px 0;"></div>
+
+            <button type="button" id="btn-submit-payment" onclick="window.handlePaymentSubmit()" class="btn-portal-primary" style="margin-top: 10px;">
+              <span id="btn-pay-text">Pay Deposit</span>
+            </button>
+            <div style="font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span>End-to-End Encrypted 256-bit Payment via Square</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirmed / Receipt Card (Active when status is 'deposit_paid' or 'paid_in_full') -->
+        <div class="portal-card" id="portal-confirmed-card" style="display: none; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.3);">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="width: 52px; height: 52px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 4px;">Event Booking Confirmed!</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Your reservation is locked in our kitchen calendar.</p>
+          </div>
+
+          <div style="background: var(--surface-sub); border: 1px solid var(--border-portal); border-radius: 8px; padding: 14px; font-size: 13px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="color: var(--text-muted);">Payment Reference:</span>
+              <span style="font-family: monospace; color: #fff;" id="receipt-tx-id">--</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="color: var(--text-muted);">Amount Paid:</span>
+              <span style="font-weight: 700; color: #10b981;" id="receipt-paid-amount">$0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Balance Due:</span>
+              <span style="font-weight: 700; color: #fff;" id="receipt-balance-amount">$0.00</span>
+            </div>
+          </div>
+
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6; text-align: center;">
+            Our head chef will contact you 48 hours prior to your event date to re-verify venue access and setup details.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Script initialization -->
+  <script type="module" src="/src/quote.js"></script>
+</body>
+</html>
+`;
+
+fs.writeFileSync('quote.html', quoteHtml, 'utf8');
+console.log('Successfully rebuilt quote.html with full waiver visual parity and 100% ID preservation!');

@@ -1,0 +1,17 @@
+{
+  "arrows": [
+    {
+      "file": "admin.html",
+      "line": 86,
+      "text": "<svg class=\"ui-icon\" width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" st"
+    },
+    {
+      "file": "src/main.js",
+      "line": 2736,
+      "text": "// Ensure Square card is initialized (handles close → reopen race condition)"
+    }
+  ],
+  "roboticCopy": [],
+  "shieldBadges": [],
+  "glowingStyles": []
+}
