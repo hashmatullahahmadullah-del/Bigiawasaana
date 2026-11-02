@@ -1052,46 +1052,6 @@ button.btn-loading {
   transform: scale(0.97);
 }
 
-/* Live radar indicator for delivery section */
-.delivery-live-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  color: var(--gray);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 600;
-}
-.delivery-live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #FF6A00;
-  position: relative;
-  display: inline-block;
-  flex-shrink: 0;
-}
-.delivery-live-dot::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  border: 1px solid #FF6A00;
-  animation: deliveryRadar 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-@keyframes deliveryRadar {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(2.4);
-    opacity: 0;
-  }
-}
-
 /* Precise Flat Proportions with Uniform Dimensions */
 .delivery-btn-sm {
   padding: 8px 18px;
