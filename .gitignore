@@ -31,3 +31,5 @@ dist-ssr
 !.env.example
 
 functions/.env
+
+scratch/full_security_audit.md
